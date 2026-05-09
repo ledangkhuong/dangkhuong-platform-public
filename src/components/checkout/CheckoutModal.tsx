@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw, CreditCard } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface Product {
   id: string;
@@ -13,8 +14,10 @@ interface Product {
 interface Order {
   id: string;
   code: string;
-  qrUrl: string;
+  qrUrl: string | null;
   amount: number;
+  transferContent: string;
+  manual: boolean;
 }
 
 interface CheckoutModalProps {
@@ -26,14 +29,36 @@ interface CheckoutModalProps {
 type PaymentStatus = "idle" | "pending" | "success" | "error";
 
 export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProps) {
-  const [step, setStep] = useState<"info" | "payment" | "success">("info");
+  const [step, setStep] = useState<"creating" | "payment" | "success">("creating");
   const [order, setOrder] = useState<Order | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
-  const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(900); // 15 minutes
+  const [copied, setCopied] = useState<string>("");
+  const [countdown, setCountdown] = useState(900);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const autoCreatedRef = useRef(false);
+
+  // Auto-fetch user info on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, phone")
+          .eq("id", user.id)
+          .single();
+        setFullName(profile?.full_name ?? user.email?.split("@")[0] ?? "");
+        setEmail(user.email ?? "");
+        setPhone(profile?.phone ?? "");
+      }
+    };
+    fetchUser();
+  }, []);
 
   const checkPayment = useCallback(async () => {
     if (!order) return;
@@ -82,41 +107,64 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
   const formatPrice = (price: number) =>
     price.toLocaleString("vi-VN") + "₫";
 
-  const handleCreateOrder = async () => {
-    if (!fullName.trim() || !email.trim()) return;
+  const handleCreateOrder = useCallback(async () => {
+    if (loading) return;
     setLoading(true);
+    setErrorMsg("");
     try {
       const res = await fetch("/api/orders/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: product.id, full_name: fullName, email }),
+        body: JSON.stringify({
+          product_id: product.id,
+          customer_name: fullName || "Khách hàng",
+          customer_email: email,
+          customer_phone: phone,
+        }),
       });
       const data = await res.json();
-      if (data.order) {
-        setOrder(data.order);
+      if (data.success && data.order) {
+        setOrder({
+          id: data.order.id,
+          code: data.paymentInfo?.transfer_content || data.order.order_code,
+          qrUrl: data.paymentInfo?.qr_url || null,
+          amount: data.order.amount,
+          transferContent: data.paymentInfo?.transfer_content || `DK${data.order.order_code}`,
+          manual: data.paymentInfo?.manual || false,
+        });
         setStep("payment");
         setPaymentStatus("pending");
+      } else {
+        setErrorMsg(data.error || "Không thể tạo đơn hàng");
+        setPaymentStatus("error");
       }
     } catch {
+      setErrorMsg("Lỗi kết nối. Vui lòng thử lại.");
       setPaymentStatus("error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [fullName, email, phone, product.id, loading]);
 
-  const copyToClipboard = (text: string) => {
+  // Auto-create order once user data is loaded
+  useEffect(() => {
+    if (fullName && email && !autoCreatedRef.current) {
+      autoCreatedRef.current = true;
+      handleCreateOrder();
+    }
+  }, [fullName, email, handleCreateOrder]);
+
+  const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopied(label);
+      setTimeout(() => setCopied(""), 2000);
     });
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
       <div className="relative w-full max-w-md card-dark overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4"
@@ -134,10 +182,9 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
           </button>
         </div>
 
-        {/* Step: Info */}
-        {step === "info" && (
+        {/* Step: Creating order */}
+        {step === "creating" && (
           <div className="p-5">
-            {/* Product summary */}
             <div className="p-4 rounded-xl mb-5" style={{ background: "#222", border: "1px solid #333" }}>
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -152,59 +199,32 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               </div>
             </div>
 
-            {/* Contact info */}
-            <div className="space-y-3 mb-5">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Họ và tên *</label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Nguyễn Văn A"
-                  className="input-dark w-full text-sm"
-                />
+            {!errorMsg && (
+              <div className="flex items-center justify-center py-6">
+                <span className="flex items-center gap-2 text-sm text-gray-400">
+                  <RefreshCw size={14} className="animate-spin" /> Đang tạo đơn thanh toán...
+                </span>
               </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Email *</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="input-dark w-full text-sm"
-                />
-              </div>
-            </div>
+            )}
 
-            {/* Payment method */}
-            <div className="p-3 rounded-xl mb-5 flex items-center gap-3"
-              style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)" }}>
-              <span className="text-2xl">🏦</span>
-              <div>
-                <div className="text-sm font-medium text-white">Chuyển khoản ngân hàng</div>
-                <div className="text-xs text-gray-400">QR Code tự động — xác nhận trong 60 giây</div>
-              </div>
-              <span className="ml-auto badge-green text-[10px]">Duy nhất</span>
-            </div>
-
-            <button
-              onClick={handleCreateOrder}
-              disabled={loading || !fullName.trim() || !email.trim()}
-              className="btn-green w-full justify-center text-sm py-3 disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? (
-                <span className="flex items-center gap-2"><RefreshCw size={14} className="animate-spin" /> Đang tạo đơn...</span>
-              ) : (
-                `Tiến hành thanh toán — ${formatPrice(product.price)}`
-              )}
-            </button>
-
-            <p className="text-center text-[11px] text-gray-600 mt-3">
-              Bằng cách tiếp tục, bạn đồng ý với điều khoản sử dụng
-            </p>
+            {errorMsg && (
+              <>
+                <div className="p-3 rounded-lg flex items-center gap-2 text-sm mb-4"
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                  <AlertCircle size={14} className="text-red-400 shrink-0" />
+                  <span className="text-red-400">{errorMsg}</span>
+                </div>
+                <button
+                  onClick={() => { autoCreatedRef.current = false; setPaymentStatus("idle"); setErrorMsg(""); handleCreateOrder(); }}
+                  className="btn-green w-full justify-center text-sm py-3">
+                  Thử lại
+                </button>
+              </>
+            )}
           </div>
         )}
 
-        {/* Step: Payment QR */}
+        {/* Step: Payment */}
         {step === "payment" && order && (
           <div className="p-5">
             {/* Countdown */}
@@ -219,27 +239,43 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               <div className="badge-green text-[10px]">Đang chờ thanh toán</div>
             </div>
 
-            {/* QR Code */}
-            <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-xl bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={order.qrUrl}
-                  alt="QR thanh toán"
-                  width={200}
-                  height={200}
-                  className="block"
-                />
+            {/* QR Code (if Sepay configured) */}
+            {order.qrUrl && (
+              <div className="flex justify-center mb-4">
+                <div className="p-3 rounded-xl bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={order.qrUrl}
+                    alt="QR thanh toán"
+                    width={200}
+                    height={200}
+                    className="block"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Transfer info */}
+            {/* Manual transfer info (when no Sepay) */}
+            {order.manual && (
+              <div className="p-4 rounded-xl mb-4" style={{ background: "#1a1a1a", border: "1px solid #333" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard size={16} className="text-[#22c55e]" />
+                  <span className="text-sm font-semibold text-white">Thông tin chuyển khoản</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-3">
+                  Vui lòng chuyển khoản theo thông tin bên dưới. Admin sẽ xác nhận và kích hoạt khoá học cho bạn.
+                </p>
+              </div>
+            )}
+
+            {/* Transfer details */}
             <div className="space-y-2.5 mb-4">
               {[
-                { label: "Số tiền", value: formatPrice(order.amount), highlight: true },
-                { label: "Nội dung CK", value: `DK${order.code}`, copyable: true },
+                { label: "Số tiền", value: formatPrice(order.amount), highlight: true, key: "amount" },
+                { label: "Nội dung CK", value: order.transferContent, copyable: true, key: "content" },
+                { label: "Mã đơn hàng", value: order.code, copyable: true, key: "code" },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between p-3 rounded-lg"
+                <div key={item.key} className="flex items-center justify-between p-3 rounded-lg"
                   style={{ background: "#222" }}>
                   <span className="text-xs text-gray-400">{item.label}</span>
                   <div className="flex items-center gap-2">
@@ -247,9 +283,9 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                       {item.value}
                     </span>
                     {item.copyable && (
-                      <button onClick={() => copyToClipboard(item.value)}
+                      <button onClick={() => copyToClipboard(item.value, item.key)}
                         className="text-gray-500 hover:text-white transition-colors">
-                        {copied ? <Check size={13} className="text-[#22c55e]" /> : <Copy size={13} />}
+                        {copied === item.key ? <Check size={13} className="text-[#22c55e]" /> : <Copy size={13} />}
                       </button>
                     )}
                   </div>
@@ -257,11 +293,19 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               ))}
             </div>
 
-            <div className="p-3 rounded-lg text-xs text-gray-400 leading-relaxed"
-              style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}>
-              <span className="text-[#22c55e] font-medium">⚡ Tự động xác nhận</span> — Sau khi chuyển khoản,
-              hệ thống sẽ tự động xác nhận trong vòng 60 giây và mở khoá quyền truy cập ngay lập tức.
-            </div>
+            {order.qrUrl ? (
+              <div className="p-3 rounded-lg text-xs text-gray-400 leading-relaxed"
+                style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}>
+                <span className="text-[#22c55e] font-medium">⚡ Tự động xác nhận</span> — Sau khi chuyển khoản,
+                hệ thống sẽ tự động xác nhận trong vòng 60 giây và mở khoá quyền truy cập ngay lập tức.
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg text-xs text-gray-400 leading-relaxed"
+                style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}>
+                <span className="text-[#f59e0b] font-medium">📞 Xác nhận thủ công</span> — Sau khi chuyển khoản,
+                vui lòng liên hệ admin qua Zalo/Facebook để được xác nhận nhanh nhất.
+              </div>
+            )}
 
             {paymentStatus === "error" && (
               <div className="mt-3 p-3 rounded-lg flex items-center gap-2 text-sm"

@@ -14,8 +14,11 @@ export async function signUp(formData: FormData) {
   });
   if (error) redirect(`/register?error=${encodeURIComponent(error.message)}`);
   // Auto-enroll vào khoá học miễn phí
+  const phone = formData.get("phone") as string;
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
+    // Save phone number to profile
+    await supabase.from("profiles").update({ phone }).eq("id", user.id);
     const { data: freeProduct } = await supabase
       .from("products").select("id").eq("price", 0).single();
     if (freeProduct) {
@@ -65,4 +68,22 @@ export async function getUser() {
   const { data: profile } = await supabase
     .from("profiles").select("*").eq("id", user.id).single();
   return { ...user, profile };
+}
+
+export async function updateProfile(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const full_name = formData.get("full_name") as string;
+  const phone = formData.get("phone") as string;
+  const bio = formData.get("bio") as string;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ full_name, phone, bio, updated_at: new Date().toISOString() })
+    .eq("id", user.id);
+
+  if (error) redirect(`/settings?error=${encodeURIComponent(error.message)}`);
+  redirect("/settings?saved=1");
 }

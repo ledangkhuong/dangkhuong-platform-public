@@ -1,7 +1,9 @@
 "use client";
 
 import TopBar from "@/components/layout/TopBar";
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { updateProfile } from "@/lib/actions/auth";
 import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff } from "lucide-react";
 
 const tabs = [
@@ -11,65 +13,163 @@ const tabs = [
   { id: "billing", label: "Thanh toán", icon: CreditCard },
 ];
 
-function ProfileTab() {
+type UserProfile = {
+  full_name: string | null;
+  phone: string | null;
+  bio: string | null;
+  tier: string;
+  xp: number;
+  level: number;
+  email: string;
+};
+
+function ProfileTab({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
+  const { error, saved } = use(searchParams);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [initials, setInitials] = useState("??");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("profiles")
+        .select("full_name, phone, bio, tier, xp, level")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setProfile({ ...data, email: user.email ?? "" });
+            const name = data.full_name ?? user.email ?? "?";
+            const parts = name.trim().split(/\s+/);
+            setInitials(
+              parts.length >= 2
+                ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                : name.slice(0, 2).toUpperCase()
+            );
+          }
+        });
+    });
+  }, []);
+
   return (
     <div className="space-y-6">
+      {saved && (
+        <div
+          className="p-3 rounded-lg text-sm text-[#22c55e] border border-[#22c55e]/20"
+          style={{ background: "rgba(34,197,94,0.08)" }}
+        >
+          ✓ Đã lưu thay đổi thành công!
+        </div>
+      )}
+      {error && (
+        <div
+          className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20"
+          style={{ background: "rgba(239,68,68,0.08)" }}
+        >
+          {error}
+        </div>
+      )}
+
       {/* Avatar */}
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Ảnh đại diện</h3>
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
-            style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
-            ĐK
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
+            style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+          >
+            {initials}
           </div>
           <div>
-            <button className="btn-green text-sm mb-2">Tải ảnh lên</button>
+            <div
+              className="px-3 py-1.5 rounded-lg text-sm font-medium mb-2 inline-flex"
+              style={{ background: "#2a2a2a", color: "#9ca3af" }}
+            >
+              Tải ảnh lên
+            </div>
             <p className="text-xs text-gray-500">JPG, PNG, GIF tối đa 5MB</p>
+            <p className="text-xs text-gray-600 mt-1">Tier: {profile?.tier ?? "..."} • Level {profile?.level ?? "..."} • {profile?.xp ?? 0} XP</p>
           </div>
         </div>
       </div>
 
-      {/* Personal info */}
+      {/* Personal info form */}
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Thông tin cá nhân</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          {[
-            { label: "Họ và tên", placeholder: "Lê Đăng Khương", type: "text" },
-            { label: "Email", placeholder: "dangkhuong@gmail.com", type: "email" },
-            { label: "Số điện thoại", placeholder: "+84 xxx xxx xxx", type: "tel" },
-            { label: "Nghề nghiệp", placeholder: "Marketing Expert / Founder", type: "text" },
-          ].map((f) => (
-            <div key={f.label}>
-              <label className="block text-xs text-gray-400 mb-1.5 font-medium">{f.label}</label>
-              <input type={f.type} defaultValue={f.placeholder} className="input-dark w-full text-sm" />
+        <form action={updateProfile} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Họ và tên</label>
+              <input
+                name="full_name"
+                type="text"
+                defaultValue={profile?.full_name ?? ""}
+                placeholder="Nguyễn Văn A"
+                className="input-dark w-full text-sm"
+              />
             </div>
-          ))}
-          <div className="md:col-span-2">
-            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Bio ngắn</label>
-            <textarea defaultValue="Marketing Expert | Founder | Dạy kỹ năng xây dựng thương hiệu cá nhân & bán hàng online"
-              rows={3} className="input-dark w-full text-sm resize-none" />
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Email</label>
+              <input
+                type="email"
+                value={profile?.email ?? ""}
+                readOnly
+                className="input-dark w-full text-sm opacity-60 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Số điện thoại</label>
+              <input
+                name="phone"
+                type="tel"
+                defaultValue={profile?.phone ?? ""}
+                placeholder="+84 xxx xxx xxx"
+                className="input-dark w-full text-sm"
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex justify-end mt-4">
-          <button className="btn-green text-sm">Lưu thay đổi</button>
-        </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Bio ngắn</label>
+            <textarea
+              name="bio"
+              defaultValue={profile?.bio ?? ""}
+              rows={3}
+              placeholder="Giới thiệu ngắn về bạn..."
+              className="input-dark w-full text-sm resize-none"
+            />
+          </div>
+          <div className="flex justify-end">
+            <button type="submit" className="btn-green text-sm">
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
       </div>
 
-      {/* Social links */}
+      {/* Social links (static for now) */}
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
           <Globe size={16} /> Mạng xã hội
         </h3>
         <div className="space-y-3">
           {[
-            { label: "Facebook", placeholder: "https://facebook.com/dangkhuong" },
-            { label: "YouTube", placeholder: "https://youtube.com/@dangkhuong" },
-            { label: "TikTok", placeholder: "https://tiktok.com/@dangkhuong" },
-            { label: "Website", placeholder: "https://dangkhuong.com" },
+            { label: "Facebook", placeholder: "https://facebook.com/..." },
+            { label: "YouTube", placeholder: "https://youtube.com/@..." },
+            { label: "TikTok", placeholder: "https://tiktok.com/@..." },
+            { label: "Website", placeholder: "https://..." },
           ].map((f) => (
             <div key={f.label} className="flex items-center gap-3">
               <span className="text-xs text-gray-500 w-20 shrink-0">{f.label}</span>
-              <input type="url" defaultValue={f.placeholder} className="input-dark flex-1 text-sm" />
+              <input
+                type="url"
+                placeholder={f.placeholder}
+                className="input-dark flex-1 text-sm"
+              />
             </div>
           ))}
         </div>
@@ -130,9 +230,16 @@ function NotificationsTab() {
                 <button
                   onClick={() => toggle(item.key)}
                   className="shrink-0 w-11 h-6 rounded-full transition-all duration-200 relative"
-                  style={{ background: prefs[item.key] ? "#22c55e" : "#333" }}>
-                  <div className="w-4.5 h-4.5 bg-white rounded-full absolute top-[3px] transition-all duration-200"
-                    style={{ left: prefs[item.key] ? "calc(100% - 21px)" : "3px", width: "18px", height: "18px" }} />
+                  style={{ background: prefs[item.key] ? "#22c55e" : "#333" }}
+                >
+                  <div
+                    className="bg-white rounded-full absolute top-[3px] transition-all duration-200"
+                    style={{
+                      left: prefs[item.key] ? "calc(100% - 21px)" : "3px",
+                      width: "18px",
+                      height: "18px",
+                    }}
+                  />
                 </button>
               </div>
             ))}
@@ -149,7 +256,6 @@ function SecurityTab() {
 
   return (
     <div className="space-y-6">
-      {/* Change password */}
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Đổi mật khẩu</h3>
         <div className="space-y-3 max-w-md">
@@ -157,8 +263,7 @@ function SecurityTab() {
             <label className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
             <div className="relative">
               <input type={showOld ? "text" : "password"} className="input-dark w-full pr-10 text-sm" placeholder="••••••••" />
-              <button onClick={() => setShowOld(!showOld)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowOld(!showOld)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
                 {showOld ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
@@ -167,8 +272,7 @@ function SecurityTab() {
             <label className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
             <div className="relative">
               <input type={showNew ? "text" : "password"} className="input-dark w-full pr-10 text-sm" placeholder="••••••••" />
-              <button onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+              <button onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
                 {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
@@ -181,35 +285,9 @@ function SecurityTab() {
         </div>
       </div>
 
-      {/* Sessions */}
-      <div className="card-dark p-6">
-        <h3 className="font-semibold text-white mb-4">Phiên đăng nhập</h3>
-        <div className="space-y-3">
-          {[
-            { device: "Chrome / Windows 11", location: "TP. Hồ Chí Minh, Việt Nam", time: "Hiện tại", current: true },
-            { device: "Safari / iPhone 15", location: "TP. Hồ Chí Minh, Việt Nam", time: "2 ngày trước", current: false },
-          ].map((s) => (
-            <div key={s.device} className="flex items-center justify-between p-3 rounded-lg"
-              style={{ background: "#222" }}>
-              <div>
-                <div className="text-sm text-white font-medium flex items-center gap-2">
-                  {s.device}
-                  {s.current && <span className="badge-green text-[10px]">Hiện tại</span>}
-                </div>
-                <div className="text-xs text-gray-500 mt-0.5">{s.location} · {s.time}</div>
-              </div>
-              {!s.current && (
-                <button className="text-xs text-red-400 hover:text-red-300 transition-colors">Đăng xuất</button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Danger zone */}
       <div className="card-dark p-6" style={{ borderColor: "rgba(239,68,68,0.2)" }}>
         <h3 className="font-semibold text-red-400 mb-2">Vùng nguy hiểm</h3>
-        <p className="text-xs text-gray-400 mb-4">Hành động này không thể hoàn tác. Toàn bộ dữ liệu học tập, tiến độ và đóng góp của bạn sẽ bị xoá vĩnh viễn.</p>
+        <p className="text-xs text-gray-400 mb-4">Hành động này không thể hoàn tác.</p>
         <button className="text-sm font-medium text-red-400 px-4 py-2 rounded-lg border border-red-900 hover:bg-red-950 transition-colors">
           Xoá tài khoản
         </button>
@@ -221,83 +299,20 @@ function SecurityTab() {
 function BillingTab() {
   return (
     <div className="space-y-6">
-      {/* Current plan */}
-      <div className="card-dark p-6" style={{ borderColor: "rgba(245,158,11,0.3)" }}>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">⭐</span>
-              <h3 className="font-bold text-[#f59e0b]">Quyền Đồng Hành</h3>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">Truy cập toàn bộ khoá học & cộng đồng VIP</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white">5,997,000₫</span>
-              <span className="text-sm text-gray-500">/năm</span>
-            </div>
-          </div>
-          <span className="badge-green">Đang hoạt động</span>
-        </div>
-        <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(245,158,11,0.15)" }}>
-          <div className="text-xs text-gray-500">Gia hạn vào: <span className="text-white font-medium">01/01/2026</span></div>
-        </div>
-      </div>
-
-      {/* Features included */}
-      <div className="card-dark p-6">
-        <h3 className="font-semibold text-white mb-4">Quyền lợi hiện tại</h3>
-        <div className="grid md:grid-cols-2 gap-2">
-          {[
-            "Tất cả khoá học (hiện tại + tương lai)",
-            "Cộng đồng VIP Quyền Đồng Hành",
-            "Mastermind hàng tháng",
-            "Hỏi đáp 1-1 qua email",
-            "Tài nguyên độc quyền",
-            "Ưu tiên trong sự kiện live",
-          ].map((f) => (
-            <div key={f} className="flex items-center gap-2 text-sm text-gray-300">
-              <Check size={14} className="text-[#22c55e] shrink-0" />
-              <span>{f}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Order history */}
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Lịch sử thanh toán</h3>
-        <div className="space-y-3">
-          {[
-            { desc: "Quyền Đồng Hành — Năm 2025", amount: "5,997,000₫", date: "01/01/2025", status: "Thành công" },
-            { desc: "Khoá học Digital Product Starter", amount: "499,000₫", date: "15/10/2024", status: "Thành công" },
-          ].map((o, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-lg"
-              style={{ background: "#222" }}>
-              <div>
-                <div className="text-sm text-white font-medium">{o.desc}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{o.date}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold text-white">{o.amount}</div>
-                <div className="text-[11px] text-[#22c55e] mt-0.5">{o.status}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="text-sm text-gray-500">Chưa có giao dịch nào.</p>
       </div>
     </div>
   );
 }
 
-const tabComponents: Record<string, React.FC> = {
-  profile: ProfileTab,
-  notifications: NotificationsTab,
-  security: SecurityTab,
-  billing: BillingTab,
-};
-
-export default function SettingsPage() {
+export default function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
   const [active, setActive] = useState("profile");
-  const ActiveTab = tabComponents[active];
 
   return (
     <div>
@@ -309,17 +324,24 @@ export default function SettingsPage() {
           <div className="w-52 shrink-0">
             <div className="card-dark p-2 space-y-0.5">
               {tabs.map((tab) => (
-                <button key={tab.id}
+                <button
+                  key={tab.id}
                   onClick={() => setActive(tab.id)}
                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all group"
-                  style={active === tab.id
-                    ? { background: "rgba(34,197,94,0.1)", color: "#22c55e" }
-                    : { color: "#9ca3af" }}>
+                  style={
+                    active === tab.id
+                      ? { background: "rgba(34,197,94,0.1)", color: "#22c55e" }
+                      : { color: "#9ca3af" }
+                  }
+                >
                   <div className="flex items-center gap-2.5">
                     <tab.icon size={16} />
                     <span>{tab.label}</span>
                   </div>
-                  <ChevronRight size={14} className={active === tab.id ? "text-[#22c55e]" : "text-gray-600 group-hover:text-gray-400"} />
+                  <ChevronRight
+                    size={14}
+                    className={active === tab.id ? "text-[#22c55e]" : "text-gray-600 group-hover:text-gray-400"}
+                  />
                 </button>
               ))}
             </div>
@@ -327,7 +349,10 @@ export default function SettingsPage() {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <ActiveTab />
+            {active === "profile" && <ProfileTab searchParams={searchParams} />}
+            {active === "notifications" && <NotificationsTab />}
+            {active === "security" && <SecurityTab />}
+            {active === "billing" && <BillingTab />}
           </div>
         </div>
       </div>

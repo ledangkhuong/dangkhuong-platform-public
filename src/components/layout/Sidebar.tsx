@@ -2,34 +2,47 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { signOut } from "@/lib/actions/auth";
 import {
   LayoutDashboard, BookOpen, Users, MessageSquare,
   FileText, Mail, BarChart3, Settings, LogOut,
-  ChevronLeft, Rocket, Trophy, Calendar, Star, ShieldCheck
+  ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
+  Star, ShieldCheck, Zap,
 } from "lucide-react";
 
-const navGroups = [
-  {
-    label: null,
-    items: [
-      { href: "/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
-      { href: "/courses", icon: BookOpen, label: "Khoá học" },
-      { href: "/community", icon: Users, label: "Cộng đồng" },
-      { href: "/blog", icon: FileText, label: "Blog" },
-      { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },
-      { href: "/events", icon: Calendar, label: "Sự kiện" },
-    ],
-  },
-  {
-    label: "Quản lý",
-    items: [
-      { href: "/email", icon: Mail, label: "Email Marketing" },
-      { href: "/crm", icon: BarChart3, label: "CRM & Doanh số" },
-      { href: "/admin", icon: ShieldCheck, label: "Admin Panel" },
-      { href: "/settings", icon: Settings, label: "Cài đặt" },
-    ],
-  },
+const mainNav = [
+  { href: "/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
+  { href: "/courses", icon: BookOpen, label: "Khoá học" },
+  { href: "/community", icon: Users, label: "Cộng đồng" },
+  { href: "/blog", icon: FileText, label: "Blog" },
+  { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },
+  { href: "/events", icon: Calendar, label: "Sự kiện" },
 ];
+
+const adminNav = [
+  { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
+  { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager"] },
+  { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager"] },
+  { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
+  { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
+  { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support"] },
+  { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
+  { href: "/crm", icon: BarChart3, label: "CRM & Doanh số", roles: ["admin", "manager", "sale"] },
+];
+
+const settingsNav = [
+  { href: "/settings", icon: Settings, label: "Cài đặt" },
+];
+
+interface Profile {
+  full_name: string | null;
+  role: string;
+  tier: string;
+  level: number;
+  xp: number;
+}
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -38,6 +51,43 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [email, setEmail] = useState<string>("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      setEmail(user.email ?? "");
+      supabase
+        .from("profiles")
+        .select("full_name, role, tier, level, xp")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) setProfile(data as Profile);
+        });
+    });
+  }, []);
+
+  const displayName = profile?.full_name || email.split("@")[0] || "Tài khoản";
+  const initials = displayName
+    .split(" ")
+    .map((w: string) => w[0])
+    .slice(-2)
+    .join("")
+    .toUpperCase() || "?";
+
+  const userRole = profile?.role ?? "student";
+  const isAdmin = userRole === "admin";
+  const isStaff = ["admin", "manager", "marketing", "sale", "support"].includes(userRole);
+
+  const roleLabels: Record<string, string> = {
+    admin: "Admin", manager: "Quản lý", marketing: "Marketing",
+    sale: "Sale", support: "CSKH",
+  };
+  const tierLabel = isStaff ? (roleLabels[userRole] ?? "Staff") : profile?.tier === "vip" ? "VIP" : profile?.tier === "member" ? "Member" : "Free";
+  const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#22c55e";
 
   return (
     <aside
@@ -53,8 +103,10 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex items-center justify-between px-4 h-16 border-b border-[#1f1f1f]">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
-              style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
+              style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            >
               ĐK
             </div>
             <div>
@@ -64,55 +116,139 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </Link>
         )}
         {collapsed && (
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white mx-auto"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}>
-            ĐK
-          </div>
+          <Link href="/dashboard">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white mx-auto"
+              style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            >
+              ĐK
+            </div>
+          </Link>
         )}
-        {!collapsed && (
-          <button onClick={onToggle}
-            className="text-gray-500 hover:text-white transition-colors p-1 rounded">
-            <ChevronLeft size={16} />
-          </button>
-        )}
+        <button
+          onClick={onToggle}
+          className="text-gray-500 hover:text-white transition-colors p-1 rounded ml-auto"
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-        {navGroups.map((group, gi) => (
-          <div key={gi} className={gi > 0 ? "mt-6" : ""}>
-            {group.label && !collapsed && (
-              <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
-                {group.label}
+        {/* Main nav */}
+        <div>
+          {mainNav.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/dashboard" && item.href.length > 1 && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <item.icon size={18} className="shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Staff nav — for admin, manager, marketing, sale, support */}
+        {isStaff && (
+          <div className="mt-6">
+            {!collapsed && (
+              <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#f59e0b]">
+                {isAdmin ? "Admin" : "Quản lý"}
               </div>
             )}
-            {group.items.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/dashboard" && item.href.length > 1 && pathname.startsWith(item.href));
-              return (
-                <Link key={item.href} href={item.href}
-                  className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
-                  title={collapsed ? item.label : undefined}>
-                  <item.icon size={18} className="shrink-0" />
-                  {!collapsed && <span>{item.label}</span>}
-                </Link>
-              );
-            })}
+            {adminNav
+              .filter((item) => item.roles.includes(userRole))
+              .map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (item.href.length > 1 && pathname.startsWith(item.href) && item.href !== "/admin");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
+                    title={collapsed ? item.label : undefined}
+                  >
+                    <item.icon size={18} className="shrink-0" />
+                    {!collapsed && <span>{item.label}</span>}
+                  </Link>
+                );
+              })}
           </div>
-        ))}
+        )}
+
+        {/* Settings */}
+        <div className={isStaff ? "mt-2" : "mt-6"}>
+          {!isStaff && !collapsed && (
+            <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
+              Quản lý
+            </div>
+          )}
+          {settingsNav.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <item.icon size={18} className="shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
-      {/* Premium CTA */}
-      {!collapsed && (
-        <div className="mx-3 mb-3 p-3 rounded-xl border border-[#f59e0b]/20"
-          style={{ background: "rgba(245,158,11,0.08)" }}>
+      {/* CTA tư vấn (chỉ hiện cho học viên, không hiện cho staff) */}
+      {!collapsed && !isStaff && (
+        <a
+          href="https://zalo.me/0782276727"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mx-3 mb-3 p-3 rounded-xl border border-[#22c55e]/20 hover:bg-[#1a1a1a] transition-colors"
+          style={{ background: "rgba(34,197,94,0.06)" }}
+        >
           <div className="flex items-center gap-2 mb-1.5">
-            <Star size={14} className="text-[#f59e0b]" />
-            <span className="text-xs font-semibold text-[#f59e0b]">Quyền Đồng Hành</span>
+            <Star size={14} className="text-[#22c55e]" />
+            <span className="text-xs font-semibold text-[#22c55e]">Cần tư vấn?</span>
           </div>
-          <p className="text-[11px] text-gray-400 mb-2">Mở khoá toàn bộ khoá học & cộng đồng VIP</p>
-          <button className="btn-gold w-full text-xs py-1.5 justify-center">
-            Nâng cấp ngay
-          </button>
+          <p className="text-[11px] text-gray-400 mb-2">Tư vấn khoá học phù hợp nhu cầu của bạn</p>
+          <span className="btn-green w-full text-xs py-1.5 justify-center inline-flex items-center">Liên hệ tư vấn</span>
+        </a>
+      )}
+
+      {/* XP bar (visible when not collapsed) */}
+      {!collapsed && profile && (
+        <div className="mx-3 mb-2 px-2">
+          <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+            <span className="flex items-center gap-1">
+              <Zap size={10} className="text-[#f59e0b]" />
+              Level {profile.level}
+            </span>
+            <span
+              className="px-1.5 py-0.5 rounded text-[9px] font-semibold"
+              style={{ background: tierColor + "20", color: tierColor }}
+            >
+              {tierLabel}
+            </span>
+          </div>
+          <div className="progress-bar" style={{ height: 3 }}>
+            <div
+              className="progress-fill"
+              style={{
+                width: `${Math.min(100, Math.round(((profile.xp - (profile.level - 1) * 200) / 200) * 100))}%`,
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -120,22 +256,36 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="border-t border-[#1f1f1f] p-3">
         {!collapsed ? (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-              style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
-              ĐK
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+              style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+            >
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">Đăng Khương</div>
-              <div className="text-[11px] text-gray-500 truncate">Admin</div>
+              <div className="text-sm font-medium text-white truncate">{displayName}</div>
+              <div className="text-[11px] text-gray-500 truncate">{email || "Đang tải..."}</div>
             </div>
-            <button className="text-gray-500 hover:text-red-400 transition-colors p-1">
-              <LogOut size={15} />
-            </button>
+            <form action={signOut}>
+              <button
+                type="submit"
+                title="Đăng xuất"
+                className="text-gray-500 hover:text-red-400 transition-colors p-1"
+              >
+                <LogOut size={15} />
+              </button>
+            </form>
           </div>
         ) : (
-          <button className="w-full flex justify-center text-gray-500 hover:text-red-400 transition-colors p-1">
-            <LogOut size={16} />
-          </button>
+          <form action={signOut} className="w-full flex justify-center">
+            <button
+              type="submit"
+              title="Đăng xuất"
+              className="text-gray-500 hover:text-red-400 transition-colors p-1"
+            >
+              <LogOut size={16} />
+            </button>
+          </form>
         )}
       </div>
     </aside>

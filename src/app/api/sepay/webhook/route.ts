@@ -13,7 +13,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 export async function POST(req: NextRequest) {
   try {
     // 1. Xác thực webhook từ Sepay
-    const apiKey = req.headers.get("Authorization")?.replace("Bearer ", "");
+    const apiKey = req.headers.get("Authorization")?.replace("Apikey ", "");
     if (apiKey !== process.env.SEPAY_API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

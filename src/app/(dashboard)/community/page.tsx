@@ -3,6 +3,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect } from "react";
 import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface Post {
   id: string;
@@ -22,13 +23,53 @@ interface Post {
   } | null;
 }
 
-const leaderboard = [
-  { rank: 1, name: "Minh Tuấn", xp: 2840, avatar: "MT", badge: "🥇" },
-  { rank: 2, name: "Thu Hương", xp: 2210, avatar: "TH", badge: "🥈" },
-  { rank: 3, name: "Quang Dũng", xp: 1980, avatar: "QD", badge: "🥉" },
-  { rank: 4, name: "Lan Anh", xp: 1560, avatar: "LA", badge: "⭐" },
-  { rank: 5, name: "Bạn", xp: 890, avatar: "BN", badge: "🔥", isMe: true },
-];
+interface UserProfile {
+  id: string;
+  full_name: string;
+  xp: number;
+  level: number;
+  tier: string;
+  streak: number;
+}
+
+interface LeaderboardEntry {
+  id: string;
+  full_name: string;
+  xp: number;
+  level: number;
+}
+
+const LEVEL_TITLES: Record<number, string> = {
+  1: "Người Mới",
+  2: "Người Mới",
+  3: "Học Viên",
+  4: "Học Viên",
+  5: "Người Học Chăm",
+  6: "Học Viên Tích Cực",
+  7: "Học Viên Tích Cực",
+  8: "Học Viên VIP",
+  9: "Học Giả",
+  10: "Học Giả",
+  11: "Chuyên Gia",
+  12: "Chuyên Gia",
+};
+
+function levelTitle(level: number) {
+  return LEVEL_TITLES[Math.min(level, 12)] ?? "Chuyên Gia";
+}
+
+function rankBadge(rank: number) {
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
+  if (rank <= 5) return "⭐";
+  return "🔥";
+}
+
+// XP needed per level (simple formula: level * 200)
+function xpForLevel(level: number) {
+  return level * 200;
+}
 
 function getAvatarInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/);
@@ -55,12 +96,38 @@ export default function CommunityPage() {
   const [postText, setPostText] = useState("");
   const [posting, setPosting] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
+  const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
     fetch("/api/community/posts?limit=20")
       .then(r => r.json())
       .then(d => { setPosts(d.posts || []); setLoading(false); })
       .catch(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    async function fetchSidebarData() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, full_name, xp, level, tier, streak")
+          .eq("id", user.id)
+          .single();
+        if (profile) setMyProfile(profile as UserProfile);
+      }
+
+      const { data: topUsers } = await supabase
+        .from("profiles")
+        .select("id, full_name, xp, level")
+        .order("xp", { ascending: false })
+        .limit(5);
+      if (topUsers) setLeaderboard(topUsers as LeaderboardEntry[]);
+    }
+    fetchSidebarData();
   }, []);
 
   const handleLike = async (postId: string) => {
@@ -120,7 +187,7 @@ export default function CommunityPage() {
             <div className="flex gap-3 mb-3">
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                 style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
-                BN
+                {myProfile ? getAvatarInitials(myProfile.full_name) : "??"}
               </div>
               <textarea
                 value={postText}
@@ -168,7 +235,7 @@ export default function CommunityPage() {
 
           {/* Posts */}
           {!loading && posts.map((post) => {
-            const fullName = post.profiles?.full_name ?? "Ẩn danh";
+            const fullName = post.profiles?.full_name ?? "Thành viên";
             const initials = getAvatarInitials(fullName);
             const isVip = post.profiles?.tier === "vip";
             const isLiked = likedPosts.has(post.id);
@@ -238,12 +305,22 @@ export default function CommunityPage() {
               <Flame size={15} className="text-[#f59e0b]" />
               <span className="text-sm font-semibold text-white">XP của bạn</span>
             </div>
-            <div className="text-2xl font-bold text-[#22c55e] mb-1">890 XP</div>
-            <div className="text-xs text-gray-500 mb-2">Level 5 — Người Học Chăm</div>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: "65%" }} />
-            </div>
-            <div className="text-xs text-gray-600 mt-1">110 XP để lên Level 6</div>
+            {myProfile ? (
+              <>
+                <div className="text-2xl font-bold text-[#22c55e] mb-1">{myProfile.xp.toLocaleString()} XP</div>
+                <div className="text-xs text-gray-500 mb-2">Level {myProfile.level} — {levelTitle(myProfile.level)}</div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${Math.min(100, (myProfile.xp % xpForLevel(myProfile.level)) / xpForLevel(myProfile.level) * 100)}%` }} />
+                </div>
+                <div className="text-xs text-gray-600 mt-1">{xpForLevel(myProfile.level) - (myProfile.xp % xpForLevel(myProfile.level))} XP để lên Level {myProfile.level + 1}</div>
+              </>
+            ) : (
+              <div className="space-y-2 animate-pulse">
+                <div className="h-6 bg-[#2a2a2a] rounded w-24" />
+                <div className="h-3 bg-[#2a2a2a] rounded w-32" />
+                <div className="h-2 bg-[#2a2a2a] rounded" />
+              </div>
+            )}
           </div>
 
           {/* Leaderboard */}
@@ -253,22 +330,38 @@ export default function CommunityPage() {
               <span className="text-sm font-semibold text-white">Top tuần này</span>
             </div>
             <div className="space-y-2">
-              {leaderboard.map(user => (
-                <div key={user.rank}
-                  className={`flex items-center gap-2.5 p-2 rounded-lg ${"isMe" in user && user.isMe ? "bg-[#22c55e]/10" : "hover:bg-white/3"} transition-colors`}>
-                  <span className="text-sm">{user.badge}</span>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                    style={{ background: "isMe" in user && user.isMe ? "linear-gradient(135deg,#22c55e,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
-                    {user.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-medium truncate ${"isMe" in user && user.isMe ? "text-[#22c55e]" : "text-white"}`}>
-                      {user.name}
+              {leaderboard.length === 0 ? (
+                <div className="space-y-2 animate-pulse">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex items-center gap-2.5 p-2">
+                      <div className="w-5 h-5 bg-[#2a2a2a] rounded" />
+                      <div className="w-7 h-7 bg-[#2a2a2a] rounded-full" />
+                      <div className="flex-1 h-3 bg-[#2a2a2a] rounded" />
                     </div>
-                  </div>
-                  <span className="text-[10px] text-gray-500">{user.xp.toLocaleString()} XP</span>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                leaderboard.map((user, index) => {
+                  const rank = index + 1;
+                  const isMe = myProfile?.id === user.id;
+                  return (
+                    <div key={user.id}
+                      className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#22c55e]/10" : "hover:bg-white/3"} transition-colors`}>
+                      <span className="text-sm">{rankBadge(rank)}</span>
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                        style={{ background: isMe ? "linear-gradient(135deg,#22c55e,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
+                        {getAvatarInitials(user.full_name)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs font-medium truncate ${isMe ? "text-[#22c55e]" : "text-white"}`}>
+                          {isMe ? "Bạn" : user.full_name}
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-gray-500">{user.xp.toLocaleString()} XP</span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 

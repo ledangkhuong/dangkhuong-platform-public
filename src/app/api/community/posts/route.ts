@@ -8,9 +8,12 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20");
   const offset = parseInt(searchParams.get("offset") || "0");
 
+  // Exclude lesson questions (tagged with _q) from community feed
+  // Use .or() to include posts where tags is NULL OR tags does not contain _q
   const { data, error } = await supabase
     .from("posts")
-    .select(`*, profiles(full_name, avatar_url, level, tier)`)
+    .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
+    .or('tags.is.null,tags.not.cs.{_q}')
     .order("pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
@@ -31,7 +34,8 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase
     .from("posts")
     .insert({ user_id: user.id, content: content.trim(), tags, image_url })
-    .select().single();
+    .select(`*, profiles(full_name, avatar_url, level, tier)`)
+    .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

@@ -2,7 +2,13 @@ import Link from "next/link";
 import { Mail, Lock, Eye } from "lucide-react";
 import { signIn } from "@/lib/actions/auth";
 
-export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4"
       style={{ background: "radial-gradient(ellipse at top, #0d1a12 0%, #0a0a0a 60%)" }}>
@@ -16,9 +22,9 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
         </div>
 
         {/* Error */}
-        {searchParams?.error && (
+        {error && (
           <div className="mb-4 p-3 rounded-lg text-sm text-red-400 border border-red-400/20" style={{ background: "rgba(239,68,68,0.08)" }}>
-            {searchParams.error}
+            {error}
           </div>
         )}
 
