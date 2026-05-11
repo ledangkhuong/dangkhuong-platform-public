@@ -175,9 +175,7 @@ export async function POST() {
               added_at: new Date().toISOString(),
             },
             { onConflict: "subscriber_id,list_id", ignoreDuplicates: true }
-          )
-          .then(() => {})
-          .catch(() => {});
+          );
       }
     }
 
