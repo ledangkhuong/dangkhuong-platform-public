@@ -35,7 +35,7 @@ function timeAgo(iso: string): string {
   if (hrs < 24) return `${hrs} giờ trước`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days} ngày trước`;
-  return new Date(iso).toLocaleDateString("vi-VN");
+  return new Date(iso).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 }
 
 export default function AdminQuestionsPage() {
@@ -208,20 +208,24 @@ export default function AdminQuestionsPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #3b82f6, #2563eb)",
-                      }}
-                    >
-                      {(q.profiles?.full_name ?? "?")
-                        .split(" ")
-                        .map((w: string) => w[0])
-                        .slice(-2)
-                        .join("")
-                        .toUpperCase()}
-                    </div>
+                    {q.profiles?.avatar_url ? (
+                      <img src={q.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #3b82f6, #2563eb)",
+                        }}
+                      >
+                        {(q.profiles?.full_name ?? "?")
+                          .split(" ")
+                          .map((w: string) => w[0])
+                          .slice(-2)
+                          .join("")
+                          .toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-white">

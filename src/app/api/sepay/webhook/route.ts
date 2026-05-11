@@ -134,6 +134,49 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 9. Affiliate conversion attribution
+    if (order.ref_code) {
+      try {
+        const { data: affiliate } = await supabase
+          .from("affiliates")
+          .select("id, user_id, commission_rate")
+          .eq("ref_code", order.ref_code)
+          .eq("status", "active")
+          .single();
+
+        // Không cho tự giới thiệu chính mình
+        if (affiliate && affiliate.user_id !== order.user_id) {
+          const commissionAmount = Math.round(order.amount * (affiliate.commission_rate / 100));
+          await supabase.from("affiliate_conversions").insert({
+            affiliate_id: affiliate.id,
+            order_id: order.id,
+            buyer_id: order.user_id,
+            product_id: order.product_id,
+            order_amount: order.amount,
+            commission_rate: affiliate.commission_rate,
+            commission_amount: commissionAmount,
+            status: "pending",
+          });
+
+          // Gửi email thông báo hoa hồng cho affiliate
+          const { sendAffiliateCommissionEmail } = await import("@/lib/email/resend");
+          const { data: affProfile } = await supabase.from("profiles").select("full_name").eq("id", affiliate.user_id).single();
+          const { data: affAuth } = await supabase.auth.admin.getUserById(affiliate.user_id);
+          if (affAuth?.user?.email) {
+            await sendAffiliateCommissionEmail(
+              affAuth.user.email,
+              affProfile?.full_name || "bạn",
+              order.products?.name || "Sản phẩm",
+              commissionAmount,
+            ).catch(() => {});
+          }
+          console.log(`[Sepay] 💰 Affiliate ${order.ref_code}: +${commissionAmount}đ hoa hồng`);
+        }
+      } catch (affErr) {
+        console.error("[Sepay] Affiliate attribution error:", affErr);
+      }
+    }
+
     console.log(`[Sepay] ✅ Đơn ${orderCode} thanh toán thành công: ${transferAmount}đ`);
     return NextResponse.json({ success: true });
 

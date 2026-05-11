@@ -1,14 +1,18 @@
 import TopBar from "@/components/layout/TopBar";
+import EmailNav from "@/components/email/EmailNav";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import {
   Mail, Users, Send, Eye, MousePointer, TrendingUp, Plus, Clock,
-  CheckCircle, Zap, AlertTriangle, UserMinus, UserCheck, Inbox,
+  CheckCircle, UserMinus, UserCheck, Inbox, AlertTriangle, ArrowRight,
 } from "lucide-react";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: "Bản nháp", color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
   scheduled: { label: "Đã lên lịch", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
+  sending: { label: "Đang gửi", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
   sent: { label: "Đã gửi", color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+  paused: { label: "Tạm dừng", color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
 };
 
 export default async function EmailPage() {
@@ -36,10 +40,13 @@ export default async function EmailPage() {
   // Fetch campaigns ordered by created_at desc
   const { data: campaigns } = await supabase
     .from("email_campaigns")
-    .select("id, subject, status, scheduled_at, sent_at, sent_count, open_count, click_count, created_at")
+    .select("id, name, subject, status, scheduled_at, sent_at, sent_count, open_count, click_count, created_at")
     .order("created_at", { ascending: false });
 
   const campaignList = campaigns ?? [];
+
+  // Get recent 5 campaigns
+  const recentCampaigns = campaignList.slice(0, 5);
 
   // Compute aggregate email stats
   const totalSent = campaignList.reduce((sum, c) => sum + (c.sent_count ?? 0), 0);
@@ -57,7 +64,8 @@ export default async function EmailPage() {
 
   return (
     <div>
-      <TopBar title="Email Marketing" subtitle="Quản lý campaigns & subscribers" />
+      <TopBar title="Email Marketing" subtitle="Quản lý campaigns, subscribers & analytics" />
+      <EmailNav />
 
       <div className="p-6 max-w-6xl mx-auto space-y-6">
 
@@ -81,16 +89,27 @@ export default async function EmailPage() {
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          {/* Campaigns */}
+          {/* Recent campaigns */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-white text-lg">Campaigns</h2>
-              <button className="btn-green flex items-center gap-2 text-sm">
-                <Plus size={15} /> Tạo campaign
-              </button>
+              <h2 className="font-bold text-white text-lg">Campaigns gần đây</h2>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/email/campaigns"
+                  className="text-xs text-[#9ca3af] hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Xem tất cả <ArrowRight size={12} />
+                </Link>
+                <Link
+                  href="/email/campaigns/new"
+                  className="btn-green flex items-center gap-2 text-sm"
+                >
+                  <Plus size={15} /> Tạo campaign
+                </Link>
+              </div>
             </div>
 
-            {campaignList.length === 0 ? (
+            {recentCampaigns.length === 0 ? (
               <div className="card-dark p-10 text-center">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
                   style={{ background: "rgba(59,130,246,0.1)" }}>
@@ -106,30 +125,30 @@ export default async function EmailPage() {
                     <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
                       <th className="text-left text-xs text-gray-500 font-medium px-4 py-3">Tiêu đề</th>
                       <th className="text-right text-xs text-gray-500 font-medium px-4 py-3">Gửi</th>
-                      <th className="text-right text-xs text-gray-500 font-medium px-4 py-3">Mở</th>
-                      <th className="text-right text-xs text-gray-500 font-medium px-4 py-3">Click</th>
+                      <th className="text-right text-xs text-gray-500 font-medium px-4 py-3">Open %</th>
+                      <th className="text-right text-xs text-gray-500 font-medium px-4 py-3">Click %</th>
                       <th className="text-right text-xs text-gray-500 font-medium px-4 py-3">Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {campaignList.map((c, i) => {
+                    {recentCampaigns.map((c, i) => {
                       const openRate = c.sent_count > 0 ? Math.round((c.open_count / c.sent_count) * 100) : 0;
                       const clickRate = c.sent_count > 0 ? Math.round((c.click_count / c.sent_count) * 100) : 0;
                       const st = statusConfig[c.status] ?? statusConfig.draft;
                       const dateLabel = c.sent_at
-                        ? new Date(c.sent_at).toLocaleDateString("vi-VN")
+                        ? new Date(c.sent_at).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
                         : c.scheduled_at
-                          ? `Lên lịch: ${new Date(c.scheduled_at).toLocaleDateString("vi-VN")}`
+                          ? `Lên lịch: ${new Date(c.scheduled_at).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}`
                           : "Bản nháp";
                       return (
                         <tr key={c.id}
-                          style={{ borderBottom: i < campaignList.length - 1 ? "1px solid #2a2a2a" : "none" }}
+                          style={{ borderBottom: i < recentCampaigns.length - 1 ? "1px solid #2a2a2a" : "none" }}
                           className="hover:bg-[#1f1f1f] transition-colors cursor-pointer">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
                               <Mail size={13} className="text-[#3b82f6] shrink-0" />
                               <div>
-                                <div className="text-white text-sm font-medium leading-tight">{c.subject}</div>
+                                <div className="text-white text-sm font-medium leading-tight">{c.name || c.subject}</div>
                                 <div className="text-[11px] text-gray-500 mt-0.5">{dateLabel}</div>
                               </div>
                             </div>
@@ -165,11 +184,16 @@ export default async function EmailPage() {
           {/* Right sidebar */}
           <div className="space-y-4">
 
-            {/* Subscriber stats */}
+            {/* Subscriber overview */}
             <div className="card-dark p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-white text-sm">Subscribers</h3>
-                <span className="text-xs text-gray-500">{total} tổng</span>
+                <Link
+                  href="/email/subscribers"
+                  className="text-[11px] text-[#22c55e] hover:underline"
+                >
+                  Quản lý
+                </Link>
               </div>
 
               {total === 0 ? (
@@ -207,6 +231,39 @@ export default async function EmailPage() {
                     </div>
                     <span className="text-xs font-medium text-[#ef4444]">{bounceRate}%</span>
                   </div>
+
+                  {/* Visual bar breakdown */}
+                  {total > 0 && (
+                    <div className="mt-2">
+                      <div className="h-2 rounded-full flex overflow-hidden" style={{ background: "#333" }}>
+                        <div
+                          className="h-full"
+                          style={{
+                            width: `${(active / total) * 100}%`,
+                            background: "#22c55e",
+                          }}
+                        />
+                        <div
+                          className="h-full"
+                          style={{
+                            width: `${(unsubscribed / total) * 100}%`,
+                            background: "#f59e0b",
+                          }}
+                        />
+                        <div
+                          className="h-full"
+                          style={{
+                            width: `${(bounced / total) * 100}%`,
+                            background: "#ef4444",
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-1.5 text-[10px] text-gray-500">
+                        <span>{total} tổng</span>
+                        <span>{active} active</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -253,6 +310,8 @@ export default async function EmailPage() {
                 <li>- Subject line dưới 50 ký tự</li>
                 <li>- CTA rõ ràng, 1 link chính mỗi email</li>
                 <li>- Personalize với tên người nhận</li>
+                <li>- A/B test subject line trước khi gửi hàng loạt</li>
+                <li>- Dọn dẹp danh sách bounced email định kỳ</li>
               </ul>
             </div>
           </div>

@@ -45,7 +45,7 @@ export default async function LeaderboardPage() {
   // Fetch top 20 users by XP
   const { data: leaders } = await supabase
     .from("profiles")
-    .select("id, full_name, xp, level, tier, streak")
+    .select("id, full_name, xp, level, tier, streak, avatar_url")
     .order("xp", { ascending: false })
     .limit(20);
 
@@ -53,7 +53,7 @@ export default async function LeaderboardPage() {
   const { data: myProfile } = user
     ? await supabase
         .from("profiles")
-        .select("full_name, xp, level, tier, streak")
+        .select("full_name, xp, level, tier, streak, avatar_url")
         .eq("id", user.id)
         .single()
     : { data: null };
@@ -71,6 +71,7 @@ export default async function LeaderboardPage() {
   const myLevel = myProfile?.level ?? 1;
   const myStreak = myProfile?.streak ?? 0;
   const myName = myProfile?.full_name || user?.email?.split("@")[0] || "Bạn";
+  const myAvatarUrl = myProfile?.avatar_url;
 
   const leadersList = leaders ?? [];
 
@@ -117,12 +118,16 @@ export default async function LeaderboardPage() {
                 return (
                   <div key={i} className="flex flex-col items-center gap-2">
                     <div className="text-2xl">{rankBadge(positions[i])}</div>
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                      style={{ background: isMe ? "linear-gradient(135deg,#22c55e,#059669)" : `linear-gradient(135deg,${colors[i]},${colors[i]}88)` }}
-                    >
-                      {initials(l.full_name ?? "?")}
-                    </div>
+                    {l.avatar_url ? (
+                      <img src={l.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                        style={{ background: isMe ? "linear-gradient(135deg,#22c55e,#059669)" : `linear-gradient(135deg,${colors[i]},${colors[i]}88)` }}
+                      >
+                        {initials(l.full_name ?? "?")}
+                      </div>
+                    )}
                     <div className="text-xs font-medium text-white text-center">
                       {(l.full_name ?? "?").split(" ").slice(-1)[0]}
                       {isMe && <span className="ml-1 text-[#22c55e]">(bạn)</span>}
@@ -174,16 +179,20 @@ export default async function LeaderboardPage() {
                     {rank}
                   </div>
                   <div className="text-lg w-6 text-center">{rankBadge(rank)}</div>
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                    style={{
-                      background: isMe
-                        ? "linear-gradient(135deg,#22c55e,#059669)"
-                        : "linear-gradient(135deg,#3b82f6,#1d4ed8)",
-                    }}
-                  >
-                    {initials(name)}
-                  </div>
+                  {l.avatar_url ? (
+                    <img src={l.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                      style={{
+                        background: isMe
+                          ? "linear-gradient(135deg,#22c55e,#059669)"
+                          : "linear-gradient(135deg,#3b82f6,#1d4ed8)",
+                      }}
+                    >
+                      {initials(name)}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-medium ${isMe ? "text-[#22c55e]" : "text-white"}`}>
@@ -213,12 +222,16 @@ export default async function LeaderboardPage() {
                 <div className="flex items-center gap-4 p-4 bg-[#22c55e]/5">
                   <div className="w-6 text-center text-sm font-bold text-gray-400">{myRank}</div>
                   <div className="text-lg w-6 text-center">{rankBadge(myRank)}</div>
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                    style={{ background: "linear-gradient(135deg,#22c55e,#059669)" }}
-                  >
-                    {initials(myName)}
-                  </div>
+                  {myAvatarUrl ? (
+                    <img src={myAvatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                      style={{ background: "linear-gradient(135deg,#22c55e,#059669)" }}
+                    >
+                      {initials(myName)}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-[#22c55e]">{myName}</span>

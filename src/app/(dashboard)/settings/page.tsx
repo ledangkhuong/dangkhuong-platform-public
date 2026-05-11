@@ -31,6 +31,9 @@ function ProfileTab({
   const { error, saved } = use(searchParams);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [initials, setInitials] = useState("??");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -38,12 +41,13 @@ function ProfileTab({
       if (!user) return;
       supabase
         .from("profiles")
-        .select("full_name, phone, bio, tier, xp, level")
+        .select("full_name, phone, bio, tier, xp, level, avatar_url")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data) {
             setProfile({ ...data, email: user.email ?? "" });
+            if (data.avatar_url) setAvatarUrl(data.avatar_url);
             const name = data.full_name ?? user.email ?? "?";
             const parts = name.trim().split(/\s+/);
             setInitials(
@@ -55,6 +59,68 @@ function ProfileTab({
         });
     });
   }, []);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarError(null);
+    setUploadingAvatar(true);
+
+    try {
+      // Load image
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.src = url;
+      await new Promise((res) => { img.onload = res; });
+
+      // Center-crop to square + resize to 256x256
+      const size = 256;
+      const minDim = Math.min(img.width, img.height);
+      const sx = (img.width - minDim) / 2;
+      const sy = (img.height - minDim) / 2;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+
+      // Compress to JPEG, try 0.7 first, then 0.5 if too large
+      let blob = await new Promise<Blob>((res) =>
+        canvas.toBlob((b) => res(b!), "image/jpeg", 0.7)
+      );
+      if (blob.size > 500 * 1024) {
+        blob = await new Promise<Blob>((res) =>
+          canvas.toBlob((b) => res(b!), "image/jpeg", 0.5)
+        );
+      }
+
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const filename = `avatars/${user.id}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("thumbnails")
+        .upload(filename, blob, { contentType: "image/jpeg", upsert: true });
+
+      if (upErr) { setAvatarError(upErr.message); return; }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("thumbnails")
+        .getPublicUrl(filename);
+
+      const finalUrl = publicUrl + "?t=" + Date.now();
+
+      await supabase.from("profiles").update({ avatar_url: finalUrl }).eq("id", user.id);
+      setAvatarUrl(finalUrl);
+    } catch {
+      setAvatarError("Lỗi tải ảnh. Vui lòng thử lại.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -79,21 +145,24 @@ function ProfileTab({
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Ảnh đại diện</h3>
         <div className="flex items-center gap-5">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
-            style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
-          >
-            {initials}
-          </div>
-          <div>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover shrink-0" />
+          ) : (
             <div
-              className="px-3 py-1.5 rounded-lg text-sm font-medium mb-2 inline-flex"
-              style={{ background: "#2a2a2a", color: "#9ca3af" }}
+              className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
+              style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
             >
-              Tải ảnh lên
+              {initials}
             </div>
-            <p className="text-xs text-gray-500">JPG, PNG, GIF tối đa 5MB</p>
-            <p className="text-xs text-gray-600 mt-1">Tier: {profile?.tier ?? "..."} • Level {profile?.level ?? "..."} • {profile?.xp ?? 0} XP</p>
+          )}
+          <div>
+            <label className="px-3 py-1.5 rounded-lg text-sm font-medium mb-2 inline-flex cursor-pointer hover:bg-[#333] transition-colors"
+              style={{ background: "#2a2a2a", color: "#9ca3af" }}>
+              {uploadingAvatar ? "Đang tải..." : "Tải ảnh lên"}
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+            </label>
+            <p className="text-xs text-gray-500">JPG, PNG — tự crop vuông &amp; nén dưới 0.5MB</p>
+            {avatarError && <p className="text-xs text-red-400 mt-1">{avatarError}</p>}
           </div>
         </div>
       </div>
@@ -296,12 +365,66 @@ function SecurityTab() {
   );
 }
 
+interface Order {
+  id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  product: { title: string } | null;
+}
+
 function BillingTab() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("orders")
+        .select("id, amount, status, created_at, products(title)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setOrders((data ?? []).map((o: any) => ({
+            ...o,
+            product: Array.isArray(o.products) ? o.products[0] : o.products,
+          })));
+          setLoading(false);
+        });
+    });
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Lịch sử thanh toán</h3>
-        <p className="text-sm text-gray-500">Chưa có giao dịch nào.</p>
+        {loading ? (
+          <p className="text-sm text-gray-500">Đang tải...</p>
+        ) : orders.length === 0 ? (
+          <p className="text-sm text-gray-500">Chưa có giao dịch nào.</p>
+        ) : (
+          <div className="space-y-3">
+            {orders.map((o) => (
+              <div key={o.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+                <div>
+                  <div className="text-sm font-medium text-white">{o.product?.title ?? "Khoá học"}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {new Date(o.created_at).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Ho_Chi_Minh" })}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-bold text-white">{o.amount.toLocaleString("vi-VN")}đ</div>
+                  <div className={`text-[10px] font-medium ${o.status === "paid" ? "text-[#22c55e]" : o.status === "pending" ? "text-[#f59e0b]" : "text-gray-500"}`}>
+                    {o.status === "paid" ? "Đã thanh toán" : o.status === "pending" ? "Chờ thanh toán" : o.status}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -318,10 +441,29 @@ export default function SettingsPage({
     <div>
       <TopBar title="Cài đặt" subtitle="Quản lý tài khoản và tuỳ chọn của bạn" />
 
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+        {/* Mobile: horizontal scrollable tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-4 md:hidden no-scrollbar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActive(tab.id)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0"
+              style={
+                active === tab.id
+                  ? { background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)" }
+                  : { color: "#9ca3af", background: "#1a1a1a", border: "1px solid #2a2a2a" }
+              }
+            >
+              <tab.icon size={14} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="flex gap-6">
-          {/* Tab sidebar */}
-          <div className="w-52 shrink-0">
+          {/* Desktop: Tab sidebar */}
+          <div className="w-52 shrink-0 hidden md:block">
             <div className="card-dark p-2 space-y-0.5">
               {tabs.map((tab) => (
                 <button

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
   BookOpen, FolderOpen,
-  Users, ArrowRight, TrendingUp, Clock, Star, Zap
+  Users, ArrowRight, TrendingUp, Star, Zap
 } from "lucide-react";
 
 const quickCards = [
@@ -15,7 +15,6 @@ const quickCards = [
 const platformStats = [
   { label: "Học viên", value: "1,247", change: "+12%", icon: Users, color: "#22c55e" },
   { label: "Khoá học hoàn thành", value: "89%", change: "+5%", icon: TrendingUp, color: "#3b82f6" },
-  { label: "Giờ học", value: "3,840", change: "+18%", icon: Clock, color: "#a855f7" },
   { label: "Đánh giá TB", value: "4.9 ⭐", change: "+0.1", icon: Star, color: "#f59e0b" },
 ];
 
@@ -50,7 +49,7 @@ export default async function DashboardPage() {
   // Fetch recent community posts
   const { data: recentPosts } = await supabase
     .from("posts")
-    .select("id, content, created_at, profiles(full_name)")
+    .select("id, content, created_at, profiles(full_name, avatar_url)")
     .order("created_at", { ascending: false })
     .limit(4);
 
@@ -74,7 +73,7 @@ export default async function DashboardPage() {
         notification={{ label: "Khoá học mới 🔥", text: "Digital Snacks — Kiếm tiền từ sản phẩm số" }}
       />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-8">
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6 sm:space-y-8">
 
         {/* Welcome + User Stats */}
         <div className="grid md:grid-cols-2 gap-4">
@@ -126,7 +125,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Platform Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {platformStats.map((s, i) => (
             <div key={i} className="card-dark p-4">
               <div className="flex items-center justify-between mb-3">
@@ -173,52 +172,26 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Community + Premium */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Community */}
-          <Link
-            href="/community"
-            className="card-dark p-5 flex items-center justify-between hover:bg-[#222] transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(34,197,94,0.12)" }}
-              >
-                <Users size={20} style={{ color: "#22c55e" }} />
-              </div>
-              <div>
-                <div className="font-semibold text-white">Tham gia Cộng đồng</div>
-                <div className="text-sm text-gray-400">Kết nối, học hỏi và phát triển cùng nhau</div>
-              </div>
-            </div>
-            <ArrowRight
-              size={18}
-              className="text-gray-500 group-hover:text-[#22c55e] transition-colors"
-            />
-          </Link>
-
-          {/* Course consultation CTA */}
-          <a
-            href="https://zalo.me/0782276727"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card-dark p-5 border border-[#22c55e]/20 hover:bg-[#222] transition-all"
-            style={{ background: "rgba(34,197,94,0.05)" }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <Star size={16} className="text-[#22c55e]" />
-              <span className="font-semibold text-[#22c55e]">Cần hỗ trợ?</span>
-            </div>
-            <p className="text-sm text-gray-400 mb-3">
-              Liên hệ để được tư vấn khoá học phù hợp với nhu cầu và mục tiêu của bạn.
-            </p>
-            <span className="btn-green text-sm inline-flex items-center gap-1.5">
-              <Users size={14} />
-              Tư vấn khoá học phù hợp nhu cầu
-            </span>
-          </a>
-        </div>
+        {/* Course consultation CTA */}
+        <a
+          href="https://zalo.me/0782276727"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card-dark p-5 border border-[#22c55e]/20 hover:bg-[#222] transition-all block"
+          style={{ background: "rgba(34,197,94,0.05)" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Star size={16} className="text-[#22c55e]" />
+            <span className="font-semibold text-[#22c55e]">Cần hỗ trợ?</span>
+          </div>
+          <p className="text-sm text-gray-400 mb-3">
+            Liên hệ để được tư vấn khoá học phù hợp với nhu cầu và mục tiêu của bạn.
+          </p>
+          <span className="btn-green text-sm inline-flex items-center gap-1.5">
+            <Users size={14} />
+            Tư vấn khoá học phù hợp nhu cầu
+          </span>
+        </a>
 
         {/* Recent Community Activity */}
         {recentPosts && recentPosts.length > 0 && (
@@ -236,7 +209,9 @@ export default async function DashboardPage() {
             </div>
             <div className="card-dark divide-y divide-[#2a2a2a]">
               {recentPosts.map((post) => {
-                const author = (post.profiles as { full_name?: string } | null)?.full_name ?? "Thành viên";
+                const profileData = post.profiles as { full_name?: string; avatar_url?: string } | null;
+                const author = profileData?.full_name ?? "Thành viên";
+                const avatarUrl = profileData?.avatar_url;
                 const initials = author.split(" ").map((w: string) => w[0]).slice(-2).join("").toUpperCase();
                 const preview = post.content.length > 80
                   ? post.content.slice(0, 80) + "…"
@@ -251,12 +226,16 @@ export default async function DashboardPage() {
                 })();
                 return (
                   <div key={post.id} className="flex items-center gap-3 p-4">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
-                    >
-                      {initials || "?"}
-                    </div>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                        style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+                      >
+                        {initials || "?"}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white">
                         <span className="font-medium">{author}</span>

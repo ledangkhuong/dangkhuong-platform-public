@@ -195,20 +195,24 @@ export default function LessonQA({
                 >
                   {/* Question */}
                   <div className="flex items-start gap-2">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #3b82f6, #2563eb)",
-                      }}
-                    >
-                      {(q.profiles?.full_name ?? "?")
-                        .split(" ")
-                        .map((w: string) => w[0])
-                        .slice(-2)
-                        .join("")
-                        .toUpperCase()}
-                    </div>
+                    {q.profiles?.avatar_url ? (
+                      <img src={q.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" />
+                    ) : (
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #3b82f6, #2563eb)",
+                        }}
+                      >
+                        {(q.profiles?.full_name ?? "?")
+                          .split(" ")
+                          .map((w: string) => w[0])
+                          .slice(-2)
+                          .join("")
+                          .toUpperCase()}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-xs font-medium text-white">

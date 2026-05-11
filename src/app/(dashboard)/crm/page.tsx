@@ -206,6 +206,7 @@ export default async function CRMPage() {
                   const dayLabel = new Date(d.day).toLocaleDateString("vi-VN", {
                     day: "numeric",
                     month: "numeric",
+                    timeZone: "Asia/Ho_Chi_Minh",
                   });
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">

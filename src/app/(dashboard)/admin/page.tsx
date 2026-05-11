@@ -41,7 +41,7 @@ export default async function AdminPage() {
     supabase.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase
       .from("profiles")
-      .select("full_name, created_at")
+      .select("full_name, avatar_url, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
@@ -237,12 +237,16 @@ export default async function AdminPage() {
               )}
               {(recentUsers ?? []).map((u, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 hover:bg-[#1a1a1a] transition-colors">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
-                    style={{ background: "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}
-                  >
-                    {(u.full_name ?? "?").slice(0, 2).toUpperCase()}
-                  </div>
+                  {u.avatar_url ? (
+                    <img src={u.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                      style={{ background: "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}
+                    >
+                      {(u.full_name ?? "?").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-white truncate">{u.full_name ?? "Thành viên"}</div>
                   </div>

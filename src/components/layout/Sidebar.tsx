@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/actions/auth";
+import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
 import {
   LayoutDashboard, BookOpen, Users, MessageSquare,
   FileText, Mail, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
-  Star, ShieldCheck, Zap,
+  Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
 } from "lucide-react";
 
 const mainNav = [
@@ -19,17 +20,22 @@ const mainNav = [
   { href: "/blog", icon: FileText, label: "Blog" },
   { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },
   { href: "/events", icon: Calendar, label: "Sự kiện" },
+  { href: "/dashboard/affiliate", icon: Zap, label: "Affiliate" },
 ];
 
 const adminNav = [
   { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
   { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager"] },
+  { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager"] },
   { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager"] },
   { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
   { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
   { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support"] },
   { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
-  { href: "/crm", icon: BarChart3, label: "CRM & Doanh số", roles: ["admin", "manager", "sale"] },
+  { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
+  { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
+  { href: "/crm/pipeline", icon: GitBranch, label: "Pipeline", roles: ["admin", "manager", "sale"] },
+  { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
 ];
 
 const settingsNav = [
@@ -42,6 +48,7 @@ interface Profile {
   tier: string;
   level: number;
   xp: number;
+  avatar_url: string | null;
 }
 
 interface SidebarProps {
@@ -53,6 +60,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string>("");
+  const { isOpen: mobileOpen, close: closeMobile } = useMobileSidebar();
 
   useEffect(() => {
     const supabase = createClient();
@@ -61,7 +69,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       setEmail(user.email ?? "");
       supabase
         .from("profiles")
-        .select("full_name, role, tier, level, xp")
+        .select("full_name, role, tier, level, xp, avatar_url")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
@@ -69,6 +77,11 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         });
     });
   }, []);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    closeMobile();
+  }, [pathname, closeMobile]);
 
   const displayName = profile?.full_name || email.split("@")[0] || "Tài khoản";
   const initials = displayName
@@ -89,19 +102,20 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const tierLabel = isStaff ? (roleLabels[userRole] ?? "Staff") : profile?.tier === "vip" ? "VIP" : profile?.tier === "member" ? "Member" : "Free";
   const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#22c55e";
 
-  return (
+  // isCompact: on mobile drawer we always show expanded; on desktop respect collapsed
+  const renderSidebar = (isCompact: boolean, isMobile: boolean) => (
     <aside
-      className="flex flex-col h-screen sticky top-0 transition-all duration-300"
+      className="flex flex-col h-screen transition-all duration-300"
       style={{
-        width: collapsed ? 64 : 240,
+        width: isMobile ? 260 : isCompact ? 64 : 240,
         background: "#111111",
-        borderRight: "1px solid #1f1f1f",
+        borderRight: isMobile ? "none" : "1px solid #1f1f1f",
         flexShrink: 0,
       }}
     >
       {/* Logo */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-[#1f1f1f]">
-        {!collapsed && (
+        {!isCompact && (
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
@@ -115,7 +129,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             </div>
           </Link>
         )}
-        {collapsed && (
+        {isCompact && (
           <Link href="/dashboard">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white mx-auto"
@@ -125,12 +139,21 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             </div>
           </Link>
         )}
-        <button
-          onClick={onToggle}
-          className="text-gray-500 hover:text-white transition-colors p-1 rounded ml-auto"
-        >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
+        {isMobile ? (
+          <button
+            onClick={closeMobile}
+            className="text-gray-500 hover:text-white transition-colors p-1 rounded ml-auto"
+          >
+            <X size={18} />
+          </button>
+        ) : (
+          <button
+            onClick={onToggle}
+            className="text-gray-500 hover:text-white transition-colors p-1 rounded ml-auto"
+          >
+            {isCompact ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -145,20 +168,20 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
-                title={collapsed ? item.label : undefined}
+                className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
+                title={isCompact ? item.label : undefined}
               >
                 <item.icon size={18} className="shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                {!isCompact && <span>{item.label}</span>}
               </Link>
             );
           })}
         </div>
 
-        {/* Staff nav — for admin, manager, marketing, sale, support */}
+        {/* Staff nav */}
         {isStaff && (
           <div className="mt-6">
-            {!collapsed && (
+            {!isCompact && (
               <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#f59e0b]">
                 {isAdmin ? "Admin" : "Quản lý"}
               </div>
@@ -173,11 +196,11 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
-                    title={collapsed ? item.label : undefined}
+                    className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
+                    title={isCompact ? item.label : undefined}
                   >
                     <item.icon size={18} className="shrink-0" />
-                    {!collapsed && <span>{item.label}</span>}
+                    {!isCompact && <span>{item.label}</span>}
                   </Link>
                 );
               })}
@@ -186,7 +209,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
         {/* Settings */}
         <div className={isStaff ? "mt-2" : "mt-6"}>
-          {!isStaff && !collapsed && (
+          {!isStaff && !isCompact && (
             <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
               Quản lý
             </div>
@@ -197,19 +220,19 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`sidebar-nav-item ${isActive ? "active" : ""} ${collapsed ? "justify-center px-2" : ""}`}
-                title={collapsed ? item.label : undefined}
+                className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
+                title={isCompact ? item.label : undefined}
               >
                 <item.icon size={18} className="shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                {!isCompact && <span>{item.label}</span>}
               </Link>
             );
           })}
         </div>
       </nav>
 
-      {/* CTA tư vấn (chỉ hiện cho học viên, không hiện cho staff) */}
-      {!collapsed && !isStaff && (
+      {/* CTA */}
+      {!isCompact && !isStaff && (
         <a
           href="https://zalo.me/0782276727"
           target="_blank"
@@ -226,8 +249,8 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </a>
       )}
 
-      {/* XP bar (visible when not collapsed) */}
-      {!collapsed && profile && (
+      {/* XP bar */}
+      {!isCompact && profile && (
         <div className="mx-3 mb-2 px-2">
           <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
             <span className="flex items-center gap-1">
@@ -254,14 +277,22 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
       {/* User + Logout */}
       <div className="border-t border-[#1f1f1f] p-3">
-        {!collapsed ? (
+        {!isCompact ? (
           <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-              style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
-            >
-              {initials}
-            </div>
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="w-8 h-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+              >
+                {initials}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-white truncate">{displayName}</div>
               <div className="text-[11px] text-gray-500 truncate">{email || "Đang tải..."}</div>
@@ -289,5 +320,29 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         )}
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden lg:block">
+        {renderSidebar(collapsed, false)}
+      </div>
+
+      {/* Mobile overlay drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={closeMobile}
+          />
+          {/* Drawer */}
+          <div className="relative h-full" style={{ width: 260 }}>
+            {renderSidebar(false, true)}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

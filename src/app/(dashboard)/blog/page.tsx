@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Clock, Eye, ArrowRight, Tag, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import NewsletterForm from "@/components/blog/NewsletterForm";
 
 function formatVietnameseDate(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -45,7 +46,6 @@ export default async function BlogPage() {
 
   const allPosts: BlogPost[] = posts ?? [];
 
-  // Extract unique categories from posts
   const categories = [
     "Tất cả",
     ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean))),
@@ -68,7 +68,7 @@ export default async function BlogPage() {
             {categories.map((cat, i) => (
               <span
                 key={cat}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                   i === 0
                     ? "bg-[#22c55e] text-white"
                     : "text-gray-400 hover:text-white"
@@ -105,46 +105,60 @@ export default async function BlogPage() {
         {featured && (
           <Link
             href={`/blog/${featured.slug}`}
-            className="card-dark p-6 block hover:bg-[#1f1f1f] transition-all group"
+            className="card-dark block hover:bg-[#1f1f1f] transition-all group overflow-hidden"
           >
-            <div className="flex gap-6 items-start">
-              {featured.thumbnail ? (
-                <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 relative">
-                  <Image
-                    src={featured.thumbnail}
-                    alt={featured.title}
-                    fill
-                    className="object-cover"
-                  />
+            {/* Thumbnail */}
+            {featured.thumbnail ? (
+              <div className="relative w-full aspect-[21/9] bg-[#1a1a1a]">
+                <Image
+                  src={featured.thumbnail}
+                  alt={featured.title}
+                  fill
+                  className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, 900px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="badge-green text-[11px]">{"✨"} Nổi bật</span>
+                    {featured.category && (
+                      <span className="text-[11px] text-white/80 px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-sm">
+                        {featured.category}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug drop-shadow-lg">
+                    {featured.title}
+                  </h2>
                 </div>
-              ) : (
-                <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-5xl shrink-0"
-                  style={{ background: "#222" }}
-                >
-                  <FileText size={32} className="text-gray-500" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
+              </div>
+            ) : (
+              <div className="p-6 pb-2">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="badge-green">✨ Nổi bật</span>
+                  <span className="badge-green text-[11px]">{"✨"} Nổi bật</span>
                   {featured.category && (
                     <span
-                      className="text-xs text-gray-500 px-2 py-0.5 rounded-full"
+                      className="text-[11px] text-gray-500 px-2 py-0.5 rounded-full"
                       style={{ background: "#222" }}
                     >
                       {featured.category}
                     </span>
                   )}
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2 group-hover:text-[#22c55e] transition-colors leading-snug">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-[#22c55e] transition-colors leading-snug">
                   {featured.title}
                 </h2>
-                {featured.excerpt && (
-                  <p className="text-gray-400 text-sm leading-relaxed mb-3 line-clamp-2">
-                    {featured.excerpt}
-                  </p>
-                )}
+              </div>
+            )}
+
+            {/* Content area */}
+            <div className="p-5 pt-3">
+              {featured.excerpt && (
+                <p className="text-gray-400 text-sm leading-relaxed mb-3 line-clamp-2">
+                  {featured.excerpt}
+                </p>
+              )}
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <Clock size={12} />
@@ -156,25 +170,24 @@ export default async function BlogPage() {
                   </span>
                   <span>{formatVietnameseDate(featured.published_at)}</span>
                 </div>
-                {featured.tags && featured.tags.length > 0 && (
-                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                    <Tag size={10} className="text-gray-600" />
-                    {featured.tags.slice(0, 4).map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[10px] text-gray-500 px-1.5 py-0.5 rounded-full"
-                        style={{ background: "#222" }}
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <span className="flex items-center gap-1 text-xs text-[#22c55e] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Đọc bài viết <ArrowRight size={12} />
+                </span>
               </div>
-              <ArrowRight
-                size={20}
-                className="text-gray-600 group-hover:text-[#22c55e] transition-colors shrink-0 mt-1"
-              />
+              {featured.tags && featured.tags.length > 0 && (
+                <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+                  <Tag size={10} className="text-gray-600" />
+                  {featured.tags.slice(0, 4).map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] text-gray-500 px-1.5 py-0.5 rounded-full"
+                      style={{ background: "#222" }}
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </Link>
         )}
@@ -186,68 +199,70 @@ export default async function BlogPage() {
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="card-dark p-5 block hover:bg-[#1f1f1f] transition-all group"
+                className="card-dark block hover:bg-[#1f1f1f] transition-all group overflow-hidden"
               >
-                <div className="flex gap-4">
-                  {post.thumbnail ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 relative">
-                      <Image
-                        src={post.thumbnail}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                {/* Thumbnail */}
+                {post.thumbnail ? (
+                  <div className="relative w-full aspect-[16/9] bg-[#1a1a1a]">
+                    <Image
+                      src={post.thumbnail}
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 450px"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="w-full aspect-[16/9] flex items-center justify-center"
+                    style={{ background: "#1a1a1a" }}
+                  >
+                    <FileText size={36} className="text-gray-700" />
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="p-4">
+                  {post.category && (
+                    <span
+                      className="text-[11px] text-gray-500 font-medium px-2 py-0.5 rounded-full mb-2 inline-block"
                       style={{ background: "#222" }}
                     >
-                      <FileText size={20} className="text-gray-500" />
+                      {post.category}
+                    </span>
+                  )}
+                  <h3 className="font-semibold text-white text-[15px] leading-snug mb-1.5 group-hover:text-[#22c55e] transition-colors line-clamp-2">
+                    {post.title}
+                  </h3>
+                  {post.excerpt && (
+                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-2.5">
+                      {post.excerpt}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 text-[11px] text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <Clock size={10} />
+                      {estimateReadTime(post.content)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Eye size={10} />
+                      {post.views.toLocaleString("vi-VN")}
+                    </span>
+                    <span>{formatVietnameseDate(post.published_at)}</span>
+                  </div>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex items-center gap-1 mt-2 flex-wrap">
+                      {post.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-[10px] text-gray-600 px-1.5 py-0.5 rounded-full"
+                          style={{ background: "#1a1a1a" }}
+                        >
+                          #{tag}
+                        </span>
+                      ))}
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    {post.category && (
-                      <span
-                        className="text-[11px] text-gray-500 font-medium px-2 py-0.5 rounded-full mb-2 inline-block"
-                        style={{ background: "#222" }}
-                      >
-                        {post.category}
-                      </span>
-                    )}
-                    <h3 className="font-semibold text-white text-sm leading-snug mb-1 group-hover:text-[#22c55e] transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    {post.excerpt && (
-                      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-2">
-                        {post.excerpt}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-3 text-[11px] text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Clock size={10} />
-                        {estimateReadTime(post.content)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Eye size={10} />
-                        {post.views.toLocaleString("vi-VN")}
-                      </span>
-                      <span>{formatVietnameseDate(post.published_at)}</span>
-                    </div>
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                        {post.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] text-gray-600 px-1.5 py-0.5 rounded-full"
-                            style={{ background: "#1a1a1a" }}
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                 </div>
               </Link>
             ))}
@@ -255,27 +270,7 @@ export default async function BlogPage() {
         )}
 
         {/* Newsletter CTA */}
-        <div
-          className="card-dark p-6 text-center"
-          style={{ borderColor: "rgba(34,197,94,0.2)" }}
-        >
-          <div className="text-2xl mb-3">📬</div>
-          <h3 className="font-bold text-white mb-1">
-            Nhận bài viết mới mỗi tuần
-          </h3>
-          <p className="text-sm text-gray-400 mb-4">
-            Tham gia 1,200+ người đang nhận newsletter marketing thực chiến của
-            Đăng Khương
-          </p>
-          <div className="flex gap-2 max-w-sm mx-auto">
-            <input
-              type="email"
-              placeholder="Email của bạn..."
-              className="input-dark flex-1"
-            />
-            <button className="btn-green shrink-0">Đăng ký</button>
-          </div>
-        </div>
+        <NewsletterForm />
       </div>
     </div>
   );

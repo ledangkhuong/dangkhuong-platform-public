@@ -26,6 +26,7 @@ interface Post {
 interface UserProfile {
   id: string;
   full_name: string;
+  avatar_url: string | null;
   xp: number;
   level: number;
   tier: string;
@@ -35,6 +36,7 @@ interface UserProfile {
 interface LeaderboardEntry {
   id: string;
   full_name: string;
+  avatar_url: string | null;
   xp: number;
   level: number;
 }
@@ -114,7 +116,7 @@ export default function CommunityPage() {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("id, full_name, xp, level, tier, streak")
+          .select("id, full_name, avatar_url, xp, level, tier, streak")
           .eq("id", user.id)
           .single();
         if (profile) setMyProfile(profile as UserProfile);
@@ -122,7 +124,7 @@ export default function CommunityPage() {
 
       const { data: topUsers } = await supabase
         .from("profiles")
-        .select("id, full_name, xp, level")
+        .select("id, full_name, avatar_url, xp, level")
         .order("xp", { ascending: false })
         .limit(5);
       if (topUsers) setLeaderboard(topUsers as LeaderboardEntry[]);
@@ -180,15 +182,19 @@ export default function CommunityPage() {
 
       <div className="flex gap-0">
         {/* Main Feed */}
-        <div className="flex-1 p-6 max-w-2xl mx-auto space-y-4">
+        <div className="flex-1 p-4 sm:p-6 max-w-2xl mx-auto space-y-4">
 
           {/* Create Post */}
           <div className="card-dark p-4">
             <div className="flex gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
-                {myProfile ? getAvatarInitials(myProfile.full_name) : "??"}
-              </div>
+              {myProfile?.avatar_url ? (
+                <img src={myProfile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
+                  {myProfile ? getAvatarInitials(myProfile.full_name) : "??"}
+                </div>
+              )}
               <textarea
                 value={postText}
                 onChange={e => setPostText(e.target.value)}
@@ -249,10 +255,14 @@ export default function CommunityPage() {
                 )}
                 {/* Author */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                    style={{ background: isVip ? "linear-gradient(135deg, #22c55e, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
-                    {initials}
-                  </div>
+                  {post.profiles?.avatar_url ? (
+                    <img src={post.profiles.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                      style={{ background: isVip ? "linear-gradient(135deg, #22c55e, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
+                      {initials}
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-white">{fullName}</span>
@@ -348,10 +358,14 @@ export default function CommunityPage() {
                     <div key={user.id}
                       className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#22c55e]/10" : "hover:bg-white/3"} transition-colors`}>
                       <span className="text-sm">{rankBadge(rank)}</span>
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                        style={{ background: isMe ? "linear-gradient(135deg,#22c55e,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
-                        {getAvatarInitials(user.full_name)}
-                      </div>
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                          style={{ background: isMe ? "linear-gradient(135deg,#22c55e,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
+                          {getAvatarInitials(user.full_name)}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className={`text-xs font-medium truncate ${isMe ? "text-[#22c55e]" : "text-white"}`}>
                           {isMe ? "Bạn" : user.full_name}

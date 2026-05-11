@@ -1,0 +1,131 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/server";
+
+const VALID_CATEGORIES = ["marketing", "transactional", "newsletter", "automation"];
+
+// GET /api/email/templates/[id] — get single template
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createAdminClient();
+
+    const { data, error } = await supabase
+      .from("email_templates")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !data) {
+      return NextResponse.json(
+        { error: "Template not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ template: data });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/email/templates/[id] — update template
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+    const { name, subject, html_content, text_content, category, variables, thumbnail_url, is_active } = body;
+
+    const updates: Record<string, unknown> = {};
+    if (name !== undefined) updates.name = name;
+    if (subject !== undefined) updates.subject = subject;
+    if (html_content !== undefined) updates.html_content = html_content;
+    if (text_content !== undefined) updates.text_content = text_content;
+    if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url;
+    if (is_active !== undefined) updates.is_active = is_active;
+    if (variables !== undefined) updates.variables = variables;
+
+    if (category !== undefined) {
+      if (!VALID_CATEGORIES.includes(category)) {
+        return NextResponse.json(
+          {
+            error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+      updates.category = category;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "Nothing to update." },
+        { status: 400 }
+      );
+    }
+
+    updates.updated_at = new Date().toISOString();
+
+    const supabase = await createAdminClient();
+
+    const { data, error } = await supabase
+      .from("email_templates")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json(
+        { error: "Template not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ template: data });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/email/templates/[id] — soft delete (set is_active = false)
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createAdminClient();
+
+    const { error } = await supabase
+      .from("email_templates")
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

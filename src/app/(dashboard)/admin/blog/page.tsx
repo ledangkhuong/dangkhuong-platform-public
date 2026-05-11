@@ -44,18 +44,21 @@ function formatDate(dateStr: string | null): string {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "Asia/Ho_Chi_Minh",
   });
 }
 
 function formatDateTime(dateStr: string | null): string {
   if (!dateStr) return "—";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("vi-VN", {
+  return d.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Ho_Chi_Minh",
   });
 }
 
@@ -129,9 +132,19 @@ export default async function AdminBlogPage() {
         subtitle={`${totalPosts} bài viết`}
       />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+        {/* Create button */}
+        <div className="flex justify-end">
+          <Link
+            href="/admin/blog/new"
+            className="btn-green text-sm flex items-center gap-2"
+          >
+            <PenLine size={14} />
+            Viết bài mới
+          </Link>
+        </div>
         {/* ── Stats row ─────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {stats.map((s) => (
             <div key={s.label} className="stat-card flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -286,20 +299,34 @@ export default async function AdminBlogPage() {
                         {formatDateTime(post.created_at)}
                       </td>
 
-                      {/* Preview link */}
+                      {/* Actions */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
-                          style={{
-                            background: "rgba(34,197,94,0.1)",
-                            color: "#22c55e",
-                            border: "1px solid rgba(34,197,94,0.25)",
-                          }}
-                        >
-                          <ExternalLink size={11} />
-                          Xem
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/admin/blog/${post.id}/edit`}
+                            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+                            style={{
+                              background: "rgba(59,130,246,0.1)",
+                              color: "#3b82f6",
+                              border: "1px solid rgba(59,130,246,0.25)",
+                            }}
+                          >
+                            <PenLine size={11} />
+                            Sửa
+                          </Link>
+                          <Link
+                            href={`/blog/${post.slug}`}
+                            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+                            style={{
+                              background: "rgba(34,197,94,0.1)",
+                              color: "#22c55e",
+                              border: "1px solid rgba(34,197,94,0.25)",
+                            }}
+                          >
+                            <ExternalLink size={11} />
+                            Xem
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))

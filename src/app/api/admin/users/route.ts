@@ -82,3 +82,66 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ user: data });
 }
+
+// DELETE /api/admin/users — delete one or multiple users (auth + profile)
+export async function DELETE(req: NextRequest) {
+  // Auth: only admin can delete users
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: myProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (myProfile?.role !== "admin") {
+    return NextResponse.json({ error: "Chỉ Admin mới có quyền xoá tài khoản" }, { status: 403 });
+  }
+
+  const { user_ids } = await req.json();
+
+  if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
+    return NextResponse.json({ error: "user_ids[] is required" }, { status: 400 });
+  }
+
+  // Safety: never delete yourself
+  if (user_ids.includes(user.id)) {
+    return NextResponse.json({ error: "Không thể xoá chính tài khoản của bạn" }, { status: 400 });
+  }
+
+  // Safety: prevent deleting admin/manager accounts
+  const adminClient = await createAdminClient();
+  const { data: protectedUsers } = await adminClient
+    .from("profiles")
+    .select("id, role")
+    .in("id", user_ids)
+    .in("role", ["admin", "manager"]);
+
+  if (protectedUsers && protectedUsers.length > 0) {
+    return NextResponse.json(
+      { error: `Không thể xoá ${protectedUsers.length} tài khoản admin/quản lý` },
+      { status: 400 }
+    );
+  }
+
+  // Delete users via Supabase Admin API (this also cascades profile via trigger/FK)
+  const results = { deleted: 0, errors: [] as string[] };
+
+  for (const uid of user_ids) {
+    const { error: delErr } = await adminClient.auth.admin.deleteUser(uid);
+    if (delErr) {
+      results.errors.push(`${uid}: ${delErr.message}`);
+    } else {
+      // Also delete profile row in case cascade didn't fire
+      await adminClient.from("profiles").delete().eq("id", uid);
+      results.deleted++;
+    }
+  }
+
+  return NextResponse.json(results);
+}

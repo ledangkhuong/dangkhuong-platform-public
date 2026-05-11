@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 const FROM = process.env.EMAIL_FROM || "Đăng Khương <no-reply@dangkhuong.com>";
 
 // ─── Templates ───────────────────────────────────────────────────
@@ -48,7 +52,7 @@ function baseTemplate(content: string) {
 // ─── Email functions ───────────────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, name: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `Chào mừng ${name} đến với Đăng Khương Academy! 🎉`,
@@ -78,7 +82,7 @@ export async function sendPurchaseConfirmation(
   orderCode: string,
 ) {
   const formattedAmount = amount.toLocaleString("vi-VN") + "₫";
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `✅ Xác nhận thanh toán — ${productName}`,
@@ -107,7 +111,7 @@ export async function sendWeeklyNewsletter(
   subject: string,
   body: string,
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject,
@@ -128,7 +132,7 @@ export async function sendLessonCompleteNudge(
   nextLessonTitle: string,
   courseUrl: string,
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `🔥 Tiếp tục đà học tập — bài tiếp theo đang chờ bạn!`,
@@ -148,6 +152,30 @@ export async function sendLessonCompleteNudge(
   });
 }
 
+export async function sendPasswordResetEmail(
+  to: string,
+  name: string,
+  resetLink: string,
+) {
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `🔑 Đặt lại mật khẩu — Đăng Khương Academy`,
+    html: baseTemplate(`
+      <h1>Đặt lại mật khẩu</h1>
+      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Bấm nút bên dưới để tạo mật khẩu mới:</p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${resetLink}" class="btn">Đặt lại mật khẩu →</a>
+      </div>
+      <p style="font-size:13px;color:#6b7280;">Link này sẽ hết hạn sau 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.</p>
+      <div class="divider"></div>
+      <p style="margin:0;font-size:12px;color:#4b5563;">Nếu nút không hoạt động, copy và dán link sau vào trình duyệt:<br/>
+      <a href="${resetLink}" style="color:#22c55e;word-break:break-all;font-size:11px;">${resetLink}</a></p>
+    `),
+  });
+}
+
 export async function sendEventReminder(
   to: string,
   name: string,
@@ -155,7 +183,7 @@ export async function sendEventReminder(
   eventTime: string,
   joinUrl: string,
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `⏰ Nhắc nhở: "${eventTitle}" bắt đầu trong 1 tiếng!`,
@@ -171,5 +199,53 @@ export async function sendEventReminder(
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Hẹn gặp bạn ở đó!</p>
     `),
+  });
+}
+
+export async function sendAffiliateCommissionEmail(
+  to: string,
+  name: string,
+  productName: string,
+  commissionAmount: number,
+) {
+  const formatted = commissionAmount.toLocaleString("vi-VN") + "₫";
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `Bạn vừa nhận hoa hồng ${formatted} — Đăng Khương Academy`,
+    html: baseTemplate(`
+      <h1>Chúc mừng, ${name}!</h1>
+      <p>Một khách hàng vừa mua <span class="highlight">${productName}</span> qua link giới thiệu của bạn.</p>
+      <div style="background:#222;border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+        <div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Hoa hồng nhận được</div>
+        <div style="color:#22c55e;font-weight:700;font-size:26px;">${formatted}</div>
+      </div>
+      <p>Khoản hoa hồng đang chờ duyệt. Bạn có thể theo dõi chi tiết tại trang Affiliate.</p>
+      <a href="https://dangkhuong.com/dashboard/affiliate" class="btn">Xem Affiliate Dashboard →</a>
+      <div class="divider"></div>
+      <p style="margin:0;font-size:13px;color:#6b7280;">Tiếp tục chia sẻ link giới thiệu để nhận thêm hoa hồng!</p>
+    `),
+  });
+}
+
+export async function sendVerificationEmail(to: string, name: string, confirmUrl: string) {
+  const html = baseTemplate(`
+    <h1>Xin chào ${name}! 👋</h1>
+    <p>Cảm ơn bạn đã đăng ký tài khoản tại <span class="highlight">Đăng Khương Academy</span>.</p>
+    <p>Vui lòng nhấn nút bên dưới để xác thực địa chỉ email và kích hoạt tài khoản của bạn:</p>
+    <p style="text-align:center; margin:24px 0;">
+      <a href="${confirmUrl}" class="btn">Xác thực tài khoản</a>
+    </p>
+    <p style="font-size:12px; color:#6b7280;">Nếu nút không hoạt động, bạn có thể copy đường link sau vào trình duyệt:<br/>
+    <a href="${confirmUrl}" style="color:#22c55e; word-break:break-all; font-size:11px;">${confirmUrl}</a></p>
+    <div class="divider"></div>
+    <p style="font-size:12px; color:#6b7280; margin:0;">Link xác thực có hiệu lực trong 24 giờ. Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
+  `);
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: "Xác thực tài khoản Đăng Khương Academy",
+    html,
   });
 }

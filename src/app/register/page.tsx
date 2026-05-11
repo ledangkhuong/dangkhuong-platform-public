@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { signUp } from "@/lib/actions/auth";
+import PasswordInput from "@/components/auth/PasswordInput";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 export default async function RegisterPage({
   searchParams,
@@ -58,15 +60,18 @@ export default async function RegisterPage({
             {/* Số điện thoại */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                Số điện thoại
+                Số điện thoại <span className="text-red-400">*</span>
               </label>
               <input
                 name="phone"
                 type="tel"
-                placeholder="0912 345 678"
+                placeholder="0912345678"
+                pattern="^(0|\+84)[0-9]{9}$"
+                title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
                 className="input-dark w-full"
                 required
               />
+              <p className="text-[10px] text-gray-600 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
             </div>
 
             {/* Email */}
@@ -88,14 +93,7 @@ export default async function RegisterPage({
               <label className="block text-sm font-medium text-gray-300 mb-1.5">
                 Mật khẩu
               </label>
-              <input
-                name="password"
-                type="password"
-                placeholder="Tối thiểu 8 ký tự"
-                className="input-dark w-full"
-                required
-                minLength={8}
-              />
+              <PasswordInput name="password" placeholder="Tối thiểu 8 ký tự" minLength={8} />
             </div>
 
             <p className="text-xs text-gray-500 pt-1">
@@ -112,6 +110,11 @@ export default async function RegisterPage({
               Đăng ký — Hoàn toàn miễn phí
             </button>
           </form>
+          {/* Social Login */}
+          <div className="mt-5">
+            <SocialLoginButtons />
+          </div>
+
           <p className="text-center text-sm text-gray-500 mt-5">
             Đã có tài khoản?{" "}
             <Link href="/login" className="text-[#22c55e] font-medium hover:underline">

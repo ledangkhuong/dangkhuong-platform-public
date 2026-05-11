@@ -1,42 +1,52 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function signUp(formData: FormData) {
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-    options: {
-      data: { full_name: formData.get("full_name") as string },
-    },
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const full_name = formData.get("full_name") as string;
+  const phone = (formData.get("phone") as string)?.replace(/\s+/g, "");
+
+  // Validate required fields
+  if (!full_name?.trim()) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập họ và tên"));
+  if (!phone || !/^(0|\+84)[0-9]{9}$/.test(phone)) redirect("/register?error=" + encodeURIComponent("Số điện thoại không hợp lệ. Vui lòng nhập đúng 10 số (VD: 0912345678)"));
+  if (!email?.trim()) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập email"));
+  if (!password || password.length < 8) redirect("/register?error=" + encodeURIComponent("Mật khẩu phải có ít nhất 8 ký tự"));
+
+  const admin = await createAdminClient();
+
+  // Create user WITHOUT auto-confirming email
+  const { data: created, error: createError } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: false,
+    user_metadata: { full_name },
   });
-  if (error) redirect(`/register?error=${encodeURIComponent(error.message)}`);
-  // Auto-enroll vào khoá học miễn phí
-  const phone = formData.get("phone") as string;
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    // Save phone number to profile
-    await supabase.from("profiles").update({ phone }).eq("id", user.id);
-    const { data: freeProduct } = await supabase
-      .from("products").select("id").eq("price", 0).single();
-    if (freeProduct) {
-      await supabase.from("enrollments").insert({
-        user_id: user.id, product_id: freeProduct.id, source: "free",
-      });
-    }
-    // Thêm XP đăng ký
-    await supabase.from("xp_events").insert({
-      user_id: user.id, action: "register", xp_amount: 100,
-    });
-    // Gửi email chào mừng
-    const { sendWelcomeEmail } = await import("@/lib/email/resend");
-    const emailName = formData.get("full_name") as string || "bạn";
-    const emailAddr = formData.get("email") as string;
-    await sendWelcomeEmail(emailAddr, emailName).catch(() => {}); // không throw nếu email lỗi
+  if (createError) redirect(`/register?error=${encodeURIComponent(createError.message)}`);
+
+  // Save phone to profile immediately (using admin client to bypass RLS)
+  if (created?.user) {
+    await admin.from("profiles").update({ phone }).eq("id", created.user.id);
   }
-  redirect("/dashboard");
+
+  // Generate confirmation link
+  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+    type: "signup",
+    email,
+    password,
+  });
+
+  if (!linkError && linkData) {
+    // Send Vietnamese confirmation email via Resend
+    const confirmUrl = `https://dangkhuong.com/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
+
+    const { sendVerificationEmail } = await import("@/lib/email/resend");
+    await sendVerificationEmail(email, full_name, confirmUrl).catch(() => {});
+  }
+
+  redirect("/register/verify?email=" + encodeURIComponent(email));
 }
 
 export async function signIn(formData: FormData) {

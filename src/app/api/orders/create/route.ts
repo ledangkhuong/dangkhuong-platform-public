@@ -50,7 +50,10 @@ export async function POST(req: NextRequest) {
     const orderCode = generateOrderCode();
     const amount = product.sale_price || product.price;
 
-    // Tạo đơn hàng
+    // Đọc affiliate ref_code từ cookie dk_ref
+    const refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
+
+    // Tạo đơn hàng (kèm ref_code nếu có)
     const { data: order, error: orderError } = await admin.from("orders").insert({
       order_code: orderCode,
       user_id: user.id,
@@ -61,6 +64,7 @@ export async function POST(req: NextRequest) {
       customer_name: customer_name || user.email,
       customer_email: customer_email || user.email,
       customer_phone: customer_phone || null,
+      ref_code: refCode,
     }).select().single();
 
     if (orderError) {

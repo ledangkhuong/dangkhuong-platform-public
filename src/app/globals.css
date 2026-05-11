@@ -20,7 +20,9 @@
   --radius: 0.75rem;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+}
 
 body {
   background-color: #0a0a0a;
@@ -159,3 +161,34 @@ body {
   border-radius: 99px;
   transition: width 0.3s ease;
 }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Blog content styles (for rendering rich HTML from Novel editor) ───── */
+.blog-content h1 { font-size: 1.75rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.75rem; line-height: 1.3; }
+.blog-content h2 { font-size: 1.4rem; font-weight: 700; color: #fff; margin: 1.5rem 0 0.6rem; line-height: 1.35; }
+.blog-content h3 { font-size: 1.15rem; font-weight: 700; color: #f3f4f6; margin: 1.25rem 0 0.5rem; line-height: 1.4; }
+.blog-content h4 { font-size: 1rem; font-weight: 600; color: #e5e7eb; margin: 1rem 0 0.4rem; }
+.blog-content p { margin: 0.6rem 0; color: #d1d5db; }
+.blog-content strong { color: #fff; font-weight: 700; }
+.blog-content em { font-style: italic; }
+.blog-content s { color: #6b7280; }
+.blog-content ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+.blog-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+.blog-content li { margin: 0.25rem 0; color: #d1d5db; }
+.blog-content li::marker { color: #6b7280; }
+.blog-content blockquote { border-left: 3px solid #22c55e; padding: 0.75rem 1rem; margin: 1rem 0; color: #9ca3af; font-style: italic; background: rgba(34,197,94,0.04); border-radius: 0 8px 8px 0; }
+.blog-content a { color: #22c55e; text-decoration: underline; text-underline-offset: 3px; }
+.blog-content a:hover { color: #16a34a; }
+.blog-content code { background: #1f1f1f; color: #22c55e; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; border: 1px solid #2a2a2a; }
+.blog-content pre { background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; overflow-x: auto; }
+.blog-content pre code { background: none; border: none; padding: 0; color: #e5e7eb; font-size: 0.85rem; line-height: 1.6; }
+.blog-content img { max-width: 100%; height: auto; border-radius: 10px; margin: 1rem 0; }
+.blog-content hr { border: none; border-top: 1px solid #2a2a2a; margin: 1.5rem 0; }
+.blog-content mark { background: rgba(250,204,21,0.25); color: inherit; padding: 0.1em 0.2em; border-radius: 3px; }
+.blog-content iframe { width: 100%; aspect-ratio: 16/9; border-radius: 10px; margin: 1rem 0; border: 1px solid #2a2a2a; }
+.blog-content ul[data-type="taskList"] { list-style: none; padding-left: 0.25rem; }
+.blog-content ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5rem; }
+.blog-content ul[data-type="taskList"] li label input[type="checkbox"] { accent-color: #22c55e; }
