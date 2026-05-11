@@ -31,6 +31,73 @@ export async function signUp(formData: FormData) {
     await admin.from("profiles").update({ phone }).eq("id", created.user.id);
   }
 
+  // Add user to subscribers table (best-effort — don't fail registration if this fails)
+  if (created?.user) {
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // Check if email already exists in subscribers (e.g. from newsletter signup)
+      const { data: existingSub } = await admin
+        .from("subscribers")
+        .select("id, user_id")
+        .eq("email", normalizedEmail)
+        .single();
+
+      if (existingSub) {
+        // Link existing subscriber to this user if not already linked
+        if (!existingSub.user_id) {
+          await admin
+            .from("subscribers")
+            .update({
+              user_id: created.user.id,
+              full_name: full_name || undefined,
+              phone: phone || undefined,
+              tags: ["registered_user", "newsletter"],
+              source: "website_registration",
+            })
+            .eq("id", existingSub.id);
+        }
+      } else {
+        // Insert new subscriber
+        const { data: newSub } = await admin
+          .from("subscribers")
+          .insert({
+            email: normalizedEmail,
+            full_name: full_name || null,
+            phone: phone || null,
+            status: "active",
+            source: "website_registration",
+            tags: ["registered_user"],
+            user_id: created.user.id,
+            subscribed_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+        // Add to newsletter list if one exists (best-effort)
+        if (newSub) {
+          const { data: defaultList } = await admin
+            .from("email_lists")
+            .select("id")
+            .ilike("name", "%newsletter%")
+            .limit(1)
+            .single();
+
+          if (defaultList) {
+            await admin.from("subscriber_list_members").insert({
+              subscriber_id: newSub.id,
+              list_id: defaultList.id,
+              added_at: new Date().toISOString(),
+            });
+          }
+        }
+      }
+    } catch (subError) {
+      // Don't fail registration if subscriber sync fails
+      console.error("Failed to sync subscriber on signup:", subError);
+    }
+  }
+
   // Generate confirmation link
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: "signup",

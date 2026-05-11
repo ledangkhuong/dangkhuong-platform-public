@@ -27,6 +27,72 @@ export async function GET(request: NextRequest) {
         if (isOAuth) {
           const adminClient = await createAdminClient();
 
+          // Sync OAuth user to subscribers table (best-effort)
+          if (user.email) {
+            try {
+              const normalizedEmail = user.email.toLowerCase();
+              const meta = user.user_metadata;
+              const oauthFullName = meta?.full_name || meta?.name || null;
+
+              const { data: existingSub } = await adminClient
+                .from("subscribers")
+                .select("id, user_id")
+                .eq("email", normalizedEmail)
+                .single();
+
+              if (existingSub) {
+                // Link existing subscriber to this user if not already linked
+                if (!existingSub.user_id) {
+                  await adminClient
+                    .from("subscribers")
+                    .update({ user_id: user.id })
+                    .eq("id", existingSub.id);
+                }
+              } else {
+                // Insert new subscriber for this OAuth user
+                const { data: newSub } = await adminClient
+                  .from("subscribers")
+                  .insert({
+                    email: normalizedEmail,
+                    full_name: oauthFullName,
+                    status: "active",
+                    source: "website_registration",
+                    tags: ["registered_user"],
+                    user_id: user.id,
+                    subscribed_at: user.created_at || new Date().toISOString(),
+                  })
+                  .select("id")
+                  .single();
+
+                // Add to newsletter list if one exists (best-effort)
+                if (newSub) {
+                  const { data: defaultList } = await adminClient
+                    .from("email_lists")
+                    .select("id")
+                    .ilike("name", "%newsletter%")
+                    .limit(1)
+                    .single();
+
+                  if (defaultList) {
+                    await adminClient
+                      .from("subscriber_list_members")
+                      .upsert(
+                        {
+                          subscriber_id: newSub.id,
+                          list_id: defaultList.id,
+                          added_at: new Date().toISOString(),
+                        },
+                        { onConflict: "subscriber_id,list_id", ignoreDuplicates: true }
+                      );
+                  }
+                }
+              }
+            } catch (subError) {
+              // Don't fail OAuth login if subscriber sync fails
+              console.error("Failed to sync subscriber on OAuth login:", subError);
+            }
+          }
+
           // Check if profile exists
           const { data: profile } = await adminClient
             .from("profiles")
