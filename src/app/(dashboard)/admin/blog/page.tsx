@@ -106,7 +106,7 @@ export default async function AdminBlogPage() {
       label: "Đã xuất bản",
       value: publishedCount.toLocaleString("vi-VN"),
       icon: Send,
-      color: "#22c55e",
+      color: "#D4A843",
       sub: "đang hiển thị",
     },
     {
@@ -318,9 +318,9 @@ export default async function AdminBlogPage() {
                             href={`/blog/${post.slug}`}
                             className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors"
                             style={{
-                              background: "rgba(34,197,94,0.1)",
-                              color: "#22c55e",
-                              border: "1px solid rgba(34,197,94,0.25)",
+                              background: "rgba(212,168,67,0.1)",
+                              color: "#D4A843",
+                              border: "1px solid rgba(212,168,67,0.25)",
                             }}
                           >
                             <ExternalLink size={11} />
@@ -347,7 +347,7 @@ export default async function AdminBlogPage() {
                 <>
                   {" "}
                   &middot;{" "}
-                  <span className="text-green-500 font-semibold">
+                  <span className="text-amber-500 font-semibold">
                     {publishedCount}
                   </span>{" "}
                   xuất bản

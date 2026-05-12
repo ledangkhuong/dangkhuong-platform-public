@@ -194,7 +194,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                   )}
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-xl font-bold text-[#22c55e]">{formatPrice(product.price)}</div>
+                  <div className="text-xl font-bold text-[#D4A843]">{formatPrice(product.price)}</div>
                 </div>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
             {order.manual && (
               <div className="p-4 rounded-xl mb-4" style={{ background: "#1a1a1a", border: "1px solid #333" }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <CreditCard size={16} className="text-[#22c55e]" />
+                  <CreditCard size={16} className="text-[#D4A843]" />
                   <span className="text-sm font-semibold text-white">Thông tin chuyển khoản</span>
                 </div>
                 <p className="text-xs text-gray-400 mb-3">
@@ -279,13 +279,13 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                   style={{ background: "#222" }}>
                   <span className="text-xs text-gray-400">{item.label}</span>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm font-semibold ${item.highlight ? "text-[#22c55e]" : "text-white font-mono"}`}>
+                    <span className={`text-sm font-semibold ${item.highlight ? "text-[#D4A843]" : "text-white font-mono"}`}>
                       {item.value}
                     </span>
                     {item.copyable && (
                       <button onClick={() => copyToClipboard(item.value, item.key)}
                         className="text-gray-500 hover:text-white transition-colors">
-                        {copied === item.key ? <Check size={13} className="text-[#22c55e]" /> : <Copy size={13} />}
+                        {copied === item.key ? <Check size={13} className="text-[#D4A843]" /> : <Copy size={13} />}
                       </button>
                     )}
                   </div>
@@ -295,8 +295,8 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
 
             {order.qrUrl ? (
               <div className="p-3 rounded-lg text-xs text-gray-400 leading-relaxed"
-                style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}>
-                <span className="text-[#22c55e] font-medium">⚡ Tự động xác nhận</span> — Sau khi chuyển khoản,
+                style={{ background: "rgba(212,168,67,0.06)", border: "1px solid rgba(212,168,67,0.15)" }}>
+                <span className="text-[#D4A843] font-medium">⚡ Tự động xác nhận</span> — Sau khi chuyển khoản,
                 hệ thống sẽ tự động xác nhận trong vòng 60 giây và mở khoá quyền truy cập ngay lập tức.
               </div>
             ) : (
@@ -321,14 +321,14 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
         {step === "success" && (
           <div className="p-8 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{ background: "rgba(34,197,94,0.15)", border: "2px solid rgba(34,197,94,0.4)" }}>
-              <CheckCircle size={32} className="text-[#22c55e]" />
+              style={{ background: "rgba(212,168,67,0.15)", border: "2px solid rgba(212,168,67,0.4)" }}>
+              <CheckCircle size={32} className="text-[#D4A843]" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Thanh toán thành công!</h3>
             <p className="text-gray-400 text-sm mb-2">
               Cảm ơn bạn đã tin tưởng. Quyền truy cập đã được kích hoạt ngay lập tức.
             </p>
-            <p className="text-[#22c55e] text-sm font-medium mb-6">
+            <p className="text-[#D4A843] text-sm font-medium mb-6">
               Email xác nhận đã được gửi tới <span className="font-semibold">{email}</span>
             </p>
             <div className="space-y-2">

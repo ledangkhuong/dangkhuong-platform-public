@@ -134,35 +134,35 @@ export default function RichTextEditor({
         /* Toolbar button hover */
         .rich-text-editor-wrapper .ql-snow button:hover .ql-stroke,
         .rich-text-editor-wrapper .ql-snow .ql-picker-label:hover .ql-stroke {
-          stroke: #22c55e;
+          stroke: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow button:hover .ql-fill,
         .rich-text-editor-wrapper .ql-snow .ql-picker-label:hover .ql-fill {
-          fill: #22c55e;
+          fill: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow button:hover,
         .rich-text-editor-wrapper .ql-snow .ql-picker-label:hover {
-          color: #22c55e;
+          color: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow .ql-picker-label:hover::before {
-          color: #22c55e;
+          color: #D4A843;
         }
 
         /* Active toolbar buttons */
         .rich-text-editor-wrapper .ql-snow button.ql-active .ql-stroke {
-          stroke: #22c55e;
+          stroke: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow button.ql-active .ql-fill {
-          fill: #22c55e;
+          fill: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow .ql-picker-item.ql-selected,
         .rich-text-editor-wrapper .ql-snow .ql-picker-label.ql-active {
-          color: #22c55e;
+          color: #D4A843;
         }
         .rich-text-editor-wrapper
           .ql-snow
           .ql-picker-label.ql-active::before {
-          color: #22c55e;
+          color: #D4A843;
         }
 
         /* Dropdown menus */
@@ -179,11 +179,11 @@ export default function RichTextEditor({
           border-radius: 4px;
         }
         .rich-text-editor-wrapper .ql-snow .ql-picker-item:hover {
-          color: #22c55e;
-          background: rgba(34, 197, 94, 0.08);
+          color: #D4A843;
+          background: rgba(212, 168, 67, 0.08);
         }
         .rich-text-editor-wrapper .ql-snow .ql-picker-item.ql-selected {
-          color: #22c55e;
+          color: #D4A843;
         }
 
         /* Color picker */
@@ -194,13 +194,13 @@ export default function RichTextEditor({
 
         /* Links */
         .rich-text-editor-wrapper .ql-editor a {
-          color: #22c55e;
+          color: #D4A843;
           text-decoration: underline;
         }
 
         /* Blockquote */
         .rich-text-editor-wrapper .ql-editor blockquote {
-          border-left: 3px solid #22c55e;
+          border-left: 3px solid #D4A843;
           padding-left: 12px;
           color: #9ca3af;
         }
@@ -240,13 +240,13 @@ export default function RichTextEditor({
           outline: none;
         }
         .rich-text-editor-wrapper .ql-snow .ql-tooltip input[type="text"]:focus {
-          border-color: #22c55e;
+          border-color: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow .ql-tooltip a {
-          color: #22c55e;
+          color: #D4A843;
         }
         .rich-text-editor-wrapper .ql-snow .ql-tooltip a:hover {
-          color: #16a34a;
+          color: #B8922E;
         }
 
         /* Lists */

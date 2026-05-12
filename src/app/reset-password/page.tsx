@@ -88,7 +88,7 @@ function ResetPasswordForm() {
       <div className="w-full max-w-md text-center">
         <div
           className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+          style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
         >
           ĐK
         </div>
@@ -105,7 +105,7 @@ function ResetPasswordForm() {
         <div className="text-center mb-8">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
           >
             ĐK
           </div>
@@ -131,7 +131,7 @@ function ResetPasswordForm() {
         <div className="text-center mb-8">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
           >
             ĐK
           </div>
@@ -159,7 +159,7 @@ function ResetPasswordForm() {
       <div className="text-center mb-8">
         <div
           className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+          style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
         >
           ĐK
         </div>
@@ -225,7 +225,7 @@ export default function ResetPasswordPage() {
           <div className="w-full max-w-md text-center">
             <div
               className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+              style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
             >
               ĐK
             </div>

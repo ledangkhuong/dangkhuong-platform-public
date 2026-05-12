@@ -126,8 +126,8 @@ function ProfileTab({
     <div className="space-y-6">
       {saved && (
         <div
-          className="p-3 rounded-lg text-sm text-[#22c55e] border border-[#22c55e]/20"
-          style={{ background: "rgba(34,197,94,0.08)" }}
+          className="p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20"
+          style={{ background: "rgba(212,168,67,0.08)" }}
         >
           ✓ Đã lưu thay đổi thành công!
         </div>
@@ -150,7 +150,7 @@ function ProfileTab({
           ) : (
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
-              style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+              style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
             >
               {initials}
             </div>
@@ -299,7 +299,7 @@ function NotificationsTab() {
                 <button
                   onClick={() => toggle(item.key)}
                   className="shrink-0 w-11 h-6 rounded-full transition-all duration-200 relative"
-                  style={{ background: prefs[item.key] ? "#22c55e" : "#333" }}
+                  style={{ background: prefs[item.key] ? "#D4A843" : "#333" }}
                 >
                   <div
                     className="bg-white rounded-full absolute top-[3px] transition-all duration-200"
@@ -417,7 +417,7 @@ function BillingTab() {
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold text-white">{o.amount.toLocaleString("vi-VN")}đ</div>
-                  <div className={`text-[10px] font-medium ${o.status === "paid" ? "text-[#22c55e]" : o.status === "pending" ? "text-[#f59e0b]" : "text-gray-500"}`}>
+                  <div className={`text-[10px] font-medium ${o.status === "paid" ? "text-[#D4A843]" : o.status === "pending" ? "text-[#f59e0b]" : "text-gray-500"}`}>
                     {o.status === "paid" ? "Đã thanh toán" : o.status === "pending" ? "Chờ thanh toán" : o.status}
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export default function SettingsPage({
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0"
               style={
                 active === tab.id
-                  ? { background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)" }
+                  ? { background: "rgba(212,168,67,0.1)", color: "#D4A843", border: "1px solid rgba(212,168,67,0.25)" }
                   : { color: "#9ca3af", background: "#1a1a1a", border: "1px solid #2a2a2a" }
               }
             >
@@ -472,7 +472,7 @@ export default function SettingsPage({
                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all group"
                   style={
                     active === tab.id
-                      ? { background: "rgba(34,197,94,0.1)", color: "#22c55e" }
+                      ? { background: "rgba(212,168,67,0.1)", color: "#D4A843" }
                       : { color: "#9ca3af" }
                   }
                 >
@@ -482,7 +482,7 @@ export default function SettingsPage({
                   </div>
                   <ChevronRight
                     size={14}
-                    className={active === tab.id ? "text-[#22c55e]" : "text-gray-600 group-hover:text-gray-400"}
+                    className={active === tab.id ? "text-[#D4A843]" : "text-gray-600 group-hover:text-gray-400"}
                   />
                 </button>
               ))}

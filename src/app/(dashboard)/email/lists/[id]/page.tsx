@@ -47,9 +47,9 @@ const STATUS_CONFIG: Record<
 > = {
   active: {
     label: "Hoạt động",
-    color: "#22c55e",
-    bg: "rgba(34,197,94,0.1)",
-    border: "rgba(34,197,94,0.2)",
+    color: "#D4A843",
+    bg: "rgba(212,168,67,0.1)",
+    border: "rgba(212,168,67,0.2)",
   },
   unsubscribed: {
     label: "Huỷ đăng ký",
@@ -66,7 +66,7 @@ const STATUS_CONFIG: Record<
 };
 
 const LIST_COLORS = [
-  "#22c55e",
+  "#D4A843",
   "#3b82f6",
   "#8b5cf6",
   "#f59e0b",

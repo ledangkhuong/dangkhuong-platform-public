@@ -55,9 +55,9 @@ const STATUS_CONFIG: Record<
 > = {
   paid: {
     label: "Đã thanh toán",
-    bg: "rgba(34,197,94,0.1)",
-    color: "#22c55e",
-    border: "rgba(34,197,94,0.2)",
+    bg: "rgba(212,168,67,0.1)",
+    color: "#D4A843",
+    border: "rgba(212,168,67,0.2)",
   },
   pending: {
     label: "Chờ thanh toán",
@@ -94,7 +94,7 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 function StatusIcon({ status }: { status: OrderStatus }) {
   switch (status) {
     case "paid":
-      return <CheckCircle size={17} className="text-[#22c55e]" />;
+      return <CheckCircle size={17} className="text-[#D4A843]" />;
     case "pending":
       return <Clock size={17} className="text-[#f59e0b]" />;
     case "cancelled":
@@ -169,9 +169,9 @@ export default async function AdminOrdersPage() {
             <div className="flex items-center justify-between mb-3">
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(34,197,94,0.12)" }}
+                style={{ background: "rgba(212,168,67,0.12)" }}
               >
-                <CheckCircle size={17} className="text-[#22c55e]" />
+                <CheckCircle size={17} className="text-[#D4A843]" />
               </div>
             </div>
             <div className="text-2xl font-bold text-white">{paidOrders}</div>
@@ -197,9 +197,9 @@ export default async function AdminOrdersPage() {
             <div className="flex items-center justify-between mb-3">
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(34,197,94,0.12)" }}
+                style={{ background: "rgba(212,168,67,0.12)" }}
               >
-                <TrendingUp size={17} className="text-[#22c55e]" />
+                <TrendingUp size={17} className="text-[#D4A843]" />
               </div>
             </div>
             <div className="text-2xl font-bold text-white">
@@ -331,8 +331,8 @@ export default async function AdminOrdersPage() {
                         </div>
                         {order.status === "paid" && order.paid_at && (
                           <div className="flex items-center gap-1.5 mt-1">
-                            <Calendar size={11} className="text-green-600" />
-                            <span className="text-[11px] text-green-500/70">
+                            <Calendar size={11} className="text-amber-600" />
+                            <span className="text-[11px] text-amber-500/70">
                               {formatDateTime(order.paid_at)}
                             </span>
                           </div>

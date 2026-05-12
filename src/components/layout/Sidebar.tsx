@@ -100,7 +100,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     sale: "Sale", support: "CSKH",
   };
   const tierLabel = isStaff ? (roleLabels[userRole] ?? "Staff") : profile?.tier === "vip" ? "VIP" : profile?.tier === "member" ? "Member" : "Free";
-  const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#22c55e";
+  const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#D4A843";
 
   // isCompact: on mobile drawer we always show expanded; on desktop respect collapsed
   const renderSidebar = (isCompact: boolean, isMobile: boolean) => (
@@ -119,7 +119,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
-              style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+              style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
             >
               ĐK
             </div>
@@ -133,7 +133,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <Link href="/dashboard">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white mx-auto"
-              style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+              style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
             >
               ĐK
             </div>
@@ -237,12 +237,12 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           href="https://zalo.me/0782276727"
           target="_blank"
           rel="noopener noreferrer"
-          className="block mx-3 mb-3 p-3 rounded-xl border border-[#22c55e]/20 hover:bg-[#1a1a1a] transition-colors"
-          style={{ background: "rgba(34,197,94,0.06)" }}
+          className="block mx-3 mb-3 p-3 rounded-xl border border-[#D4A843]/20 hover:bg-[#1a1a1a] transition-colors"
+          style={{ background: "rgba(212,168,67,0.06)" }}
         >
           <div className="flex items-center gap-2 mb-1.5">
-            <Star size={14} className="text-[#22c55e]" />
-            <span className="text-xs font-semibold text-[#22c55e]">Cần tư vấn?</span>
+            <Star size={14} className="text-[#D4A843]" />
+            <span className="text-xs font-semibold text-[#D4A843]">Cần tư vấn?</span>
           </div>
           <p className="text-[11px] text-gray-400 mb-2">Tư vấn khoá học phù hợp nhu cầu của bạn</p>
           <span className="btn-green w-full text-xs py-1.5 justify-center inline-flex items-center">Liên hệ tư vấn</span>
@@ -288,7 +288,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             ) : (
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+                style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
               >
                 {initials}
               </div>

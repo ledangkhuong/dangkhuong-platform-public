@@ -17,7 +17,7 @@ export default async function VerifyPage({
         <div className="text-center mb-8">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
           >
             ĐK
           </div>
@@ -30,8 +30,8 @@ export default async function VerifyPage({
         <div className="card-dark p-6 sm:p-8 text-center">
           {/* Email icon */}
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-            style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)" }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            style={{ background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.2)" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4A843" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" />
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
             </svg>
@@ -42,7 +42,7 @@ export default async function VerifyPage({
           </p>
 
           {email && (
-            <p className="text-[#22c55e] font-semibold text-base mb-4 break-all">
+            <p className="text-[#D4A843] font-semibold text-base mb-4 break-all">
               {email}
             </p>
           )}

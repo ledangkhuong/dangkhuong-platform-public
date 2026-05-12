@@ -83,7 +83,7 @@ export default function DeleteFakeUsers({ userIds, count }: Props) {
             {result ? (
               <div className="space-y-3">
                 {result.deleted > 0 && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+                  <div className="flex items-center gap-2 p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
                     <CheckCircle2 size={16} />
                     Đã xoá thành công {result.deleted} tài khoản
                   </div>

@@ -68,7 +68,7 @@ export default async function AdminPage() {
       label: "Doanh thu hôm nay",
       value: todayRevenue.toLocaleString("vi-VN") + "đ",
       change: "Hôm nay",
-      color: "#22c55e",
+      color: "#D4A843",
     },
     {
       label: "Đơn hàng chờ xử lý",
@@ -97,7 +97,7 @@ export default async function AdminPage() {
       title: "Quản lý khoá học",
       desc: "Thêm/sửa khoá học, chương, bài học và tài nguyên",
       count: "Khoá học",
-      color: "#22c55e",
+      color: "#D4A843",
       actions: ["Thêm khoá học", "Xem danh sách"],
     },
     {
@@ -270,7 +270,7 @@ export default async function AdminPage() {
                     style={{
                       background:
                         o.status === "paid"
-                          ? "#22c55e"
+                          ? "#D4A843"
                           : o.status === "pending"
                           ? "#f59e0b"
                           : "#6b7280",
@@ -299,7 +299,7 @@ export default async function AdminPage() {
           <h2 className="font-bold text-white mb-3 text-sm">Thao tác nhanh</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {[
-              { label: "Thêm khoá học", icon: BookOpen, color: "#22c55e", href: "/admin/courses" },
+              { label: "Thêm khoá học", icon: BookOpen, color: "#D4A843", href: "/admin/courses" },
               { label: "Xem đơn hàng", icon: ShoppingCart, color: "#f59e0b", href: "/admin/orders" },
               { label: "Gửi newsletter", icon: Mail, color: "#3b82f6", href: "/email" },
               { label: "Quản lý học viên", icon: Users, color: "#8b5cf6", href: "/admin/users" },

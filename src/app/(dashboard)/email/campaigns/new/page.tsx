@@ -56,7 +56,7 @@ const VARIABLES = [
 ];
 
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
-  marketing: { label: "Marketing", color: "#22c55e" },
+  marketing: { label: "Marketing", color: "#D4A843" },
   newsletter: { label: "Newsletter", color: "#3b82f6" },
   transactional: { label: "Transactional", color: "#f59e0b" },
   other: { label: "Khac", color: "#6b7280" },
@@ -318,9 +318,9 @@ export default function NewCampaignPage() {
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0"
                   style={{
-                    background: i < step ? "#22c55e" : i === step ? "rgba(34,197,94,0.15)" : "#252525",
-                    color: i < step ? "white" : i === step ? "#22c55e" : "#6b7280",
-                    border: i === step ? "2px solid #22c55e" : "2px solid transparent",
+                    background: i < step ? "#D4A843" : i === step ? "rgba(212,168,67,0.15)" : "#252525",
+                    color: i < step ? "white" : i === step ? "#D4A843" : "#6b7280",
+                    border: i === step ? "2px solid #D4A843" : "2px solid transparent",
                   }}
                 >
                   {i < step ? <Check size={14} /> : i + 1}
@@ -335,7 +335,7 @@ export default function NewCampaignPage() {
               {i < STEPS.length - 1 && (
                 <div
                   className="flex-1 h-px mx-3"
-                  style={{ background: i < step ? "#22c55e" : "#2a2a2a" }}
+                  style={{ background: i < step ? "#D4A843" : "#2a2a2a" }}
                 />
               )}
             </div>
@@ -344,7 +344,7 @@ export default function NewCampaignPage() {
 
         {/* Save indicator */}
         {saveMsg && (
-          <div className="flex items-center gap-2 text-xs" style={{ color: saveMsg.includes("Loi") ? "#ef4444" : "#22c55e" }}>
+          <div className="flex items-center gap-2 text-xs" style={{ color: saveMsg.includes("Loi") ? "#ef4444" : "#D4A843" }}>
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
             {saveMsg}
           </div>
@@ -354,7 +354,7 @@ export default function NewCampaignPage() {
         {step === 0 && (
           <div className="card-dark p-6 space-y-5">
             <h2 className="text-white font-semibold text-base flex items-center gap-2">
-              <FileText size={18} className="text-[#22c55e]" />
+              <FileText size={18} className="text-[#D4A843]" />
               Thong tin co ban
             </h2>
 
@@ -424,7 +424,7 @@ export default function NewCampaignPage() {
         {step === 1 && (
           <div className="card-dark p-6 space-y-5">
             <h2 className="text-white font-semibold text-base flex items-center gap-2">
-              <Users size={18} className="text-[#22c55e]" />
+              <Users size={18} className="text-[#D4A843]" />
               Nguoi nhan
             </h2>
 
@@ -453,9 +453,9 @@ export default function NewCampaignPage() {
                 {subscriberCount !== null && (
                   <div
                     className="flex items-center gap-3 p-4 rounded-lg"
-                    style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}
+                    style={{ background: "rgba(212,168,67,0.06)", border: "1px solid rgba(212,168,67,0.15)" }}
                   >
-                    <Users size={18} className="text-[#22c55e]" />
+                    <Users size={18} className="text-[#D4A843]" />
                     <div>
                       <p className="text-white text-sm font-medium">
                         {subscriberCount.toLocaleString("vi-VN")} nguoi nhan
@@ -480,9 +480,9 @@ export default function NewCampaignPage() {
                 onClick={() => setContentMode("template")}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 style={{
-                  background: contentMode === "template" ? "rgba(34,197,94,0.12)" : "#1f1f1f",
-                  color: contentMode === "template" ? "#22c55e" : "#9ca3af",
-                  border: contentMode === "template" ? "1px solid rgba(34,197,94,0.3)" : "1px solid #2a2a2a",
+                  background: contentMode === "template" ? "rgba(212,168,67,0.12)" : "#1f1f1f",
+                  color: contentMode === "template" ? "#D4A843" : "#9ca3af",
+                  border: contentMode === "template" ? "1px solid rgba(212,168,67,0.3)" : "1px solid #2a2a2a",
                 }}
               >
                 <Layout size={15} /> Chon template
@@ -491,9 +491,9 @@ export default function NewCampaignPage() {
                 onClick={() => setContentMode("custom")}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 style={{
-                  background: contentMode === "custom" ? "rgba(34,197,94,0.12)" : "#1f1f1f",
-                  color: contentMode === "custom" ? "#22c55e" : "#9ca3af",
-                  border: contentMode === "custom" ? "1px solid rgba(34,197,94,0.3)" : "1px solid #2a2a2a",
+                  background: contentMode === "custom" ? "rgba(212,168,67,0.12)" : "#1f1f1f",
+                  color: contentMode === "custom" ? "#D4A843" : "#9ca3af",
+                  border: contentMode === "custom" ? "1px solid rgba(212,168,67,0.3)" : "1px solid #2a2a2a",
                 }}
               >
                 <Sparkles size={15} /> Viet moi
@@ -520,14 +520,14 @@ export default function NewCampaignPage() {
                           onClick={() => selectTemplate(tpl)}
                           className="rounded-lg p-4 cursor-pointer transition-all"
                           style={{
-                            background: selectedTemplate === tpl.id ? "rgba(34,197,94,0.08)" : "#252525",
-                            border: selectedTemplate === tpl.id ? "2px solid #22c55e" : "2px solid #333",
+                            background: selectedTemplate === tpl.id ? "rgba(212,168,67,0.08)" : "#252525",
+                            border: selectedTemplate === tpl.id ? "2px solid #D4A843" : "2px solid #333",
                           }}
                         >
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="text-white text-sm font-medium truncate flex-1">{tpl.name}</h4>
                             {selectedTemplate === tpl.id && (
-                              <Check size={14} className="text-[#22c55e] shrink-0 ml-2" />
+                              <Check size={14} className="text-[#D4A843] shrink-0 ml-2" />
                             )}
                           </div>
                           <p className="text-xs text-gray-500 truncate mb-2">{tpl.subject}</p>
@@ -564,8 +564,8 @@ export default function NewCampaignPage() {
                       onClick={() => setEditorMode("wysiwyg")}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                       style={{
-                        background: editorMode === "wysiwyg" ? "rgba(34,197,94,0.15)" : "#1f1f1f",
-                        color: editorMode === "wysiwyg" ? "#22c55e" : "#9ca3af",
+                        background: editorMode === "wysiwyg" ? "rgba(212,168,67,0.15)" : "#1f1f1f",
+                        color: editorMode === "wysiwyg" ? "#D4A843" : "#9ca3af",
                       }}
                     >
                       <Layout size={11} />
@@ -575,8 +575,8 @@ export default function NewCampaignPage() {
                       onClick={() => setEditorMode("html")}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                       style={{
-                        background: editorMode === "html" ? "rgba(34,197,94,0.15)" : "#1f1f1f",
-                        color: editorMode === "html" ? "#22c55e" : "#9ca3af",
+                        background: editorMode === "html" ? "rgba(212,168,67,0.15)" : "#1f1f1f",
+                        color: editorMode === "html" ? "#D4A843" : "#9ca3af",
                       }}
                     >
                       <Code size={11} />
@@ -586,7 +586,7 @@ export default function NewCampaignPage() {
                   <button
                     onClick={() => setPreviewOpen(true)}
                     disabled={!htmlContent}
-                    className="flex items-center gap-1.5 text-xs text-[#22c55e] hover:underline disabled:opacity-40 disabled:no-underline"
+                    className="flex items-center gap-1.5 text-xs text-[#D4A843] hover:underline disabled:opacity-40 disabled:no-underline"
                   >
                     <Eye size={12} /> Xem truoc
                   </button>
@@ -603,7 +603,7 @@ export default function NewCampaignPage() {
                       type="button"
                       onClick={() => insertVariable(v.label)}
                       className="px-2 py-1 rounded text-xs font-mono transition-colors hover:bg-[#333]"
-                      style={{ background: "#252525", color: "#22c55e", border: "1px solid #333" }}
+                      style={{ background: "#252525", color: "#D4A843", border: "1px solid #333" }}
                       title={v.desc}
                     >
                       {v.label}
@@ -686,7 +686,7 @@ export default function NewCampaignPage() {
             {/* Summary card */}
             <div className="card-dark p-6 space-y-4">
               <h2 className="text-white font-semibold text-base flex items-center gap-2">
-                <Send size={18} className="text-[#22c55e]" />
+                <Send size={18} className="text-[#D4A843]" />
                 Xem lai campaign
               </h2>
 
@@ -725,7 +725,7 @@ export default function NewCampaignPage() {
               {htmlContent && (
                 <button
                   onClick={() => setPreviewOpen(true)}
-                  className="flex items-center gap-1.5 text-xs text-[#22c55e] hover:underline"
+                  className="flex items-center gap-1.5 text-xs text-[#D4A843] hover:underline"
                 >
                   <Eye size={12} /> Xem truoc email
                 </button>
@@ -768,7 +768,7 @@ export default function NewCampaignPage() {
                 <p className="text-xs text-[#f59e0b]">Luu campaign truoc khi gui test.</p>
               )}
               {testResult && (
-                <p className="text-xs" style={{ color: testResult.ok ? "#22c55e" : "#ef4444" }}>
+                <p className="text-xs" style={{ color: testResult.ok ? "#D4A843" : "#ef4444" }}>
                   {testResult.msg}
                 </p>
               )}

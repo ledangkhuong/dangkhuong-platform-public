@@ -40,7 +40,7 @@ export default function NewsletterForm() {
   return (
     <div
       className="card-dark p-6 text-center"
-      style={{ borderColor: "rgba(34,197,94,0.2)" }}
+      style={{ borderColor: "rgba(212,168,67,0.2)" }}
     >
       <div className="text-2xl mb-3">{"📬"}</div>
       <h3 className="font-bold text-white mb-1">
@@ -52,7 +52,7 @@ export default function NewsletterForm() {
       </p>
 
       {status === "success" ? (
-        <div className="flex items-center justify-center gap-2 text-[#22c55e] text-sm font-medium py-2">
+        <div className="flex items-center justify-center gap-2 text-[#D4A843] text-sm font-medium py-2">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0z" fill="currentColor"/>
           </svg>

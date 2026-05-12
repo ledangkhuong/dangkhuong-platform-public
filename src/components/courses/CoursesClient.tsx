@@ -21,7 +21,7 @@ type CourseItem = {
   chapter_count: number;
 };
 
-const PLACEHOLDER_COLORS = ["#22c55e", "#3b82f6", "#a855f7", "#f59e0b", "#ec4899", "#06b6d4"];
+const PLACEHOLDER_COLORS = ["#D4A843", "#3b82f6", "#a855f7", "#f59e0b", "#ec4899", "#06b6d4"];
 
 function formatPrice(p: number) {
   return p.toLocaleString("vi-VN") + "đ";
@@ -76,11 +76,11 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                 {/* Badge overlay */}
                 <div className="absolute top-3 left-3">
                   {isFree ? (
-                    <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#22c55e] text-white">
+                    <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#D4A843] text-white">
                       Miễn phí
                     </span>
                   ) : isEnrolled ? (
-                    <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#22c55e]/90 text-white">
+                    <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#D4A843]/90 text-white">
                       Đã đăng ký
                     </span>
                   ) : (
@@ -94,7 +94,7 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                 {course.progress > 0 && (
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
                     <div
-                      className="h-full bg-[#22c55e]"
+                      className="h-full bg-[#D4A843]"
                       style={{ width: `${course.progress}%` }}
                     />
                   </div>
@@ -126,7 +126,7 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                     </span>
                   )}
                   {course.progress > 0 && (
-                    <span className="flex items-center gap-1 text-[#22c55e]">
+                    <span className="flex items-center gap-1 text-[#D4A843]">
                       <CheckCircle size={11} /> {course.progress}%
                     </span>
                   )}
@@ -140,7 +140,7 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                   {/* Price */}
                   <div>
                     {isFree ? (
-                      <span className="text-sm font-bold text-[#22c55e]">Miễn phí</span>
+                      <span className="text-sm font-bold text-[#D4A843]">Miễn phí</span>
                     ) : isEnrolled ? (
                       <span className="text-xs text-gray-500">Đã sở hữu</span>
                     ) : hasSale ? (

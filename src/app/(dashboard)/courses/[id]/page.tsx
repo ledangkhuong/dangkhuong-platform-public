@@ -171,7 +171,7 @@ export default async function CourseDetailPage({
           <div key={chapter.id} className="border-b border-[#1f1f1f]">
             <div className="flex items-center justify-between p-3 bg-[#0d0d0d]">
               <div className="flex items-center gap-2">
-                {allCompleted && <CheckCircle size={12} className="text-[#22c55e] shrink-0" />}
+                {allCompleted && <CheckCircle size={12} className="text-[#D4A843] shrink-0" />}
                 <span className="text-xs font-semibold text-gray-300">{chapter.title}</span>
               </div>
               <span className="text-[10px] text-gray-600">
@@ -191,23 +191,23 @@ export default async function CourseDetailPage({
                   href={isAccessible ? `/courses/${slug}?lesson=${lesson.id}` : undefined}
                   className={`flex items-center gap-3 px-4 py-2.5 transition-colors
                     ${isAccessible ? "cursor-pointer" : "cursor-not-allowed opacity-60"}
-                    ${isActive ? "bg-[#22c55e]/10" : "hover:bg-white/3"}`}
+                    ${isActive ? "bg-[#D4A843]/10" : "hover:bg-white/3"}`}
                 >
                   {!isAccessible ? (
                     <Lock size={14} className="text-[#f59e0b] shrink-0" />
                   ) : isDone ? (
-                    <CheckCircle size={14} className="text-[#22c55e] shrink-0" />
+                    <CheckCircle size={14} className="text-[#D4A843] shrink-0" />
                   ) : (
                     <PlayCircle
                       size={14}
-                      className={`shrink-0 ${isActive ? "text-[#22c55e]" : "text-gray-600"}`}
+                      className={`shrink-0 ${isActive ? "text-[#D4A843]" : "text-gray-600"}`}
                     />
                   )}
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-xs leading-snug ${
                         isActive
-                          ? "text-[#22c55e] font-medium"
+                          ? "text-[#D4A843] font-medium"
                           : isDone
                           ? "text-gray-500 line-through"
                           : "text-gray-300"
@@ -224,7 +224,7 @@ export default async function CourseDetailPage({
                   {lesson.is_free && !hasAccess && (
                     <span
                       className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0"
-                      style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e" }}
+                      style={{ background: "rgba(212,168,67,0.1)", color: "#D4A843" }}
                     >
                       Free
                     </span>
@@ -297,7 +297,7 @@ export default async function CourseDetailPage({
                   className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4"
                   style={{ background: "linear-gradient(135deg, #111 0%, #1a1a1a 100%)" }}
                 >
-                  <PlayCircle size={48} className="text-[#22c55e] opacity-80 sm:w-16 sm:h-16" />
+                  <PlayCircle size={48} className="text-[#D4A843] opacity-80 sm:w-16 sm:h-16" />
                   <p className="text-gray-400 text-xs sm:text-sm text-center">{currentLesson.title}</p>
                   {currentChapter && (
                     <p className="text-gray-600 text-xs text-center">
@@ -341,7 +341,7 @@ export default async function CourseDetailPage({
                       href={part}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#22c55e] underline underline-offset-2 hover:text-[#16a34a] break-all transition-colors"
+                      className="text-[#D4A843] underline underline-offset-2 hover:text-[#B8922E] break-all transition-colors"
                     >
                       {part}
                     </a>
@@ -358,7 +358,7 @@ export default async function CourseDetailPage({
             <div className="card-dark p-4 mb-4 sm:mb-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-white">Tiến độ khoá học</span>
-                <span className="text-sm font-bold text-[#22c55e]">{progressPct}%</span>
+                <span className="text-sm font-bold text-[#D4A843]">{progressPct}%</span>
               </div>
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${progressPct}%` }} />

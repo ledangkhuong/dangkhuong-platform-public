@@ -379,7 +379,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         {/* ── Author Box ── */}
         <div
           className="card-dark p-5 sm:p-6 mb-6"
-          style={{ borderColor: "rgba(34,197,94,0.15)" }}
+          style={{ borderColor: "rgba(212,168,67,0.15)" }}
         >
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start">
             {/* Avatar */}
@@ -391,7 +391,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#22c55e] bg-[#22c55e10]">
+                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#D4A843] bg-[#D4A84310]">
                   {DEFAULT_AUTHOR.name.charAt(0)}
                 </div>
               )}

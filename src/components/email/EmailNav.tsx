@@ -47,7 +47,7 @@ export default function EmailNav() {
                 href={tab.href}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   active
-                    ? "border-[#22c55e] text-[#22c55e]"
+                    ? "border-[#D4A843] text-[#D4A843]"
                     : "border-transparent text-[#9ca3af] hover:text-white hover:border-[#2a2a2a]"
                 }`}
               >

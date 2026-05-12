@@ -48,7 +48,7 @@ const STAGES = [
   { key: "demo", label: "Demo", color: "#a855f7" },
   { key: "proposal", label: "Báo giá", color: "#ec4899" },
   { key: "negotiation", label: "Đàm phán", color: "#f97316" },
-  { key: "won", label: "Thành công", color: "#22c55e" },
+  { key: "won", label: "Thành công", color: "#D4A843" },
   { key: "lost", label: "Thất bại", color: "#ef4444" },
 ];
 
@@ -94,12 +94,12 @@ function DealCard({ deal, stageColor }: { deal: Deal; stageColor: string }) {
       )}
 
       <div className="flex items-center justify-between mt-2">
-        <span className="text-sm font-bold text-[#22c55e]">
+        <span className="text-sm font-bold text-[#D4A843]">
           {formatVND(deal.amount)}
         </span>
         <span
           className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-          style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e" }}
+          style={{ background: "rgba(212,168,67,0.1)", color: "#D4A843" }}
         >
           {deal.probability}%
         </span>
@@ -196,11 +196,11 @@ export default async function PipelinePage({
           <div
             className="flex items-center gap-3 p-3 rounded-xl text-sm"
             style={{
-              background: "rgba(34,197,94,0.08)",
-              border: "1px solid rgba(34,197,94,0.2)",
+              background: "rgba(212,168,67,0.08)",
+              border: "1px solid rgba(212,168,67,0.2)",
             }}
           >
-            <CheckCircle2 size={16} className="text-[#22c55e] shrink-0" />
+            <CheckCircle2 size={16} className="text-[#D4A843] shrink-0" />
             <span className="text-white">{notification}</span>
           </div>
         )}
@@ -236,9 +236,9 @@ export default async function PipelinePage({
           <div className="card-dark p-4 flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(34,197,94,0.1)" }}
+              style={{ background: "rgba(212,168,67,0.1)" }}
             >
-              <Trophy size={16} className="text-[#22c55e]" />
+              <Trophy size={16} className="text-[#D4A843]" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Đã thắng</p>

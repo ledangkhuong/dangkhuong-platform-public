@@ -48,9 +48,9 @@ const SOURCE_CONFIG: Record<
 > = {
   purchase: {
     label: "Mua",
-    bg: "rgba(34,197,94,0.1)",
-    color: "#22c55e",
-    border: "rgba(34,197,94,0.2)",
+    bg: "rgba(212,168,67,0.1)",
+    color: "#D4A843",
+    border: "rgba(212,168,67,0.2)",
     icon: ShoppingCart,
   },
   admin: {
@@ -170,9 +170,9 @@ export default async function AdminEnrollmentsPage({
           <div
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
             style={{
-              background: "rgba(34,197,94,0.08)",
-              border: "1px solid rgba(34,197,94,0.2)",
-              color: "#22c55e",
+              background: "rgba(212,168,67,0.08)",
+              border: "1px solid rgba(212,168,67,0.2)",
+              color: "#D4A843",
             }}
           >
             <CheckCircle2 size={16} />
@@ -199,9 +199,9 @@ export default async function AdminEnrollmentsPage({
           <div className="flex items-center gap-3 mb-5">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: "rgba(34,197,94,0.12)" }}
+              style={{ background: "rgba(212,168,67,0.12)" }}
             >
-              <UserPlus size={17} className="text-[#22c55e]" />
+              <UserPlus size={17} className="text-[#D4A843]" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Cấp quyền khoá học</h2>
@@ -228,13 +228,13 @@ export default async function AdminEnrollmentsPage({
                 {(products ?? []).map((p) => (
                   <label
                     key={p.id}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[#2a2a2a] hover:border-[#22c55e]/40 hover:bg-[#22c55e]/5 transition-all cursor-pointer group"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[#2a2a2a] hover:border-[#D4A843]/40 hover:bg-[#D4A843]/5 transition-all cursor-pointer group"
                   >
                     <input
                       type="checkbox"
                       name="product_ids"
                       value={p.id}
-                      className="w-4 h-4 rounded border-gray-600 bg-[#1a1a1a] text-[#22c55e] focus:ring-[#22c55e]/50 focus:ring-offset-0 accent-[#22c55e]"
+                      className="w-4 h-4 rounded border-gray-600 bg-[#1a1a1a] text-[#D4A843] focus:ring-[#D4A843]/50 focus:ring-offset-0 accent-[#D4A843]"
                     />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-gray-300 group-hover:text-white transition-colors truncate block">

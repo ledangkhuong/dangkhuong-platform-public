@@ -70,7 +70,7 @@ export default async function BlogPage() {
                 key={cat}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                   i === 0
-                    ? "bg-[#22c55e] text-white"
+                    ? "bg-[#D4A843] text-white"
                     : "text-gray-400 hover:text-white"
                 }`}
                 style={
@@ -145,7 +145,7 @@ export default async function BlogPage() {
                     </span>
                   )}
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-[#22c55e] transition-colors leading-snug">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-[#D4A843] transition-colors leading-snug">
                   {featured.title}
                 </h2>
               </div>
@@ -170,7 +170,7 @@ export default async function BlogPage() {
                   </span>
                   <span>{formatVietnameseDate(featured.published_at)}</span>
                 </div>
-                <span className="flex items-center gap-1 text-xs text-[#22c55e] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="flex items-center gap-1 text-xs text-[#D4A843] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                   Đọc bài viết <ArrowRight size={12} />
                 </span>
               </div>
@@ -231,7 +231,7 @@ export default async function BlogPage() {
                       {post.category}
                     </span>
                   )}
-                  <h3 className="font-semibold text-white text-[15px] leading-snug mb-1.5 group-hover:text-[#22c55e] transition-colors line-clamp-2">
+                  <h3 className="font-semibold text-white text-[15px] leading-snug mb-1.5 group-hover:text-[#D4A843] transition-colors line-clamp-2">
                     {post.title}
                   </h3>
                   {post.excerpt && (

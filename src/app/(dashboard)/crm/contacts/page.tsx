@@ -66,7 +66,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; b
   contacted:    { label: "Đã liên hệ",  color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.25)" },
   qualified:    { label: "Tiềm năng",   color: "#a855f7", bg: "rgba(168,85,247,0.1)", border: "rgba(168,85,247,0.25)" },
   negotiation:  { label: "Đàm phán",    color: "#f97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.25)" },
-  won:          { label: "Thành công",   color: "#22c55e", bg: "rgba(34,197,94,0.1)",  border: "rgba(34,197,94,0.25)" },
+  won:          { label: "Thành công",   color: "#D4A843", bg: "rgba(212,168,67,0.1)",  border: "rgba(212,168,67,0.25)" },
   lost:         { label: "Mất",         color: "#ef4444", bg: "rgba(239,68,68,0.1)",  border: "rgba(239,68,68,0.25)" },
   churned:      { label: "Rời bỏ",      color: "#6b7280", bg: "rgba(107,114,128,0.1)", border: "rgba(107,114,128,0.25)" },
 };
@@ -75,7 +75,7 @@ const sourceConfig: Record<string, { label: string; color: string; bg: string }>
   manual:   { label: "Thủ công",   color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
   import:   { label: "Import",    color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
   website:  { label: "Website",   color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
-  referral: { label: "Giới thiệu", color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+  referral: { label: "Giới thiệu", color: "#D4A843", bg: "rgba(212,168,67,0.1)" },
   ads:      { label: "Quảng cáo", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
   social:   { label: "MXH",       color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
 };
@@ -232,7 +232,7 @@ export default async function CRMContactsPage({
     { label: "Mới", value: newCount ?? 0, icon: UserPlus, color: "#60a5fa" },
     { label: "Đã liên hệ", value: contactedCount ?? 0, icon: Phone, color: "#f59e0b" },
     { label: "Tiềm năng", value: qualifiedCount ?? 0, icon: CheckCircle, color: "#a855f7" },
-    { label: "Thành công", value: wonCount ?? 0, icon: CheckCircle, color: "#22c55e" },
+    { label: "Thành công", value: wonCount ?? 0, icon: CheckCircle, color: "#D4A843" },
   ];
 
   // Fetch order data for contacts (match by email)
@@ -311,16 +311,16 @@ export default async function CRMContactsPage({
             key={i}
             className="flex items-center gap-3 p-3 rounded-xl text-sm"
             style={{
-              background: n.type === "success" ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
-              border: `1px solid ${n.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`,
+              background: n.type === "success" ? "rgba(212,168,67,0.08)" : "rgba(239,68,68,0.08)",
+              border: `1px solid ${n.type === "success" ? "rgba(212,168,67,0.2)" : "rgba(239,68,68,0.2)"}`,
             }}
           >
             {n.type === "success" ? (
-              <CheckCircle size={16} className="text-[#22c55e] shrink-0" />
+              <CheckCircle size={16} className="text-[#D4A843] shrink-0" />
             ) : (
               <XCircle size={16} className="text-[#ef4444] shrink-0" />
             )}
-            <span className={n.type === "success" ? "text-green-300" : "text-red-300"}>
+            <span className={n.type === "success" ? "text-amber-300" : "text-red-300"}>
               {n.message}
             </span>
           </div>
@@ -381,7 +381,7 @@ export default async function CRMContactsPage({
         {/* Add Contact Form */}
         <div className="card-dark p-5">
           <div className="flex items-center gap-2 mb-4">
-            <UserPlus size={16} className="text-[#22c55e]" />
+            <UserPlus size={16} className="text-[#D4A843]" />
             <h3 className="font-semibold text-white text-sm">Thêm khách hàng mới</h3>
           </div>
           <form action={createContact}>
@@ -602,7 +602,7 @@ export default async function CRMContactsPage({
                                 <ShoppingCart size={12} className="text-gray-600" />
                                 <span>
                                   {orderSummaryMap[contact.email].paidCount > 0 && (
-                                    <span className="text-green-400 font-medium">
+                                    <span className="text-amber-400 font-medium">
                                       {orderSummaryMap[contact.email].paidCount} đã TT
                                     </span>
                                   )}
@@ -638,8 +638,8 @@ export default async function CRMContactsPage({
                         <td className="px-4 py-3 whitespace-nowrap">
                           {contact.email && orderSummaryMap[contact.email]?.totalPaid > 0 ? (
                             <div className="flex items-center gap-1.5 text-xs">
-                              <DollarSign size={12} className="text-green-500" />
-                              <span className="text-green-400 font-semibold">
+                              <DollarSign size={12} className="text-amber-500" />
+                              <span className="text-amber-400 font-semibold">
                                 {formatVND(orderSummaryMap[contact.email].totalPaid)}
                               </span>
                             </div>
@@ -683,7 +683,7 @@ export default async function CRMContactsPage({
               {(q || statusFilter) && (
                 <Link
                   href="/crm/contacts"
-                  className="text-xs text-[#22c55e] hover:underline"
+                  className="text-xs text-[#D4A843] hover:underline"
                 >
                   Xoá bộ lọc
                 </Link>

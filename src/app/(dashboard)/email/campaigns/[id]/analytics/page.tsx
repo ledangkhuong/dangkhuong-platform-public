@@ -72,16 +72,16 @@ function formatShortDate(dateStr: string) {
 
 function rateColor(rate: number, type: "open" | "click" | "bounce") {
   if (type === "bounce") {
-    if (rate <= 2) return "#22c55e";
+    if (rate <= 2) return "#D4A843";
     if (rate <= 5) return "#f59e0b";
     return "#ef4444";
   }
   if (type === "open") {
-    if (rate >= 20) return "#22c55e";
+    if (rate >= 20) return "#D4A843";
     if (rate >= 10) return "#f59e0b";
     return "#ef4444";
   }
-  if (rate >= 3) return "#22c55e";
+  if (rate >= 3) return "#D4A843";
   if (rate >= 1) return "#f59e0b";
   return "#ef4444";
 }
@@ -239,7 +239,7 @@ export default function CampaignAnalyticsPage() {
 
         {loading && !data ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-[#22c55e]" />
+            <Loader2 size={24} className="animate-spin text-[#D4A843]" />
             <span className="ml-2 text-[#9ca3af]">Đang tải dữ liệu...</span>
           </div>
         ) : data ? (
@@ -261,7 +261,7 @@ export default function CampaignAnalyticsPage() {
                 )}
                 <span>
                   <strong className="text-white">Trạng thái:</strong>{" "}
-                  <span className="text-[#22c55e] font-medium capitalize">
+                  <span className="text-[#D4A843] font-medium capitalize">
                     {campaign.status}
                   </span>
                 </span>
@@ -281,7 +281,7 @@ export default function CampaignAnalyticsPage() {
                   label: "Delivered",
                   value: data.overview.delivered,
                   icon: CheckCircle,
-                  color: "#22c55e",
+                  color: "#D4A843",
                 },
                 {
                   label: "Opens",
@@ -378,7 +378,7 @@ export default function CampaignAnalyticsPage() {
                     <span className="flex items-center gap-1">
                       <span
                         className="w-2.5 h-2.5 rounded-full"
-                        style={{ background: "#22c55e" }}
+                        style={{ background: "#D4A843" }}
                       />
                       <span className="text-[#9ca3af]">Opens</span>
                     </span>
@@ -424,7 +424,7 @@ export default function CampaignAnalyticsPage() {
                       ))}
                       <polyline
                         fill="none"
-                        stroke="#22c55e"
+                        stroke="#D4A843"
                         strokeWidth="2"
                         points={openLinePoints}
                         strokeLinejoin="round"
@@ -442,7 +442,7 @@ export default function CampaignAnalyticsPage() {
                           cx={p.x}
                           cy={p.y}
                           r={hoveredTimelinePoint === i ? 5 : 3}
-                          fill="#22c55e"
+                          fill="#D4A843"
                           className="cursor-pointer"
                           onMouseEnter={() => setHoveredTimelinePoint(i)}
                           onMouseLeave={() => setHoveredTimelinePoint(null)}
@@ -477,7 +477,7 @@ export default function CampaignAnalyticsPage() {
                               timeline[hoveredTimelinePoint].date
                             )}
                           </div>
-                          <div className="text-[#22c55e]">
+                          <div className="text-[#D4A843]">
                             Opens: {timeline[hoveredTimelinePoint].opens}
                           </div>
                           <div className="text-[#3b82f6]">
@@ -564,7 +564,7 @@ export default function CampaignAnalyticsPage() {
                   {Object.entries(data.engagement_breakdown).map(
                     ([status, count]) => {
                       const colors: Record<string, string> = {
-                        delivered: "#22c55e",
+                        delivered: "#D4A843",
                         sent: "#3b82f6",
                         opened: "#f59e0b",
                         clicked: "#8b5cf6",
@@ -611,7 +611,7 @@ export default function CampaignAnalyticsPage() {
             </p>
             <button
               onClick={() => router.push("/email/campaigns")}
-              className="mt-3 text-sm text-[#22c55e] hover:underline"
+              className="mt-3 text-sm text-[#D4A843] hover:underline"
             >
               Quay lại danh sách campaigns
             </button>

@@ -354,7 +354,7 @@ export default function LessonsPage() {
                       />
                       <button
                         onClick={() => handleEditChapter(chapter.id)}
-                        className="text-green-400 hover:text-green-300 p-1"
+                        className="text-amber-400 hover:text-amber-300 p-1"
                       >
                         <Save size={16} />
                       </button>
@@ -420,7 +420,7 @@ export default function LessonsPage() {
                       <div className="flex items-center gap-3">
                         <GripVertical size={14} className="text-gray-600" />
                         {lesson.youtube_id ? (
-                          <Play size={16} className="text-green-400" />
+                          <Play size={16} className="text-amber-400" />
                         ) : (
                           <BookOpen size={16} className="text-gray-500" />
                         )}
@@ -435,7 +435,7 @@ export default function LessonsPage() {
                               </span>
                             )}
                             {lesson.is_free && (
-                              <span className="inline-flex items-center gap-1 text-xs text-green-400">
+                              <span className="inline-flex items-center gap-1 text-xs text-amber-400">
                                 <Eye size={12} />
                                 Xem miễn phí
                               </span>
@@ -616,7 +616,7 @@ export default function LessonsPage() {
                         setEditingLessonId(null);
                         setLessonForm(defaultLessonForm);
                       }}
-                      className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 pl-10 py-2 transition-colors"
+                      className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 pl-10 py-2 transition-colors"
                     >
                       <Plus size={16} />
                       Thêm bài học

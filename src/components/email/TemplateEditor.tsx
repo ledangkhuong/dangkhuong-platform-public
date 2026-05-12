@@ -103,7 +103,7 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a]">
             <div className="flex items-center gap-2">
-              <Layout size={16} className="text-[#22c55e]" />
+              <Layout size={16} className="text-[#D4A843]" />
               <h3 className="text-white font-semibold text-sm">
                 {initial?.id ? "Chinh sua template" : "Tao template moi"}
               </h3>
@@ -166,7 +166,7 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
                       type="button"
                       onClick={() => insertVariable(v.label)}
                       className="px-2 py-1 rounded text-xs font-mono transition-colors"
-                      style={{ background: "#252525", color: "#22c55e", border: "1px solid #333" }}
+                      style={{ background: "#252525", color: "#D4A843", border: "1px solid #333" }}
                       title={v.desc}
                     >
                       {v.label}
@@ -185,8 +185,8 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
                       onClick={() => setEditorMode("wysiwyg")}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                       style={{
-                        background: editorMode === "wysiwyg" ? "rgba(34,197,94,0.15)" : "#1f1f1f",
-                        color: editorMode === "wysiwyg" ? "#22c55e" : "#9ca3af",
+                        background: editorMode === "wysiwyg" ? "rgba(212,168,67,0.15)" : "#1f1f1f",
+                        color: editorMode === "wysiwyg" ? "#D4A843" : "#9ca3af",
                       }}
                     >
                       <Layout size={11} />
@@ -197,8 +197,8 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
                       onClick={() => setEditorMode("html")}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                       style={{
-                        background: editorMode === "html" ? "rgba(34,197,94,0.15)" : "#1f1f1f",
-                        color: editorMode === "html" ? "#22c55e" : "#9ca3af",
+                        background: editorMode === "html" ? "rgba(212,168,67,0.15)" : "#1f1f1f",
+                        color: editorMode === "html" ? "#D4A843" : "#9ca3af",
                       }}
                     >
                       <Code size={11} />
@@ -208,7 +208,7 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
                   <button
                     type="button"
                     onClick={() => setPreviewOpen(true)}
-                    className="flex items-center gap-1 text-xs text-[#22c55e] hover:underline"
+                    className="flex items-center gap-1 text-xs text-[#D4A843] hover:underline"
                   >
                     <Eye size={12} /> Xem truoc
                   </button>

@@ -101,7 +101,7 @@ function UnsubscribeContent() {
               fontSize: "24px",
               fontWeight: 700,
               color: "#fff",
-              background: "linear-gradient(135deg, #22c55e, #16a34a)",
+              background: "linear-gradient(135deg, #D4A843, #B8922E)",
             }}
           >
             ĐK
@@ -125,7 +125,7 @@ function UnsubscribeContent() {
                   width: "64px",
                   height: "64px",
                   borderRadius: "50%",
-                  background: "rgba(34,197,94,0.1)",
+                  background: "rgba(212,168,67,0.1)",
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -137,7 +137,7 @@ function UnsubscribeContent() {
                   height="32"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#22c55e"
+                  stroke="#D4A843"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -171,7 +171,7 @@ function UnsubscribeContent() {
                   display: "inline-block",
                   padding: "10px 24px",
                   borderRadius: "8px",
-                  background: "linear-gradient(135deg, #22c55e, #16a34a)",
+                  background: "linear-gradient(135deg, #D4A843, #B8922E)",
                   color: "#fff",
                   fontWeight: 600,
                   fontSize: "14px",
@@ -210,7 +210,7 @@ function UnsubscribeContent() {
                   display: "inline-block",
                   padding: "10px 24px",
                   borderRadius: "8px",
-                  background: "linear-gradient(135deg, #22c55e, #16a34a)",
+                  background: "linear-gradient(135deg, #D4A843, #B8922E)",
                   color: "#fff",
                   fontWeight: 600,
                   fontSize: "14px",
@@ -364,7 +364,7 @@ function UnsubscribeContent() {
                   href="https://dangkhuong.com"
                   style={{
                     fontSize: "14px",
-                    color: "#22c55e",
+                    color: "#D4A843",
                     textDecoration: "none",
                   }}
                 >

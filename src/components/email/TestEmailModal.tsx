@@ -146,17 +146,17 @@ export default function TestEmailModal({
               className="flex items-start gap-2.5 p-3.5 rounded-lg text-sm"
               style={{
                 background: result.ok
-                  ? "rgba(34,197,94,0.08)"
+                  ? "rgba(212,168,67,0.08)"
                   : "rgba(239,68,68,0.08)",
                 border: result.ok
-                  ? "1px solid rgba(34,197,94,0.2)"
+                  ? "1px solid rgba(212,168,67,0.2)"
                   : "1px solid rgba(239,68,68,0.2)",
               }}
             >
               {result.ok ? (
                 <Check
                   size={16}
-                  className="text-[#22c55e] shrink-0 mt-0.5"
+                  className="text-[#D4A843] shrink-0 mt-0.5"
                 />
               ) : (
                 <AlertCircle
@@ -166,7 +166,7 @@ export default function TestEmailModal({
               )}
               <p
                 style={{
-                  color: result.ok ? "#22c55e" : "#ef4444",
+                  color: result.ok ? "#D4A843" : "#ef4444",
                 }}
               >
                 {result.msg}

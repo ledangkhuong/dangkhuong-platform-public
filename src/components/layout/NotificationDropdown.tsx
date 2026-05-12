@@ -188,7 +188,7 @@ export default function NotificationDropdown() {
               <button
                 onClick={markAllRead}
                 className="text-xs font-medium transition-colors"
-                style={{ color: "#22c55e" }}
+                style={{ color: "#D4A843" }}
               >
                 Đánh dấu tất cả đã đọc
               </button>
@@ -209,17 +209,17 @@ export default function NotificationDropdown() {
                   className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors"
                   style={{
                     borderBottom: "1px solid #222",
-                    background: notif.read ? "transparent" : "rgba(34,197,94,0.04)",
+                    background: notif.read ? "transparent" : "rgba(212,168,67,0.04)",
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLDivElement).style.background = notif.read
                       ? "rgba(255,255,255,0.03)"
-                      : "rgba(34,197,94,0.08)";
+                      : "rgba(212,168,67,0.08)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLDivElement).style.background = notif.read
                       ? "transparent"
-                      : "rgba(34,197,94,0.04)";
+                      : "rgba(212,168,67,0.04)";
                   }}
                 >
                   {/* Icon */}
@@ -244,7 +244,7 @@ export default function NotificationDropdown() {
                   {!notif.read && (
                     <span
                       className="w-2 h-2 rounded-full shrink-0 mt-1"
-                      style={{ background: "#22c55e" }}
+                      style={{ background: "#D4A843" }}
                     />
                   )}
                 </div>
@@ -260,7 +260,7 @@ export default function NotificationDropdown() {
             <a
               href="/notifications"
               className="text-xs font-medium transition-colors"
-              style={{ color: "#22c55e" }}
+              style={{ color: "#D4A843" }}
             >
               Xem tất cả →
             </a>

@@ -277,13 +277,13 @@ export default function ImportSubscribersModal({
             <div
               className="px-4 py-3 rounded-lg"
               style={{
-                background: "rgba(34,197,94,0.1)",
-                border: "1px solid rgba(34,197,94,0.2)",
+                background: "rgba(212,168,67,0.1)",
+                border: "1px solid rgba(212,168,67,0.2)",
               }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <Check size={16} className="text-[#22c55e]" />
-                <span className="text-[#22c55e] font-semibold text-sm">
+                <Check size={16} className="text-[#D4A843]" />
+                <span className="text-[#D4A843] font-semibold text-sm">
                   Import hoàn tất!
                 </span>
               </div>
@@ -328,9 +328,9 @@ export default function ImportSubscribersModal({
                 <div
                   className="rounded-xl p-8 text-center cursor-pointer transition-colors"
                   style={{
-                    border: `2px dashed ${dragOver ? "#22c55e" : "#2a2a2a"}`,
+                    border: `2px dashed ${dragOver ? "#D4A843" : "#2a2a2a"}`,
                     background: dragOver
-                      ? "rgba(34,197,94,0.05)"
+                      ? "rgba(212,168,67,0.05)"
                       : "#151515",
                   }}
                   onClick={() => fileInputRef.current?.click()}
@@ -344,7 +344,7 @@ export default function ImportSubscribersModal({
                   <Upload
                     size={32}
                     className="mx-auto mb-3"
-                    style={{ color: dragOver ? "#22c55e" : "#6b7280" }}
+                    style={{ color: dragOver ? "#D4A843" : "#6b7280" }}
                   />
                   <p className="text-white text-sm font-medium mb-1">
                     Kéo thả file CSV vào đây
@@ -373,7 +373,7 @@ export default function ImportSubscribersModal({
                       border: "1px solid #2a2a2a",
                     }}
                   >
-                    <FileText size={18} className="text-[#22c55e] shrink-0" />
+                    <FileText size={18} className="text-[#D4A843] shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-white text-sm font-medium truncate">
                         {file.name}
@@ -500,7 +500,7 @@ export default function ImportSubscribersModal({
                                   >
                                     {h}
                                     {i === columnMapping.email && (
-                                      <span className="text-[#22c55e] ml-1">
+                                      <span className="text-[#D4A843] ml-1">
                                         (email)
                                       </span>
                                     )}

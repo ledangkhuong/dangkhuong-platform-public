@@ -117,9 +117,9 @@ const roleConfig: Record<Role, { label: string; bg: string; color: string; borde
   },
   support: {
     label: "CSKH",
-    bg: "rgba(34,197,94,0.1)",
-    color: "#22c55e",
-    border: "rgba(34,197,94,0.25)",
+    bg: "rgba(212,168,67,0.1)",
+    color: "#D4A843",
+    border: "rgba(212,168,67,0.25)",
   },
   student: {
     label: "Học viên",
@@ -203,7 +203,7 @@ const TABS: {
     key: "paid",
     label: "Đã mua",
     icon: ShoppingCart,
-    color: "#22c55e",
+    color: "#D4A843",
     filter: (u, paidEmails) => !!u.email && (paidEmails?.has(u.email.toLowerCase()) ?? false),
   },
   {
@@ -483,9 +483,9 @@ export default async function AdminUsersPage({
               <div className="flex items-center justify-between">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(34,197,94,0.12)" }}
+                  style={{ background: "rgba(212,168,67,0.12)" }}
                 >
-                  <ShoppingCart size={18} className="text-[#22c55e]" />
+                  <ShoppingCart size={18} className="text-[#D4A843]" />
                 </div>
               </div>
               <div className="text-2xl font-bold text-white">{filteredUsers.length}</div>
@@ -497,12 +497,12 @@ export default async function AdminUsersPage({
               <div className="flex items-center justify-between">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(34,197,94,0.12)" }}
+                  style={{ background: "rgba(212,168,67,0.12)" }}
                 >
-                  <DollarSign size={18} className="text-[#22c55e]" />
+                  <DollarSign size={18} className="text-[#D4A843]" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-[#22c55e]">
+              <div className="text-2xl font-bold text-[#D4A843]">
                 {formatVND(
                   filteredUsers.reduce((sum, u) => {
                     const info = orderMap.get((u.email ?? "").toLowerCase());
@@ -582,9 +582,9 @@ export default async function AdminUsersPage({
               <div className="flex items-center justify-between">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(34,197,94,0.1)" }}
+                  style={{ background: "rgba(212,168,67,0.1)" }}
                 >
-                  <Star size={18} className="text-[#22c55e]" />
+                  <Star size={18} className="text-[#D4A843]" />
                 </div>
               </div>
               <div className="text-2xl font-bold text-white">
@@ -741,8 +741,8 @@ export default async function AdminUsersPage({
                           {/* Doanh thu */}
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <DollarSign size={14} className="text-[#22c55e]" />
-                              <span className="font-bold text-[#22c55e] text-base">
+                              <DollarSign size={14} className="text-[#D4A843]" />
+                              <span className="font-bold text-[#D4A843] text-base">
                                 {formatVND(userOrderInfo?.totalPaid ?? 0)}
                               </span>
                             </div>
@@ -753,7 +753,7 @@ export default async function AdminUsersPage({
                             <div className="flex items-center gap-3">
                               <span
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                                style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.2)" }}
+                                style={{ background: "rgba(212,168,67,0.1)", color: "#D4A843", border: "1px solid rgba(212,168,67,0.2)" }}
                               >
                                 <ShoppingCart size={11} />
                                 {userOrderInfo?.paidCount ?? 0} đã TT

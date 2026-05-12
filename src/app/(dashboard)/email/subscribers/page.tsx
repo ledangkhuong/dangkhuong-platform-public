@@ -59,9 +59,9 @@ const STATUS_CONFIG: Record<
 > = {
   active: {
     label: "Hoạt động",
-    color: "#22c55e",
-    bg: "rgba(34,197,94,0.1)",
-    border: "rgba(34,197,94,0.2)",
+    color: "#D4A843",
+    bg: "rgba(212,168,67,0.1)",
+    border: "rgba(212,168,67,0.2)",
   },
   unsubscribed: {
     label: "Huỷ đăng ký",
@@ -316,7 +316,7 @@ export default function SubscribersPage() {
       label: "Đang hoạt động",
       value: stats.active,
       icon: UserCheck,
-      color: "#22c55e",
+      color: "#D4A843",
     },
     {
       label: "Huỷ đăng ký",
@@ -446,8 +446,8 @@ export default function SubscribersPage() {
           <div
             className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl"
             style={{
-              background: "rgba(34,197,94,0.08)",
-              border: "1px solid rgba(34,197,94,0.2)",
+              background: "rgba(212,168,67,0.08)",
+              border: "1px solid rgba(212,168,67,0.2)",
             }}
           >
             <span className="text-sm text-white font-medium">
@@ -455,7 +455,7 @@ export default function SubscribersPage() {
             </span>
             <div
               className="w-px h-5"
-              style={{ background: "rgba(34,197,94,0.3)" }}
+              style={{ background: "rgba(212,168,67,0.3)" }}
             />
             <button
               onClick={handleBulkDelete}
@@ -483,7 +483,7 @@ export default function SubscribersPage() {
             </button>
             <button
               onClick={() => handleBulkChangeStatus("active")}
-              className="flex items-center gap-1.5 text-sm text-[#22c55e] hover:text-[#16a34a] transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[#D4A843] hover:text-[#B8922E] transition-colors"
             >
               <RefreshCw size={14} /> Active
             </button>
@@ -570,7 +570,7 @@ export default function SubscribersPage() {
                             selected.size === subscribers.length
                           }
                           onChange={toggleSelectAll}
-                          className="accent-[#22c55e] w-3.5 h-3.5 cursor-pointer"
+                          className="accent-[#D4A843] w-3.5 h-3.5 cursor-pointer"
                         />
                       </th>
                       <th className="text-left text-xs text-gray-500 font-medium px-4 py-3">
@@ -611,7 +611,7 @@ export default function SubscribersPage() {
                               type="checkbox"
                               checked={selected.has(sub.id)}
                               onChange={() => toggleSelect(sub.id)}
-                              className="accent-[#22c55e] w-3.5 h-3.5 cursor-pointer"
+                              className="accent-[#D4A843] w-3.5 h-3.5 cursor-pointer"
                             />
                           </td>
                           <td className="px-4 py-3">

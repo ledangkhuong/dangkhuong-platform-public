@@ -165,7 +165,7 @@ export default function ThumbnailUpload({ value, onChange }: ThumbnailUploadProp
             transition-colors cursor-pointer
             ${
               dragOver
-                ? "border-[#22c55e] bg-[#22c55e]/5"
+                ? "border-[#D4A843] bg-[#D4A843]/5"
                 : "border-[#2a2a2a] hover:border-[#3a3a3a] bg-[#161616]"
             }
             ${uploading ? "pointer-events-none opacity-60" : ""}
@@ -173,14 +173,14 @@ export default function ThumbnailUpload({ value, onChange }: ThumbnailUploadProp
         >
           {uploading ? (
             <>
-              <Loader2 size={28} className="text-[#22c55e] animate-spin" />
+              <Loader2 size={28} className="text-[#D4A843] animate-spin" />
               <span className="text-xs text-gray-400">Đang tải lên...</span>
             </>
           ) : (
             <>
               <ImageIcon size={28} className="text-gray-600" />
               <span className="text-xs text-gray-400">
-                Kéo thả ảnh vào đây hoặc <span className="text-[#22c55e] font-medium">chọn file</span>
+                Kéo thả ảnh vào đây hoặc <span className="text-[#D4A843] font-medium">chọn file</span>
               </span>
               <span className="text-[10px] text-gray-600">
                 JPEG, PNG, WebP, GIF — tối đa 5MB

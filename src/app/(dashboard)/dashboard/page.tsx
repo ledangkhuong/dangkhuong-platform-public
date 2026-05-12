@@ -7,13 +7,13 @@ import {
 } from "lucide-react";
 
 const quickCards = [
-  { href: "/courses", icon: BookOpen, color: "#22c55e", bg: "rgba(34,197,94,0.1)", label: "Khoá học của tôi", desc: "Xem và học các khoá học" },
+  { href: "/courses", icon: BookOpen, color: "#D4A843", bg: "rgba(212,168,67,0.1)", label: "Khoá học của tôi", desc: "Xem và học các khoá học" },
   { href: "/blog", icon: FolderOpen, color: "#3b82f6", bg: "rgba(59,130,246,0.1)", label: "Tài nguyên", desc: "Templates, tài liệu hỗ trợ" },
   { href: "/community", icon: Users, color: "#a855f7", bg: "rgba(168,85,247,0.1)", label: "Cộng đồng", desc: "Kết nối & học hỏi cùng nhau" },
 ];
 
 const platformStats = [
-  { label: "Học viên", value: "1,247", change: "+12%", icon: Users, color: "#22c55e" },
+  { label: "Học viên", value: "1,247", change: "+12%", icon: Users, color: "#D4A843" },
   { label: "Khoá học hoàn thành", value: "89%", change: "+5%", icon: TrendingUp, color: "#3b82f6" },
   { label: "Đánh giá TB", value: "4.9 ⭐", change: "+0.1", icon: Star, color: "#f59e0b" },
 ];
@@ -27,7 +27,7 @@ function tierLabel(tier: string) {
 function tierColor(tier: string) {
   if (tier === "vip") return "#f59e0b";
   if (tier === "member") return "#a855f7";
-  return "#22c55e";
+  return "#D4A843";
 }
 
 export default async function DashboardPage() {
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
             </p>
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1.5 text-gray-300">
-                <BookOpen size={14} className="text-[#22c55e]" />
+                <BookOpen size={14} className="text-[#D4A843]" />
                 <span>{courses} khoá đăng ký</span>
               </span>
               <span className="flex items-center gap-1.5 text-gray-300">
@@ -138,7 +138,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="text-xl font-bold text-white">{s.value}</div>
-              <div className="text-xs mt-1" style={{ color: "#22c55e" }}>
+              <div className="text-xs mt-1" style={{ color: "#D4A843" }}>
                 {s.change} so với tháng trước
               </div>
             </div>
@@ -177,12 +177,12 @@ export default async function DashboardPage() {
           href="https://zalo.me/0782276727"
           target="_blank"
           rel="noopener noreferrer"
-          className="card-dark p-5 border border-[#22c55e]/20 hover:bg-[#222] transition-all block"
-          style={{ background: "rgba(34,197,94,0.05)" }}
+          className="card-dark p-5 border border-[#D4A843]/20 hover:bg-[#222] transition-all block"
+          style={{ background: "rgba(212,168,67,0.05)" }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <Star size={16} className="text-[#22c55e]" />
-            <span className="font-semibold text-[#22c55e]">Cần hỗ trợ?</span>
+            <Star size={16} className="text-[#D4A843]" />
+            <span className="font-semibold text-[#D4A843]">Cần hỗ trợ?</span>
           </div>
           <p className="text-sm text-gray-400 mb-3">
             Liên hệ để được tư vấn khoá học phù hợp với nhu cầu và mục tiêu của bạn.
@@ -202,7 +202,7 @@ export default async function DashboardPage() {
               </h3>
               <Link
                 href="/community"
-                className="text-xs text-[#22c55e] hover:underline flex items-center gap-1"
+                className="text-xs text-[#D4A843] hover:underline flex items-center gap-1"
               >
                 Xem tất cả <ArrowRight size={12} />
               </Link>
@@ -231,7 +231,7 @@ export default async function DashboardPage() {
                     ) : (
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                        style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}
+                        style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
                       >
                         {initials || "?"}
                       </div>

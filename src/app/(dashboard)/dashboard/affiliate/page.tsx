@@ -125,17 +125,17 @@ export default async function AffiliateDashboardPage({
 
         {/* Notifications */}
         {params.registered === "1" && (
-          <div className="p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+          <div className="p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
             Chúc mừng! Bạn đã đăng ký thành công. Hãy chia sẻ link giới thiệu bên dưới!
           </div>
         )}
         {params.saved === "1" && (
-          <div className="p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+          <div className="p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
             Đã cập nhật thông tin ngân hàng.
           </div>
         )}
         {params.payout_requested === "1" && (
-          <div className="p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+          <div className="p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
             Yêu cầu rút tiền đã được gửi. Admin sẽ xử lý trong 1-3 ngày làm việc.
           </div>
         )}
@@ -160,7 +160,7 @@ export default async function AffiliateDashboardPage({
           </div>
         )}
         {params.code_changed === "1" && (
-          <div className="p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+          <div className="p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
             Đã thay đổi mã giới thiệu thành công!
           </div>
         )}
@@ -169,26 +169,26 @@ export default async function AffiliateDashboardPage({
         {!affiliate ? (
           <div className="card-dark p-6 sm:p-8 max-w-lg mx-auto">
             <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl" style={{ background: "rgba(34,197,94,0.1)" }}>
-                <Link2 size={28} className="text-[#22c55e]" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl" style={{ background: "rgba(212,168,67,0.1)" }}>
+                <Link2 size={28} className="text-[#D4A843]" />
               </div>
               <h2 className="text-xl font-bold text-white">Tham gia chương trình Affiliate</h2>
               <p className="text-gray-400 text-sm mt-2">
-                Giới thiệu khoá học cho bạn bè và nhận <span className="text-[#22c55e] font-semibold">20% hoa hồng</span> mỗi đơn hàng.
+                Giới thiệu khoá học cho bạn bè và nhận <span className="text-[#D4A843] font-semibold">20% hoa hồng</span> mỗi đơn hàng.
               </p>
             </div>
 
             <div className="space-y-3 mb-6 text-sm text-gray-300">
               <div className="flex items-start gap-3">
-                <MousePointerClick size={18} className="text-[#22c55e] mt-0.5 shrink-0" />
+                <MousePointerClick size={18} className="text-[#D4A843] mt-0.5 shrink-0" />
                 <span>Nhận link giới thiệu gắn vào bất kỳ trang nào (blog, landing page, khoá học)</span>
               </div>
               <div className="flex items-start gap-3">
-                <ShoppingCart size={18} className="text-[#22c55e] mt-0.5 shrink-0" />
+                <ShoppingCart size={18} className="text-[#D4A843] mt-0.5 shrink-0" />
                 <span>Cookie tracking 90 ngày — khách mua sau vẫn tính hoa hồng</span>
               </div>
               <div className="flex items-start gap-3">
-                <Wallet size={18} className="text-[#22c55e] mt-0.5 shrink-0" />
+                <Wallet size={18} className="text-[#D4A843] mt-0.5 shrink-0" />
                 <span>Rút tiền qua chuyển khoản ngân hàng, tối thiểu 200,000đ</span>
               </div>
             </div>
@@ -220,10 +220,10 @@ export default async function AffiliateDashboardPage({
             <div className="card-dark p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Link2 size={16} className="text-[#22c55e]" />
+                  <Link2 size={16} className="text-[#D4A843]" />
                   Link giới thiệu của bạn
                 </h3>
-                <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e" }}>
+                <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ background: "rgba(212,168,67,0.15)", color: "#D4A843" }}>
                   {affiliate.ref_code}
                 </span>
               </div>
@@ -236,7 +236,7 @@ export default async function AffiliateDashboardPage({
                 <CopyRefLink text={`${origin}?ref=${affiliate.ref_code}`} />
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Gắn <code className="text-[#22c55e]">?ref={affiliate.ref_code}</code> vào bất kỳ URL nào trên dangkhuong.com
+                Gắn <code className="text-[#D4A843]">?ref={affiliate.ref_code}</code> vào bất kỳ URL nào trên dangkhuong.com
               </p>
               {/* Change ref code */}
               <ChangeRefCodeForm currentCode={affiliate.ref_code} />
@@ -247,7 +247,7 @@ export default async function AffiliateDashboardPage({
               <StatCard icon={MousePointerClick} label="Clicks" value={affiliate.total_clicks?.toLocaleString("vi-VN") || "0"} color="#3b82f6" />
               <StatCard icon={ShoppingCart} label="Đơn hàng" value={affiliate.total_conversions?.toString() || "0"} color="#a855f7" />
               <StatCard icon={TrendingUp} label="Tỷ lệ chuyển đổi" value={`${conversionRate}%`} color="#f59e0b" />
-              <StatCard icon={Wallet} label="Khả dụng" value={formatCurrency(available)} color="#22c55e" />
+              <StatCard icon={Wallet} label="Khả dụng" value={formatCurrency(available)} color="#D4A843" />
             </div>
 
             {/* Earnings summary */}
@@ -258,7 +258,7 @@ export default async function AffiliateDashboardPage({
               </div>
               <div className="card-dark p-4 text-center">
                 <div className="text-xs text-gray-500 mb-1">Đã thanh toán</div>
-                <div className="text-lg font-bold text-[#22c55e]">{formatCurrency(affiliate.total_paid || 0)}</div>
+                <div className="text-lg font-bold text-[#D4A843]">{formatCurrency(affiliate.total_paid || 0)}</div>
               </div>
               <div className="card-dark p-4 text-center">
                 <div className="text-xs text-gray-500 mb-1">Tỷ lệ hoa hồng</div>
@@ -270,7 +270,7 @@ export default async function AffiliateDashboardPage({
             {available >= 200000 && affiliate.bank_account && (
               <div className="card-dark p-4 flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-white">Số dư khả dụng: <span className="text-[#22c55e]">{formatCurrency(available)}</span></div>
+                  <div className="text-sm font-medium text-white">Số dư khả dụng: <span className="text-[#D4A843]">{formatCurrency(available)}</span></div>
                   <div className="text-xs text-gray-500">Chuyển về {affiliate.bank_name} - {affiliate.bank_account}</div>
                 </div>
                 <form action={requestPayout}>
@@ -306,7 +306,7 @@ export default async function AffiliateDashboardPage({
                         <tr key={c.id} className="border-b border-[#1a1a1a]">
                           <td className="py-2.5 text-gray-300">{(c.products as { name: string } | null)?.name || "—"}</td>
                           <td className="py-2.5 text-white">{formatCurrency(c.order_amount)}</td>
-                          <td className="py-2.5 text-[#22c55e] font-medium">{formatCurrency(c.commission_amount)}</td>
+                          <td className="py-2.5 text-[#D4A843] font-medium">{formatCurrency(c.commission_amount)}</td>
                           <td className="py-2.5">
                             <StatusBadge status={c.status} />
                           </td>
@@ -408,7 +408,7 @@ export default async function AffiliateDashboardPage({
             {payouts.length > 0 && (
               <div className="card-dark p-5">
                 <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                  <Wallet size={16} className="text-[#22c55e]" />
+                  <Wallet size={16} className="text-[#D4A843]" />
                   Lịch sử rút tiền
                 </h3>
                 <div className="overflow-x-auto">
@@ -459,7 +459,7 @@ function StatCard({ icon: Icon, label, value, color }: {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; color: string; label: string }> = {
     pending: { bg: "rgba(234,179,8,0.1)", color: "#eab308", label: "Chờ duyệt" },
-    approved: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Đã duyệt" },
+    approved: { bg: "rgba(212,168,67,0.1)", color: "#D4A843", label: "Đã duyệt" },
     paid: { bg: "rgba(59,130,246,0.1)", color: "#3b82f6", label: "Đã trả" },
     rejected: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Từ chối" },
   };
@@ -475,7 +475,7 @@ function PayoutStatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; color: string; label: string }> = {
     pending: { bg: "rgba(234,179,8,0.1)", color: "#eab308", label: "Đang chờ" },
     processing: { bg: "rgba(59,130,246,0.1)", color: "#3b82f6", label: "Đang xử lý" },
-    completed: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Hoàn tất" },
+    completed: { bg: "rgba(212,168,67,0.1)", color: "#D4A843", label: "Hoàn tất" },
     failed: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Thất bại" },
   };
   const c = config[status] || config.pending;

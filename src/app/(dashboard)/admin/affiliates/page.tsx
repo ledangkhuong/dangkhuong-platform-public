@@ -48,14 +48,14 @@ function formatDate(iso: string): string {
 }
 
 const STATUS_CONFIG: Record<string, { bg: string; color: string; label: string; icon: React.ElementType }> = {
-  active: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Hoạt động", icon: CheckCircle },
+  active: { bg: "rgba(212,168,67,0.1)", color: "#D4A843", label: "Hoạt động", icon: CheckCircle },
   pending: { bg: "rgba(234,179,8,0.1)", color: "#eab308", label: "Chờ duyệt", icon: Clock },
   suspended: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Tạm khoá", icon: Ban },
   rejected: { bg: "rgba(107,114,128,0.1)", color: "#6b7280", label: "Từ chối", icon: Ban },
 };
 
 const ORDER_STATUS: Record<string, { bg: string; color: string; label: string }> = {
-  paid: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Đã thanh toán" },
+  paid: { bg: "rgba(212,168,67,0.1)", color: "#D4A843", label: "Đã thanh toán" },
   pending: { bg: "rgba(234,179,8,0.1)", color: "#eab308", label: "Chờ thanh toán" },
   cancelled: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Đã huỷ" },
   refunded: { bg: "rgba(107,114,128,0.1)", color: "#6b7280", label: "Hoàn tiền" },
@@ -137,7 +137,7 @@ export default async function AdminAffiliatesPage({
 
         {/* Notification */}
         {params.updated === "1" && (
-          <div className="p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+          <div className="p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
             Đã cập nhật tỷ lệ hoa hồng thành công.
           </div>
         )}
@@ -146,7 +146,7 @@ export default async function AdminAffiliatesPage({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard icon={Users} label="Tổng Affiliate" value={totalAffiliates.toString()} sub={`${activeAffiliates} hoạt động`} color="#3b82f6" />
           <StatCard icon={MousePointerClick} label="Tổng Clicks" value={totalClicks.toLocaleString("vi-VN")} sub={`${totalConversions} conversions`} color="#a855f7" />
-          <StatCard icon={Wallet} label="Hoa hồng đã trả" value={formatCurrency(totalPaid)} sub={`Tổng: ${formatCurrency(totalEarned)}`} color="#22c55e" />
+          <StatCard icon={Wallet} label="Hoa hồng đã trả" value={formatCurrency(totalPaid)} sub={`Tổng: ${formatCurrency(totalEarned)}`} color="#D4A843" />
           <StatCard icon={Clock} label="Chờ xử lý" value={`${pendingConversions || 0} đơn`} sub={`${pendingPayouts || 0} yêu cầu rút`} color="#f59e0b" />
         </div>
 
@@ -185,7 +185,7 @@ export default async function AdminAffiliatesPage({
                       <tr key={aff.id} className="border-b border-[#1a1a1a] hover:bg-[#111]">
                         <td className="py-2.5 text-white font-medium">{name}</td>
                         <td className="py-2.5">
-                          <code className="text-xs text-[#22c55e] bg-[#22c55e]/10 px-1.5 py-0.5 rounded">{aff.ref_code}</code>
+                          <code className="text-xs text-[#D4A843] bg-[#D4A843]/10 px-1.5 py-0.5 rounded">{aff.ref_code}</code>
                         </td>
                         <td className="py-2.5">
                           <span className="text-xs px-2 py-0.5 rounded font-medium" style={{ background: statusCfg.bg, color: statusCfg.color }}>
@@ -194,7 +194,7 @@ export default async function AdminAffiliatesPage({
                         </td>
                         <td className="py-2.5 text-right text-gray-300">{aff.total_clicks?.toLocaleString("vi-VN") || 0}</td>
                         <td className="py-2.5 text-right text-gray-300">{aff.total_conversions || 0}</td>
-                        <td className="py-2.5 text-right text-[#22c55e] font-medium">{formatCurrency(aff.total_earned || 0)}</td>
+                        <td className="py-2.5 text-right text-[#D4A843] font-medium">{formatCurrency(aff.total_earned || 0)}</td>
                         <td className="py-2.5 text-right text-gray-400">{formatCurrency(aff.total_paid || 0)}</td>
                         <td className="py-2.5 text-center">
                           <EditCommissionForm affiliateId={aff.id} currentRate={aff.commission_rate} />
@@ -216,7 +216,7 @@ export default async function AdminAffiliatesPage({
               Đơn hàng từ Affiliate ({affOrders.length})
             </h3>
             <div className="flex items-center gap-2 text-xs">
-              <span className="flex items-center gap-1 text-[#22c55e]">
+              <span className="flex items-center gap-1 text-[#D4A843]">
                 <CheckCircle size={12} /> {paidAffOrders.length} đã TT
               </span>
               <span className="flex items-center gap-1 text-[#eab308]">
@@ -263,7 +263,7 @@ export default async function AdminAffiliatesPage({
                         </td>
                         <td className="py-2.5 text-gray-300">{affName}</td>
                         <td className="py-2.5">
-                          <code className="text-xs text-[#22c55e] bg-[#22c55e]/10 px-1.5 py-0.5 rounded">{order.ref_code}</code>
+                          <code className="text-xs text-[#D4A843] bg-[#D4A843]/10 px-1.5 py-0.5 rounded">{order.ref_code}</code>
                         </td>
                         <td className="py-2.5 text-gray-500 text-xs">{formatDate(order.created_at)}</td>
                       </tr>

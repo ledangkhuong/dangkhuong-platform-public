@@ -28,7 +28,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   draft: { label: "Nhap", color: "#6b7280", bg: "rgba(107,114,128,0.12)" },
   scheduled: { label: "Da len lich", color: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
   sending: { label: "Dang gui", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
-  sent: { label: "Da gui", color: "#22c55e", bg: "rgba(34,197,94,0.12)" },
+  sent: { label: "Da gui", color: "#D4A843", bg: "rgba(212,168,67,0.12)" },
   paused: { label: "Tam dung", color: "#f97316", bg: "rgba(249,115,22,0.12)" },
 };
 
@@ -132,7 +132,7 @@ export default function CampaignsPage() {
 
   const stats = [
     { label: "Tong campaigns", value: totalCount, icon: Mail, color: "#3b82f6" },
-    { label: "Da gui", value: sentCount, icon: Send, color: "#22c55e" },
+    { label: "Da gui", value: sentCount, icon: Send, color: "#D4A843" },
     { label: "Dang gui", value: sendingCount, icon: Loader2, color: "#f59e0b" },
     { label: "Nhap", value: draftCount, icon: Edit, color: "#6b7280" },
   ];
@@ -205,9 +205,9 @@ export default function CampaignsPage() {
                   onClick={() => { setStatusFilter(f.value); setPage(1); }}
                   className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
                   style={{
-                    background: statusFilter === f.value ? "rgba(34,197,94,0.12)" : "transparent",
-                    color: statusFilter === f.value ? "#22c55e" : "#9ca3af",
-                    border: statusFilter === f.value ? "1px solid rgba(34,197,94,0.25)" : "1px solid transparent",
+                    background: statusFilter === f.value ? "rgba(212,168,67,0.12)" : "transparent",
+                    color: statusFilter === f.value ? "#D4A843" : "#9ca3af",
+                    border: statusFilter === f.value ? "1px solid rgba(212,168,67,0.25)" : "1px solid transparent",
                   }}
                 >
                   {f.label}
@@ -227,7 +227,7 @@ export default function CampaignsPage() {
         {/* Campaign list */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-[#22c55e]" />
+            <Loader2 size={24} className="animate-spin text-[#D4A843]" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="card-dark flex flex-col items-center justify-center py-16 text-center">
@@ -313,7 +313,7 @@ export default function CampaignsPage() {
                         </div>
                         <div className="text-center min-w-[50px]">
                           <div className="text-gray-500 mb-0.5">Open</div>
-                          <div className="font-semibold" style={{ color: "#22c55e" }}>
+                          <div className="font-semibold" style={{ color: "#D4A843" }}>
                             {c.sent_count > 0 ? `${openRate}%` : "--"}
                           </div>
                         </div>
@@ -399,7 +399,7 @@ export default function CampaignsPage() {
                       onClick={() => setPage(p)}
                       className="w-8 h-8 rounded-lg text-xs font-medium transition-colors"
                       style={{
-                        background: page === p ? "#22c55e" : "transparent",
+                        background: page === p ? "#D4A843" : "transparent",
                         color: page === p ? "white" : "#9ca3af",
                       }}
                     >

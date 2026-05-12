@@ -7,7 +7,7 @@ import { ArrowRight, BookOpen, Users, Mail, BarChart3, Star, CheckCircle, Play, 
 const CheckoutModal = dynamic(() => import("@/components/checkout/CheckoutModal"), { ssr: false });
 
 const features = [
-  { icon: BookOpen, color: "#22c55e", title: "Khoá học chuyên sâu", desc: "Video bài học, tài liệu và bài tập thực hành được thiết kế để bạn làm được ngay." },
+  { icon: BookOpen, color: "#D4A843", title: "Khoá học chuyên sâu", desc: "Video bài học, tài liệu và bài tập thực hành được thiết kế để bạn làm được ngay." },
   { icon: Users, color: "#3b82f6", title: "Cộng đồng học tập", desc: "Kết nối với hàng nghìn người cùng chí hướng, học hỏi và phát triển cùng nhau." },
   { icon: Mail, color: "#a855f7", title: "Email Marketing", desc: "Hệ thống email tự động giúp bạn nuôi dưỡng khách hàng và tăng doanh số." },
   { icon: BarChart3, color: "#f59e0b", title: "Theo dõi tiến độ", desc: "Dashboard trực quan đo lường từng bước tiến của bạn trong hành trình học tập." },
@@ -20,7 +20,7 @@ const testimonials = [
 ];
 
 const courses = [
-  { emoji: "📦", title: "Digital Snacks", desc: "Tạo & bán sản phẩm số, lợi nhuận cao", price: "499K", badge: "Bestseller", color: "#22c55e", checkoutId: "digital-snacks", checkoutPrice: 499000, checkoutDesc: "Tạo & bán sản phẩm số, lợi nhuận cao" },
+  { emoji: "📦", title: "Digital Snacks", desc: "Tạo & bán sản phẩm số, lợi nhuận cao", price: "499K", badge: "Bestseller", color: "#D4A843", checkoutId: "digital-snacks", checkoutPrice: 499000, checkoutDesc: "Tạo & bán sản phẩm số, lợi nhuận cao" },
   { emoji: "🚀", title: "Marketing 0→1", desc: "Xây thương hiệu cá nhân từ con số 0", price: "Miễn phí", badge: "Free", color: "#3b82f6", checkoutId: null, checkoutPrice: null, checkoutDesc: null },
   { emoji: "📧", title: "Email Mastery", desc: "Email automation bán hàng tự động", price: "699K", badge: "Mới", color: "#a855f7", checkoutId: "email-mastery", checkoutPrice: 699000, checkoutDesc: "Email automation bán hàng tự động" },
 ];
@@ -45,7 +45,7 @@ export default function LandingPage() {
         backdropFilter: "blur(12px)"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: "white", background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>ĐK</div>
+          <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: "white", background: "linear-gradient(135deg,#D4A843,#B8922E)" }}>ĐK</div>
           <span style={{ fontWeight: 700, color: "white", fontSize: 15 }}>Đăng Khương</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -56,14 +56,14 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section style={{ paddingTop: 120, paddingBottom: 80, textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 80, left: "50%", transform: "translateX(-50%)", width: 600, height: 300, borderRadius: "50%", opacity: 0.15, filter: "blur(60px)", background: "radial-gradient(circle,#22c55e,transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 80, left: "50%", transform: "translateX(-50%)", width: 600, height: 300, borderRadius: "50%", opacity: 0.15, filter: "blur(60px)", background: "radial-gradient(circle,#D4A843,transparent 70%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 99, marginBottom: 24, background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e", fontSize: 13 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 99, marginBottom: 24, background: "rgba(212,168,67,0.1)", border: "1px solid rgba(212,168,67,0.25)", color: "#D4A843", fontSize: 13 }}>
             <Zap size={13} /> Cộng đồng 1,200+ người học đang chờ bạn
           </div>
           <h1 style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: "white", lineHeight: 1.2, marginBottom: 20 }}>
             Xây dựng{" "}
-            <span style={{ background: "linear-gradient(135deg,#22c55e,#4ade80)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: "linear-gradient(135deg,#D4A843,#4ade80)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               thương hiệu cá nhân
             </span>
             {" "}& kiếm tiền từ kiến thức
@@ -76,7 +76,7 @@ export default function LandingPage() {
               Học miễn phí ngay <ArrowRight size={17} />
             </Link>
             <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 32px", borderRadius: 8, fontSize: 15, fontWeight: 600, color: "white", border: "1px solid #2a2a2a" }}>
-              <Play size={15} style={{ color: "#22c55e" }} /> Xem Demo
+              <Play size={15} style={{ color: "#D4A843" }} /> Xem Demo
             </Link>
           </div>
           {/* Social proof */}
@@ -84,7 +84,7 @@ export default function LandingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ display: "flex" }}>
                 {["MT","TH","QD","LA"].map(a => (
-                  <div key={a} style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid #0a0a0a", marginLeft: -6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#22c55e,#059669)" }}>{a}</div>
+                  <div key={a} style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid #0a0a0a", marginLeft: -6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#D4A843,#059669)" }}>{a}</div>
                 ))}
               </div>
               +1,200 học viên
@@ -172,7 +172,7 @@ export default function LandingPage() {
                 </div>
                 <p style={{ fontSize: 13, color: "#d1d5db", lineHeight: 1.7, marginBottom: 16, fontStyle: "italic" }}>"{t.text}"</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#22c55e,#059669)" }}>{t.avatar}</div>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#D4A843,#059669)" }}>{t.avatar}</div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{t.name}</div>
                     <div style={{ fontSize: 11, color: "#6b7280" }}>{t.role}</div>
@@ -188,7 +188,7 @@ export default function LandingPage() {
       <section style={{ padding: "64px 24px" }}>
         <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
           <div className="card-dark" style={{ padding: 48, position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, opacity: 0.04, background: "radial-gradient(circle at center,#22c55e,transparent)" }} />
+            <div style={{ position: "absolute", inset: 0, opacity: 0.04, background: "radial-gradient(circle at center,#D4A843,transparent)" }} />
             <div style={{ position: "relative" }}>
               <h2 style={{ fontSize: 28, fontWeight: 700, color: "white", marginBottom: 12 }}>Sẵn sàng bắt đầu chưa?</h2>
               <p style={{ color: "#9ca3af", marginBottom: 24, fontSize: 15 }}>Tham gia miễn phí hôm nay và nhận ngay khoá học Marketing 0→1</p>
@@ -198,7 +198,7 @@ export default function LandingPage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginTop: 16, fontSize: 12, color: "#6b7280", flexWrap: "wrap" }}>
                 {["Không cần thẻ tín dụng", "Truy cập ngay", "Huỷ bất kỳ lúc"].map(t => (
                   <span key={t} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <CheckCircle size={11} color="#22c55e" /> {t}
+                    <CheckCircle size={11} color="#D4A843" /> {t}
                   </span>
                 ))}
               </div>
@@ -210,7 +210,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ borderTop: "1px solid #1a1a1a", padding: "24px", textAlign: "center", fontSize: 13, color: "#6b7280" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 6 }}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#22c55e,#16a34a)" }}>ĐK</div>
+          <div style={{ width: 24, height: 24, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "white", background: "linear-gradient(135deg,#D4A843,#B8922E)" }}>ĐK</div>
           <span style={{ color: "white", fontWeight: 600 }}>Đăng Khương</span>
         </div>
         <p>© 2025 dangkhuong.com — All rights reserved</p>

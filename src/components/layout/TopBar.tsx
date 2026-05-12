@@ -25,7 +25,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
       {/* Notification Bar — hide on small screens */}
       {notification && (
         <div className="notification-bar hidden sm:flex items-center justify-center gap-3 py-2 px-4 text-sm">
-          <Bell size={13} className="text-[#22c55e]" />
+          <Bell size={13} className="text-[#D4A843]" />
           <span className="text-gray-400 text-xs">
             Đăng Khương vừa cập nhật:
           </span>
@@ -34,7 +34,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
           <div className="flex gap-1 ml-1">
             {[1,2,3,4,5].map(i => (
               <div key={i} className="w-1.5 h-1.5 rounded-full"
-                style={{ background: i === 1 ? "#22c55e" : "#333" }} />
+                style={{ background: i === 1 ? "#D4A843" : "#333" }} />
             ))}
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
 
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white cursor-pointer shrink-0"
-            style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
+            style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}>
             ĐK
           </div>
         </div>

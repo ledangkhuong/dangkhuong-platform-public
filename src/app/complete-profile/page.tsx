@@ -80,7 +80,7 @@ export default function CompleteProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center"
         style={{ background: "radial-gradient(ellipse at top, #0d1a12 0%, #0a0a0a 60%)" }}>
-        <Loader2 size={32} className="text-[#22c55e] animate-spin" />
+        <Loader2 size={32} className="text-[#D4A843] animate-spin" />
       </div>
     );
   }
@@ -92,11 +92,11 @@ export default function CompleteProfilePage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}>ĐK</div>
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}>ĐK</div>
           <h1 className="text-2xl font-bold text-white">Hoàn tất đăng ký</h1>
           <p className="text-gray-400 mt-1 text-sm">
             {userName ? (
-              <>Xin chào <span className="text-[#22c55e] font-medium">{userName}</span>! </>
+              <>Xin chào <span className="text-[#D4A843] font-medium">{userName}</span>! </>
             ) : null}
             Vui lòng cung cấp số điện thoại để hoàn tất.
           </p>
@@ -104,7 +104,7 @@ export default function CompleteProfilePage() {
 
         {/* Success icon */}
         <div className="flex items-center gap-2 mb-4 p-3 rounded-lg text-sm border"
-          style={{ background: "rgba(34,197,94,0.06)", borderColor: "rgba(34,197,94,0.2)", color: "#22c55e" }}>
+          style={{ background: "rgba(212,168,67,0.06)", borderColor: "rgba(212,168,67,0.2)", color: "#D4A843" }}>
           <CheckCircle2 size={16} />
           <span>Đăng nhập thành công! Chỉ cần thêm 1 bước nữa.</span>
         </div>

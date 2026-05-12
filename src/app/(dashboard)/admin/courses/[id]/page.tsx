@@ -217,9 +217,9 @@ export default function EditCoursePage() {
             href={`/admin/courses/${id}/lessons`}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
             style={{
-              background: "rgba(34,197,94,0.1)",
-              color: "#22c55e",
-              border: "1px solid rgba(34,197,94,0.2)",
+              background: "rgba(212,168,67,0.1)",
+              color: "#D4A843",
+              border: "1px solid rgba(212,168,67,0.2)",
             }}
           >
             <Layers size={12} />
@@ -232,7 +232,7 @@ export default function EditCoursePage() {
           <div
             className={`p-3 rounded-lg text-sm ${
               message.type === "success"
-                ? "bg-green-900/30 text-green-400 border border-green-800/40"
+                ? "bg-amber-900/30 text-amber-400 border border-amber-800/40"
                 : "bg-red-900/30 text-red-400 border border-red-800/40"
             }`}
           >

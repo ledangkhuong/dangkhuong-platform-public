@@ -11,7 +11,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
   draft: { label: "Bản nháp", color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
   scheduled: { label: "Đã lên lịch", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
   sending: { label: "Đang gửi", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  sent: { label: "Đã gửi", color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+  sent: { label: "Đã gửi", color: "#D4A843", bg: "rgba(212,168,67,0.1)" },
   paused: { label: "Tạm dừng", color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
 };
 
@@ -56,7 +56,7 @@ export default async function EmailPage() {
   const avgClickRate = totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) : "0.0";
 
   const stats = [
-    { label: "Tổng subscribers", value: total.toLocaleString("vi-VN"), sub: `${active} đang hoạt động`, icon: Users, color: "#22c55e" },
+    { label: "Tổng subscribers", value: total.toLocaleString("vi-VN"), sub: `${active} đang hoạt động`, icon: Users, color: "#D4A843" },
     { label: "Email đã gửi", value: totalSent.toLocaleString("vi-VN"), sub: `${campaignList.length} campaigns`, icon: Send, color: "#3b82f6" },
     { label: "Open rate TB", value: `${avgOpenRate}%`, sub: `${totalOpened.toLocaleString("vi-VN")} lượt mở`, icon: Eye, color: "#f59e0b" },
     { label: "Click rate TB", value: `${avgClickRate}%`, sub: `${totalClicked.toLocaleString("vi-VN")} lượt click`, icon: MousePointer, color: "#8b5cf6" },
@@ -78,7 +78,7 @@ export default async function EmailPage() {
                   style={{ background: s.color + "20" }}>
                   <s.icon size={18} style={{ color: s.color }} />
                 </div>
-                <TrendingUp size={14} className="text-[#22c55e]" />
+                <TrendingUp size={14} className="text-[#D4A843]" />
               </div>
               <div className="text-2xl font-bold text-white mb-0.5">{s.value}</div>
               <div className="text-xs text-gray-500">{s.label}</div>
@@ -158,7 +158,7 @@ export default async function EmailPage() {
                           </td>
                           <td className="px-4 py-3 text-right">
                             {c.sent_count > 0 ? (
-                              <span className="text-[#22c55e] font-medium">{openRate}%</span>
+                              <span className="text-[#D4A843] font-medium">{openRate}%</span>
                             ) : <span className="text-gray-600">{"—"}</span>}
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -190,7 +190,7 @@ export default async function EmailPage() {
                 <h3 className="font-semibold text-white text-sm">Subscribers</h3>
                 <Link
                   href="/email/subscribers"
-                  className="text-[11px] text-[#22c55e] hover:underline"
+                  className="text-[11px] text-[#D4A843] hover:underline"
                 >
                   Quản lý
                 </Link>
@@ -204,12 +204,12 @@ export default async function EmailPage() {
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: "#222" }}>
-                    <UserCheck size={14} className="text-[#22c55e]" />
+                    <UserCheck size={14} className="text-[#D4A843]" />
                     <div className="flex-1">
                       <div className="text-white text-xs font-medium">Đang hoạt động</div>
                       <div className="text-[11px] text-gray-500">{active.toLocaleString("vi-VN")} subscribers</div>
                     </div>
-                    <span className="text-xs font-medium text-[#22c55e]">
+                    <span className="text-xs font-medium text-[#D4A843]">
                       {total > 0 ? ((active / total) * 100).toFixed(0) : 0}%
                     </span>
                   </div>
@@ -240,7 +240,7 @@ export default async function EmailPage() {
                           className="h-full"
                           style={{
                             width: `${(active / total) * 100}%`,
-                            background: "#22c55e",
+                            background: "#D4A843",
                           }}
                         />
                         <div
@@ -300,10 +300,10 @@ export default async function EmailPage() {
             </div>
 
             {/* Tips */}
-            <div className="card-dark p-4" style={{ borderColor: "rgba(34,197,94,0.2)" }}>
+            <div className="card-dark p-4" style={{ borderColor: "rgba(212,168,67,0.2)" }}>
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle size={14} className="text-[#22c55e]" />
-                <span className="text-xs font-semibold text-[#22c55e]">Best practices</span>
+                <CheckCircle size={14} className="text-[#D4A843]" />
+                <span className="text-xs font-semibold text-[#D4A843]">Best practices</span>
               </div>
               <ul className="text-xs text-gray-400 space-y-1.5">
                 <li>- Gửi vào 7-9h sáng hoặc 7-9h tối</li>

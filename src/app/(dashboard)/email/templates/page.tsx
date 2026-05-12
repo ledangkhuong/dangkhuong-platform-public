@@ -30,7 +30,7 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
-  marketing: { label: "Marketing", color: "#22c55e" },
+  marketing: { label: "Marketing", color: "#D4A843" },
   newsletter: { label: "Newsletter", color: "#3b82f6" },
   transactional: { label: "Transactional", color: "#f59e0b" },
   other: { label: "Khac", color: "#6b7280" },
@@ -199,9 +199,9 @@ export default function TemplatesPage() {
                   onClick={() => setCategory(c.value)}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                   style={{
-                    background: category === c.value ? "rgba(34,197,94,0.12)" : "transparent",
-                    color: category === c.value ? "#22c55e" : "#9ca3af",
-                    border: category === c.value ? "1px solid rgba(34,197,94,0.25)" : "1px solid transparent",
+                    background: category === c.value ? "rgba(212,168,67,0.12)" : "transparent",
+                    color: category === c.value ? "#D4A843" : "#9ca3af",
+                    border: category === c.value ? "1px solid rgba(212,168,67,0.25)" : "1px solid transparent",
                   }}
                 >
                   {c.label}
@@ -221,7 +221,7 @@ export default function TemplatesPage() {
         {/* Templates grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-[#22c55e]" />
+            <Loader2 size={24} className="animate-spin text-[#D4A843]" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="card-dark flex flex-col items-center justify-center py-16 text-center">

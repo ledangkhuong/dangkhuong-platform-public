@@ -151,7 +151,7 @@ function seoScoreColor(checks: SeoCheck[]): { color: string; label: string; pct:
   const total = checks.length;
   const good = checks.filter((c) => c.status === "good").length;
   const pct = Math.round((good / total) * 100);
-  if (pct >= 80) return { color: "#22c55e", label: "Tốt", pct };
+  if (pct >= 80) return { color: "#D4A843", label: "Tốt", pct };
   if (pct >= 50) return { color: "#f59e0b", label: "Trung bình", pct };
   return { color: "#ef4444", label: "Cần cải thiện", pct };
 }
@@ -159,7 +159,7 @@ function seoScoreColor(checks: SeoCheck[]): { color: string; label: string; pct:
 function charBarColor(len: number, min: number, max: number): string {
   if (len === 0) return "#333";
   if (len < min) return "#f59e0b";
-  if (len <= max) return "#22c55e";
+  if (len <= max) return "#D4A843";
   return "#ef4444";
 }
 
@@ -345,9 +345,9 @@ export default function EditBlogPostPage() {
             <span
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
               style={{
-                background: currentStatus === "published" ? "rgba(34,197,94,0.1)" : "rgba(107,114,128,0.1)",
-                color: currentStatus === "published" ? "#22c55e" : "#9ca3af",
-                border: `1px solid ${currentStatus === "published" ? "rgba(34,197,94,0.25)" : "rgba(107,114,128,0.25)"}`,
+                background: currentStatus === "published" ? "rgba(212,168,67,0.1)" : "rgba(107,114,128,0.1)",
+                color: currentStatus === "published" ? "#D4A843" : "#9ca3af",
+                border: `1px solid ${currentStatus === "published" ? "rgba(212,168,67,0.25)" : "rgba(107,114,128,0.25)"}`,
               }}
             >
               {currentStatus === "published" ? <><Globe size={11} /> Đã xuất bản</> : <><FileText size={11} /> Nháp</>}
@@ -387,7 +387,7 @@ export default function EditBlogPostPage() {
           </div>
         )}
         {success && (
-          <div className="flex items-center gap-2 p-3 rounded-lg text-sm text-green-400 border border-green-400/20" style={{ background: "rgba(34,197,94,0.08)" }}>
+          <div className="flex items-center gap-2 p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20" style={{ background: "rgba(212,168,67,0.08)" }}>
             <CheckCircle2 size={14} /> {success}
           </div>
         )}
@@ -440,7 +440,7 @@ export default function EditBlogPostPage() {
             className="w-full flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Search size={15} className="text-[#22c55e]" />
+              <Search size={15} className="text-[#D4A843]" />
               <span className="text-sm font-semibold text-white">SEO & Thông tin bài viết</span>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: seoScore.color + "18", color: seoScore.color }}>
                 {seoScore.pct}%
@@ -532,7 +532,7 @@ export default function EditBlogPostPage() {
                       </div>
                     </div>
                   ) : (
-                    <button type="button" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb} className="w-full h-24 rounded-lg border border-dashed border-[#333] hover:border-[#22c55e40] bg-[#141414] hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="button" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb} className="w-full h-24 rounded-lg border border-dashed border-[#333] hover:border-[#D4A84340] bg-[#141414] hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-1.5 cursor-pointer">
                       {uploadingThumb ? (
                         <><Loader2 size={18} className="text-gray-500 animate-spin" /><span className="text-xs text-gray-500">Đang tải lên...</span></>
                       ) : (
@@ -556,7 +556,7 @@ export default function EditBlogPostPage() {
                       {authorAvatar ? (
                         <img src={authorAvatar} alt="Author" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-[#22c55e] bg-[#22c55e10]">
+                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-[#D4A843] bg-[#D4A84310]">
                           {authorName.charAt(0)}
                         </div>
                       )}
@@ -593,7 +593,7 @@ export default function EditBlogPostPage() {
                 <div className="space-y-1.5">
                   {seoChecks.map((check, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs py-1">
-                      {check.status === "good" && <CheckCircle2 size={14} className="text-green-500 shrink-0 mt-0.5" />}
+                      {check.status === "good" && <CheckCircle2 size={14} className="text-amber-500 shrink-0 mt-0.5" />}
                       {check.status === "warn" && <AlertCircle size={14} className="text-yellow-500 shrink-0 mt-0.5" />}
                       {check.status === "bad" && <XCircle size={14} className="text-red-500 shrink-0 mt-0.5" />}
                       <div>

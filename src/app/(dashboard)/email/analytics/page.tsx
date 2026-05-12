@@ -93,11 +93,11 @@ const periods = [
 
 function rateColor(rate: number, type: "open" | "click") {
   if (type === "open") {
-    if (rate >= 20) return "#22c55e";
+    if (rate >= 20) return "#D4A843";
     if (rate >= 10) return "#f59e0b";
     return "#ef4444";
   }
-  if (rate >= 3) return "#22c55e";
+  if (rate >= 3) return "#D4A843";
   if (rate >= 1) return "#f59e0b";
   return "#ef4444";
 }
@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
                   onClick={() => setPeriod(p.value)}
                   className={`px-3 py-1.5 text-xs font-medium transition-colors ${
                     period === p.value
-                      ? "bg-[#22c55e] text-white"
+                      ? "bg-[#D4A843] text-white"
                       : "bg-[#1a1a1a] text-[#9ca3af] hover:text-white"
                   }`}
                 >
@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
 
         {loading && !data ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-[#22c55e]" />
+            <Loader2 size={24} className="animate-spin text-[#D4A843]" />
             <span className="ml-2 text-[#9ca3af]">Đang tải dữ liệu...</span>
           </div>
         ) : data ? (
@@ -331,7 +331,7 @@ export default function AnalyticsPage() {
                   label: "Tỷ lệ mở",
                   value: `${data.rates.avg_open_rate}%`,
                   icon: Eye,
-                  color: "#22c55e",
+                  color: "#D4A843",
                   sub: `${data.summary.total_opens.toLocaleString("vi-VN")} lượt mở`,
                 },
                 {
@@ -364,7 +364,7 @@ export default function AnalyticsPage() {
                     >
                       <s.icon size={18} style={{ color: s.color }} />
                     </div>
-                    <TrendingUp size={14} className="text-[#22c55e]" />
+                    <TrendingUp size={14} className="text-[#D4A843]" />
                   </div>
                   <div className="text-2xl font-bold text-white mb-0.5">
                     {s.value}
@@ -387,14 +387,14 @@ export default function AnalyticsPage() {
                     <span className="flex items-center gap-1">
                       <span
                         className="w-2.5 h-2.5 rounded-sm"
-                        style={{ background: "#22c55e" }}
+                        style={{ background: "#D4A843" }}
                       />
                       <span className="text-[#9ca3af]">Đã gửi</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <span
                         className="w-2.5 h-2.5 rounded-sm"
-                        style={{ background: "rgba(34,197,94,0.3)" }}
+                        style={{ background: "rgba(212,168,67,0.3)" }}
                       />
                       <span className="text-[#9ca3af]">Đã mở</span>
                     </span>
@@ -426,7 +426,7 @@ export default function AnalyticsPage() {
                               <div className="text-white font-medium">
                                 {formatDate(d.date)}
                               </div>
-                              <div className="text-[#22c55e]">
+                              <div className="text-[#D4A843]">
                                 Gửi: {d.sent}
                               </div>
                               <div className="text-[#9ca3af]">
@@ -439,7 +439,7 @@ export default function AnalyticsPage() {
                               className="w-full rounded-t-sm transition-all"
                               style={{
                                 height: `${Math.max(sentHeight * 1.6, d.sent > 0 ? 2 : 0)}px`,
-                                background: "#22c55e",
+                                background: "#D4A843",
                                 opacity: hoveredBar === i ? 1 : 0.8,
                               }}
                             />
@@ -447,7 +447,7 @@ export default function AnalyticsPage() {
                               className="w-full absolute bottom-0 rounded-t-sm"
                               style={{
                                 height: `${Math.max(openHeight * 1.6, d.opens > 0 ? 2 : 0)}px`,
-                                background: "rgba(34,197,94,0.3)",
+                                background: "rgba(212,168,67,0.3)",
                               }}
                             />
                           </div>
@@ -483,7 +483,7 @@ export default function AnalyticsPage() {
                     <span className="flex items-center gap-1">
                       <span
                         className="w-2.5 h-2.5 rounded-full"
-                        style={{ background: "#22c55e" }}
+                        style={{ background: "#D4A843" }}
                       />
                       <span className="text-[#9ca3af]">Open rate</span>
                     </span>
@@ -526,7 +526,7 @@ export default function AnalyticsPage() {
                     {openRatePoints.length > 0 && (
                       <polyline
                         fill="none"
-                        stroke="#22c55e"
+                        stroke="#D4A843"
                         strokeWidth="2"
                         points={openRatePoints}
                         strokeLinejoin="round"
@@ -549,7 +549,7 @@ export default function AnalyticsPage() {
                         cx={p.x}
                         cy={p.y}
                         r={hoveredPoint === i ? 5 : 3}
-                        fill="#22c55e"
+                        fill="#D4A843"
                         className="cursor-pointer"
                         onMouseEnter={() => setHoveredPoint(i)}
                         onMouseLeave={() => setHoveredPoint(null)}
@@ -583,7 +583,7 @@ export default function AnalyticsPage() {
                       <div className="text-white font-medium">
                         {formatDate(dailyStats[hoveredPoint].date)}
                       </div>
-                      <div className="text-[#22c55e]">
+                      <div className="text-[#D4A843]">
                         Open: {dailyOpenRates[hoveredPoint]?.toFixed(1)}%
                       </div>
                       <div className="text-[#3b82f6]">
@@ -645,7 +645,7 @@ export default function AnalyticsPage() {
                             <span className="inline-flex items-center gap-1">
                               {col.label}
                               {sortField === col.key && (
-                                <span className="text-[#22c55e]">
+                                <span className="text-[#D4A843]">
                                   {sortDir === "asc" ? "↑" : "↓"}
                                 </span>
                               )}
@@ -730,7 +730,7 @@ export default function AnalyticsPage() {
               {/* Subscriber Growth */}
               <div className="card-dark p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <UserPlus size={16} className="text-[#22c55e]" />
+                  <UserPlus size={16} className="text-[#D4A843]" />
                   <h3 className="font-semibold text-white text-sm">
                     Subscribers mới
                   </h3>
@@ -752,7 +752,7 @@ export default function AnalyticsPage() {
                           className="w-full rounded-t-sm transition-all hover:opacity-100 opacity-80"
                           style={{
                             height: `${Math.max(height * 1.12, d.new_subscribers > 0 ? 2 : 0)}px`,
-                            background: "#22c55e",
+                            background: "#D4A843",
                           }}
                         />
                       </div>

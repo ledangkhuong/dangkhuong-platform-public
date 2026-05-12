@@ -135,9 +135,9 @@ export default async function AdminCoursesPage() {
           <div className="stat-card flex items-center gap-4">
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "rgba(34,197,94,0.09)" }}
+              style={{ background: "rgba(212,168,67,0.09)" }}
             >
-              <BookOpen size={20} className="text-[#22c55e]" />
+              <BookOpen size={20} className="text-[#D4A843]" />
             </div>
             <div>
               <div className="text-2xl font-bold text-white leading-none mb-1">
@@ -274,7 +274,7 @@ export default async function AdminCoursesPage() {
                     </div>
                     <div className="text-center min-w-[80px]">
                       <div className="text-gray-400 mb-0.5">Giá</div>
-                      <div className="font-semibold text-[#22c55e]">
+                      <div className="font-semibold text-[#D4A843]">
                         {formatPrice(course.sale_price ?? course.price ?? 0)}
                       </div>
                     </div>
@@ -294,9 +294,9 @@ export default async function AdminCoursesPage() {
                       href={`/admin/courses/${course.id}/lessons`}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                       style={{
-                        background: "rgba(34,197,94,0.1)",
-                        color: "#22c55e",
-                        border: "1px solid rgba(34,197,94,0.2)",
+                        background: "rgba(212,168,67,0.1)",
+                        color: "#D4A843",
+                        border: "1px solid rgba(212,168,67,0.2)",
                       }}
                     >
                       <Layers size={12} />

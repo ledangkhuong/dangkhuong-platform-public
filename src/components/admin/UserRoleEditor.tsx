@@ -93,7 +93,7 @@ export default function UserRoleEditor({
           setError(null);
           setSaved(false);
         }}
-        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#22c55e]/50 transition-colors"
+        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#D4A843]/50 transition-colors"
       >
         {availableRoles.map((r) => (
           <option key={r.value} value={r.value}>
@@ -110,7 +110,7 @@ export default function UserRoleEditor({
           setError(null);
           setSaved(false);
         }}
-        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#22c55e]/50 transition-colors"
+        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#D4A843]/50 transition-colors"
       >
         {tierOptions.map((t) => (
           <option key={t.value} value={t.value}>
@@ -124,7 +124,7 @@ export default function UserRoleEditor({
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-1 bg-[#22c55e]/15 text-[#22c55e] border border-[#22c55e]/30 text-xs px-2 py-1 rounded-lg hover:bg-[#22c55e]/25 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1 bg-[#D4A843]/15 text-[#D4A843] border border-[#D4A843]/30 text-xs px-2 py-1 rounded-lg hover:bg-[#D4A843]/25 transition-colors disabled:opacity-50"
         >
           {saving ? (
             <Loader2 size={12} className="animate-spin" />
@@ -137,7 +137,7 @@ export default function UserRoleEditor({
 
       {/* Success indicator */}
       {saved && !hasChanges && (
-        <span className="text-[10px] text-[#22c55e] flex items-center gap-1">
+        <span className="text-[10px] text-[#D4A843] flex items-center gap-1">
           <Check size={10} /> Đã lưu
         </span>
       )}

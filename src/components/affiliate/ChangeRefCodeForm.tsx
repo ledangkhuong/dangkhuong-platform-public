@@ -12,7 +12,7 @@ export default function ChangeRefCodeForm({ currentCode }: { currentCode: string
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="mt-3 text-xs text-gray-500 hover:text-[#22c55e] transition-colors flex items-center gap-1"
+        className="mt-3 text-xs text-gray-500 hover:text-[#D4A843] transition-colors flex items-center gap-1"
       >
         <Edit3 size={12} />
         Đổi mã giới thiệu

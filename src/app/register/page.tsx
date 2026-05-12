@@ -20,14 +20,14 @@ export default async function RegisterPage({
         <div className="text-center mb-8">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
           >
             ĐK
           </div>
           <h1 className="text-2xl font-bold text-white">Tạo tài khoản miễn phí</h1>
           <p className="text-gray-400 mt-1 text-sm">
             Bắt đầu hành trình học tập cùng{" "}
-            <span className="text-[#22c55e]">Đăng Khương</span>
+            <span className="text-[#D4A843]">Đăng Khương</span>
           </p>
         </div>
 
@@ -98,11 +98,11 @@ export default async function RegisterPage({
 
             <p className="text-xs text-gray-500 pt-1">
               Bằng cách đăng ký, bạn đồng ý với{" "}
-              <a href="#" className="text-[#22c55e] hover:underline">
+              <a href="#" className="text-[#D4A843] hover:underline">
                 Điều khoản dịch vụ
               </a>{" "}
               và{" "}
-              <a href="#" className="text-[#22c55e] hover:underline">
+              <a href="#" className="text-[#D4A843] hover:underline">
                 Chính sách bảo mật
               </a>
             </p>
@@ -117,7 +117,7 @@ export default async function RegisterPage({
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Đã có tài khoản?{" "}
-            <Link href="/login" className="text-[#22c55e] font-medium hover:underline">
+            <Link href="/login" className="text-[#D4A843] font-medium hover:underline">
               Đăng nhập
             </Link>
           </p>

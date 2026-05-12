@@ -20,14 +20,14 @@ function baseTemplate(content: string) {
     .wrap { max-width:560px; margin:0 auto; padding:32px 16px; }
     .card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; padding:32px; }
     .logo { display:flex; align-items:center; gap:10px; margin-bottom:28px; }
-    .logo-icon { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#22c55e,#16a34a); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; }
+    .logo-icon { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#D4A843,#B8922E); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; }
     .logo-text { color:#fff; font-weight:700; font-size:16px; }
     h1 { color:#fff; font-size:22px; font-weight:700; margin:0 0 12px; line-height:1.3; }
     p { color:#9ca3af; font-size:14px; line-height:1.7; margin:0 0 16px; }
-    .btn { display:inline-block; padding:12px 28px; background:#22c55e; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; }
+    .btn { display:inline-block; padding:12px 28px; background:#D4A843; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; }
     .divider { height:1px; background:#2a2a2a; margin:24px 0; }
     .footer { color:#4b5563; font-size:12px; text-align:center; margin-top:24px; line-height:1.6; }
-    .highlight { color:#22c55e; font-weight:600; }
+    .highlight { color:#D4A843; font-weight:600; }
   </style>
 </head>
 <body>
@@ -94,7 +94,7 @@ export async function sendPurchaseConfirmation(
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Sản phẩm</div>
         <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:12px;">${productName}</div>
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Số tiền</div>
-        <div style="color:#22c55e;font-weight:700;font-size:18px;margin-bottom:12px;">${formattedAmount}</div>
+        <div style="color:#D4A843;font-weight:700;font-size:18px;margin-bottom:12px;">${formattedAmount}</div>
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Mã đơn hàng</div>
         <div style="color:#9ca3af;font-family:monospace;font-size:13px;">DK${orderCode}</div>
       </div>
@@ -121,7 +121,7 @@ export async function sendWeeklyNewsletter(
       ${body}
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">— Đăng Khương<br/>
-      <a href="https://dangkhuong.com" style="color:#22c55e;">dangkhuong.com</a></p>
+      <a href="https://dangkhuong.com" style="color:#D4A843;">dangkhuong.com</a></p>
     `),
   });
 }
@@ -139,7 +139,7 @@ export async function sendLessonCompleteNudge(
     html: baseTemplate(`
       <h1>Bạn đang làm rất tốt, ${name}! 💪</h1>
       <p>Bạn đã hoàn thành bài học trước. Tiếp tục ngay để giữ đà học tập!</p>
-      <div style="background:#222;border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:16px;margin:20px 0;">
+      <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin:20px 0;">
         <div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Bài tiếp theo</div>
         <div style="color:#fff;font-weight:600;">${nextLessonTitle}</div>
       </div>
@@ -171,7 +171,7 @@ export async function sendPasswordResetEmail(
       <p style="font-size:13px;color:#6b7280;">Link này sẽ hết hạn sau 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.</p>
       <div class="divider"></div>
       <p style="margin:0;font-size:12px;color:#4b5563;">Nếu nút không hoạt động, copy và dán link sau vào trình duyệt:<br/>
-      <a href="${resetLink}" style="color:#22c55e;word-break:break-all;font-size:11px;">${resetLink}</a></p>
+      <a href="${resetLink}" style="color:#D4A843;word-break:break-all;font-size:11px;">${resetLink}</a></p>
     `),
   });
 }
@@ -193,7 +193,7 @@ export async function sendEventReminder(
       <p>Sự kiện bạn đã đăng ký sắp bắt đầu:</p>
       <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
         <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:8px;">${eventTitle}</div>
-        <div style="color:#22c55e;font-size:13px;">🕐 ${eventTime}</div>
+        <div style="color:#D4A843;font-size:13px;">🕐 ${eventTime}</div>
       </div>
       <a href="${joinUrl}" class="btn">Tham gia ngay →</a>
       <div class="divider"></div>
@@ -216,9 +216,9 @@ export async function sendAffiliateCommissionEmail(
     html: baseTemplate(`
       <h1>Chúc mừng, ${name}!</h1>
       <p>Một khách hàng vừa mua <span class="highlight">${productName}</span> qua link giới thiệu của bạn.</p>
-      <div style="background:#222;border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+      <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
         <div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Hoa hồng nhận được</div>
-        <div style="color:#22c55e;font-weight:700;font-size:26px;">${formatted}</div>
+        <div style="color:#D4A843;font-weight:700;font-size:26px;">${formatted}</div>
       </div>
       <p>Khoản hoa hồng đang chờ duyệt. Bạn có thể theo dõi chi tiết tại trang Affiliate.</p>
       <a href="https://dangkhuong.com/dashboard/affiliate" class="btn">Xem Affiliate Dashboard →</a>
@@ -237,7 +237,7 @@ export async function sendVerificationEmail(to: string, name: string, confirmUrl
       <a href="${confirmUrl}" class="btn">Xác thực tài khoản</a>
     </p>
     <p style="font-size:12px; color:#6b7280;">Nếu nút không hoạt động, bạn có thể copy đường link sau vào trình duyệt:<br/>
-    <a href="${confirmUrl}" style="color:#22c55e; word-break:break-all; font-size:11px;">${confirmUrl}</a></p>
+    <a href="${confirmUrl}" style="color:#D4A843; word-break:break-all; font-size:11px;">${confirmUrl}</a></p>
     <div class="divider"></div>
     <p style="font-size:12px; color:#6b7280; margin:0;">Link xác thực có hiệu lực trong 24 giờ. Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
   `);

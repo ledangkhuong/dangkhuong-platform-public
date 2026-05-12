@@ -85,7 +85,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
-        style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", boxShadow: "0 4px 24px rgba(34,197,94,0.4)" }}>
+        style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)", boxShadow: "0 4px 24px rgba(212,168,67,0.4)" }}>
         <MessageCircle size={22} className="text-white" />
       </button>
 
@@ -103,10 +103,10 @@ export default function AIAssistant({ context }: AIAssistantProps) {
             </div>
             <div className="flex-1">
               <div className="font-semibold text-white text-sm">AI Assistant</div>
-              <div className="text-[11px] text-green-300">Đăng Khương Academy</div>
+              <div className="text-[11px] text-amber-300">Đăng Khương Academy</div>
             </div>
             <button onClick={() => setOpen(false)}
-              className="text-green-300 hover:text-white transition-colors p-1">
+              className="text-amber-300 hover:text-white transition-colors p-1">
               <X size={16} />
             </button>
           </div>
@@ -116,15 +116,15 @@ export default function AIAssistant({ context }: AIAssistantProps) {
             {messages.map((msg, i) => (
               <div key={i} className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
                 <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ background: msg.role === "user" ? "#22c55e" : "#333" }}>
+                  style={{ background: msg.role === "user" ? "#D4A843" : "#333" }}>
                   {msg.role === "user"
                     ? <User size={12} className="text-white" />
-                    : <Bot size={12} className="text-[#22c55e]" />}
+                    : <Bot size={12} className="text-[#D4A843]" />}
                 </div>
                 <div className="max-w-[80%]">
                   <div className="text-xs leading-relaxed whitespace-pre-wrap rounded-2xl px-3 py-2"
                     style={msg.role === "user"
-                      ? { background: "#22c55e", color: "white", borderBottomRightRadius: "4px" }
+                      ? { background: "#D4A843", color: "white", borderBottomRightRadius: "4px" }
                       : { background: "#252525", color: "#e5e7eb", borderBottomLeftRadius: "4px" }}>
                     {msg.content}
                   </div>
@@ -136,11 +136,11 @@ export default function AIAssistant({ context }: AIAssistantProps) {
               <div className="flex gap-2">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: "#333" }}>
-                  <Bot size={12} className="text-[#22c55e]" />
+                  <Bot size={12} className="text-[#D4A843]" />
                 </div>
                 <div className="px-3 py-2 rounded-2xl rounded-bl-sm"
                   style={{ background: "#252525" }}>
-                  <Loader2 size={14} className="text-[#22c55e] animate-spin" />
+                  <Loader2 size={14} className="text-[#D4A843] animate-spin" />
                 </div>
               </div>
             )}
@@ -181,7 +181,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
                 className="w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-40"
-                style={{ background: "#22c55e" }}>
+                style={{ background: "#D4A843" }}>
                 <Send size={14} className="text-white" />
               </button>
             </div>

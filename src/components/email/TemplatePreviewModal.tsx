@@ -42,7 +42,7 @@ export default function TemplatePreviewModal({ open, onClose, html, subject }: T
                 onClick={() => setDevice("desktop")}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors"
                 style={{
-                  background: device === "desktop" ? "#22c55e" : "#1f1f1f",
+                  background: device === "desktop" ? "#D4A843" : "#1f1f1f",
                   color: device === "desktop" ? "white" : "#9ca3af",
                 }}
               >
@@ -53,7 +53,7 @@ export default function TemplatePreviewModal({ open, onClose, html, subject }: T
                 onClick={() => setDevice("mobile")}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors"
                 style={{
-                  background: device === "mobile" ? "#22c55e" : "#1f1f1f",
+                  background: device === "mobile" ? "#D4A843" : "#1f1f1f",
                   color: device === "mobile" ? "white" : "#9ca3af",
                 }}
               >

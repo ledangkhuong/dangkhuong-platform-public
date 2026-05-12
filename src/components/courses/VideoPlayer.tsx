@@ -311,7 +311,7 @@ export default function VideoPlayer({
         {/* Loading state */}
         {!ready && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-[#111]">
-            <div className="w-8 h-8 border-2 border-[#22c55e] border-t-transparent rounded-full animate-spin mb-3" />
+            <div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin mb-3" />
             <p className="text-xs text-gray-500">
               {title ?? "Đang tải video..."}
             </p>
@@ -347,10 +347,10 @@ export default function VideoPlayer({
             onClick={seek}
           >
             <div
-              className="h-full bg-[#22c55e] rounded-full relative"
+              className="h-full bg-[#D4A843] rounded-full relative"
               style={{ width: `${progress}%` }}
             >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#22c55e] scale-0 group-hover:scale-100 transition-transform" />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#D4A843] scale-0 group-hover:scale-100 transition-transform" />
             </div>
           </div>
 
@@ -359,7 +359,7 @@ export default function VideoPlayer({
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
-              className="p-1 hover:text-[#22c55e] transition-colors"
+              className="p-1 hover:text-[#D4A843] transition-colors"
             >
               {playing ? <Pause size={18} /> : <Play size={18} />}
             </button>
@@ -368,7 +368,7 @@ export default function VideoPlayer({
             <div className="flex items-center gap-1 group/vol">
               <button
                 onClick={toggleMute}
-                className="p-1 hover:text-[#22c55e] transition-colors"
+                className="p-1 hover:text-[#D4A843] transition-colors"
               >
                 {muted || volume === 0 ? (
                   <VolumeX size={16} />
@@ -382,7 +382,7 @@ export default function VideoPlayer({
                 max={100}
                 value={muted ? 0 : volume}
                 onChange={(e) => changeVolume(Number(e.target.value))}
-                className="w-0 group-hover/vol:w-16 transition-all duration-200 h-1 accent-[#22c55e] cursor-pointer"
+                className="w-0 group-hover/vol:w-16 transition-all duration-200 h-1 accent-[#D4A843] cursor-pointer"
               />
             </div>
 
@@ -420,7 +420,7 @@ export default function VideoPlayer({
                       onClick={() => changeSpeed(s)}
                       className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
                         speed === s
-                          ? "text-[#22c55e] font-semibold bg-[#22c55e]/10"
+                          ? "text-[#D4A843] font-semibold bg-[#D4A843]/10"
                           : "text-gray-300 hover:text-white hover:bg-white/5"
                       }`}
                     >
@@ -434,7 +434,7 @@ export default function VideoPlayer({
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
-              className="p-1 hover:text-[#22c55e] transition-colors"
+              className="p-1 hover:text-[#D4A843] transition-colors"
             >
               {isFullscreen ? (
                 <Minimize size={16} />

@@ -150,7 +150,7 @@ export default function LessonQA({
               </div>
             )}
             {success && (
-              <div className="text-xs text-[#22c55e] bg-[#22c55e]/10 border border-[#22c55e]/20 rounded-lg px-3 py-2">
+              <div className="text-xs text-[#D4A843] bg-[#D4A843]/10 border border-[#D4A843]/20 rounded-lg px-3 py-2">
                 Câu hỏi đã được gửi thành công!
               </div>
             )}
@@ -233,16 +233,16 @@ export default function LessonQA({
                     <div
                       className="ml-8 rounded-lg p-2.5"
                       style={{
-                        background: "rgba(34,197,94,0.06)",
-                        border: "1px solid rgba(34,197,94,0.15)",
+                        background: "rgba(212,168,67,0.06)",
+                        border: "1px solid rgba(212,168,67,0.15)",
                       }}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2
                           size={12}
-                          className="text-[#22c55e]"
+                          className="text-[#D4A843]"
                         />
-                        <span className="text-[10px] font-medium text-[#22c55e]">
+                        <span className="text-[10px] font-medium text-[#D4A843]">
                           {q.replier?.full_name ?? "Giảng viên"}
                         </span>
                         {q.replied_at && (

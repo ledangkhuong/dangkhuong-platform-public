@@ -18,7 +18,7 @@ export default async function ForgotPasswordPage({
         <div className="text-center mb-8">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
           >
             ĐK
           </div>
@@ -31,8 +31,8 @@ export default async function ForgotPasswordPage({
         {/* Success */}
         {success && (
           <div
-            className="mb-4 p-3 rounded-lg text-sm text-green-400 border border-green-400/20"
-            style={{ background: "rgba(34,197,94,0.08)" }}
+            className="mb-4 p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20"
+            style={{ background: "rgba(212,168,67,0.08)" }}
           >
             {success}
           </div>
@@ -70,7 +70,7 @@ export default async function ForgotPasswordPage({
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Nhớ mật khẩu rồi?{" "}
-            <Link href="/login" className="text-[#22c55e] font-medium hover:underline">
+            <Link href="/login" className="text-[#D4A843] font-medium hover:underline">
               Đăng nhập
             </Link>
           </p>

@@ -159,7 +159,7 @@ export default function AdminQuestionsPage() {
             <div className="text-xs text-gray-500 mt-1">Chờ phản hồi</div>
           </div>
           <div className="card-dark p-4 text-center">
-            <div className="text-2xl font-bold text-[#22c55e]">
+            <div className="text-2xl font-bold text-[#D4A843]">
               {questions.filter((q) => q.status === "answered").length}
             </div>
             <div className="text-xs text-gray-500 mt-1">Đã trả lời</div>
@@ -175,7 +175,7 @@ export default function AdminQuestionsPage() {
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 filter === f
-                  ? "bg-[#22c55e]/15 text-[#22c55e] border border-[#22c55e]/30"
+                  ? "bg-[#D4A843]/15 text-[#D4A843] border border-[#D4A843]/30"
                   : "bg-[#1a1a1a] text-gray-400 border border-[#2a2a2a] hover:text-white"
               }`}
             >
@@ -251,7 +251,7 @@ export default function AdminQuestionsPage() {
                       q.status === "pending"
                         ? "bg-[#f59e0b]/15 text-[#f59e0b]"
                         : q.status === "answered"
-                        ? "bg-[#22c55e]/15 text-[#22c55e]"
+                        ? "bg-[#D4A843]/15 text-[#D4A843]"
                         : "bg-gray-500/15 text-gray-400"
                     }`}
                   >
@@ -273,16 +273,16 @@ export default function AdminQuestionsPage() {
                   <div
                     className="ml-11 rounded-lg p-3"
                     style={{
-                      background: "rgba(34,197,94,0.06)",
-                      border: "1px solid rgba(34,197,94,0.15)",
+                      background: "rgba(212,168,67,0.06)",
+                      border: "1px solid rgba(212,168,67,0.15)",
                     }}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
                       <CheckCircle2
                         size={12}
-                        className="text-[#22c55e]"
+                        className="text-[#D4A843]"
                       />
-                      <span className="text-[10px] font-medium text-[#22c55e]">
+                      <span className="text-[10px] font-medium text-[#D4A843]">
                         {q.replier?.full_name ?? "Staff"}
                       </span>
                       {q.replied_at && (

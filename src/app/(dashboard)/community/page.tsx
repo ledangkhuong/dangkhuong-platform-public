@@ -191,7 +191,7 @@ export default function CommunityPage() {
                 <img src={myProfile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
               ) : (
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #22c55e, #059669)" }}>
+                  style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}>
                   {myProfile ? getAvatarInitials(myProfile.full_name) : "??"}
                 </div>
               )}
@@ -199,7 +199,7 @@ export default function CommunityPage() {
                 value={postText}
                 onChange={e => setPostText(e.target.value)}
                 placeholder="Chia sẻ học hỏi, thắc mắc hay thành tích của bạn..."
-                className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-xl p-3 text-sm text-white placeholder:text-gray-600 resize-none focus:outline-none focus:border-[#22c55e] transition-colors"
+                className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-xl p-3 text-sm text-white placeholder:text-gray-600 resize-none focus:outline-none focus:border-[#D4A843] transition-colors"
                 rows={3}
               />
             </div>
@@ -247,9 +247,9 @@ export default function CommunityPage() {
             const isLiked = likedPosts.has(post.id);
 
             return (
-              <div key={post.id} className={`card-dark p-5 ${post.pinned ? "border-l-2 border-[#22c55e]" : ""}`}>
+              <div key={post.id} className={`card-dark p-5 ${post.pinned ? "border-l-2 border-[#D4A843]" : ""}`}>
                 {post.pinned && (
-                  <div className="flex items-center gap-1.5 mb-3 text-xs text-[#22c55e]">
+                  <div className="flex items-center gap-1.5 mb-3 text-xs text-[#D4A843]">
                     <Star size={12} /> <span>Bài ghim</span>
                   </div>
                 )}
@@ -259,7 +259,7 @@ export default function CommunityPage() {
                     <img src={post.profiles.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
                   ) : (
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{ background: isVip ? "linear-gradient(135deg, #22c55e, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
+                      style={{ background: isVip ? "linear-gradient(135deg, #D4A843, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
                       {initials}
                     </div>
                   )}
@@ -279,8 +279,8 @@ export default function CommunityPage() {
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex gap-1.5 mb-3 flex-wrap">
                     {post.tags.map(tag => (
-                      <span key={tag} className="text-xs px-2 py-0.5 rounded-full text-[#22c55e] cursor-pointer"
-                        style={{ background: "rgba(34,197,94,0.1)" }}>
+                      <span key={tag} className="text-xs px-2 py-0.5 rounded-full text-[#D4A843] cursor-pointer"
+                        style={{ background: "rgba(212,168,67,0.1)" }}>
                         #{tag}
                       </span>
                     ))}
@@ -295,7 +295,7 @@ export default function CommunityPage() {
                     <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
                     <span>{post.likes_count}</span>
                   </button>
-                  <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#22c55e] transition-colors">
+                  <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#D4A843] transition-colors">
                     <MessageCircle size={15} /> <span>{post.comments_count}</span>
                   </button>
                   <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-400 transition-colors">
@@ -317,7 +317,7 @@ export default function CommunityPage() {
             </div>
             {myProfile ? (
               <>
-                <div className="text-2xl font-bold text-[#22c55e] mb-1">{myProfile.xp.toLocaleString()} XP</div>
+                <div className="text-2xl font-bold text-[#D4A843] mb-1">{myProfile.xp.toLocaleString()} XP</div>
                 <div className="text-xs text-gray-500 mb-2">Level {myProfile.level} — {levelTitle(myProfile.level)}</div>
                 <div className="progress-bar">
                   <div className="progress-fill" style={{ width: `${Math.min(100, (myProfile.xp % xpForLevel(myProfile.level)) / xpForLevel(myProfile.level) * 100)}%` }} />
@@ -356,18 +356,18 @@ export default function CommunityPage() {
                   const isMe = myProfile?.id === user.id;
                   return (
                     <div key={user.id}
-                      className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#22c55e]/10" : "hover:bg-white/3"} transition-colors`}>
+                      className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#D4A843]/10" : "hover:bg-white/3"} transition-colors`}>
                       <span className="text-sm">{rankBadge(rank)}</span>
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
                       ) : (
                         <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                          style={{ background: isMe ? "linear-gradient(135deg,#22c55e,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
+                          style={{ background: isMe ? "linear-gradient(135deg,#D4A843,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
                           {getAvatarInitials(user.full_name)}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className={`text-xs font-medium truncate ${isMe ? "text-[#22c55e]" : "text-white"}`}>
+                        <div className={`text-xs font-medium truncate ${isMe ? "text-[#D4A843]" : "text-white"}`}>
                           {isMe ? "Bạn" : user.full_name}
                         </div>
                       </div>
@@ -380,16 +380,16 @@ export default function CommunityPage() {
           </div>
 
           {/* Weekly Challenge */}
-          <div className="card-dark p-4 border border-[#22c55e]/20">
+          <div className="card-dark p-4 border border-[#D4A843]/20">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={15} className="text-[#22c55e]" />
+              <TrendingUp size={15} className="text-[#D4A843]" />
               <span className="text-sm font-semibold text-white">Thử thách tuần</span>
             </div>
             <p className="text-xs text-gray-400 mb-3">Học 5 bài trong 7 ngày để nhận <strong className="text-[#f59e0b]">badge đặc biệt</strong> và 500 XP</p>
             <div className="flex gap-1 mb-2">
               {[1, 2, 3, 4, 5].map(d => (
                 <div key={d} className="flex-1 h-6 rounded flex items-center justify-center text-xs"
-                  style={{ background: d <= 2 ? "#22c55e" : "#2a2a2a", color: d <= 2 ? "white" : "#444" }}>
+                  style={{ background: d <= 2 ? "#D4A843" : "#2a2a2a", color: d <= 2 ? "white" : "#444" }}>
                   {d <= 2 ? "✓" : d}
                 </div>
               ))}

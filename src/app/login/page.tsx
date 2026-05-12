@@ -17,9 +17,9 @@ export default async function LoginPage({
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}>ĐK</div>
+            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}>ĐK</div>
           <h1 className="text-2xl font-bold text-white">Đăng nhập</h1>
-          <p className="text-gray-400 mt-1 text-sm">Chào mừng trở lại — <span className="text-[#22c55e]">dangkhuong.com</span></p>
+          <p className="text-gray-400 mt-1 text-sm">Chào mừng trở lại — <span className="text-[#D4A843]">dangkhuong.com</span></p>
         </div>
 
         {/* Error */}
@@ -43,10 +43,10 @@ export default async function LoginPage({
             </div>
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#22c55e" }} />
+                <input type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#D4A843" }} />
                 <span className="text-sm text-gray-400">Ghi nhớ đăng nhập</span>
               </label>
-              <Link href="/forgot-password" className="text-sm text-[#22c55e] hover:underline">Quên mật khẩu?</Link>
+              <Link href="/forgot-password" className="text-sm text-[#D4A843] hover:underline">Quên mật khẩu?</Link>
             </div>
             <button type="submit" className="btn-green w-full justify-center py-2.5 mt-2">
               Đăng nhập
@@ -60,7 +60,7 @@ export default async function LoginPage({
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Chưa có tài khoản?{" "}
-            <Link href="/register" className="text-[#22c55e] font-medium hover:underline">Đăng ký miễn phí</Link>
+            <Link href="/register" className="text-[#D4A843] font-medium hover:underline">Đăng ký miễn phí</Link>
           </p>
         </div>
       </div>

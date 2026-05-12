@@ -9,7 +9,7 @@
 }
 
 .novel-editor-wrapper:focus-within {
-  border-color: #22c55e40;
+  border-color: #D4A84340;
 }
 
 /* ─── Editor content area ─────────────────────────────────────────────────── */
@@ -120,7 +120,7 @@
 .novel-prose ul[data-type="taskList"] li label input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
-  accent-color: #22c55e;
+  accent-color: #D4A843;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -132,12 +132,12 @@
 /* ─── Blockquote ──────────────────────────────────────────────────────────── */
 
 .novel-prose blockquote {
-  border-left: 3px solid #22c55e;
+  border-left: 3px solid #D4A843;
   padding-left: 1rem;
   margin: 1rem 0;
   color: #9ca3af;
   font-style: italic;
-  background: rgba(34, 197, 94, 0.04);
+  background: rgba(212, 168, 67, 0.04);
   border-radius: 0 8px 8px 0;
   padding: 0.75rem 1rem;
 }
@@ -146,7 +146,7 @@
 
 .novel-prose code {
   background: #1f1f1f;
-  color: #22c55e;
+  color: #D4A843;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   font-size: 0.85em;
@@ -175,14 +175,14 @@
 /* ─── Links ───────────────────────────────────────────────────────────────── */
 
 .novel-prose a {
-  color: #22c55e;
+  color: #D4A843;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.2s;
 }
 
 .novel-prose a:hover {
-  color: #16a34a;
+  color: #B8922E;
 }
 
 /* ─── Images ──────────────────────────────────────────────────────────────── */
@@ -195,7 +195,7 @@
 }
 
 .novel-prose .ProseMirror-selectednode {
-  outline: 2px solid #22c55e;
+  outline: 2px solid #D4A843;
   outline-offset: 2px;
   border-radius: 10px;
 }
@@ -298,8 +298,8 @@
 
 .novel-bubble-btn.active,
 .novel-bubble-btn[data-active="true"] {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: rgba(212, 168, 67, 0.15);
+  color: #D4A843;
 }
 
 /* ─── Command menu (slash commands) ───────────────────────────────────────── */
@@ -392,8 +392,8 @@
 }
 
 .novel-toolbar-btn.active {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: rgba(212, 168, 67, 0.15);
+  color: #D4A843;
 }
 
 .novel-toolbar-divider {
@@ -416,7 +416,7 @@
 }
 
 .novel-toolbar-select:hover {
-  border-color: #22c55e40;
+  border-color: #D4A84340;
   color: #fff;
 }
 
@@ -428,5 +428,5 @@
 /* ─── Selection ───────────────────────────────────────────────────────────── */
 
 .novel-prose ::selection {
-  background: rgba(34, 197, 94, 0.25);
+  background: rgba(212, 168, 67, 0.25);
 }

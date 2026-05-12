@@ -115,14 +115,14 @@ function ResultRow({ item, selected, onSelect }: ResultRowProps) {
       className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
       style={{
         background: selected ? "#1f1f1f" : "transparent",
-        borderLeft: selected ? "2px solid #22c55e" : "2px solid transparent",
+        borderLeft: selected ? "2px solid #D4A843" : "2px solid transparent",
       }}
     >
       <span
         className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
         style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
       >
-        <Icon size={15} className="text-[#22c55e]" />
+        <Icon size={15} className="text-[#D4A843]" />
       </span>
       <span className="flex-1 min-w-0">
         <span className="block text-sm font-medium text-white truncate">{item.title}</span>
@@ -336,7 +336,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                     style={{
                       background: selectedIndex === i ? "#1f1f1f" : "transparent",
                       borderLeft:
-                        selectedIndex === i ? "2px solid #22c55e" : "2px solid transparent",
+                        selectedIndex === i ? "2px solid #D4A843" : "2px solid transparent",
                     }}
                   >
                     <Clock size={14} className="flex-shrink-0 text-gray-600" />

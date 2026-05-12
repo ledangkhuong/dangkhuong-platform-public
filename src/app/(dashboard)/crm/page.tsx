@@ -21,7 +21,7 @@ function timeAgo(dateStr: string): string {
 }
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  paid:      { label: "Đã TT",   color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+  paid:      { label: "Đã TT",   color: "#D4A843", bg: "rgba(212,168,67,0.1)" },
   pending:   { label: "Chờ XL",  color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
   cancelled: { label: "Đã huỷ",  color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
 };
@@ -107,7 +107,7 @@ export default async function CRMPage() {
       label: "Khách hàng",
       value: String(overview.total_customers),
       icon: Users,
-      color: "#22c55e",
+      color: "#D4A843",
     },
     {
       label: "TB/đơn hàng",
@@ -214,7 +214,7 @@ export default async function CRMPage() {
                         className="w-full rounded-t transition-all hover:opacity-80"
                         style={{
                           height: `${pct}%`,
-                          background: "#22c55e",
+                          background: "#D4A843",
                           minHeight: 4,
                         }}
                         title={`${dayLabel}: ${formatVND(d.revenue)} (${d.orders} đơn)`}
@@ -243,7 +243,7 @@ export default async function CRMPage() {
                 className="w-24 h-24 rounded-full flex items-center justify-center font-bold text-white"
                 style={{
                   background: totalOrdersAll > 0
-                    ? `conic-gradient(#22c55e 0% ${paidPct}%, #f59e0b ${paidPct}% ${paidPct + pendingPct}%, #6b7280 ${paidPct + pendingPct}% 100%)`
+                    ? `conic-gradient(#D4A843 0% ${paidPct}%, #f59e0b ${paidPct}% ${paidPct + pendingPct}%, #6b7280 ${paidPct + pendingPct}% 100%)`
                     : "#2a2a2a",
                 }}
               >
@@ -256,7 +256,7 @@ export default async function CRMPage() {
               </div>
             </div>
             {[
-              { label: "Đã thanh toán", count: paidCount, color: "#22c55e" },
+              { label: "Đã thanh toán", count: paidCount, color: "#D4A843" },
               { label: "Chờ xử lý", count: overview.pending_orders, color: "#f59e0b" },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between py-1.5">
@@ -323,7 +323,7 @@ export default async function CRMPage() {
         {/* Top Products */}
         <div className="card-dark p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Package size={16} className="text-[#22c55e]" />
+            <Package size={16} className="text-[#D4A843]" />
             <h3 className="font-semibold text-white">Sản phẩm bán chạy</h3>
           </div>
           {topProducts.length > 0 ? (
@@ -359,7 +359,7 @@ export default async function CRMPage() {
                         className="h-full rounded-full transition-all"
                         style={{
                           width: `${barPct}%`,
-                          background: i === 0 ? "#f59e0b" : "#22c55e",
+                          background: i === 0 ? "#f59e0b" : "#D4A843",
                         }}
                       />
                     </div>
