@@ -3,5 +3,16 @@
   "buildCommand": "next build",
   "devCommand": "next dev",
   "installCommand": "npm install",
-  "regions": ["sin1"]
+  "regions": ["sin1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "all"
+        }
+      ]
+    }
+  ]
 }

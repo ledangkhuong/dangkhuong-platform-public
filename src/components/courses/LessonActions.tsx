@@ -55,8 +55,8 @@ export default function LessonActions({
         disabled={toggling}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
           completed
-            ? "bg-[#D4A843]/15 text-[#D4A843] border border-[#D4A843]/30 hover:bg-[#D4A843]/25"
-            : "bg-[#1a1a1a] text-gray-300 border border-[#2a2a2a] hover:border-[#D4A843]/50 hover:text-white"
+            ? "bg-[#22c55e]/15 text-[#22c55e] border border-[#22c55e]/30 hover:bg-[#22c55e]/25"
+            : "bg-[#1a1a1a] text-gray-300 border border-[#2a2a2a] hover:border-[#22c55e]/50 hover:text-white"
         }`}
       >
         {toggling ? (
@@ -70,7 +70,7 @@ export default function LessonActions({
       </button>
 
       {message && (
-        <span className="text-xs text-[#D4A843] animate-pulse">
+        <span className="text-xs text-[#22c55e] animate-pulse">
           {message}
         </span>
       )}

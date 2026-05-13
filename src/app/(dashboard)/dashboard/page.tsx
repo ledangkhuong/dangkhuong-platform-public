@@ -2,20 +2,14 @@ import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
-  BookOpen, FolderOpen,
+  BookOpen, FolderOpen, FileText,
   Users, ArrowRight, TrendingUp, Star, Zap
 } from "lucide-react";
 
 const quickCards = [
   { href: "/courses", icon: BookOpen, color: "#D4A843", bg: "rgba(212,168,67,0.1)", label: "Khoá học của tôi", desc: "Xem và học các khoá học" },
-  { href: "/blog", icon: FolderOpen, color: "#3b82f6", bg: "rgba(59,130,246,0.1)", label: "Tài nguyên", desc: "Templates, tài liệu hỗ trợ" },
+  { href: "/resources", icon: FolderOpen, color: "#3b82f6", bg: "rgba(59,130,246,0.1)", label: "Tài nguyên", desc: "Templates, tài liệu hỗ trợ" },
   { href: "/community", icon: Users, color: "#a855f7", bg: "rgba(168,85,247,0.1)", label: "Cộng đồng", desc: "Kết nối & học hỏi cùng nhau" },
-];
-
-const platformStats = [
-  { label: "Học viên", value: "1,247", change: "+12%", icon: Users, color: "#D4A843" },
-  { label: "Khoá học hoàn thành", value: "89%", change: "+5%", icon: TrendingUp, color: "#3b82f6" },
-  { label: "Đánh giá TB", value: "4.9 ⭐", change: "+0.1", icon: Star, color: "#f59e0b" },
 ];
 
 function tierLabel(tier: string) {
@@ -41,10 +35,30 @@ export default async function DashboardPage() {
     ? await supabase.from("profiles").select("full_name, xp, level, tier, streak").eq("id", user.id).single()
     : { data: null };
 
-  // Fetch enrollment count
-  const { count: enrollCount } = user
-    ? await supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id)
-    : { count: 0 };
+  // Fetch enrollment count + platform stats in parallel
+  const [
+    { count: enrollCount },
+    { count: totalStudents },
+    { count: completedCourses },
+    { count: postCount },
+  ] = await Promise.all([
+    user
+      ? supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id)
+      : Promise.resolve({ count: 0 }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    user
+      ? supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true)
+      : Promise.resolve({ count: 0 }),
+    user
+      ? supabase.from("posts").select("id", { count: "exact", head: true }).eq("author_id", user.id)
+      : Promise.resolve({ count: 0 }),
+  ]);
+
+  // Calculate completion rate
+  const totalEnrolled = enrollCount ?? 0;
+  const completionRate = totalEnrolled > 0
+    ? Math.round(((completedCourses ?? 0) / totalEnrolled) * 100)
+    : 0;
 
   // Fetch recent community posts
   const { data: recentPosts } = await supabase
@@ -64,6 +78,12 @@ export default async function DashboardPage() {
   const xpForCurrentLevel = (level - 1) * 200;
   const xpForNextLevel = level * 200;
   const xpProgress = Math.min(100, Math.round(((xp - xpForCurrentLevel) / 200) * 100));
+
+  const platformStats = [
+    { label: "Học viên", value: (totalStudents ?? 0).toLocaleString("vi-VN"), icon: Users, color: "#D4A843" },
+    { label: "Khoá học hoàn thành", value: `${completionRate}%`, icon: TrendingUp, color: "#3b82f6" },
+    { label: "Bài viết", value: (postCount ?? 0).toLocaleString("vi-VN"), icon: FileText, color: "#f59e0b" },
+  ];
 
   return (
     <div>
@@ -138,9 +158,6 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="text-xl font-bold text-white">{s.value}</div>
-              <div className="text-xs mt-1" style={{ color: "#D4A843" }}>
-                {s.change} so với tháng trước
-              </div>
             </div>
           ))}
         </div>

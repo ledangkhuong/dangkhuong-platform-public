@@ -475,7 +475,7 @@ function PayoutStatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; color: string; label: string }> = {
     pending: { bg: "rgba(234,179,8,0.1)", color: "#eab308", label: "Đang chờ" },
     processing: { bg: "rgba(59,130,246,0.1)", color: "#3b82f6", label: "Đang xử lý" },
-    completed: { bg: "rgba(212,168,67,0.1)", color: "#D4A843", label: "Hoàn tất" },
+    completed: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Hoàn tất" },
     failed: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Thất bại" },
   };
   const c = config[status] || config.pending;

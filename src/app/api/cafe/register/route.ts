@@ -10,7 +10,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
  * và giá 99000 trong trang admin trước khi landing page hoạt động.
  */
 
-const CAFE_PRODUCT_SLUG = "100-mo-hinh-kinh-doanh-san-pham-so-doanh-thu-1-trieu-do";
+const CAFE_PRODUCT_SLUG = "tai-lieu-100-mo-hinh-kinh-doanh-san-pham-so-doanh-thu-1-trieu-do";
 
 function generateOrderCode() {
   return (
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
       bank_code: hasSepay ? bankCode : null,
       transfer_content: `DK${orderCode}`,
       qr_url: hasSepay
-        ? `https://qr.sepay.vn/img?bank=${bankCode}&acc=${bankAccount}&template=compact&amount=${amount}&des=DK${orderCode}`
+        ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${amount}&des=DK${orderCode}`
         : null,
     };
 

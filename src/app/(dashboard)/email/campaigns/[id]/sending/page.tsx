@@ -171,7 +171,7 @@ export default function SendingProgressPage() {
               <circle
                 cx="60" cy="60" r="52"
                 fill="none"
-                stroke={completed ? "#D4A843" : state?.status === "paused" ? "#f97316" : "#D4A843"}
+                stroke={completed ? "#22c55e" : state?.status === "paused" ? "#f97316" : "#D4A843"}
                 strokeWidth="8"
                 strokeLinecap="round"
                 strokeDasharray={`${2 * Math.PI * 52}`}
@@ -182,7 +182,7 @@ export default function SendingProgressPage() {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               {completed ? (
-                <CheckCircle size={32} className="text-[#D4A843] mb-1" />
+                <CheckCircle size={32} className="text-[#22c55e] mb-1" />
               ) : state?.status === "paused" ? (
                 <Pause size={32} className="text-[#f97316] mb-1" />
               ) : (
@@ -199,7 +199,7 @@ export default function SendingProgressPage() {
           <div>
             {completed ? (
               <div className="space-y-2">
-                <h2 className="text-xl font-bold text-[#D4A843]">
+                <h2 className="text-xl font-bold text-[#22c55e]">
                   Da gui thanh cong {sent.toLocaleString("vi-VN")} emails!
                 </h2>
                 {/* Confetti-like dots animation */}
@@ -209,7 +209,7 @@ export default function SendingProgressPage() {
                       key={i}
                       className="w-2 h-2 rounded-full animate-bounce"
                       style={{
-                        background: ["#D4A843", "#B8922E", "#4ade80", "#86efac"][i % 4],
+                        background: ["#22c55e", "#16a34a", "#4ade80", "#86efac"][i % 4],
                         animationDelay: `${i * 0.1}s`,
                         animationDuration: "1.2s",
                       }}
@@ -236,10 +236,10 @@ export default function SendingProgressPage() {
                 style={{
                   width: `${progress}%`,
                   background: completed
-                    ? "#D4A843"
+                    ? "#22c55e"
                     : state?.status === "paused"
                       ? "#f97316"
-                      : "linear-gradient(90deg, #D4A843, #4ade80)",
+                      : "linear-gradient(90deg, #22c55e, #4ade80)",
                 }}
               />
             </div>

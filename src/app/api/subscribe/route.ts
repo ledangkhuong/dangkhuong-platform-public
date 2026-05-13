@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email } = body;
+    const { email, name, phone, source, tags: customTags } = body;
 
     // Validate email
     if (!email || typeof email !== "string" || !email.trim()) {
@@ -65,13 +65,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert new subscriber
+    const subscriberTags = customTags && Array.isArray(customTags) ? customTags : ["newsletter"];
     const { data: subscriber, error: insertError } = await supabase
       .from("subscribers")
       .insert({
         email: normalizedEmail,
+        full_name: name || null,
+        phone: phone || null,
         status: "active",
-        source: "blog_newsletter",
-        tags: ["newsletter"],
+        source: source || "blog_newsletter",
+        tags: subscriberTags,
         subscribed_at: new Date().toISOString(),
       })
       .select("id")

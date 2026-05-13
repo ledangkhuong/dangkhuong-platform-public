@@ -81,7 +81,7 @@ function tierBadge(tier: string): { label: string; color: string } {
     case "member":
       return { label: "Member", color: "#a855f7" };
     default:
-      return { label: "Miễn phí", color: "#D4A843" };
+      return { label: "Miễn phí", color: "#22c55e" };
   }
 }
 

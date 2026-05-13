@@ -94,9 +94,9 @@ body {
 }
 
 .btn-green {
-  background: #D4A843;
-  color: white;
-  font-weight: 600;
+  background: #FFD814;
+  color: #131921;
+  font-weight: 700;
   padding: 8px 20px;
   border-radius: 8px;
   transition: background 0.15s;
@@ -108,13 +108,31 @@ body {
   font-size: 14px;
   text-decoration: none;
 }
-.btn-green:hover { background: #B8922E; }
+.btn-green:hover { background: #F0C400; }
 .btn-green:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.btn-gold {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+.btn-success {
+  background: #22c55e;
   color: white;
-  font-weight: 600;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  text-decoration: none;
+}
+.btn-success:hover { background: #16a34a; }
+.btn-success:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-gold {
+  background: linear-gradient(135deg, #FFD814, #FFA41C);
+  color: #131921;
+  font-weight: 700;
   padding: 8px 20px;
   border-radius: 8px;
   transition: all 0.15s;
@@ -126,7 +144,7 @@ body {
   font-size: 14px;
   text-decoration: none;
 }
-.btn-gold:hover { background: linear-gradient(135deg, #d97706, #b45309); }
+.btn-gold:hover { background: linear-gradient(135deg, #FFA41C, #E8960A); }
 
 .input-dark {
   background: #1f1f1f;
@@ -157,7 +175,7 @@ body {
 }
 .progress-fill {
   height: 100%;
-  background: #D4A843;
+  background: #22c55e;
   border-radius: 99px;
   transition: width 0.3s ease;
 }
@@ -165,6 +183,14 @@ body {
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Blinking arrows for sticky CTA */
+@keyframes blink-arrow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+.blink-arrow { animation: blink-arrow 0.8s ease-in-out infinite; }
+.blink-arrow-delay { animation: blink-arrow 0.8s ease-in-out 0.4s infinite; }
 
 /* ─── Blog content styles (for rendering rich HTML from Novel editor) ───── */
 .blog-content h1 { font-size: 1.75rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.75rem; line-height: 1.3; }

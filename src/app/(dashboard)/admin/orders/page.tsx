@@ -1,6 +1,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import {
   ShoppingCart,
   TrendingUp,
@@ -55,9 +56,9 @@ const STATUS_CONFIG: Record<
 > = {
   paid: {
     label: "Đã thanh toán",
-    bg: "rgba(212,168,67,0.1)",
-    color: "#D4A843",
-    border: "rgba(212,168,67,0.2)",
+    bg: "rgba(34,197,94,0.1)",
+    color: "#22c55e",
+    border: "rgba(34,197,94,0.2)",
   },
   pending: {
     label: "Chờ thanh toán",
@@ -256,9 +257,10 @@ export default async function AdminOrdersPage() {
                       "Trạng thái",
                       "Thanh toán",
                       "Ngày tạo",
-                    ].map((col) => (
+                      "",
+                    ].map((col, i) => (
                       <th
-                        key={col}
+                        key={col || `col-${i}`}
                         className="text-left text-xs font-semibold text-gray-500 px-5 py-3 whitespace-nowrap"
                       >
                         {col}
@@ -344,6 +346,17 @@ export default async function AdminOrdersPage() {
                         <span className="text-xs text-gray-500">
                           {formatDateTime(order.created_at)}
                         </span>
+                      </td>
+
+                      {/* Xoá */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        {(order.status === "pending" ||
+                          order.status === "cancelled") && (
+                          <DeleteOrderButton
+                            orderId={order.id}
+                            orderCode={order.order_code}
+                          />
+                        )}
                       </td>
                     </tr>
                   ))}

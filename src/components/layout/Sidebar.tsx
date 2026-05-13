@@ -11,11 +11,13 @@ import {
   FileText, Mail, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
+  FolderOpen,
 } from "lucide-react";
 
 const mainNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
   { href: "/courses", icon: BookOpen, label: "Khoá học" },
+  { href: "/resources", icon: FolderOpen, label: "Tài nguyên" },
   { href: "/community", icon: Users, label: "Cộng đồng" },
   { href: "/blog", icon: FileText, label: "Blog" },
   { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },

@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       bank_code: hasSepay ? bankCode : null,
       transfer_content: `DK${orderCode}`,
       qr_url: hasSepay
-        ? `https://qr.sepay.vn/img?bank=${bankCode}&acc=${bankAccount}&template=compact&amount=${order.amount}&des=DK${orderCode}`
+        ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${order.amount}&des=DK${orderCode}`
         : null,
       manual: !hasSepay,
     };

@@ -347,10 +347,10 @@ export default function VideoPlayer({
             onClick={seek}
           >
             <div
-              className="h-full bg-[#D4A843] rounded-full relative"
+              className="h-full bg-[#22c55e] rounded-full relative"
               style={{ width: `${progress}%` }}
             >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#D4A843] scale-0 group-hover:scale-100 transition-transform" />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#22c55e] scale-0 group-hover:scale-100 transition-transform" />
             </div>
           </div>
 

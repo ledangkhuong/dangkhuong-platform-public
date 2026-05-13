@@ -321,8 +321,8 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
         {step === "success" && (
           <div className="p-8 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{ background: "rgba(212,168,67,0.15)", border: "2px solid rgba(212,168,67,0.4)" }}>
-              <CheckCircle size={32} className="text-[#D4A843]" />
+              style={{ background: "rgba(34,197,94,0.15)", border: "2px solid rgba(34,197,94,0.4)" }}>
+              <CheckCircle size={32} className="text-[#22c55e]" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Thanh toán thành công!</h3>
             <p className="text-gray-400 text-sm mb-2">
@@ -332,7 +332,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               Email xác nhận đã được gửi tới <span className="font-semibold">{email}</span>
             </p>
             <div className="space-y-2">
-              <button onClick={onClose} className="btn-green w-full justify-center">
+              <button onClick={onClose} className="btn-success w-full justify-center">
                 Bắt đầu học ngay 🚀
               </button>
               <button onClick={onClose}

@@ -259,6 +259,7 @@ export default function NotificationDropdown() {
           >
             <a
               href="/notifications"
+              onClick={() => setOpen(false)}
               className="text-xs font-medium transition-colors"
               style={{ color: "#D4A843" }}
             >

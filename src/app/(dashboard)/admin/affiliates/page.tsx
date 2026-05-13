@@ -55,7 +55,7 @@ const STATUS_CONFIG: Record<string, { bg: string; color: string; label: string; 
 };
 
 const ORDER_STATUS: Record<string, { bg: string; color: string; label: string }> = {
-  paid: { bg: "rgba(212,168,67,0.1)", color: "#D4A843", label: "Đã thanh toán" },
+  paid: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Đã thanh toán" },
   pending: { bg: "rgba(234,179,8,0.1)", color: "#eab308", label: "Chờ thanh toán" },
   cancelled: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Đã huỷ" },
   refunded: { bg: "rgba(107,114,128,0.1)", color: "#6b7280", label: "Hoàn tiền" },

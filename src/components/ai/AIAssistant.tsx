@@ -85,8 +85,8 @@ export default function AIAssistant({ context }: AIAssistantProps) {
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
-        style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)", boxShadow: "0 4px 24px rgba(212,168,67,0.4)" }}>
-        <MessageCircle size={22} className="text-white" />
+        style={{ background: "linear-gradient(135deg, #FFD814, #FFA41C)", boxShadow: "0 4px 24px rgba(255,216,20,0.4)" }}>
+        <MessageCircle size={22} className="text-[#131921]" />
       </button>
 
       {/* Chat window */}
@@ -181,8 +181,8 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
                 className="w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-40"
-                style={{ background: "#D4A843" }}>
-                <Send size={14} className="text-white" />
+                style={{ background: "#FFD814" }}>
+                <Send size={14} className="text-[#131921]" />
               </button>
             </div>
             <div className="text-center text-[10px] text-gray-600 mt-2">Powered by Claude AI · Đăng Khương Academy</div>

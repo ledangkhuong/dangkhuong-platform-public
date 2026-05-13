@@ -18,6 +18,7 @@ import {
   Ghost,
 } from "lucide-react";
 import DeleteFakeUsers from "@/components/admin/DeleteFakeUsers";
+import DeleteUserButton from "@/components/admin/DeleteUserButton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -668,6 +669,7 @@ export default async function AdminUsersPage({
                       {col}
                     </th>
                   ))}
+                  <th className="px-2 py-3 w-10" />
                 </tr>
               </thead>
 
@@ -675,7 +677,7 @@ export default async function AdminUsersPage({
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-12 text-center text-gray-600 text-sm"
                     >
                       {searchQuery
@@ -689,7 +691,7 @@ export default async function AdminUsersPage({
                     return (
                     <tr
                       key={profile.id}
-                      className="transition-colors hover:bg-white/[0.02]"
+                      className="group transition-colors hover:bg-white/[0.02]"
                       style={{
                         borderBottom:
                           idx < filteredUsers.length - 1
@@ -788,6 +790,13 @@ export default async function AdminUsersPage({
                           <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-xs">
                             {formatDate(profile.created_at)}
                           </td>
+
+                          {/* Delete */}
+                          <td className="px-2 py-3 whitespace-nowrap">
+                            {!["admin", "manager"].includes(profile.role) && (
+                              <DeleteUserButton userId={profile.id} userName={profile.full_name} />
+                            )}
+                          </td>
                         </>
                       ) : (
                         <>
@@ -848,6 +857,13 @@ export default async function AdminUsersPage({
                           {/* Created at */}
                           <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-xs">
                             {formatDate(profile.created_at)}
+                          </td>
+
+                          {/* Delete */}
+                          <td className="px-2 py-3 whitespace-nowrap">
+                            {!["admin", "manager"].includes(profile.role) && (
+                              <DeleteUserButton userId={profile.id} userName={profile.full_name} />
+                            )}
                           </td>
                         </>
                       )}

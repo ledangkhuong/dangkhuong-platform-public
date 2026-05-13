@@ -1,7 +1,7 @@
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   Users, BookOpen, ShoppingCart, FileText, Mail,
   TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign
@@ -22,7 +22,9 @@ export default async function AdminPage() {
 
   if (!["admin", "manager"].includes(profile?.role ?? "")) redirect("/dashboard");
 
-  // Fetch real stats in parallel
+  // Use admin client for stats (bypasses RLS to see all data)
+  const admin = await createAdminClient();
+
   const [
     { count: userCount },
     { count: orderCount },
@@ -33,18 +35,18 @@ export default async function AdminPage() {
     { data: recentUsers },
     { data: recentOrders },
   ] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "paid"),
-    supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("crm_overview").select("*").single(),
-    supabase.from("blog_posts").select("id", { count: "exact", head: true }),
-    supabase.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "active"),
-    supabase
+    admin.from("profiles").select("id", { count: "exact", head: true }),
+    admin.from("orders").select("id", { count: "exact", head: true }).eq("status", "paid"),
+    admin.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    admin.from("crm_overview").select("*").single(),
+    admin.from("blog_posts").select("id", { count: "exact", head: true }),
+    admin.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "active"),
+    admin
       .from("profiles")
       .select("full_name, avatar_url, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
-    supabase
+    admin
       .from("orders")
       .select("order_code, amount, status, customer_name, created_at")
       .order("created_at", { ascending: false })
@@ -54,7 +56,7 @@ export default async function AdminPage() {
   // Today's revenue
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const { data: todayOrders } = await supabase
+  const { data: todayOrders } = await admin
     .from("orders")
     .select("amount")
     .eq("status", "paid")

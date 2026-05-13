@@ -171,7 +171,7 @@ export default async function CourseDetailPage({
           <div key={chapter.id} className="border-b border-[#1f1f1f]">
             <div className="flex items-center justify-between p-3 bg-[#0d0d0d]">
               <div className="flex items-center gap-2">
-                {allCompleted && <CheckCircle size={12} className="text-[#D4A843] shrink-0" />}
+                {allCompleted && <CheckCircle size={12} className="text-[#22c55e] shrink-0" />}
                 <span className="text-xs font-semibold text-gray-300">{chapter.title}</span>
               </div>
               <span className="text-[10px] text-gray-600">
@@ -196,7 +196,7 @@ export default async function CourseDetailPage({
                   {!isAccessible ? (
                     <Lock size={14} className="text-[#f59e0b] shrink-0" />
                   ) : isDone ? (
-                    <CheckCircle size={14} className="text-[#D4A843] shrink-0" />
+                    <CheckCircle size={14} className="text-[#22c55e] shrink-0" />
                   ) : (
                     <PlayCircle
                       size={14}
@@ -224,7 +224,7 @@ export default async function CourseDetailPage({
                   {lesson.is_free && !hasAccess && (
                     <span
                       className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0"
-                      style={{ background: "rgba(212,168,67,0.1)", color: "#D4A843" }}
+                      style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e" }}
                     >
                       Free
                     </span>
@@ -358,7 +358,7 @@ export default async function CourseDetailPage({
             <div className="card-dark p-4 mb-4 sm:mb-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-white">Tiến độ khoá học</span>
-                <span className="text-sm font-bold text-[#D4A843]">{progressPct}%</span>
+                <span className="text-sm font-bold text-[#22c55e]">{progressPct}%</span>
               </div>
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${progressPct}%` }} />

@@ -417,7 +417,7 @@ function BillingTab() {
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold text-white">{o.amount.toLocaleString("vi-VN")}đ</div>
-                  <div className={`text-[10px] font-medium ${o.status === "paid" ? "text-[#D4A843]" : o.status === "pending" ? "text-[#f59e0b]" : "text-gray-500"}`}>
+                  <div className={`text-[10px] font-medium ${o.status === "paid" ? "text-[#22c55e]" : o.status === "pending" ? "text-[#f59e0b]" : "text-gray-500"}`}>
                     {o.status === "paid" ? "Đã thanh toán" : o.status === "pending" ? "Chờ thanh toán" : o.status}
                   </div>
                 </div>
