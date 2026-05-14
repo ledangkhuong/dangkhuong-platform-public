@@ -30,6 +30,7 @@ interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   email?: string | null;
+  phone?: string | null;
   role: Role;
   tier: Tier;
   xp: number;
@@ -274,7 +275,7 @@ export default async function AdminUsersPage({
   const [profilesRes, authUsersRes, ordersRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, role, tier, xp, level, streak, last_login, created_at")
+      .select("id, full_name, avatar_url, phone, role, tier, xp, level, streak, last_login, created_at")
       .order("created_at", { ascending: false }),
     supabase.auth.admin.listUsers({ perPage: 10000 }),
     supabase
@@ -359,7 +360,8 @@ export default async function AdminUsersPage({
       (u) =>
         (u.full_name ?? "").toLowerCase().includes(q) ||
         u.id.toLowerCase().includes(q) ||
-        (u.email ?? "").toLowerCase().includes(q)
+        (u.email ?? "").toLowerCase().includes(q) ||
+        (u.phone ?? "").replace(/\s+/g, "").includes(q.replace(/\s+/g, ""))
     );
   }
 
@@ -447,7 +449,7 @@ export default async function AdminUsersPage({
               type="text"
               name="q"
               defaultValue={searchQuery}
-              placeholder="Tìm theo tên hoặc ID..."
+              placeholder="Tìm theo tên, email, SĐT..."
               className="input-dark flex-1 px-4 py-2 text-sm"
             />
             <button type="submit" className="btn-green px-4 py-2 text-sm rounded-lg">
@@ -699,7 +701,7 @@ export default async function AdminUsersPage({
                             : "none",
                       }}
                     >
-                      {/* Avatar + Name */}
+                      {/* Avatar + Name + Contact */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {profile.avatar_url ? (
@@ -731,9 +733,21 @@ export default async function AdminUsersPage({
                             <div className="font-medium text-white truncate">
                               {profile.full_name || "Chưa đặt tên"}
                             </div>
-                            <div className="text-[11px] text-gray-600 truncate">
-                              {activeTab === "paid" ? (profile.email ?? "") : `${profile.id.slice(0, 8)}...`}
-                            </div>
+                            {profile.email && (
+                              <div className="text-[11px] text-gray-500 truncate">
+                                {profile.email}
+                              </div>
+                            )}
+                            {profile.phone ? (
+                              <a
+                                href={`tel:${profile.phone}`}
+                                className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors"
+                              >
+                                📞 {profile.phone}
+                              </a>
+                            ) : (
+                              <div className="text-[11px] text-gray-700 italic">Chưa có SĐT</div>
+                            )}
                           </div>
                         </div>
                       </td>
