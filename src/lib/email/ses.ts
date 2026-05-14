@@ -48,7 +48,7 @@ export function getSESClient(): SESv2Client {
 /** Lấy địa chỉ From đầy đủ: "Tên <email>" */
 function getFromAddress(): string {
   const email = process.env.EMAIL_FROM || "support@ledangkhuong.net";
-  const name = process.env.EMAIL_FROM_NAME || "Đăng Khương Academy";
+  const name = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
   return `${name} <${email}>`;
 }
 
@@ -129,7 +129,7 @@ export async function sendEmailWithParams(
     const client = getSESClient();
 
     const fromEmail = params.fromEmail || process.env.EMAIL_FROM || "support@ledangkhuong.net";
-    const fromName = params.fromName || process.env.EMAIL_FROM_NAME || "Đăng Khương Academy";
+    const fromName = params.fromName || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
     const fromAddress = `${fromName} <${fromEmail}>`;
 
     const command = new SendEmailCommand({

@@ -1,7 +1,7 @@
 {
-  "name": "Đăng Khương Academy",
-  "short_name": "ĐK Academy",
-  "description": "Nền tảng học tập & cộng đồng của Đăng Khương",
+  "name": "Lê Đăng Khương Academy",
+  "short_name": "LĐK Academy",
+  "description": "Nền tảng học tập & cộng đồng của Lê Đăng Khương",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0a0a0a",

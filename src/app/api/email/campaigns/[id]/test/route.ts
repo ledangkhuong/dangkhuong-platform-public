@@ -61,9 +61,9 @@ export async function POST(
       email: testEmailAddr,
       subscriber_id: "00000000-0000-0000-0000-000000000000",
       unsubscribe_url: "#",
-      company_name: campaign.from_name || "Đăng Khương Academy",
+      company_name: campaign.from_name || "Lê Đăng Khương Academy",
       current_year: new Date().getFullYear().toString(),
-      company: campaign.from_name || "Đăng Khương Academy",
+      company: campaign.from_name || "Lê Đăng Khương Academy",
       date: new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
     };
 

@@ -5,7 +5,7 @@ function getResend() {
   if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
   return _resend;
 }
-const FROM = process.env.EMAIL_FROM || "Đăng Khương <no-reply@dangkhuong.com>";
+const FROM = process.env.EMAIL_FROM || "Lê Đăng Khương <no-reply@dangkhuong.com>";
 
 // ─── Templates ───────────────────────────────────────────────────
 
@@ -33,14 +33,14 @@ function baseTemplate(content: string) {
 <body>
   <div class="wrap">
     <div class="logo">
-      <div class="logo-icon">ĐK</div>
-      <div class="logo-text">Đăng Khương Academy</div>
+      <div class="logo-icon">LĐK</div>
+      <div class="logo-text">Lê Đăng Khương Academy</div>
     </div>
     <div class="card">
       ${content}
     </div>
     <div class="footer">
-      © 2025 Đăng Khương Academy · <a href="https://dangkhuong.com" style="color:#4b5563;">dangkhuong.com</a><br/>
+      © 2025 Lê Đăng Khương Academy · <a href="https://dangkhuong.com" style="color:#4b5563;">dangkhuong.com</a><br/>
       Bạn nhận email này vì đã đăng ký tại dangkhuong.com<br/>
       <a href="https://dangkhuong.com/unsubscribe" style="color:#4b5563;">Huỷ đăng ký</a>
     </div>
@@ -55,10 +55,10 @@ export async function sendWelcomeEmail(to: string, name: string) {
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: `Chào mừng ${name} đến với Đăng Khương Academy! 🎉`,
+    subject: `Chào mừng ${name} đến với Lê Đăng Khương Academy! 🎉`,
     html: baseTemplate(`
       <h1>Chào mừng bạn, ${name}! 🚀</h1>
-      <p>Tôi là <span class="highlight">Đăng Khương</span> — và tôi rất vui khi bạn tham gia cộng đồng.</p>
+      <p>Tôi là <span class="highlight">Lê Đăng Khương</span> — và tôi rất vui khi bạn tham gia cộng đồng.</p>
       <p>Đây là những gì bạn có thể làm ngay:</p>
       <ul style="color:#9ca3af; font-size:14px; line-height:2; padding-left:20px; margin:0 0 20px;">
         <li>📚 Bắt đầu khoá học miễn phí</li>
@@ -69,7 +69,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
       <a href="https://dangkhuong.com/courses" class="btn">Bắt đầu học ngay →</a>
       <div class="divider"></div>
       <p style="margin:0;">Nếu bạn có bất kỳ câu hỏi nào, chỉ cần reply email này — tôi đọc tất cả.</p>
-      <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Đăng Khương</p>
+      <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Lê Đăng Khương</p>
     `),
   });
 }
@@ -120,7 +120,7 @@ export async function sendWeeklyNewsletter(
       <p>Xin chào <span class="highlight">${name}</span>,</p>
       ${body}
       <div class="divider"></div>
-      <p style="margin:0;font-size:13px;color:#6b7280;">— Đăng Khương<br/>
+      <p style="margin:0;font-size:13px;color:#6b7280;">— Lê Đăng Khương<br/>
       <a href="https://dangkhuong.com" style="color:#D4A843;">dangkhuong.com</a></p>
     `),
   });
@@ -160,7 +160,7 @@ export async function sendPasswordResetEmail(
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: `🔑 Đặt lại mật khẩu — Đăng Khương Academy`,
+    subject: `🔑 Đặt lại mật khẩu — Lê Đăng Khương Academy`,
     html: baseTemplate(`
       <h1>Đặt lại mật khẩu</h1>
       <p>Xin chào <span class="highlight">${name}</span>,</p>
@@ -212,7 +212,7 @@ export async function sendAffiliateCommissionEmail(
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: `Bạn vừa nhận hoa hồng ${formatted} — Đăng Khương Academy`,
+    subject: `Bạn vừa nhận hoa hồng ${formatted} — Lê Đăng Khương Academy`,
     html: baseTemplate(`
       <h1>Chúc mừng, ${name}!</h1>
       <p>Một khách hàng vừa mua <span class="highlight">${productName}</span> qua link giới thiệu của bạn.</p>
@@ -231,7 +231,7 @@ export async function sendAffiliateCommissionEmail(
 export async function sendVerificationEmail(to: string, name: string, confirmUrl: string) {
   const html = baseTemplate(`
     <h1>Xin chào ${name}! 👋</h1>
-    <p>Cảm ơn bạn đã đăng ký tài khoản tại <span class="highlight">Đăng Khương Academy</span>.</p>
+    <p>Cảm ơn bạn đã đăng ký tài khoản tại <span class="highlight">Lê Đăng Khương Academy</span>.</p>
     <p>Vui lòng nhấn nút bên dưới để xác thực địa chỉ email và kích hoạt tài khoản của bạn:</p>
     <p style="text-align:center; margin:24px 0;">
       <a href="${confirmUrl}" class="btn">Xác thực tài khoản</a>
@@ -245,7 +245,7 @@ export async function sendVerificationEmail(to: string, name: string, confirmUrl
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: "Xác thực tài khoản Đăng Khương Academy",
+    subject: "Xác thực tài khoản Lê Đăng Khương Academy",
     html,
   });
 }

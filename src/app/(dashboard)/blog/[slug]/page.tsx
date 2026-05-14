@@ -83,7 +83,7 @@ export async function generateMetadata({
     .single();
 
   if (!post) {
-    return { title: "Bài viết không tồn tại — Đăng Khương" };
+    return { title: "Bài viết không tồn tại — Lê Đăng Khương" };
   }
 
   const url = `${BASE_URL}/blog/${post.slug}`;
@@ -92,7 +92,7 @@ export async function generateMetadata({
     (post.content ? stripHtml(post.content).slice(0, 160) : undefined);
 
   return {
-    title: `${post.title} — Đăng Khương`,
+    title: `${post.title} — Lê Đăng Khương`,
     description,
     alternates: {
       canonical: url,
@@ -101,7 +101,7 @@ export async function generateMetadata({
       title: post.title,
       description: description ?? undefined,
       url,
-      siteName: "Đăng Khương Academy",
+      siteName: "Lê Đăng Khương Academy",
       type: "article",
       publishedTime: post.published_at ?? undefined,
       tags: post.tags ?? undefined,
@@ -161,7 +161,7 @@ function ArticleJsonLd({ post }: { post: BlogPost }) {
     },
     publisher: {
       "@type": "Organization",
-      name: "Đăng Khương Academy",
+      name: "Lê Đăng Khương Academy",
       url: BASE_URL,
       logo: {
         "@type": "ImageObject",

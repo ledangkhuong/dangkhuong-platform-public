@@ -171,8 +171,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center font-extrabold text-sm text-[#0a0a0a]"
-              style={{ background: "linear-gradient(135deg, #FBBF24, #F59E0B)" }}>ĐK</div>
+            <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-9 h-9 rounded-lg object-cover" />
             <div>
               <div className="text-sm font-bold leading-tight">Lê Đăng Khương</div>
             </div>
@@ -383,8 +382,7 @@ export default function HomePage() {
                 <div className="hidden w-full h-full flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg, #1a1a1a, #111)" }}>
                   <div className="text-center">
-                    <div className="w-28 h-28 rounded-full mx-auto mb-3 flex items-center justify-center text-4xl font-extrabold"
-                      style={{ background: "linear-gradient(135deg, #FBBF24, #84CC16)", color: "#0a0a0a" }}>ĐK</div>
+                    <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-28 h-28 rounded-full mx-auto mb-3 object-cover" />
                     <div className="text-lg font-bold">Lê Đăng Khương</div>
                     <div className="text-sm text-[#FBBF24]">Founder Kohada</div>
                   </div>
@@ -724,8 +722,7 @@ export default function HomePage() {
             {/* Col 1: About */}
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs text-[#0a0a0a]"
-                  style={{ background: "linear-gradient(135deg, #FBBF24, #F59E0B)" }}>ĐK</div>
+                <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-8 h-8 rounded-lg object-cover" />
                 <span className="font-bold text-sm">Lê Đăng Khương</span>
               </div>
               <ul className="space-y-2 text-sm text-gray-500">
@@ -852,10 +849,7 @@ export default function HomePage() {
                 <>
                   {/* Header */}
                   <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3"
-                      style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}>
-                      <span className="text-2xl font-bold text-white">ĐK</span>
-                    </div>
+                    <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-14 h-14 rounded-2xl mb-3 object-cover inline-block" />
                     <h3 className="text-xl font-bold mb-1">Tạo tài khoản miễn phí</h3>
                     <p className="text-sm text-gray-400">
                       Đăng ký để nhận <span className="text-[#FBBF24] font-semibold">&quot;Bí Mật Video AI Triệu View&quot;</span>

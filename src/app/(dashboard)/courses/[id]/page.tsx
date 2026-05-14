@@ -47,7 +47,7 @@ export async function generateMetadata({
 
   if (!product) return { title: "Khoá học không tồn tại" };
   return {
-    title: `${product.title} — Đăng Khương Academy`,
+    title: `${product.title} — Lê Đăng Khương Academy`,
     description: product.description ?? undefined,
   };
 }

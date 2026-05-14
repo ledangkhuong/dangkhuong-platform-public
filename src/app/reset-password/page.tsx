@@ -86,12 +86,10 @@ function ResetPasswordForm() {
   if (verifying) {
     return (
       <div className="w-full max-w-md text-center">
-        <div
-          className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
-        >
-          ĐK
-        </div>
+        <img
+          src="/images/about/portrait.jpg" alt="Lê Đăng Khương"
+          className="w-14 h-14 rounded-2xl mb-4 object-cover inline-block"
+        />
         <h1 className="text-2xl font-bold text-white mb-2">Đang xác thực...</h1>
         <p className="text-gray-400 text-sm">Vui lòng đợi trong giây lát</p>
       </div>
@@ -157,12 +155,10 @@ function ResetPasswordForm() {
     <div className="w-full max-w-md">
       {/* Logo */}
       <div className="text-center mb-8">
-        <div
-          className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
-        >
-          ĐK
-        </div>
+        <img
+          src="/images/about/portrait.jpg" alt="Lê Đăng Khương"
+          className="w-14 h-14 rounded-2xl mb-4 object-cover inline-block"
+        />
         <h1 className="text-2xl font-bold text-white">Đặt lại mật khẩu</h1>
         <p className="text-gray-400 mt-1 text-sm">Nhập mật khẩu mới cho tài khoản của bạn</p>
       </div>
@@ -223,12 +219,10 @@ export default function ResetPasswordPage() {
       <Suspense
         fallback={
           <div className="w-full max-w-md text-center">
-            <div
-              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
-            >
-              ĐK
-            </div>
+            <img
+              src="/images/about/portrait.jpg" alt="Lê Đăng Khương"
+              className="w-14 h-14 rounded-2xl mb-4 object-cover inline-block"
+            />
             <h1 className="text-2xl font-bold text-white mb-2">Đang tải...</h1>
           </div>
         }

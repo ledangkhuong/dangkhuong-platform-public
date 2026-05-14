@@ -27,7 +27,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
         <div className="notification-bar hidden sm:flex items-center justify-center gap-3 py-2 px-4 text-sm">
           <Bell size={13} className="text-[#D4A843]" />
           <span className="text-gray-400 text-xs">
-            Đăng Khương vừa cập nhật:
+            Lê Đăng Khương vừa cập nhật:
           </span>
           <span className="badge-green">{notification.label}</span>
           <span className="text-white text-xs font-medium">{notification.text}</span>
@@ -75,10 +75,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
           <NotificationDropdown />
 
           {/* Avatar */}
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white cursor-pointer shrink-0"
-            style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}>
-            ĐK
-          </div>
+          <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-8 h-8 rounded-full object-cover cursor-pointer shrink-0" />
         </div>
       </div>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />

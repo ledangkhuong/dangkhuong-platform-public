@@ -18,16 +18,15 @@ export default async function RegisterPage({
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
-          >
-            ĐK
-          </div>
+          <img
+            src="/images/about/portrait.jpg"
+            alt="Lê Đăng Khương"
+            className="w-14 h-14 rounded-2xl mb-4 object-cover"
+          />
           <h1 className="text-2xl font-bold text-white">Tạo tài khoản miễn phí</h1>
           <p className="text-gray-400 mt-1 text-sm">
             Bắt đầu hành trình học tập cùng{" "}
-            <span className="text-[#D4A843]">Đăng Khương</span>
+            <span className="text-[#D4A843]">Lê Đăng Khương</span>
           </p>
         </div>
 

@@ -48,7 +48,7 @@ export default function NewsletterForm() {
       </h3>
       <p className="text-sm text-gray-400 mb-4">
         Tham gia 1,200+ người đang nhận newsletter marketing thực chiến của{" "}
-        Đăng Khương
+        Lê Đăng Khương
       </p>
 
       {status === "success" ? (

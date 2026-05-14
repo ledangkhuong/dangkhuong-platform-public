@@ -17,8 +17,8 @@ import type {
 // ─── Constants ──────────────────────────────────────────────
 
 const DEFAULT_FROM_EMAIL = "support@ledangkhuong.net";
-const DEFAULT_FROM_NAME = "Đăng Khương Academy";
-const COMPANY_NAME = "Đăng Khương Academy";
+const DEFAULT_FROM_NAME = "Lê Đăng Khương Academy";
+const COMPANY_NAME = "Lê Đăng Khương Academy";
 
 function getAppUrl(): string {
   return (

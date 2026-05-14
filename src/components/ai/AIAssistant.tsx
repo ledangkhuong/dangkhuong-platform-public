@@ -24,7 +24,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Xin chào! Tôi là AI Assistant của Đăng Khương Academy 👋\n\nBạn đang gặp khó khăn gì trong học tập hay triển khai? Tôi sẵn sàng giúp!",
+      content: "Xin chào! Tôi là AI Assistant của Lê Đăng Khương Academy 👋\n\nBạn đang gặp khó khăn gì trong học tập hay triển khai? Tôi sẵn sàng giúp!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -103,7 +103,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
             </div>
             <div className="flex-1">
               <div className="font-semibold text-white text-sm">AI Assistant</div>
-              <div className="text-[11px] text-amber-300">Đăng Khương Academy</div>
+              <div className="text-[11px] text-amber-300">Lê Đăng Khương Academy</div>
             </div>
             <button onClick={() => setOpen(false)}
               className="text-amber-300 hover:text-white transition-colors p-1">
@@ -185,7 +185,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                 <Send size={14} className="text-[#131921]" />
               </button>
             </div>
-            <div className="text-center text-[10px] text-gray-600 mt-2">Powered by Claude AI · Đăng Khương Academy</div>
+            <div className="text-center text-[10px] text-gray-600 mt-2">Powered by Claude AI · Lê Đăng Khương Academy</div>
           </div>
         </div>
       )}

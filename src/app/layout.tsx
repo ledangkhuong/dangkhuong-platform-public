@@ -37,10 +37,14 @@ export const metadata: Metadata = {
     description: "Nhận miễn phí Bí Mật Video AI Triệu View. Đã giúp 1,300+ học viên tạo 300M+ view.",
     images: ["/images/hero/offer-banner.jpg"],
   },
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "ĐK Academy",
+    title: "LĐK Academy",
   },
 };
 

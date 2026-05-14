@@ -160,7 +160,7 @@ const FAQ_DATA = [
   },
   {
     q: "Có được hỗ trợ sau khi mua không?",
-    a: "Bạn được tham gia cộng đồng Đăng Khương Academy để trao đổi và hỏi đáp.",
+    a: "Bạn được tham gia cộng đồng Lê Đăng Khương Academy để trao đổi và hỏi đáp.",
   },
   {
     q: "Thanh toán bằng cách nào?",
@@ -244,11 +244,9 @@ export default function CafeLanding() {
         }}
       >
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white bg-[#D4A843]">
-            ĐK
-          </div>
+          <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-8 h-8 rounded-lg object-cover" />
           <span className="font-semibold text-sm text-white hidden sm:block">
-            Đăng Khương
+            Lê Đăng Khương
           </span>
         </Link>
         <button
@@ -310,7 +308,7 @@ export default function CafeLanding() {
             <span className="text-gray-600">|</span>
             <span className="text-gray-400">1,200+ học viên</span>
             <span className="text-gray-600">|</span>
-            <span className="text-gray-400">Đăng Khương Academy</span>
+            <span className="text-gray-400">Lê Đăng Khương Academy</span>
           </div>
         </div>
       </section>
@@ -460,17 +458,14 @@ export default function CafeLanding() {
             className="p-8 sm:p-10 rounded-2xl text-center"
             style={{ background: "#111", border: "1px solid #1f1f1f" }}
           >
-            <div
-              className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center text-3xl font-bold text-white"
-              style={{
-                background: "linear-gradient(135deg, #D4A843, #B8922E)",
-              }}
-            >
-              ĐK
-            </div>
+            <img
+              src="/images/about/portrait.jpg"
+              alt="Lê Đăng Khương"
+              className="w-24 h-24 rounded-full mx-auto mb-6 object-cover"
+            />
 
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
-              Đăng Khương
+              Lê Đăng Khương
             </h3>
             <p className="text-sm sm:text-base text-[#D4A843] font-medium mb-6">
               Chuyên gia Marketing & Thương hiệu cá nhân
@@ -483,7 +478,7 @@ export default function CafeLanding() {
               </span>
               <span className="flex items-center gap-2">
                 <BookOpen size={15} className="text-[#3b82f6]" /> Founder
-                Đăng Khương Academy
+                Lê Đăng Khương Academy
               </span>
             </div>
 
@@ -971,7 +966,7 @@ export default function CafeLanding() {
       {/* ═══ FOOTER ═══ */}
       <footer className="py-10 px-4 text-center border-t border-[#1a1a1a]">
         <p className="text-xs text-gray-600">
-          &copy; {new Date().getFullYear()} Đăng Khương Academy. All rights
+          &copy; {new Date().getFullYear()} Lê Đăng Khương Academy. All rights
           reserved.
         </p>
         <div className="flex items-center justify-center gap-5 mt-3">

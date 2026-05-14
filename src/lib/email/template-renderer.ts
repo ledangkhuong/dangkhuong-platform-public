@@ -10,7 +10,7 @@ import type { Subscriber, TemplateVariables } from "./types";
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong-platform.vercel.app";
-const COMPANY_NAME = process.env.EMAIL_FROM_NAME || "Đăng Khương Academy";
+const COMPANY_NAME = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
 
 // ─── Render Template ─────────────────────────────────────────
 

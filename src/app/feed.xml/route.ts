@@ -37,9 +37,9 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Đăng Khương Blog</title>
+    <title>Lê Đăng Khương Blog</title>
     <link>${BASE}/blog</link>
-    <description>Kiến thức thực chiến về marketing, kinh doanh và thương hiệu cá nhân từ Đăng Khương</description>
+    <description>Kiến thức thực chiến về marketing, kinh doanh và thương hiệu cá nhân từ Lê Đăng Khương</description>
     <language>vi</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${BASE}/feed.xml" rel="self" type="application/rss+xml"/>

@@ -119,26 +119,24 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex items-center justify-between px-4 h-16 border-b border-[#1f1f1f]">
         {!isCompact && (
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white"
-              style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
-            >
-              ĐK
-            </div>
+            <img
+              src="/images/about/portrait.jpg"
+              alt="Lê Đăng Khương"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
             <div>
-              <div className="text-sm font-bold text-white leading-tight">Đăng Khương</div>
+              <div className="text-sm font-bold text-white leading-tight">Lê Đăng Khương</div>
               <div className="text-[10px] text-gray-500 leading-tight">Academy</div>
             </div>
           </Link>
         )}
         {isCompact && (
           <Link href="/dashboard">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm text-white mx-auto"
-              style={{ background: "linear-gradient(135deg, #D4A843, #B8922E)" }}
-            >
-              ĐK
-            </div>
+            <img
+              src="/images/about/portrait.jpg"
+              alt="Lê Đăng Khương"
+              className="w-8 h-8 rounded-lg object-cover mx-auto"
+            />
           </Link>
         )}
         {isMobile ? (

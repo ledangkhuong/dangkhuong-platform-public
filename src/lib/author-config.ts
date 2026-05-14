@@ -9,8 +9,8 @@ export interface AuthorInfo {
 }
 
 export const DEFAULT_AUTHOR: AuthorInfo = {
-  name: "Đăng Khương",
+  name: "Lê Đăng Khương",
   avatar: "/images/about/portrait.jpg",
-  bio: "Chuyên gia Marketing & Thương Hiệu Cá Nhân. Người sáng lập Đăng Khương Academy — nền tảng đào tạo kinh doanh sản phẩm số, xây dựng hệ thống bán hàng tự động bằng AI Agent.",
+  bio: "Chuyên gia Marketing & Thương Hiệu Cá Nhân. Người sáng lập Lê Đăng Khương Academy — nền tảng đào tạo kinh doanh sản phẩm số, xây dựng hệ thống bán hàng tự động bằng AI Agent.",
   facebook: "https://web.facebook.com/jackmadk13",
 };

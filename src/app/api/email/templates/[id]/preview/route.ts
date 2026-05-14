@@ -5,7 +5,7 @@ const SAMPLE_VARIABLES: Record<string, string> = {
   "{{name}}": "Nguyễn Văn A",
   "{{email}}": "example@email.com",
   "{{unsubscribe_url}}": "#",
-  "{{company_name}}": "Đăng Khương Academy",
+  "{{company_name}}": "Lê Đăng Khương Academy",
   "{{current_year}}": new Date().getFullYear().toString(),
 };
 

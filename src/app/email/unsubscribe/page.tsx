@@ -89,22 +89,8 @@ function UnsubscribeContent() {
       <div style={{ width: "100%", maxWidth: "440px" }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "56px",
-              height: "56px",
-              borderRadius: "16px",
-              marginBottom: "16px",
-              fontSize: "24px",
-              fontWeight: 700,
-              color: "#fff",
-              background: "linear-gradient(135deg, #D4A843, #B8922E)",
-            }}
-          >
-            ĐK
+          <div style={{ marginBottom: "16px" }}>
+            <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" style={{ width: "56px", height: "56px", borderRadius: "16px", objectFit: "cover" as const, display: "inline-block" }} />
           </div>
         </div>
 
