@@ -43,7 +43,7 @@ export default function DeleteUserButton({ userId, userName }: Props) {
     <button
       onClick={handleDelete}
       disabled={loading}
-      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50"
+      className="p-1.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50 transition-colors"
       title={`Xoá ${userName || "người dùng"}`}
     >
       {loading ? (

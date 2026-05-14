@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import DeleteFakeUsers from "@/components/admin/DeleteFakeUsers";
 import DeleteUserButton from "@/components/admin/DeleteUserButton";
+import BulkDeleteUsers from "@/components/admin/BulkDeleteUsers";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -643,6 +644,15 @@ export default async function AdminUsersPage({
             Lỗi khi tải dữ liệu: {error.message}
           </div>
         )}
+
+        {/* ── Bulk delete tool ──────────────────────────────────── */}
+        <BulkDeleteUsers
+          users={filteredUsers.map((u) => ({
+            id: u.id,
+            full_name: u.full_name,
+            role: u.role,
+          }))}
+        />
 
         {/* ── Users table ───────────────────────────────────────── */}
         <div className="card-dark overflow-hidden">
