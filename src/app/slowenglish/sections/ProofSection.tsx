@@ -105,28 +105,6 @@ export default function ProofSection() {
           </div>
         </div>
 
-        {/* ── Course banners ── */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
-            <Image
-              src="/images/slowenglish/banner-standard.png"
-              alt="Khoá học Slow English — Gói Standard"
-              fill
-              sizes="(max-width: 640px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
-          <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
-            <Image
-              src="/images/slowenglish/banner-ultra.png"
-              alt="Khoá học Slow English — Gói Ultra Đồng Hành"
-              fill
-              sizes="(max-width: 640px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
-        </div>
-
         {/* ── Stats grid ── */}
         <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3">
           {STATS.map((stat) => (

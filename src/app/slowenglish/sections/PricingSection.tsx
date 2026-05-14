@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Check, Star, Crown, Users } from "lucide-react";
 
 /* ─── Data ───────────────────────────────────────────── */
@@ -46,12 +47,23 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
         <div className="grid grid-cols-1 items-stretch gap-8 md:grid-cols-2">
           {/* ──────── CARD 1 – STANDARD ──────── */}
           <div
-            className="flex flex-col rounded-2xl p-8"
+            className="flex flex-col rounded-2xl overflow-hidden"
             style={{
               backgroundColor: "#111",
               border: "1px solid #1f1f1f",
             }}
           >
+            {/* Banner */}
+            <div className="relative aspect-video">
+              <Image
+                src="/images/slowenglish/banner-standard.png"
+                alt="Khoá học Slow English — Gói Standard"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+          <div className="p-8 flex flex-col flex-1">
             {/* Header */}
             <div className="mb-6 flex items-center gap-2">
               <Crown className="h-5 w-5 text-yellow-400" />
@@ -106,10 +118,11 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
               Đăng Ký Gói Standard
             </button>
           </div>
+          </div>
 
           {/* ──────── CARD 2 – ULTRA (ĐỒNG HÀNH) ──────── */}
           <div
-            className="relative flex flex-col rounded-2xl p-8 md:-my-4 md:p-10"
+            className="relative flex flex-col rounded-2xl overflow-hidden md:-my-4"
             style={{
               backgroundColor: "#111",
               border: "2px solid #FBBF24",
@@ -124,6 +137,18 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
               <Star className="h-3.5 w-3.5" />
               Đề Xuất
             </span>
+
+            {/* Banner */}
+            <div className="relative aspect-video">
+              <Image
+                src="/images/slowenglish/banner-ultra.png"
+                alt="Khoá học Slow English — Gói Ultra Đồng Hành"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+          <div className="p-8 md:p-10 flex flex-col flex-1">
 
             {/* Header */}
             <div className="mb-6 flex items-center gap-2">
@@ -200,6 +225,7 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             <p className="mt-4 text-center text-xs text-gray-400">
               80% học viên chọn gói này vì có người hỗ trợ khi bí
             </p>
+          </div>
           </div>
         </div>
       </div>
