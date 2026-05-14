@@ -174,8 +174,6 @@ export default async function AdminBlogPage() {
                     "Trạng thái",
                     "Chủ đề",
                     "Lượt xem",
-                    "Ngày xuất bản",
-                    "Ngày tạo",
                     "",
                   ].map((col) => (
                     <th
@@ -192,7 +190,7 @@ export default async function AdminBlogPage() {
                 {blogPosts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={6}
                       className="px-4 py-16 text-center text-gray-600 text-sm"
                     >
                       <div className="flex flex-col items-center gap-3">
@@ -216,10 +214,10 @@ export default async function AdminBlogPage() {
                             : "none",
                       }}
                     >
-                      {/* Title + excerpt */}
+                      {/* Title + excerpt (clickable → edit) */}
                       <td className="px-4 py-3 max-w-xs">
-                        <div className="min-w-0">
-                          <div className="font-medium text-white truncate">
+                        <Link href={`/admin/blog/${post.id}/edit`} className="block min-w-0 group/title">
+                          <div className="font-medium text-white truncate group-hover/title:text-[#D4A843] transition-colors">
                             {post.title}
                           </div>
                           {post.excerpt && (
@@ -227,7 +225,7 @@ export default async function AdminBlogPage() {
                               {post.excerpt}
                             </div>
                           )}
-                        </div>
+                        </Link>
                       </td>
 
                       {/* Slug */}
@@ -280,23 +278,6 @@ export default async function AdminBlogPage() {
                           <Eye size={13} className="text-gray-600" />
                           {formatViews(post.views ?? 0)}
                         </span>
-                      </td>
-
-                      {/* Published at */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        {post.published_at ? (
-                          <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                            <CalendarDays size={12} className="text-gray-600" />
-                            {formatDate(post.published_at)}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-700">—</span>
-                        )}
-                      </td>
-
-                      {/* Created at */}
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        {formatDateTime(post.created_at)}
                       </td>
 
                       {/* Actions */}
