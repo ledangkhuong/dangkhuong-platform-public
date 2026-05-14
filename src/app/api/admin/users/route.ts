@@ -129,17 +129,36 @@ export async function DELETE(req: NextRequest) {
     );
   }
 
-  // Delete users via Supabase Admin API (this also cascades profile via trigger/FK)
+  // Delete users: clean up related data first, then delete auth user
   const results = { deleted: 0, errors: [] as string[] };
 
   for (const uid of user_ids) {
-    const { error: delErr } = await adminClient.auth.admin.deleteUser(uid);
-    if (delErr) {
-      results.errors.push(`${uid}: ${delErr.message}`);
-    } else {
-      // Also delete profile row in case cascade didn't fire
+    try {
+      // 1. Delete records in tables WITHOUT cascade delete (these block user deletion)
+      await adminClient.from("orders").delete().eq("user_id", uid);
+      await adminClient.from("analytics_events").delete().eq("user_id", uid);
+
+      // 2. Nullify references in CRM tables (ON DELETE SET NULL may not fire from admin API)
+      await adminClient.from("crm_contacts").update({ user_id: null }).eq("user_id", uid);
+      await adminClient.from("crm_activities").update({ created_by: null }).eq("created_by", uid);
+      await adminClient.from("crm_deals").update({ assigned_to: null }).eq("assigned_to", uid);
+      await adminClient.from("crm_deals").update({ created_by: null }).eq("created_by", uid);
+
+      // 3. Delete affiliate data (cascade should handle sub-tables)
+      await adminClient.from("affiliates").delete().eq("user_id", uid);
+
+      // 4. Delete profile explicitly (cascades to lesson_progress, enrollments, posts, etc.)
       await adminClient.from("profiles").delete().eq("id", uid);
-      results.deleted++;
+
+      // 5. Finally delete auth user
+      const { error: delErr } = await adminClient.auth.admin.deleteUser(uid);
+      if (delErr) {
+        results.errors.push(`${uid}: ${delErr.message}`);
+      } else {
+        results.deleted++;
+      }
+    } catch (err) {
+      results.errors.push(`${uid}: ${err instanceof Error ? err.message : "Unknown error"}`);
     }
   }
 
