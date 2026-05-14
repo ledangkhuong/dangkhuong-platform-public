@@ -147,6 +147,17 @@ export default function SlowEnglishLanding() {
 
       <HeroSection onScrollToRegister={scrollToRegister} />
 
+      <ProofSection />
+      <PainPointsSection />
+      <CourseContentSection />
+      <ResourcesSection />
+      <div ref={pricingRef}>
+        <PricingSection onScrollToRegister={scrollToRegister} />
+      </div>
+      <ComparisonSection />
+      <AudienceSection />
+      <FAQSection />
+
       {/* ═══ REGISTRATION FORM ═══ */}
       <section ref={registerRef} id="register" className="py-12 sm:py-16 px-4">
         <div className="max-w-md mx-auto">
@@ -341,16 +352,6 @@ export default function SlowEnglishLanding() {
         </div>
       </section>
 
-      <ProofSection />
-      <PainPointsSection />
-      <CourseContentSection />
-      <ResourcesSection />
-      <div ref={pricingRef}>
-        <PricingSection onScrollToRegister={scrollToRegister} />
-      </div>
-      <ComparisonSection />
-      <AudienceSection />
-      <FAQSection />
       <FinalCTASection onScrollToRegister={scrollToRegister} />
 
       {/* ═══ STICKY MOBILE CTA ═══ */}
