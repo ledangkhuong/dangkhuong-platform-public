@@ -10,7 +10,7 @@ export interface AuthorInfo {
 
 export const DEFAULT_AUTHOR: AuthorInfo = {
   name: "Đăng Khương",
-  avatar: "", // Set to URL when avatar image is uploaded (e.g. "/images/author-avatar.jpg")
+  avatar: "/images/about/portrait.jpg",
   bio: "Chuyên gia Marketing & Thương Hiệu Cá Nhân. Người sáng lập Đăng Khương Academy — nền tảng đào tạo kinh doanh sản phẩm số, xây dựng hệ thống bán hàng tự động bằng AI Agent.",
-  facebook: "https://www.facebook.com/dangkhuong.official",
+  facebook: "https://web.facebook.com/jackmadk13",
 };
