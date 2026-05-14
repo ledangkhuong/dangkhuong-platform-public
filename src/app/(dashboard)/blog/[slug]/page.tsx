@@ -8,12 +8,11 @@ import { DEFAULT_AUTHOR } from "@/lib/author-config";
 import {
   Eye,
   ArrowLeft,
-  Share2,
-  Heart,
   Tag,
   Calendar,
   Clock,
 } from "lucide-react";
+import ShareButtons from "@/components/blog/ShareButtons";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -430,20 +429,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 mb-8">
-          <button
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg"
-            style={{ background: "#222" }}
-          >
-            <Heart size={12} /> Yêu thích
-          </button>
-          <button
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg"
-            style={{ background: "#222" }}
-          >
-            <Share2 size={12} /> Chia sẻ
-          </button>
+        {/* Share buttons */}
+        <div className="mb-8">
+          <ShareButtons title={post.title} slug={post.slug} />
         </div>
 
         {/* Back link (bottom) */}
