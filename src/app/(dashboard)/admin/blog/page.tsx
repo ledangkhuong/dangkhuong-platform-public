@@ -170,7 +170,6 @@ export default async function AdminBlogPage() {
                 <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
                   {[
                     "Bài viết",
-                    "Slug",
                     "Trạng thái",
                     "Chủ đề",
                     "Lượt xem",
@@ -190,7 +189,7 @@ export default async function AdminBlogPage() {
                 {blogPosts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="px-4 py-16 text-center text-gray-600 text-sm"
                     >
                       <div className="flex flex-col items-center gap-3">
@@ -214,32 +213,16 @@ export default async function AdminBlogPage() {
                             : "none",
                       }}
                     >
-                      {/* Title + excerpt (clickable → edit) */}
-                      <td className="px-4 py-3 max-w-xs">
+                      {/* Title + slug (clickable → edit) */}
+                      <td className="px-4 py-3">
                         <Link href={`/admin/blog/${post.id}/edit`} className="block min-w-0 group/title">
                           <div className="font-medium text-white truncate group-hover/title:text-[#D4A843] transition-colors">
                             {post.title}
                           </div>
-                          {post.excerpt && (
-                            <div className="text-xs text-gray-500 truncate mt-0.5">
-                              {post.excerpt}
-                            </div>
-                          )}
+                          <div className="text-[11px] text-gray-600 truncate mt-0.5 max-w-[300px]">
+                            /blog/{post.slug}
+                          </div>
                         </Link>
-                      </td>
-
-                      {/* Slug */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <code
-                          className="text-xs px-2 py-0.5 rounded"
-                          style={{
-                            background: "#1f1f1f",
-                            color: "#9ca3af",
-                            border: "1px solid #2a2a2a",
-                          }}
-                        >
-                          {post.slug}
-                        </code>
                       </td>
 
                       {/* Status badge */}
