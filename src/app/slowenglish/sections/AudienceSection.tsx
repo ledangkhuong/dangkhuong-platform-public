@@ -51,7 +51,7 @@ const audienceCards = [
 
 const notForItems = [
   "Người muốn giàu sau 1 đêm mà không chịu hành động",
-  "Người không sẵn sàng đầu tư ~$50-100 tiền credit VEO cho video đầu",
+  "Người không sẵn sàng đầu tư nghiêm túc thời gian, tiền bạc để tạo nguồn thu nhập mới từ Youtube",
   "Người chỉ muốn xem cho biết, không có ý định làm",
 ];
 
