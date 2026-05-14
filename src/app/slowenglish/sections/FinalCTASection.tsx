@@ -23,9 +23,15 @@ const URGENCY_POINTS = [
   "Slot Gói Đồng Hành giới hạn 50 người/đợt",
 ];
 
+/* ─── Props ──────────────────────────────────────────── */
+
+interface FinalCTASectionProps {
+  onScrollToRegister?: () => void;
+}
+
 /* ─── Component ──────────────────────────────────────── */
 
-export default function FinalCTASection() {
+export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionProps) {
   return (
     <section
       className="relative overflow-hidden"
@@ -192,26 +198,28 @@ export default function FinalCTASection() {
         {/* CTA Buttons */}
         <div className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
           {/* Standard */}
-          <a
-            href="/courses/standard-lam-video-youtube-slow-english-bang-veo3-1"
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 px-8 py-4 text-center text-sm font-bold uppercase tracking-wide transition-colors hover:bg-yellow-400/10 sm:w-auto"
+          <button
+            type="button"
+            onClick={onScrollToRegister}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 px-8 py-4 text-center text-sm font-bold uppercase tracking-wide transition-colors hover:bg-yellow-400/10 sm:w-auto cursor-pointer"
             style={{ borderColor: "#FBBF24", color: "#FBBF24" }}
           >
             GÓI STANDARD – 499K
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </button>
 
           {/* Ultra / Dong Hanh */}
-          <a
-            href="/courses/ultra-dong-hanh-lam-video-youtube-slow-english-bang-veo3-1"
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-10 py-5 text-center text-base font-bold uppercase tracking-wide text-gray-900 transition-opacity hover:opacity-90 sm:w-auto"
+          <button
+            type="button"
+            onClick={onScrollToRegister}
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-10 py-5 text-center text-base font-bold uppercase tracking-wide text-gray-900 transition-opacity hover:opacity-90 sm:w-auto cursor-pointer"
             style={{
               background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
             }}
           >
             GÓI ĐỒNG HÀNH – 789K &#11088;
             <ArrowRight className="h-5 w-5" />
-          </a>
+          </button>
         </div>
 
         {/* Quote */}

@@ -21,9 +21,15 @@ const ULTRA_EXTRA_FEATURES = [
   "Chia Sẻ Case Study Học Viên",
 ];
 
+/* ─── Props ──────────────────────────────────────────── */
+
+interface PricingSectionProps {
+  onScrollToRegister?: () => void;
+}
+
 /* ─── Component ──────────────────────────────────────── */
 
-export default function PricingSection() {
+export default function PricingSection({ onScrollToRegister }: PricingSectionProps) {
   return (
     <section
       id="pricing"
@@ -91,13 +97,14 @@ export default function PricingSection() {
             </p>
 
             {/* CTA */}
-            <a
-              href="/courses/standard-lam-video-youtube-slow-english-bang-veo3-1"
-              className="block rounded-xl border-2 py-3.5 text-center text-sm font-bold uppercase tracking-wide transition-colors hover:bg-yellow-400/10"
+            <button
+              type="button"
+              onClick={onScrollToRegister}
+              className="block rounded-xl border-2 py-3.5 text-center text-sm font-bold uppercase tracking-wide transition-colors hover:bg-yellow-400/10 cursor-pointer"
               style={{ borderColor: "#FBBF24", color: "#FBBF24" }}
             >
               Đăng Ký Gói Standard
-            </a>
+            </button>
           </div>
 
           {/* ──────── CARD 2 – ULTRA (ĐỒNG HÀNH) ──────── */}
@@ -178,15 +185,16 @@ export default function PricingSection() {
             </p>
 
             {/* CTA */}
-            <a
-              href="/courses/ultra-dong-hanh-lam-video-youtube-slow-english-bang-veo3-1"
-              className="block rounded-xl py-4 text-center text-base font-bold uppercase tracking-wide text-gray-900 transition-opacity hover:opacity-90"
+            <button
+              type="button"
+              onClick={onScrollToRegister}
+              className="block rounded-xl py-4 text-center text-base font-bold uppercase tracking-wide text-gray-900 transition-opacity hover:opacity-90 cursor-pointer"
               style={{
                 background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
               }}
             >
               Đăng Ký Gói Đồng Hành
-            </a>
+            </button>
 
             {/* Bottom note */}
             <p className="mt-4 text-center text-xs text-gray-400">

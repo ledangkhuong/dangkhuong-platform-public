@@ -1,9 +1,9 @@
 "use client";
 
-import { Check, Zap, Clock, Play } from "lucide-react";
+import { Check, Zap, Clock, Play, ArrowRight } from "lucide-react";
 
 interface HeroSectionProps {
-  onScrollToPricing?: () => void;
+  onScrollToRegister?: () => void;
 }
 
 const CHECKMARKS = [
@@ -12,16 +12,16 @@ const CHECKMARKS = [
   "Tặng kèm: File Prompt độc quyền + Bộ Âm thanh bản quyền",
 ];
 
-export default function HeroSection({ onScrollToPricing }: HeroSectionProps) {
+export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
   const handleCTAClick = () => {
-    if (onScrollToPricing) {
-      onScrollToPricing();
+    if (onScrollToRegister) {
+      onScrollToRegister();
     }
   };
 
   return (
     <section
-      className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-20 md:py-28 lg:py-32"
+      className="relative overflow-hidden px-4 py-14 sm:px-6 sm:py-18 md:py-24 lg:py-28"
       style={{
         background:
           "linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%)",
@@ -51,15 +51,28 @@ export default function HeroSection({ onScrollToPricing }: HeroSectionProps) {
         </span>
 
         {/* Main Headline */}
-        <h1
-          className="mb-6 text-2xl leading-tight font-extrabold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl"
-          style={{ color: "#ffffff" }}
-        >
-          Bí Mật Đằng Sau Kênh YouTube{" "}
-          <span style={{ color: "#FBBF24" }}>372.000 Subs</span> Kiếm{" "}
-          <span style={{ color: "#FBBF24" }}>$30.000/Tháng</span> Chỉ Với 38
-          Video Hoạt Hình{" "}
-          <span className="italic">&ldquo;Slow English&rdquo;</span>
+        <h1 className="mb-6 font-extrabold tracking-tight" style={{ color: "#ffffff" }}>
+          <span className="block text-xl leading-tight sm:text-2xl md:text-3xl lg:text-4xl">
+            Bí Mật Đằng Sau Kênh YouTube
+          </span>
+          <span className="block text-xl leading-tight sm:text-2xl md:text-3xl lg:text-4xl mt-1">
+            <span style={{ color: "#FBBF24" }}>372.000 Subs</span> Kiếm{" "}
+            <span style={{ color: "#FBBF24" }}>$30.000/Tháng</span>
+          </span>
+          <span className="block text-xl leading-tight sm:text-2xl md:text-3xl lg:text-4xl mt-1">
+            Chỉ Với 38 Video Hoạt Hình
+          </span>
+          {/* "Slow English" – bigger, bolder, more prominent */}
+          <span
+            className="block mt-4 text-4xl sm:text-5xl md:text-6xl lg:text-7xl italic"
+            style={{
+              color: "#FBBF24",
+              textShadow: "0 0 60px rgba(251,191,36,0.3)",
+              lineHeight: 1.1,
+            }}
+          >
+            &ldquo;Slow English&rdquo;
+          </span>
         </h1>
 
         {/* Sub-headline */}
@@ -152,30 +165,18 @@ export default function HeroSection({ onScrollToPricing }: HeroSectionProps) {
         </div>
 
         {/* CTA Button */}
-        {onScrollToPricing ? (
-          <button
-            type="button"
-            onClick={handleCTAClick}
-            className="mb-4 cursor-pointer rounded-xl px-8 py-4 text-base font-bold tracking-wide text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
-            style={{
-              background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
-              boxShadow: "0 0 30px rgba(251,191,36,0.3)",
-            }}
-          >
-            TÔI MUỐN HỌC NGAY – CHỈ TỪ 499K
-          </button>
-        ) : (
-          <a
-            href="#pricing"
-            className="mb-4 inline-block rounded-xl px-8 py-4 text-base font-bold tracking-wide text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
-            style={{
-              background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
-              boxShadow: "0 0 30px rgba(251,191,36,0.3)",
-            }}
-          >
-            TÔI MUỐN HỌC NGAY – CHỈ TỪ 499K
-          </a>
-        )}
+        <button
+          type="button"
+          onClick={handleCTAClick}
+          className="mb-4 cursor-pointer flex items-center gap-2 rounded-xl px-8 py-4 text-base font-bold tracking-wide text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
+          style={{
+            background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
+            boxShadow: "0 0 30px rgba(251,191,36,0.3)",
+          }}
+        >
+          ĐĂNG KÝ NGAY – CHỈ TỪ 499K
+          <ArrowRight className="h-5 w-5" />
+        </button>
 
         {/* Urgency text */}
         <p className="flex items-center gap-2 text-sm sm:text-base">

@@ -67,12 +67,50 @@ export default function ProofSection() {
           AI Không?
         </h2>
 
-        {/* ── Banner images ── */}
+        {/* ── Proof screenshots (ViewStats + YouTube Channel) ── */}
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="overflow-hidden rounded-2xl border border-white/10">
+            <Image
+              src="/images/slowenglish/viewstats.png"
+              alt="ViewStats Emma Daily English — 6.15M views, $16K-$45K doanh thu"
+              width={800}
+              height={500}
+              sizes="(max-width: 640px) 100vw, 50vw"
+              className="w-full h-auto"
+            />
+            <div
+              className="px-4 py-3 text-xs text-gray-400"
+              style={{ background: "#111", borderTop: "1px solid #1f1f1f" }}
+            >
+              <span style={{ color: "#FBBF24" }} className="font-semibold">ViewStats</span>{" "}
+              — Số liệu thực tế kênh Emma Daily English
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-white/10">
+            <Image
+              src="/images/slowenglish/youtube-channel.png"
+              alt="YouTube Channel Emma Daily English — 372K subs, 30.3K USD/tháng"
+              width={800}
+              height={500}
+              sizes="(max-width: 640px) 100vw, 50vw"
+              className="w-full h-auto"
+            />
+            <div
+              className="px-4 py-3 text-xs text-gray-400"
+              style={{ background: "#111", borderTop: "1px solid #1f1f1f" }}
+            >
+              <span style={{ color: "#FBBF24" }} className="font-semibold">YouTube</span>{" "}
+              — Trang kênh Emma Daily English: 372K subs, 38 video
+            </div>
+          </div>
+        </div>
+
+        {/* ── Course banners ── */}
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
             <Image
               src="/images/slowenglish/banner-standard.png"
-              alt="YouTube channel banner - Standard"
+              alt="Khoá học Slow English — Gói Standard"
               fill
               sizes="(max-width: 640px) 100vw, 50vw"
               className="object-cover"
@@ -81,7 +119,7 @@ export default function ProofSection() {
           <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
             <Image
               src="/images/slowenglish/banner-ultra.png"
-              alt="YouTube channel banner - Ultra"
+              alt="Khoá học Slow English — Gói Ultra Đồng Hành"
               fill
               sizes="(max-width: 640px) 100vw, 50vw"
               className="object-cover"
