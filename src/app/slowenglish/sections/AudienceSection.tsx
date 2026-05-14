@@ -58,13 +58,13 @@ const notForItems = [
 export default function AudienceSection() {
   return (
     <section
-      className="relative py-20 md:py-28 overflow-hidden"
+      className="relative py-12 sm:py-20 md:py-28 overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section title */}
         <h2
-          className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-white mb-14 md:mb-20 leading-tight"
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-white mb-8 sm:mb-14 md:mb-20 leading-tight"
         >
           Khóa Học Này Đặc Biệt
           <br className="hidden sm:block" />

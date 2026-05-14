@@ -42,12 +42,12 @@ const painCards = [
 export default function PainPointsSection() {
   return (
     <section
-      className="relative py-20 md:py-28 overflow-hidden"
+      className="relative py-12 sm:py-20 md:py-28 overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section title */}
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-white mb-14 md:mb-20 leading-tight">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-white mb-8 sm:mb-14 md:mb-20 leading-tight">
           Có Phải Bạn Đang Mắc Kẹt Ở
           <br className="hidden sm:block" />
           <span className="block sm:inline"> Một Trong Những Tình Huống Này?</span>
@@ -93,7 +93,7 @@ export default function PainPointsSection() {
                 {card.items.map((item, itemIndex) => (
                   <li
                     key={itemIndex}
-                    className="flex items-start gap-3 text-gray-300 text-base md:text-lg leading-relaxed"
+                    className="flex items-start gap-3 text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed"
                   >
                     <span
                       className="mt-2 flex-shrink-0 w-1.5 h-1.5 rounded-full"
@@ -114,13 +114,13 @@ export default function PainPointsSection() {
 
         {/* Green solution box */}
         <div
-          className="mt-12 md:mt-16 rounded-2xl p-8 md:p-10 text-center"
+          className="mt-8 sm:mt-12 md:mt-16 rounded-2xl p-5 sm:p-8 md:p-10 text-center"
           style={{
             backgroundColor: "rgba(16, 185, 129, 0.05)",
             border: "1px solid #10b981",
           }}
         >
-          <p className="text-lg md:text-xl lg:text-2xl text-white leading-relaxed md:leading-loose">
+          <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-white leading-relaxed md:leading-loose">
             <span className="text-emerald-400 font-semibold">
               Sự thật là...
             </span>{" "}

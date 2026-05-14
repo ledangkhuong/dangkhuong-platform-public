@@ -59,16 +59,16 @@ export default function ProofSection() {
       className="relative overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         {/* ── Title ── */}
-        <h2 className="mx-auto max-w-3xl text-center text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+        <h2 className="mx-auto max-w-3xl text-center text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           Có Thật Một Kênh YouTube Kiếm{" "}
           <span style={{ color: "#FBBF24" }}>$30.000/Tháng</span> Bằng
           AI Không?
         </h2>
 
         {/* ── Proof screenshots (ViewStats + YouTube Channel) ── */}
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
           <div className="overflow-hidden rounded-2xl border border-white/10">
             <Image
               src="/images/slowenglish/viewstats.png"
@@ -106,11 +106,11 @@ export default function ProofSection() {
         </div>
 
         {/* ── Stats grid ── */}
-        <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="mt-8 sm:mt-14 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           {STATS.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl p-5 transition-colors hover:border-white/20"
+              className="rounded-xl p-3 sm:p-5 transition-colors hover:border-white/20"
               style={{
                 backgroundColor: "#111",
                 border: "1px solid #1f1f1f",
@@ -121,7 +121,7 @@ export default function ProofSection() {
                 {stat.label}
               </p>
               <p
-                className="mt-1 text-2xl font-bold sm:text-3xl"
+                className="mt-1 text-xl font-bold sm:text-3xl"
                 style={{ color: "#FBBF24" }}
               >
                 {stat.value}
@@ -133,7 +133,7 @@ export default function ProofSection() {
 
         {/* ── Analysis box ── */}
         <div
-          className="mt-14 rounded-xl p-6 sm:p-8"
+          className="mt-8 sm:mt-14 rounded-xl p-5 sm:p-8"
           style={{
             backgroundColor: "#111",
             borderLeft: "4px solid #FBBF24",
@@ -161,7 +161,7 @@ export default function ProofSection() {
         </div>
 
         {/* ── Bottom callout ── */}
-        <div className="mt-14 text-center">
+        <div className="mt-8 sm:mt-14 text-center">
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl">
             Câu hỏi không phải{" "}
             <span className="font-semibold text-white">

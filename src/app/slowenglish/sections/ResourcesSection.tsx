@@ -39,9 +39,9 @@ export default function ResourcesSection() {
       className="relative overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         {/* ── Section title ── */}
-        <h2 className="mx-auto max-w-3xl text-center text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+        <h2 className="mx-auto max-w-3xl text-center text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           Bonus{" "}
           <span style={{ color: "#FBBF24" }}>
             Tr&#7883; Gi&#225; 2.500.000&#273;
@@ -53,7 +53,7 @@ export default function ResourcesSection() {
         </p>
 
         {/* ── Cards grid ── */}
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="mt-8 sm:mt-14 grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
           {CARDS.map((card) => {
             const Icon = card.icon;
             return (

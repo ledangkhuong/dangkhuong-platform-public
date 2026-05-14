@@ -55,9 +55,9 @@ export default function ComparisonSection() {
       className="relative overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:py-20 sm:px-6 md:py-28 lg:px-8">
         {/* ── Title ── */}
-        <h2 className="mx-auto max-w-4xl text-center text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+        <h2 className="mx-auto max-w-4xl text-center text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           Tại Sao{" "}
           <span style={{ color: "#FBBF24" }}>789K</span> Là Quyết Định
           Thông Minh Nhất?

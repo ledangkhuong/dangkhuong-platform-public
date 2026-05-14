@@ -73,9 +73,9 @@ export default function FAQSection() {
       className="relative overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
-      <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         {/* ── Title ── */}
-        <h2 className="mb-12 text-center text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+        <h2 className="mb-8 sm:mb-12 text-center text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           Câu Hỏi{" "}
           <span style={{ color: "#FBBF24" }}>Thường Gặp</span>
         </h2>

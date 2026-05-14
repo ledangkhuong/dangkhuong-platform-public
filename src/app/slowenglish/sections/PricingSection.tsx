@@ -34,17 +34,17 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden py-20 md:py-28"
+      className="relative overflow-hidden py-12 sm:py-20 md:py-28"
       style={{ backgroundColor: "#0a0a0a" }}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* ── Title ── */}
-        <h2 className="mb-14 text-center text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+        <h2 className="mb-8 sm:mb-14 text-center text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl">
           Chọn Gói Phù Hợp Với Bạn
         </h2>
 
         {/* ── Cards Grid ── */}
-        <div className="grid grid-cols-1 items-stretch gap-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 items-stretch gap-6 sm:gap-8 md:grid-cols-2">
           {/* ──────── CARD 1 – STANDARD ──────── */}
           <div
             className="flex flex-col rounded-2xl overflow-hidden"
@@ -63,9 +63,9 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
                 className="object-cover"
               />
             </div>
-          <div className="p-8 flex flex-col flex-1">
+          <div className="p-5 sm:p-8 flex flex-col flex-1">
             {/* Header */}
-            <div className="mb-6 flex items-center gap-2">
+            <div className="mb-4 sm:mb-6 flex items-center gap-2">
               <Crown className="h-5 w-5 text-yellow-400" />
               <span className="text-sm font-semibold uppercase tracking-wider text-gray-400">
                 Gói Standard
@@ -73,12 +73,12 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             </div>
 
             {/* Price */}
-            <div className="mb-4">
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-extrabold text-white">
+            <div className="mb-3 sm:mb-4">
+              <div className="flex items-baseline gap-2 sm:gap-3">
+                <span className="text-3xl sm:text-4xl font-extrabold text-white">
                   499.000đ
                 </span>
-                <span className="text-lg text-gray-500 line-through">
+                <span className="text-base sm:text-lg text-gray-500 line-through">
                   999.000đ
                 </span>
               </div>
@@ -148,10 +148,10 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
                 className="object-cover"
               />
             </div>
-          <div className="p-8 md:p-10 flex flex-col flex-1">
+          <div className="p-5 sm:p-8 md:p-10 flex flex-col flex-1">
 
             {/* Header */}
-            <div className="mb-6 flex items-center gap-2">
+            <div className="mb-4 sm:mb-6 flex items-center gap-2">
               <Crown className="h-5 w-5 text-yellow-400" />
               <span className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
                 Gói Ultra (Đồng Hành)
@@ -159,12 +159,12 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             </div>
 
             {/* Price */}
-            <div className="mb-4">
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-extrabold text-white md:text-5xl">
+            <div className="mb-3 sm:mb-4">
+              <div className="flex items-baseline gap-2 sm:gap-3">
+                <span className="text-3xl font-extrabold text-white sm:text-4xl md:text-5xl">
                   789.000đ
                 </span>
-                <span className="text-lg text-gray-500 line-through">
+                <span className="text-base sm:text-lg text-gray-500 line-through">
                   1.990.000đ
                 </span>
               </div>

@@ -30,9 +30,9 @@ export default function CourseContentSection() {
       className="relative overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         {/* ── Title ── */}
-        <h2 className="mx-auto max-w-4xl text-center text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+        <h2 className="mx-auto max-w-4xl text-center text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           Làm Video YouTube Slow English Bằng{" "}
           <span style={{ color: "#FBBF24" }}>VEO 3.1</span> &{" "}
           <span style={{ color: "#FBBF24" }}>CapCut</span> – Phiên Bản Tối
@@ -60,7 +60,7 @@ export default function CourseContentSection() {
         </p>
 
         {/* ── Cards ── */}
-        <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-8 sm:mt-14 grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-2">
           {/* Card 1 – VEO 3.1 */}
           <div
             className="flex flex-col rounded-2xl"

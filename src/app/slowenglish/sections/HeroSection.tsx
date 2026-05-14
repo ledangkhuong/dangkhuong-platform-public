@@ -21,7 +21,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
   return (
     <section
-      className="relative overflow-hidden px-4 py-14 sm:px-6 sm:py-18 md:py-24 lg:py-28"
+      className="relative overflow-hidden px-4 py-10 sm:px-6 sm:py-18 md:py-24 lg:py-28"
       style={{
         background:
           "linear-gradient(180deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%)",
@@ -77,7 +77,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
         {/* Sub-headline */}
         <p
-          className="mb-4 text-base font-medium sm:text-lg md:text-xl"
+          className="mb-4 text-sm font-medium sm:text-lg md:text-xl leading-relaxed"
           style={{ color: "rgba(255,255,255,0.9)" }}
         >
           Chỉ 2 Video Hướng Dẫn – Bạn Sẽ Tự Tay Làm Được Video Đầu Tiên
@@ -86,7 +86,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
         {/* Description */}
         <p
-          className="mx-auto mb-8 max-w-2xl text-sm leading-relaxed sm:text-base"
+          className="mx-auto mb-6 sm:mb-8 max-w-2xl text-xs leading-relaxed sm:text-base"
           style={{ color: "rgba(255,255,255,0.6)" }}
         >
           Không lý thuyết dài dòng. Không 50 bài giảng rườm rà. Chỉ 2 video
@@ -94,7 +94,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
         </p>
 
         {/* Checkmarks */}
-        <ul className="mb-10 flex flex-col gap-3 text-left sm:gap-4">
+        <ul className="mb-6 sm:mb-10 flex flex-col gap-2.5 text-left sm:gap-4">
           {CHECKMARKS.map((text) => (
             <li key={text} className="flex items-start gap-3">
               <span
@@ -115,50 +115,54 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
         {/* Stats row */}
         <div
-          className="mb-10 w-full max-w-2xl rounded-xl border p-4 sm:p-5"
+          className="mb-8 sm:mb-10 w-full max-w-2xl rounded-xl border p-3 sm:p-5"
           style={{
             borderColor: "rgba(251,191,36,0.2)",
             background: "rgba(251,191,36,0.05)",
           }}
         >
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
-            <div className="flex items-center gap-2">
-              <Play className="h-5 w-5" style={{ color: "#FBBF24" }} />
-              <span
-                className="text-sm font-semibold sm:text-base"
-                style={{ color: "#FBBF24" }}
-              >
+          {/* Mobile: 2x2 grid */}
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            <div className="flex items-center gap-1.5 justify-center">
+              <Play className="h-4 w-4" style={{ color: "#FBBF24" }} />
+              <span className="text-xs font-semibold" style={{ color: "#FBBF24" }}>
                 Emma Daily English
               </span>
             </div>
-            <div
-              className="hidden h-4 w-px sm:block"
-              style={{ background: "rgba(251,191,36,0.3)" }}
-            />
-            <span
-              className="text-xs sm:text-sm"
-              style={{ color: "rgba(255,255,255,0.7)" }}
-            >
+            <div className="flex items-center justify-center">
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.7)" }}>
+                6.15M views/tháng
+              </span>
+            </div>
+            <div className="flex items-center justify-center">
+              <span className="text-xs font-medium" style={{ color: "#FBBF24" }}>
+                $16K–$45K/tháng
+              </span>
+            </div>
+            <div className="flex items-center justify-center">
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.7)" }}>
+                Chỉ 38 video
+              </span>
+            </div>
+          </div>
+          {/* Desktop: horizontal row */}
+          <div className="hidden sm:flex items-center justify-center gap-6">
+            <div className="flex items-center gap-2">
+              <Play className="h-5 w-5" style={{ color: "#FBBF24" }} />
+              <span className="text-base font-semibold" style={{ color: "#FBBF24" }}>
+                Emma Daily English
+              </span>
+            </div>
+            <div className="h-4 w-px" style={{ background: "rgba(251,191,36,0.3)" }} />
+            <span className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
               6.15 triệu views/tháng
             </span>
-            <div
-              className="hidden h-4 w-px sm:block"
-              style={{ background: "rgba(251,191,36,0.3)" }}
-            />
-            <span
-              className="text-xs font-medium sm:text-sm"
-              style={{ color: "#FBBF24" }}
-            >
+            <div className="h-4 w-px" style={{ background: "rgba(251,191,36,0.3)" }} />
+            <span className="text-sm font-medium" style={{ color: "#FBBF24" }}>
               Doanh thu $16K–$45K
             </span>
-            <div
-              className="hidden h-4 w-px sm:block"
-              style={{ background: "rgba(251,191,36,0.3)" }}
-            />
-            <span
-              className="text-xs sm:text-sm"
-              style={{ color: "rgba(255,255,255,0.7)" }}
-            >
+            <div className="h-4 w-px" style={{ background: "rgba(251,191,36,0.3)" }} />
+            <span className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
               Chỉ 38 video
             </span>
           </div>

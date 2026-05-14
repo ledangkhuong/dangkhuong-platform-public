@@ -40,9 +40,9 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
       {/* ══════════════════════════════════════════════════
           PART 1 – BONUS
          ══════════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-5xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         {/* Title */}
-        <div className="mb-12 text-center">
+        <div className="mb-8 sm:mb-12 text-center">
           <div className="mb-4 flex items-center justify-center gap-2">
             <Gift className="h-6 w-6" style={{ color: "#FBBF24" }} />
             <span
@@ -52,7 +52,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
               Bonus
             </span>
           </div>
-          <h2 className="text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
+          <h2 className="text-2xl font-extrabold text-white sm:text-4xl lg:text-5xl">
             Đăng Ký Hôm Nay –{" "}
             <span style={{ color: "#FBBF24" }}>Nhận Thêm Miễn Phí</span>
           </h2>
@@ -157,15 +157,15 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
       {/* ══════════════════════════════════════════════════
           PART 3 – FINAL CTA
          ══════════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:py-20 sm:px-6 lg:px-8">
         {/* Headline */}
-        <h2 className="mb-10 text-center text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl">
+        <h2 className="mb-6 sm:mb-10 text-center text-2xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl">
           1 năm nữa, bạn muốn{" "}
           <span style={{ color: "#FBBF24" }}>ở đâu?</span>
         </h2>
 
         {/* Contrasting Options */}
-        <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mb-8 sm:mb-12 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
           {/* Option A – Negative */}
           <div
             className="rounded-xl p-6"
@@ -174,7 +174,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
               border: "1px solid rgba(239,68,68,0.25)",
             }}
           >
-            <p className="text-base font-semibold leading-relaxed text-gray-300 sm:text-lg">
+            <p className="text-sm font-semibold leading-relaxed text-gray-300 sm:text-lg">
               <span className="mr-2">&#10060;</span>
               Vẫn lướt YouTube xem người khác kiếm $30.000/tháng...
             </p>
@@ -188,7 +188,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
               border: "1px solid rgba(74,222,128,0.25)",
             }}
           >
-            <p className="text-base font-semibold leading-relaxed text-white sm:text-lg">
+            <p className="text-sm font-semibold leading-relaxed text-white sm:text-lg">
               <span className="mr-2">&#9989;</span>
               Hay CHÍNH BẠN đang đăng video thứ 38, check doanh thu $20.000?
             </p>
@@ -196,7 +196,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
         </div>
 
         {/* CTA Buttons */}
-        <div className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+        <div className="mb-6 sm:mb-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-6">
           {/* Standard */}
           <button
             type="button"
