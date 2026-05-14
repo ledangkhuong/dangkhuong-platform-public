@@ -123,11 +123,12 @@ export async function signIn(formData: FormData) {
     password: formData.get("password") as string,
   });
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
-  // Cập nhật last_login
+  // Cập nhật last_login (dùng admin client để bypass RLS)
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    await supabase.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", user.id);
-    await supabase.from("xp_events").insert({ user_id: user.id, action: "login", xp_amount: 10 });
+    const admin = await createAdminClient();
+    await admin.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", user.id);
+    await admin.from("xp_events").insert({ user_id: user.id, action: "login", xp_amount: 10 });
   }
   redirect("/dashboard");
 }

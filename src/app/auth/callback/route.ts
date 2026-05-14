@@ -159,12 +159,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(`${origin}/complete-profile`);
           }
         } else {
-          // Regular email user — update last_login + XP
-          await supabase
+          // Regular email user — update last_login + XP (dùng admin client để bypass RLS)
+          const adminForEmail = await createAdminClient();
+          await adminForEmail
             .from("profiles")
             .update({ last_login: new Date().toISOString() })
             .eq("id", user.id);
-          await supabase
+          await adminForEmail
             .from("xp_events")
             .insert({ user_id: user.id, action: "login", xp_amount: 10 });
         }
