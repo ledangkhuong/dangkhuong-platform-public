@@ -432,27 +432,18 @@ export default function SlowEnglishLanding() {
                     </span>{" "}
                     để mở khoá khoá học:
                   </p>
-                  <a
-                    href={
-                      paymentInfo.bank_account && paymentInfo.bank_code
-                        ? `https://dl.vietqr.io/pay?ba=${paymentInfo.bank_account}@${paymentInfo.bank_code.toLowerCase()}&am=${paymentInfo.amount}&tn=${encodeURIComponent(paymentInfo.transfer_content)}`
-                        : paymentInfo.qr_url
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex justify-center mb-5"
-                  >
-                    <div className="p-3 rounded-xl bg-white active:scale-95 transition-transform">
+                  <div className="flex justify-center mb-5">
+                    <div className="p-3 rounded-xl bg-white">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={paymentInfo.qr_url}
-                        alt="QR thanh toán — Bấm để mở app ngân hàng"
+                        alt="QR thanh toán"
                         width={220}
                         height={220}
                         className="block"
                       />
                     </div>
-                  </a>
+                  </div>
 
                   <div className="space-y-3">
                     {[
