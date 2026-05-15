@@ -14,7 +14,7 @@ create table public.profiles (
   avatar_url    text,
   bio           text,
   phone         text,
-  role          text default 'student' check (role in ('student','admin','moderator')),
+  role          text default 'student' check (role in ('student','admin','manager','marketing','sale','support')),
   tier          text default 'free' check (tier in ('free','member','vip')),
   xp            integer default 0,
   level         integer default 1,
