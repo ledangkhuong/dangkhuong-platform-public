@@ -2,6 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
+import QRCodeButton from "@/components/admin/QRCodeButton";
 import {
   ShoppingCart,
   TrendingUp,
@@ -121,6 +122,10 @@ export default async function AdminOrdersPage() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") redirect("/dashboard");
+
+  // Bank info for QR
+  const bankAccount = process.env.SEPAY_BANK_ACCOUNT ?? "";
+  const bankCode = process.env.SEPAY_BANK_CODE ?? "";
 
   // Fetch orders with product title (bypass RLS)
   const supabase = await createAdminClient();
@@ -330,6 +335,19 @@ export default async function AdminOrdersPage() {
                           <span className="text-xs text-gray-400 capitalize">
                             {order.payment_method ?? "—"}
                           </span>
+                          {order.status === "pending" &&
+                            bankAccount &&
+                            bankCode && (
+                              <QRCodeButton
+                                orderCode={order.order_code}
+                                amount={order.amount}
+                                customerName={order.customer_name}
+                                customerEmail={order.customer_email}
+                                customerPhone={order.customer_phone}
+                                bankAccount={bankAccount}
+                                bankCode={bankCode}
+                              />
+                            )}
                         </div>
                         {order.status === "paid" && order.paid_at && (
                           <div className="flex items-center gap-1.5 mt-1">
