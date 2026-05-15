@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import PasswordInput from "@/components/auth/PasswordInput";
 import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 /* ─── Data ───────────────────────────────────────────────────── */
 
@@ -107,6 +108,9 @@ export default function HomePage() {
   const [formError, setFormError] = useState("");
   const [countdown, setCountdown] = useState({ h: 23, m: 59, s: 59 });
   const [showLeadModal, setShowLeadModal] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const handleTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
+  const handleTurnstileExpire = useCallback(() => setTurnstileToken(""), []);
 
   // Countdown timer
   useEffect(() => {
@@ -138,6 +142,7 @@ export default function HomePage() {
           email: formData.email,
           phone: formData.phone,
           password: password,
+          turnstile_token: turnstileToken,
         }),
       });
       const data = await res.json();
@@ -895,6 +900,9 @@ export default function HomePage() {
                         minLength={8} />
                       {/* Hidden input to sync password to state */}
                     </div>
+
+                    {/* Turnstile CAPTCHA */}
+                    <TurnstileWidget onVerify={handleTurnstileVerify} onExpire={handleTurnstileExpire} />
 
                     <p className="text-xs text-gray-500 pt-1">
                       Bằng cách đăng ký, bạn đồng ý với{" "}
