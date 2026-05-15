@@ -8,7 +8,7 @@ import { verifyTurnstile } from "@/lib/turnstile";
  * Body: { full_name, email, phone, password, turnstile_token }
  */
 
-const PRODUCT_SLUG = "lo-trinh-kiem-tien-san-pham-so-2026";
+const PRODUCT_SLUG = "con-duong-kiem-tien-tu-san-pham-so-2026";
 const PRODUCT_PRICE = 100000; // 100K VND
 
 function generateOrderCode() {
