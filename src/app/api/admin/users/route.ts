@@ -134,12 +134,15 @@ export async function DELETE(req: NextRequest) {
 
   for (const uid of user_ids) {
     try {
-      // 1. Delete records in tables WITHOUT cascade delete (these block user deletion)
+      // 1. Delete/nullify records in tables WITHOUT cascade delete (these block user deletion)
       await adminClient.from("orders").delete().eq("user_id", uid);
       await adminClient.from("analytics_events").delete().eq("user_id", uid);
+      await adminClient.from("subscribers").update({ user_id: null }).eq("user_id", uid);
 
-      // 2. Nullify references in CRM tables (ON DELETE SET NULL may not fire from admin API)
+      // 2. Nullify references in CRM tables (ON DELETE SET NULL defined but explicit for safety)
       await adminClient.from("crm_contacts").update({ user_id: null }).eq("user_id", uid);
+      await adminClient.from("crm_contacts").update({ assigned_to: null }).eq("assigned_to", uid);
+      await adminClient.from("crm_contacts").update({ created_by: null }).eq("created_by", uid);
       await adminClient.from("crm_activities").update({ created_by: null }).eq("created_by", uid);
       await adminClient.from("crm_deals").update({ assigned_to: null }).eq("assigned_to", uid);
       await adminClient.from("crm_deals").update({ created_by: null }).eq("created_by", uid);
@@ -148,7 +151,11 @@ export async function DELETE(req: NextRequest) {
       await adminClient.from("affiliates").delete().eq("user_id", uid);
 
       // 4. Delete profile explicitly (cascades to lesson_progress, enrollments, posts, etc.)
-      await adminClient.from("profiles").delete().eq("id", uid);
+      const { error: profileErr } = await adminClient.from("profiles").delete().eq("id", uid);
+      if (profileErr) {
+        results.errors.push(`${uid}: Profile delete failed — ${profileErr.message}`);
+        continue; // Skip auth delete if profile delete failed
+      }
 
       // 5. Finally delete auth user
       const { error: delErr } = await adminClient.auth.admin.deleteUser(uid);

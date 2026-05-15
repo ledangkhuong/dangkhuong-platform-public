@@ -30,7 +30,10 @@ export default function DeleteUserButton({ userId, userName }: Props) {
       if (res.ok && data.deleted > 0) {
         router.refresh();
       } else {
-        alert(data.error || "Xoá thất bại");
+        const errMsg = data.error
+          || (data.errors?.length ? data.errors.join("\n") : null)
+          || "Xoá thất bại";
+        alert(errMsg);
       }
     } catch {
       alert("Lỗi kết nối");
