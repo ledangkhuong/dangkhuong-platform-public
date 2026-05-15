@@ -1,14 +1,8 @@
-import { Resend } from "resend";
-
-let _resend: Resend | null = null;
-function getResend() {
-  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
-  return _resend;
-}
-// Resend requires "Name <email>" format
-const fromEmail = process.env.EMAIL_FROM || "no-reply@dangkhuong.com";
-const fromName = process.env.EMAIL_FROM_NAME || "Đăng Khương Academy";
-const FROM = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
+/**
+ * Transactional Email Functions — powered by AWS SES
+ * (Chuyển từ Resend sang SES để tránh quota limit)
+ */
+import { sendEmail as sesSendEmail } from "./ses";
 
 // ─── Templates ───────────────────────────────────────────────────
 
@@ -55,11 +49,10 @@ function baseTemplate(content: string) {
 // ─── Email functions ───────────────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, name: string) {
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: `Chào mừng ${name} đến với Lê Đăng Khương Academy! 🎉`,
-    html: baseTemplate(`
+    `Chào mừng ${name} đến với Lê Đăng Khương Academy! 🎉`,
+    baseTemplate(`
       <h1>Chào mừng bạn, ${name}! 🚀</h1>
       <p>Tôi là <span class="highlight">Lê Đăng Khương</span> — và tôi rất vui khi bạn tham gia cộng đồng.</p>
       <p>Đây là những gì bạn có thể làm ngay:</p>
@@ -74,7 +67,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
       <p style="margin:0;">Nếu bạn có bất kỳ câu hỏi nào, chỉ cần reply email này — tôi đọc tất cả.</p>
       <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Lê Đăng Khương</p>
     `),
-  });
+  );
 }
 
 export async function sendPurchaseConfirmation(
@@ -85,11 +78,10 @@ export async function sendPurchaseConfirmation(
   orderCode: string,
 ) {
   const formattedAmount = amount.toLocaleString("vi-VN") + "₫";
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: `✅ Xác nhận thanh toán — ${productName}`,
-    html: baseTemplate(`
+    `✅ Xác nhận thanh toán — ${productName}`,
+    baseTemplate(`
       <h1>Thanh toán thành công! 🎉</h1>
       <p>Xin chào <span class="highlight">${name}</span>,</p>
       <p>Chúng tôi đã nhận được thanh toán của bạn và quyền truy cập đã được kích hoạt.</p>
@@ -105,7 +97,7 @@ export async function sendPurchaseConfirmation(
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Giữ email này làm biên lai. Nếu có vấn đề gì, reply email này để được hỗ trợ trong 24h.</p>
     `),
-  });
+  );
 }
 
 export async function sendWeeklyNewsletter(
@@ -114,11 +106,10 @@ export async function sendWeeklyNewsletter(
   subject: string,
   body: string,
 ) {
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
     subject,
-    html: baseTemplate(`
+    baseTemplate(`
       <h1>${subject}</h1>
       <p>Xin chào <span class="highlight">${name}</span>,</p>
       ${body}
@@ -126,7 +117,7 @@ export async function sendWeeklyNewsletter(
       <p style="margin:0;font-size:13px;color:#6b7280;">— Lê Đăng Khương<br/>
       <a href="https://dangkhuong.com" style="color:#D4A843;">dangkhuong.com</a></p>
     `),
-  });
+  );
 }
 
 export async function sendLessonCompleteNudge(
@@ -135,11 +126,10 @@ export async function sendLessonCompleteNudge(
   nextLessonTitle: string,
   courseUrl: string,
 ) {
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: `🔥 Tiếp tục đà học tập — bài tiếp theo đang chờ bạn!`,
-    html: baseTemplate(`
+    `🔥 Tiếp tục đà học tập — bài tiếp theo đang chờ bạn!`,
+    baseTemplate(`
       <h1>Bạn đang làm rất tốt, ${name}! 💪</h1>
       <p>Bạn đã hoàn thành bài học trước. Tiếp tục ngay để giữ đà học tập!</p>
       <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin:20px 0;">
@@ -152,7 +142,7 @@ export async function sendLessonCompleteNudge(
         Nhất quán mỗi ngày — đó là bí quyết thực sự. Chỉ 20 phút hôm nay!
       </p>
     `),
-  });
+  );
 }
 
 export async function sendPasswordResetEmail(
@@ -160,11 +150,10 @@ export async function sendPasswordResetEmail(
   name: string,
   resetLink: string,
 ) {
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: `🔑 Đặt lại mật khẩu — Lê Đăng Khương Academy`,
-    html: baseTemplate(`
+    `🔑 Đặt lại mật khẩu — Lê Đăng Khương Academy`,
+    baseTemplate(`
       <h1>Đặt lại mật khẩu</h1>
       <p>Xin chào <span class="highlight">${name}</span>,</p>
       <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Bấm nút bên dưới để tạo mật khẩu mới:</p>
@@ -176,7 +165,7 @@ export async function sendPasswordResetEmail(
       <p style="margin:0;font-size:12px;color:#4b5563;">Nếu nút không hoạt động, copy và dán link sau vào trình duyệt:<br/>
       <a href="${resetLink}" style="color:#D4A843;word-break:break-all;font-size:11px;">${resetLink}</a></p>
     `),
-  });
+  );
 }
 
 export async function sendEventReminder(
@@ -186,11 +175,10 @@ export async function sendEventReminder(
   eventTime: string,
   joinUrl: string,
 ) {
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: `⏰ Nhắc nhở: "${eventTitle}" bắt đầu trong 1 tiếng!`,
-    html: baseTemplate(`
+    `⏰ Nhắc nhở: "${eventTitle}" bắt đầu trong 1 tiếng!`,
+    baseTemplate(`
       <h1>Sắp đến giờ rồi! ⏰</h1>
       <p>Xin chào <span class="highlight">${name}</span>,</p>
       <p>Sự kiện bạn đã đăng ký sắp bắt đầu:</p>
@@ -202,7 +190,7 @@ export async function sendEventReminder(
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Hẹn gặp bạn ở đó!</p>
     `),
-  });
+  );
 }
 
 export async function sendAffiliateCommissionEmail(
@@ -212,11 +200,10 @@ export async function sendAffiliateCommissionEmail(
   commissionAmount: number,
 ) {
   const formatted = commissionAmount.toLocaleString("vi-VN") + "₫";
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: `Bạn vừa nhận hoa hồng ${formatted} — Lê Đăng Khương Academy`,
-    html: baseTemplate(`
+    `Bạn vừa nhận hoa hồng ${formatted} — Lê Đăng Khương Academy`,
+    baseTemplate(`
       <h1>Chúc mừng, ${name}!</h1>
       <p>Một khách hàng vừa mua <span class="highlight">${productName}</span> qua link giới thiệu của bạn.</p>
       <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
@@ -228,7 +215,7 @@ export async function sendAffiliateCommissionEmail(
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Tiếp tục chia sẻ link giới thiệu để nhận thêm hoa hồng!</p>
     `),
-  });
+  );
 }
 
 export async function sendVerificationEmail(to: string, name: string, confirmUrl: string) {
@@ -245,10 +232,9 @@ export async function sendVerificationEmail(to: string, name: string, confirmUrl
     <p style="font-size:12px; color:#6b7280; margin:0;">Link xác thực có hiệu lực trong 24 giờ. Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
   `);
 
-  return getResend().emails.send({
-    from: FROM,
+  return sesSendEmail(
     to,
-    subject: "Xác thực tài khoản Lê Đăng Khương Academy",
+    "Xác thực tài khoản Lê Đăng Khương Academy",
     html,
-  });
+  );
 }
