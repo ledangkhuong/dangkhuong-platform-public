@@ -40,7 +40,7 @@ export default async function EmailPage() {
   // Fetch campaigns ordered by created_at desc
   const { data: campaigns } = await supabase
     .from("email_campaigns")
-    .select("id, name, subject, status, scheduled_at, sent_at, sent_count, open_count, click_count, created_at")
+    .select("id, name, subject, status, scheduled_at, sent_at, sent_count, open_count, click_count, total_recipients, created_at")
     .order("created_at", { ascending: false });
 
   const campaignList = campaigns ?? [];
@@ -48,12 +48,13 @@ export default async function EmailPage() {
   // Get recent 5 campaigns
   const recentCampaigns = campaignList.slice(0, 5);
 
-  // Compute aggregate email stats
-  const totalSent = campaignList.reduce((sum, c) => sum + (c.sent_count ?? 0), 0);
+  // Compute aggregate email stats — use total_recipients for accurate rates
+  const totalRecipients = campaignList.reduce((sum, c) => sum + (c.total_recipients ?? c.sent_count ?? 0), 0);
+  const totalSent = totalRecipients; // Display the actual unique recipients, not inflated sent_count
   const totalOpened = campaignList.reduce((sum, c) => sum + (c.open_count ?? 0), 0);
   const totalClicked = campaignList.reduce((sum, c) => sum + (c.click_count ?? 0), 0);
-  const avgOpenRate = totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : "0.0";
-  const avgClickRate = totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) : "0.0";
+  const avgOpenRate = totalRecipients > 0 ? ((totalOpened / totalRecipients) * 100).toFixed(1) : "0.0";
+  const avgClickRate = totalRecipients > 0 ? ((totalClicked / totalRecipients) * 100).toFixed(1) : "0.0";
 
   const stats = [
     { label: "Tổng subscribers", value: total.toLocaleString("vi-VN"), sub: `${active} đang hoạt động`, icon: Users, color: "#D4A843" },
@@ -132,8 +133,9 @@ export default async function EmailPage() {
                   </thead>
                   <tbody>
                     {recentCampaigns.map((c, i) => {
-                      const openRate = c.sent_count > 0 ? Math.round((c.open_count / c.sent_count) * 100) : 0;
-                      const clickRate = c.sent_count > 0 ? Math.round((c.click_count / c.sent_count) * 100) : 0;
+                      const denom = c.total_recipients ?? c.sent_count ?? 0;
+                      const openRate = denom > 0 ? Math.round((c.open_count / denom) * 100) : 0;
+                      const clickRate = denom > 0 ? Math.round((c.click_count / denom) * 100) : 0;
                       const st = statusConfig[c.status] ?? statusConfig.draft;
                       const dateLabel = c.sent_at
                         ? new Date(c.sent_at).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
@@ -154,15 +156,15 @@ export default async function EmailPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-right text-gray-300 text-sm">
-                            {c.sent_count > 0 ? c.sent_count.toLocaleString("vi-VN") : "—"}
+                            {denom > 0 ? denom.toLocaleString("vi-VN") : "—"}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            {c.sent_count > 0 ? (
+                            {denom > 0 ? (
                               <span className="text-[#D4A843] font-medium">{openRate}%</span>
                             ) : <span className="text-gray-600">{"—"}</span>}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            {c.sent_count > 0 ? (
+                            {denom > 0 ? (
                               <span className="text-[#3b82f6] font-medium">{clickRate}%</span>
                             ) : <span className="text-gray-600">{"—"}</span>}
                           </td>

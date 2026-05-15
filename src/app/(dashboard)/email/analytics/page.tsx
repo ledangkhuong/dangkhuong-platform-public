@@ -167,20 +167,22 @@ export default function AnalyticsPage() {
 
   // Sort campaigns for the table
   const sentCampaigns = campaigns.filter(
-    (c) => c.status === "sent" && (c.sent_count || 0) > 0
+    (c) => c.status === "sent" && (c.total_recipients || c.sent_count || 0) > 0
   );
   const sortedCampaigns = [...sentCampaigns].sort((a, b) => {
     let aVal: number | string;
     let bVal: number | string;
+    const aDenom = a.total_recipients || a.sent_count || 1;
+    const bDenom = b.total_recipients || b.sent_count || 1;
     if (sortField === "name") {
       aVal = (a.name || a.subject || "").toLowerCase();
       bVal = (b.name || b.subject || "").toLowerCase();
     } else if (sortField === "open_rate") {
-      aVal = a.sent_count > 0 ? (a.open_count / a.sent_count) * 100 : 0;
-      bVal = b.sent_count > 0 ? (b.open_count / b.sent_count) * 100 : 0;
+      aVal = aDenom > 0 ? (a.open_count / aDenom) * 100 : 0;
+      bVal = bDenom > 0 ? (b.open_count / bDenom) * 100 : 0;
     } else if (sortField === "click_rate") {
-      aVal = a.sent_count > 0 ? (a.click_count / a.sent_count) * 100 : 0;
-      bVal = b.sent_count > 0 ? (b.click_count / b.sent_count) * 100 : 0;
+      aVal = aDenom > 0 ? (a.click_count / aDenom) * 100 : 0;
+      bVal = bDenom > 0 ? (b.click_count / bDenom) * 100 : 0;
     } else {
       aVal = (a[sortField] as number) || 0;
       bVal = (b[sortField] as number) || 0;
@@ -656,16 +658,17 @@ export default function AnalyticsPage() {
                     </thead>
                     <tbody>
                       {sortedCampaigns.map((c, i) => {
+                        const denom = c.total_recipients || c.sent_count || 1;
                         const openRate =
-                          c.sent_count > 0
+                          denom > 0
                             ? Math.round(
-                                (c.open_count / c.sent_count) * 10000
+                                (c.open_count / denom) * 10000
                               ) / 100
                             : 0;
                         const clickRate =
-                          c.sent_count > 0
+                          denom > 0
                             ? Math.round(
-                                (c.click_count / c.sent_count) * 10000
+                                (c.click_count / denom) * 10000
                               ) / 100
                             : 0;
                         return (

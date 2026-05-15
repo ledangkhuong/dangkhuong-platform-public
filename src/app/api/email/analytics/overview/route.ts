@@ -36,11 +36,12 @@ export async function GET(req: NextRequest) {
 
     const campaignList = campaigns || [];
 
-    // Aggregate summary
-    const total_sent = campaignList.reduce(
-      (sum, c) => sum + (c.sent_count || 0),
+    // Aggregate summary — use total_recipients for accurate rate calculations
+    const total_recipients_sum = campaignList.reduce(
+      (sum, c) => sum + (c.total_recipients || c.sent_count || 0),
       0
     );
+    const total_sent = total_recipients_sum; // Show actual unique recipients
     const total_opens = campaignList.reduce(
       (sum, c) => sum + (c.open_count || 0),
       0
@@ -131,7 +132,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Add sent counts by day from campaigns
+    // Add sent counts by day from campaigns (use total_recipients for accurate numbers)
     for (const c of campaignList) {
       const dateKey = c.sent_at
         ? new Date(c.sent_at).toISOString().split("T")[0]
@@ -139,7 +140,7 @@ export async function GET(req: NextRequest) {
           ? new Date(c.created_at).toISOString().split("T")[0]
           : null;
       if (dateKey && dailyMap.has(dateKey)) {
-        dailyMap.get(dateKey)!.sent += c.sent_count || 0;
+        dailyMap.get(dateKey)!.sent += c.total_recipients || c.sent_count || 0;
       }
     }
 
@@ -176,27 +177,24 @@ export async function GET(req: NextRequest) {
         ? Math.round((total_bounces / total_sent) * 10000) / 100
         : 0;
 
-    // Top 5 campaigns by open rate
+    // Top 5 campaigns by open rate (use total_recipients for accurate rates)
     const sentCampaigns = campaignList.filter(
-      (c) => c.status === "sent" && (c.sent_count || 0) > 0
+      (c) => c.status === "sent" && (c.total_recipients || c.sent_count || 0) > 0
     );
     const top_campaigns = sentCampaigns
-      .map((c) => ({
-        id: c.id,
-        name: c.name,
-        subject: c.subject,
-        sent_count: c.sent_count || 0,
-        open_count: c.open_count || 0,
-        click_count: c.click_count || 0,
-        open_rate:
-          Math.round(
-            ((c.open_count || 0) / (c.sent_count || 1)) * 10000
-          ) / 100,
-        click_rate:
-          Math.round(
-            ((c.click_count || 0) / (c.sent_count || 1)) * 10000
-          ) / 100,
-      }))
+      .map((c) => {
+        const denom = c.total_recipients || c.sent_count || 1;
+        return {
+          id: c.id,
+          name: c.name,
+          subject: c.subject,
+          sent_count: c.total_recipients || c.sent_count || 0,
+          open_count: c.open_count || 0,
+          click_count: c.click_count || 0,
+          open_rate: Math.round(((c.open_count || 0) / denom) * 10000) / 100,
+          click_rate: Math.round(((c.click_count || 0) / denom) * 10000) / 100,
+        };
+      })
       .sort((a, b) => b.open_rate - a.open_rate)
       .slice(0, 5);
 

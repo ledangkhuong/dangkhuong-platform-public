@@ -62,10 +62,10 @@ async function sendEmail(
     Destination: { ToAddresses: [options.toEmail] },
     Content: {
       Simple: {
-        Subject: { Data: options.subject },
+        Subject: { Data: options.subject, Charset: "UTF-8" },
         Body: {
-          Html: { Data: options.htmlContent },
-          Text: { Data: options.textContent || "" },
+          Html: { Data: options.htmlContent, Charset: "UTF-8" },
+          Text: { Data: options.textContent || "", Charset: "UTF-8" },
         },
       },
     },
@@ -109,6 +109,19 @@ export async function POST(
     if (campaign.status !== "draft" && campaign.status !== "scheduled") {
       return NextResponse.json(
         { error: "Campaign must be in draft or scheduled status to send" },
+        { status: 400 }
+      );
+    }
+
+    // Guard: prevent duplicate sends — check if email_sends already exist for this campaign
+    const { count: existingSendsCount } = await admin
+      .from("email_sends")
+      .select("id", { count: "exact", head: true })
+      .eq("campaign_id", id);
+
+    if (existingSendsCount && existingSendsCount > 0) {
+      return NextResponse.json(
+        { error: "Campaign already has email sends. Use /continue to resume sending." },
         { status: 400 }
       );
     }
@@ -334,11 +347,19 @@ export async function POST(
         .eq("id", id);
     }
 
+    // Re-fetch campaign for UI
+    const { data: latestCampaign } = await admin
+      .from("email_campaigns")
+      .select("*")
+      .eq("id", id)
+      .single();
+
     return NextResponse.json({
       success: true,
       total_recipients: subscribers.length,
       sent: sentCount,
       remaining,
+      campaign: latestCampaign,
     });
   } catch (err) {
     console.error("POST /api/email/campaigns/[id]/send error:", err);

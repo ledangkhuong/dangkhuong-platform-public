@@ -115,10 +115,18 @@ export async function POST(
         })
         .eq("id", id);
 
+      // Re-fetch to get updated campaign data for UI
+      const { data: finalCampaign } = await admin
+        .from("email_campaigns")
+        .select("*")
+        .eq("id", id)
+        .single();
+
       return NextResponse.json({
         sent: 0,
         remaining: 0,
         completed: true,
+        campaign: finalCampaign,
       });
     }
 
@@ -173,10 +181,10 @@ export async function POST(
           Destination: { ToAddresses: [send.email] },
           Content: {
             Simple: {
-              Subject: { Data: campaign.subject },
+              Subject: { Data: campaign.subject, Charset: "UTF-8" },
               Body: {
-                Html: { Data: renderedHtml },
-                Text: { Data: campaign.text_content || "" },
+                Html: { Data: renderedHtml, Charset: "UTF-8" },
+                Text: { Data: campaign.text_content || "", Charset: "UTF-8" },
               },
             },
           },
@@ -254,10 +262,18 @@ export async function POST(
         .eq("id", id);
     }
 
+    // Re-fetch campaign for UI
+    const { data: latestCampaign } = await admin
+      .from("email_campaigns")
+      .select("*")
+      .eq("id", id)
+      .single();
+
     return NextResponse.json({
       sent: sentCount,
       remaining,
       completed,
+      campaign: latestCampaign,
     });
   } catch (err) {
     console.error("POST /api/email/campaigns/[id]/continue error:", err);
