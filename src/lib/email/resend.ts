@@ -5,7 +5,10 @@ function getResend() {
   if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
   return _resend;
 }
-const FROM = process.env.EMAIL_FROM || "Lê Đăng Khương <no-reply@dangkhuong.com>";
+// Resend requires "Name <email>" format
+const fromEmail = process.env.EMAIL_FROM || "no-reply@dangkhuong.com";
+const fromName = process.env.EMAIL_FROM_NAME || "Đăng Khương Academy";
+const FROM = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
 
 // ─── Templates ───────────────────────────────────────────────────
 

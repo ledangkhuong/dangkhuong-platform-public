@@ -90,19 +90,29 @@ export async function POST(req: NextRequest) {
     }
 
     // Send verification email
-    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-      type: "signup",
-      email,
-      password,
-    });
+    let emailSent = false;
+    try {
+      const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+        type: "signup",
+        email,
+        password,
+      });
 
-    if (!linkError && linkData) {
-      const confirmUrl = `https://dangkhuong.com/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
-      const { sendVerificationEmail } = await import("@/lib/email/resend");
-      await sendVerificationEmail(email, full_name, confirmUrl).catch(() => {});
+      if (linkError) {
+        console.error("[Register] generateLink error:", linkError.message);
+      } else if (linkData) {
+        const confirmUrl = `https://dangkhuong.com/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
+        console.log("[Register] Sending verification email to:", email);
+        const { sendVerificationEmail } = await import("@/lib/email/resend");
+        const result = await sendVerificationEmail(email, full_name, confirmUrl);
+        console.log("[Register] Email sent result:", JSON.stringify(result));
+        emailSent = true;
+      }
+    } catch (emailErr) {
+      console.error("[Register] Email send failed:", emailErr instanceof Error ? emailErr.message : emailErr);
     }
 
-    return NextResponse.json({ success: true, email });
+    return NextResponse.json({ success: true, email, emailSent });
   } catch (err) {
     console.error("Register API error:", err);
     return NextResponse.json({ error: "Có lỗi xảy ra. Vui lòng thử lại." }, { status: 500 });
