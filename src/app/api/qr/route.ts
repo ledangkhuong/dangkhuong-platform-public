@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * GET /api/qr?bank=MB&acc=7827&amount=99000&des=DKXXX
+ * GET /api/qr?bank=BIDV&acc=8877357346&amount=99000&des=DKXXX
  * Proxy QR image từ Sepay để tránh browser block cross-origin image
  */
 export async function GET(req: NextRequest) {
