@@ -30,6 +30,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import BankTransferButtons from "@/components/BankTransferButtons";
 
 /* ─── Types ──────────────────────────────────────────── */
 
@@ -1119,6 +1120,17 @@ export default function CafeLanding() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Bank deep link buttons */}
+                  {paymentInfo.bank_account && paymentInfo.bank_code && (
+                    <BankTransferButtons
+                      bankAccount={paymentInfo.bank_account}
+                      bankCode={paymentInfo.bank_code}
+                      amount={paymentInfo.amount}
+                      transferContent={paymentInfo.transfer_content}
+                      accentColor="#D4A843"
+                    />
+                  )}
 
                   <div className="mt-4 p-4 rounded-lg text-sm text-gray-400 leading-relaxed bg-[#D4A843]/5 border border-[#D4A843]/10">
                     <span className="text-[#D4A843] font-medium">

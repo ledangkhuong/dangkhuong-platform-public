@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { QrCode, X, Copy, Check } from "lucide-react";
+import BankTransferButtons from "@/components/BankTransferButtons";
 
 interface QRCodeButtonProps {
   orderCode: string;
@@ -134,6 +135,14 @@ export default function QRCodeButton({
                 highlight
               />
             </div>
+
+            {/* Bank deep link buttons */}
+            <BankTransferButtons
+              bankAccount={bankAccount}
+              bankCode={bankCode}
+              amount={amount}
+              transferContent={transferContent}
+            />
 
             {/* Customer info */}
             {(customerName || customerEmail || customerPhone) && (

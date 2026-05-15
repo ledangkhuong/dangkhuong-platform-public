@@ -18,6 +18,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import BankTransferButtons from "@/components/BankTransferButtons";
 import HeroSection from "./sections/HeroSection";
 import ProofSection from "./sections/ProofSection";
 import PainPointsSection from "./sections/PainPointsSection";
@@ -36,6 +37,8 @@ interface PaymentInfo {
   amount: number;
   transfer_content: string;
   qr_url: string | null;
+  bank_account: string | null;
+  bank_code: string | null;
 }
 
 /* ─── Component ──────────────────────────────────────── */
@@ -486,6 +489,17 @@ export default function SlowEnglishLanding() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Bank deep link buttons */}
+                  {paymentInfo.bank_account && paymentInfo.bank_code && (
+                    <BankTransferButtons
+                      bankAccount={paymentInfo.bank_account}
+                      bankCode={paymentInfo.bank_code}
+                      amount={paymentInfo.amount}
+                      transferContent={paymentInfo.transfer_content}
+                      accentColor="#FBBF24"
+                    />
+                  )}
 
                   <div className="mt-4 p-4 rounded-lg text-sm text-gray-400 leading-relaxed bg-[#FBBF24]/5 border border-[#FBBF24]/10">
                     <span className="text-[#FBBF24] font-medium">
