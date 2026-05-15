@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+
+  const handleVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +24,10 @@ export default function NewsletterForm() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({
+          email: email.trim(),
+          turnstile_token: turnstileToken,
+        }),
       });
 
       const data = await res.json();
@@ -59,24 +68,29 @@ export default function NewsletterForm() {
           {message}
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
-          <input
-            type="email"
-            placeholder="Email của bạn..."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={status === "loading"}
-            required
-            className="input-dark flex-1"
-          />
-          <button
-            type="submit"
-            disabled={status === "loading" || !email.trim()}
-            className="btn-green shrink-0"
-          >
-            {status === "loading" ? "Đang xử lý..." : "Đăng ký"}
-          </button>
-        </form>
+        <div>
+          <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
+            <input
+              type="email"
+              placeholder="Email của bạn..."
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={status === "loading"}
+              required
+              className="input-dark flex-1"
+            />
+            <button
+              type="submit"
+              disabled={status === "loading" || !email.trim()}
+              className="btn-green shrink-0"
+            >
+              {status === "loading" ? "Đang xử lý..." : "Đăng ký"}
+            </button>
+          </form>
+          <div className="mt-3 flex justify-center">
+            <TurnstileWidget onVerify={handleVerify} />
+          </div>
+        </div>
       )}
 
       {status === "error" && message && (

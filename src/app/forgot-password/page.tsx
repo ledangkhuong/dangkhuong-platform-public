@@ -1,13 +1,7 @@
 import Link from "next/link";
-import { forgotPassword } from "@/lib/actions/forgot-password";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
-export default async function ForgotPasswordPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ success?: string; error?: string }>;
-}) {
-  const { success, error } = await searchParams;
-
+export default function ForgotPasswordPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
@@ -23,45 +17,9 @@ export default async function ForgotPasswordPage({
           </p>
         </div>
 
-        {/* Success */}
-        {success && (
-          <div
-            className="mb-4 p-3 rounded-lg text-sm text-amber-400 border border-amber-400/20"
-            style={{ background: "rgba(212,168,67,0.08)" }}
-          >
-            {success}
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div
-            className="mb-4 p-3 rounded-lg text-sm text-red-400 border border-red-400/20"
-            style={{ background: "rgba(239,68,68,0.08)" }}
-          >
-            {error}
-          </div>
-        )}
-
         <div className="card-dark p-6 sm:p-8">
-          <form action={forgotPassword} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                Email
-              </label>
-              <input
-                name="email"
-                type="email"
-                placeholder="ban@email.com"
-                className="input-dark w-full"
-                required
-              />
-            </div>
-
-            <button type="submit" className="btn-green w-full justify-center py-2.5 mt-2">
-              Gửi link đặt lại mật khẩu
-            </button>
-          </form>
+          {/* Forgot Password Form with Turnstile */}
+          <ForgotPasswordForm />
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Nhớ mật khẩu rồi?{" "}

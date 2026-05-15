@@ -1,19 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendPasswordResetEmail } from "@/lib/email/resend";
+import { verifyTurnstile } from "@/lib/turnstile";
+import { headers } from "next/headers";
 
-export async function POST(request: NextRequest) {
-  const formData = await request.formData();
-  const email = formData.get("email") as string;
-  const origin = new URL(request.url).origin;
-
-  if (!email) {
-    return NextResponse.redirect(
-      `${origin}/forgot-password?error=${encodeURIComponent("Vui lòng nhập email.")}`,
-    );
-  }
-
+export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
+    const { email, turnstile_token } = body;
+
+    // Verify Turnstile CAPTCHA
+    const turnstileOk = await verifyTurnstile(turnstile_token);
+    if (!turnstileOk) {
+      return NextResponse.json(
+        { error: "Xác minh CAPTCHA thất bại. Vui lòng thử lại." },
+        { status: 400 }
+      );
+    }
+
+    if (!email?.trim()) {
+      return NextResponse.json(
+        { error: "Vui lòng nhập email" },
+        { status: 400 }
+      );
+    }
+
+    const headersList = await headers();
+    const host = headersList.get("host") || "dangkhuong.com";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const origin = `${protocol}://${host}`;
+
     const supabase = await createAdminClient();
 
     // Generate recovery link using admin API
@@ -25,31 +41,37 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (error) {
-      // Don't reveal if email exists or not for security
-      return NextResponse.redirect(
-        `${origin}/forgot-password?success=${encodeURIComponent(
-          "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.",
-        )}`,
-      );
+    if (!error && data?.properties?.action_link) {
+      // Extract token_hash and build custom reset URL
+      const actionUrl = new URL(data.properties.action_link);
+      const tokenHash = actionUrl.searchParams.get("token");
+      const resetUrl = `${origin}/reset-password?token_hash=${tokenHash}&type=recovery`;
+
+      // Get user name
+      let name = email.split("@")[0];
+      try {
+        const { data: users } = await supabase.auth.admin.listUsers();
+        const matchedUser = users?.users?.find((u) => u.email === email);
+        if (matchedUser?.user_metadata?.full_name) {
+          name = matchedUser.user_metadata.full_name;
+        }
+      } catch {
+        // fallback to email prefix
+      }
+
+      await sendPasswordResetEmail(email, name, resetUrl).catch(() => {});
     }
 
-    // Send custom email via Resend
-    if (data?.properties?.action_link) {
-      const name = email.split("@")[0]; // Fallback name from email
-      await sendPasswordResetEmail(email, name, data.properties.action_link);
-    }
-
-    return NextResponse.redirect(
-      `${origin}/forgot-password?success=${encodeURIComponent(
-        "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.",
-      )}`,
-    );
-  } catch {
-    return NextResponse.redirect(
-      `${origin}/forgot-password?success=${encodeURIComponent(
-        "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.",
-      )}`,
-    );
+    // Always return success to prevent email enumeration
+    return NextResponse.json({
+      success: true,
+      message: "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.",
+    });
+  } catch (err) {
+    console.error("[Forgot Password API] Error:", err);
+    return NextResponse.json({
+      success: true,
+      message: "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.",
+    });
   }
 }

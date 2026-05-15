@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   User,
@@ -17,6 +17,7 @@ import {
   EyeOff,
   ArrowRight,
 } from "lucide-react";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import HeroSection from "./sections/HeroSection";
 import ProofSection from "./sections/ProofSection";
 import PainPointsSection from "./sections/PainPointsSection";
@@ -58,6 +59,11 @@ export default function SlowEnglishLanding() {
   const [productName, setProductName] = useState("");
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -86,7 +92,7 @@ export default function SlowEnglishLanding() {
       const res = await fetch("/api/slowenglish/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstile_token: turnstileToken }),
       });
       const data = await res.json();
       if (data.success) {
@@ -321,6 +327,9 @@ export default function SlowEnglishLanding() {
                 </button>
               </div>
             </div>
+
+            {/* Turnstile CAPTCHA */}
+            <TurnstileWidget onVerify={handleTurnstileVerify} className="mt-2" />
 
             <button
               type="submit"

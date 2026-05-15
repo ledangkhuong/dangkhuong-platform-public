@@ -1,15 +1,8 @@
 import Link from "next/link";
-import { signIn } from "@/lib/actions/auth";
-import PasswordInput from "@/components/auth/PasswordInput";
 import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
+import LoginForm from "@/components/auth/LoginForm";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
-
+export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4"
       style={{ background: "radial-gradient(ellipse at top, #0d1a12 0%, #0a0a0a 60%)" }}>
@@ -21,41 +14,20 @@ export default async function LoginPage({
           <p className="text-gray-400 mt-1 text-sm">Chào mừng trở lại — <span className="text-[#D4A843]">dangkhuong.com</span></p>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg text-sm text-red-400 border border-red-400/20" style={{ background: "rgba(239,68,68,0.08)" }}>
-            {error}
-          </div>
-        )}
-
         {/* Card */}
-        <div className="card-dark p-8">
-          <form action={signIn} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
-              <input name="email" type="email" placeholder="ban@email.com"
-                className="input-dark" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">Mật khẩu</label>
-              <PasswordInput name="password" placeholder="••••••••" />
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#D4A843" }} />
-                <span className="text-sm text-gray-400">Ghi nhớ đăng nhập</span>
-              </label>
-              <Link href="/forgot-password" className="text-sm text-[#D4A843] hover:underline">Quên mật khẩu?</Link>
-            </div>
-            <button type="submit" className="btn-green w-full justify-center py-2.5 mt-2">
-              Đăng nhập
-            </button>
-          </form>
-
+        <div className="card-dark p-6 sm:p-8">
           {/* Social Login */}
-          <div className="mt-5">
-            <SocialLoginButtons />
+          <SocialLoginButtons />
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-xs text-gray-500 uppercase tracking-wider">Hoặc tiếp tục với email</span>
+            <div className="flex-1 h-px bg-white/10" />
           </div>
+
+          {/* Login Form with Turnstile */}
+          <LoginForm />
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Chưa có tài khoản?{" "}

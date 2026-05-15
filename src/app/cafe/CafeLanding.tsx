@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   Coffee,
   Star,
@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 /* ─── Types ──────────────────────────────────────────── */
 
@@ -184,7 +185,12 @@ export default function CafeLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
   const formRef = useRef<HTMLDivElement>(null);
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
   const scrollToForm = () =>
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -208,7 +214,7 @@ export default function CafeLanding() {
       const res = await fetch("/api/cafe/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstile_token: turnstileToken }),
       });
       const data = await res.json();
       if (data.success) {
@@ -837,6 +843,9 @@ export default function CafeLanding() {
                 </button>
               </div>
             </div>
+
+            {/* Turnstile CAPTCHA */}
+            <TurnstileWidget onVerify={handleTurnstileVerify} />
 
             <button
               type="submit"
