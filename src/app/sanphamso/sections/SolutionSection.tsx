@@ -104,7 +104,7 @@ export default function SolutionSection() {
                     }}
                   >
                     <td
-                      className="px-5 py-4 text-sm font-medium sm:px-6 sm:py-5 sm:text-base"
+                      className="px-6 py-5 text-[15px] font-medium sm:px-7 sm:py-5 sm:text-base"
                       style={{
                         color: "#fca5a5",
                         backgroundColor: "rgba(239,68,68,0.05)",
@@ -113,7 +113,7 @@ export default function SolutionSection() {
                       {row.physical}
                     </td>
                     <td
-                      className="px-5 py-4 text-sm font-medium sm:px-6 sm:py-5 sm:text-base"
+                      className="px-6 py-5 text-[15px] font-medium sm:px-7 sm:py-5 sm:text-base"
                       style={{
                         color: "#86efac",
                         backgroundColor: "rgba(34,197,94,0.05)",
@@ -137,14 +137,14 @@ export default function SolutionSection() {
             {PRODUCT_TYPES.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-4 rounded-xl px-5 py-4"
+                className="flex items-center gap-4 rounded-xl px-5 py-5"
                 style={{
                   backgroundColor: "#111",
                   border: "1px solid #1f1f1f",
                 }}
               >
-                <span className="text-2xl">{item.emoji}</span>
-                <span className="text-sm font-medium text-gray-200 sm:text-base">
+                <span className="text-3xl">{item.emoji}</span>
+                <span className="text-[15px] font-medium text-gray-200 sm:text-base">
                   {item.label}
                 </span>
               </div>
@@ -160,7 +160,7 @@ export default function SolutionSection() {
             border: "1px solid #FBBF24",
           }}
         >
-          <p className="text-center text-sm leading-relaxed text-gray-200 sm:text-base">
+          <p className="text-center text-[15px] leading-[1.75] text-gray-200 sm:text-base">
             Theo Statista, thị trường sản phẩm số toàn cầu sẽ đạt{" "}
             <span className="font-bold" style={{ color: "#FBBF24" }}>
               1.500 TỶ USD

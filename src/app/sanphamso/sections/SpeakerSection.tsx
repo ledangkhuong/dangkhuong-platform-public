@@ -27,7 +27,7 @@ export default function SpeakerSection() {
 
         {/* ── Speaker card ── */}
         <div
-          className="mx-auto mt-12 max-w-2xl rounded-2xl p-8 sm:p-10 md:mt-16"
+          className="mx-auto mt-12 max-w-2xl rounded-2xl p-8 sm:p-12 md:mt-16"
           style={{
             backgroundColor: "#111",
             border: "1px solid rgba(251, 191, 36, 0.3)",
@@ -54,11 +54,11 @@ export default function SpeakerSection() {
           />
 
           {/* ── Achievements ── */}
-          <ul className="space-y-4">
+          <ul className="space-y-5">
             {ACHIEVEMENTS.map((item, index) => (
               <li
                 key={index}
-                className="flex items-start gap-3 text-sm leading-relaxed text-gray-300 sm:text-base"
+                className="flex items-start gap-3 text-[15px] leading-[1.75] text-gray-300 sm:text-base"
               >
                 <span className="mt-0.5 flex-shrink-0">{"🏆"}</span>
                 <span>{item}</span>
@@ -75,7 +75,7 @@ export default function SpeakerSection() {
             borderLeft: "3px solid #FBBF24",
           }}
         >
-          <p className="text-sm italic leading-relaxed text-gray-400 sm:text-base">
+          <p className="text-[15px] italic leading-[1.75] text-gray-400 sm:text-base">
             &ldquo;Tôi tin rằng mỗi chuyên gia Việt Nam đều xứng đáng có một thương hiệu cá nhân mạnh và một hệ thống kinh doanh tự động — Để có nhiều thời gian sống cân bằng theo Bánh Xe Cuộc Đời.&rdquo;
           </p>
           <p

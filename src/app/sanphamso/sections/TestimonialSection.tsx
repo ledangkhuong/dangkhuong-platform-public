@@ -43,7 +43,7 @@ export default function TestimonialSection() {
           {TESTIMONIALS.map((item, index) => (
             <div
               key={index}
-              className="flex flex-col rounded-2xl p-6 transition-all duration-300 hover:translate-y-[-2px]"
+              className="flex flex-col rounded-2xl p-6 sm:p-8 transition-all duration-300 hover:translate-y-[-2px]"
               style={{
                 backgroundColor: "#111111",
                 border: "1px solid rgba(255,255,255,0.05)",
@@ -69,7 +69,7 @@ export default function TestimonialSection() {
 
               {/* Quote text */}
               <p
-                className="mb-5 flex-1 text-sm italic leading-relaxed sm:text-base"
+                className="mb-5 flex-1 text-[15px] italic leading-[1.75] sm:text-base"
                 style={{ color: "rgba(255,255,255,0.75)" }}
               >
                 &ldquo;{item.quote}&rdquo;
@@ -77,7 +77,7 @@ export default function TestimonialSection() {
 
               {/* Author */}
               <p
-                className="mb-3 text-sm font-bold sm:text-base"
+                className="mb-3 text-base font-bold"
                 style={{ color: "#ffffff" }}
               >
                 {item.author}
@@ -85,7 +85,7 @@ export default function TestimonialSection() {
 
               {/* Revenue badge */}
               <span
-                className="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold sm:text-sm"
+                className="inline-flex w-fit items-center rounded-full px-3 py-1 text-sm font-semibold"
                 style={{
                   color: "#FBBF24",
                   backgroundColor: "rgba(251,191,36,0.1)",

@@ -81,7 +81,7 @@ export default function BonusSection({
               </h3>
 
               <p
-                className="mb-3 text-sm"
+                className="mb-3 text-[15px]"
                 style={{ color: "rgba(255,255,255,0.6)" }}
               >
                 {bonus.description}
@@ -97,7 +97,7 @@ export default function BonusSection({
 
         {/* Pricing Summary Box */}
         <div
-          className="mx-auto mb-10 max-w-lg rounded-2xl border p-8 text-center sm:mb-12 sm:p-10"
+          className="mx-auto mb-10 max-w-lg rounded-2xl border p-8 sm:p-12 text-center sm:mb-12"
           style={{
             background: "rgba(255,255,255,0.02)",
             borderColor: "rgba(255,255,255,0.1)",
@@ -105,7 +105,7 @@ export default function BonusSection({
         >
           {/* Line items */}
           <div
-            className="mb-6 flex flex-col gap-2 text-sm sm:text-base"
+            className="mb-6 flex flex-col gap-2 text-base sm:text-lg"
             style={{ color: "rgba(255,255,255,0.6)" }}
           >
             <p>
@@ -128,7 +128,7 @@ export default function BonusSection({
 
           {/* Big Price */}
           <p
-            className="mb-2 text-3xl font-extrabold sm:text-4xl md:text-5xl"
+            className="mb-2 text-4xl font-extrabold sm:text-4xl md:text-5xl"
             style={{
               color: "#FBBF24",
               textShadow: "0 0 40px rgba(251,191,36,0.4)",
@@ -149,7 +149,7 @@ export default function BonusSection({
           <button
             type="button"
             onClick={handleCTAClick}
-            className="flex cursor-pointer items-center gap-2 rounded-xl px-8 py-4 text-base font-bold tracking-wide text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
+            className="flex cursor-pointer items-center gap-2 rounded-xl px-10 py-[18px] text-lg font-bold tracking-wide text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
             style={{
               background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
               boxShadow: "0 0 30px rgba(251,191,36,0.3)",

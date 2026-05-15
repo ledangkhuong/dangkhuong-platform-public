@@ -20,7 +20,7 @@ export default function PainSection() {
       <div className="mx-auto max-w-5xl">
         {/* Headline */}
         <h2
-          className="mb-8 text-center text-2xl font-bold leading-tight sm:mb-14 sm:text-3xl md:mb-20 md:text-4xl lg:text-5xl"
+          className="mb-8 text-center text-[28px] font-bold leading-tight sm:mb-14 sm:text-3xl md:mb-20 md:text-4xl lg:text-5xl"
           style={{ color: "#ffffff" }}
         >
           BẠN CÓ ĐANG GẶP PHẢI
@@ -33,10 +33,11 @@ export default function PainSection() {
           {PAIN_POINTS.map((text, index) => (
             <div
               key={index}
-              className="flex items-start gap-4 rounded-2xl p-5 transition-all duration-300 hover:translate-y-[-2px] sm:p-6 md:p-7"
+              className="flex items-start gap-4 rounded-2xl p-6 transition-all duration-300 hover:translate-y-[-2px] sm:p-6 md:p-7"
               style={{
                 backgroundColor: "#111111",
                 border: "1px solid rgba(255,255,255,0.05)",
+                borderLeft: "3px solid #E63946",
               }}
             >
               <XCircle
@@ -45,7 +46,7 @@ export default function PainSection() {
                 strokeWidth={2}
               />
               <span
-                className="text-sm leading-relaxed sm:text-base md:text-lg"
+                className="text-[15px] leading-[1.75] sm:text-base md:text-lg"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
                 {text}
@@ -56,7 +57,7 @@ export default function PainSection() {
 
         {/* Bottom quote */}
         <p
-          className="mx-auto mt-8 max-w-2xl text-center text-sm italic leading-relaxed sm:mt-12 sm:text-base md:mt-16 md:text-lg"
+          className="mx-auto mt-8 max-w-2xl text-center text-base italic leading-relaxed sm:mt-12 sm:text-lg md:mt-16 md:text-lg"
           style={{ color: "rgba(255,255,255,0.5)" }}
         >
           Nếu bạn gật đầu với ít nhất 2 trong 6 vấn đề trên, đây chính là

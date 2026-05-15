@@ -55,19 +55,19 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
         {/* Main Headline */}
         <h1 className="mb-6 font-extrabold tracking-tight">
           <span
-            className="block text-2xl leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
+            className="block text-3xl leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
             style={{ color: "#ffffff" }}
           >
             CHỈ VỚI 1 LY SINH TỐ 100K
           </span>
           <span
-            className="mt-2 block text-2xl leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
+            className="mt-2 block text-3xl leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
             style={{ color: "#ffffff" }}
           >
             BẠN SẼ SỞ HỮU LỘ TRÌNH KIẾM TIỀN
           </span>
           <span
-            className="mt-3 block text-3xl italic sm:text-4xl md:text-5xl lg:text-6xl"
+            className="mt-3 block text-4xl italic sm:text-4xl md:text-5xl lg:text-6xl"
             style={{
               color: "#FBBF24",
               textShadow: "0 0 60px rgba(251,191,36,0.3)",
@@ -80,7 +80,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
         {/* Sub-headline */}
         <p
-          className="mx-auto mb-8 max-w-2xl text-sm leading-relaxed sm:text-base md:text-lg"
+          className="mx-auto mb-8 max-w-2xl text-sm leading-[1.8] sm:text-base md:text-lg"
           style={{ color: "rgba(255,255,255,0.6)" }}
         >
           Bí quyết kiếm tiền từ sản phẩm số và các mô hình thành công trên toàn
@@ -88,9 +88,9 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
         </p>
 
         {/* Checkmarks */}
-        <ul className="mb-8 flex flex-col gap-3 text-left sm:mb-10 sm:gap-4">
+        <ul className="mb-8 flex flex-col gap-4 text-left sm:mb-10 sm:gap-5">
           {CHECKMARKS.map((text) => (
-            <li key={text} className="flex items-start gap-3">
+            <li key={text} className="flex items-start gap-3.5">
               <span
                 className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
                 style={{ background: "#22c55e" }}
@@ -98,7 +98,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
                 <Check className="h-3 w-3 text-white" strokeWidth={3} />
               </span>
               <span
-                className="text-sm sm:text-base"
+                className="text-[15px] sm:text-base md:text-lg"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
                 {text}
@@ -123,7 +123,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
         <button
           type="button"
           onClick={handleCTAClick}
-          className="mb-6 flex cursor-pointer items-center gap-2 rounded-xl px-8 py-4 text-base font-bold tracking-wide text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
+          className="mb-6 flex cursor-pointer items-center gap-2 rounded-xl px-10 py-[18px] text-lg font-bold tracking-wide text-black shadow-lg ring-2 ring-[#FBBF24]/30 transition-all duration-200 hover:scale-105 hover:shadow-xl sm:px-12 sm:py-5 sm:text-lg"
           style={{
             background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
             boxShadow: "0 0 30px rgba(251,191,36,0.3)",
@@ -142,7 +142,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           }}
         >
           <p
-            className="text-xs sm:text-sm md:text-base"
+            className="text-sm sm:text-sm md:text-base"
             style={{ color: "rgba(255,255,255,0.7)" }}
           >
             👥 Đã có 3.247+ học viên đăng ký | ⭐ 4.9/5 đánh giá

@@ -58,7 +58,7 @@ export default function FAQSection() {
         </h2>
 
         {/* Accordion */}
-        <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col gap-4">
           {FAQ_ITEMS.map((item, index) => {
             const isOpen = openIndex === index;
 
@@ -75,10 +75,10 @@ export default function FAQSection() {
                 <button
                   type="button"
                   onClick={() => toggleItem(index)}
-                  className="flex w-full cursor-pointer items-center justify-between p-5 text-left"
+                  className="flex w-full cursor-pointer items-center justify-between p-5 sm:p-6 text-left"
                 >
                   <span
-                    className="pr-4 text-sm font-semibold sm:text-base md:text-lg"
+                    className="pr-4 text-[15px] font-semibold sm:text-base md:text-lg"
                     style={{ color: "#ffffff" }}
                   >
                     {item.question}
@@ -96,7 +96,7 @@ export default function FAQSection() {
                 {isOpen && (
                   <div className="px-5 pb-5 pt-0">
                     <p
-                      className="text-sm leading-relaxed sm:text-base"
+                      className="text-[15px] leading-[1.8] sm:text-base"
                       style={{ color: "rgba(255,255,255,0.55)" }}
                     >
                       {item.answer}

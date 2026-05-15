@@ -41,7 +41,7 @@ export default function FinalCTASection({
           }}
         >
           <p
-            className="mb-6 text-base italic leading-relaxed sm:text-lg md:text-xl"
+            className="mb-6 text-[17px] italic leading-[1.75] sm:text-lg md:text-xl"
             style={{ color: "rgba(255,255,255,0.85)" }}
           >
             {"“"}Cách đây 11 năm, tôi cũng đã từng loay hoay như bạn. Cho đến khi tôi tìm ra con đường{" "}
@@ -52,7 +52,7 @@ export default function FinalCTASection({
           </p>
 
           <p
-            className="mb-6 text-base italic leading-relaxed sm:text-lg md:text-xl"
+            className="mb-6 text-[17px] italic leading-[1.75] sm:text-lg md:text-xl"
             style={{ color: "rgba(255,255,255,0.85)" }}
           >
             Hôm nay, tôi muốn trao cho bạn{" "}
@@ -63,7 +63,7 @@ export default function FinalCTASection({
           </p>
 
           <p
-            className="mb-6 text-base italic leading-relaxed sm:text-lg md:text-xl"
+            className="mb-6 text-[17px] italic leading-[1.75] sm:text-lg md:text-xl"
             style={{ color: "rgba(255,255,255,0.85)" }}
           >
             Bạn xứng đáng có cuộc sống tự do về tài chính, tự do về thời gian, để sống cân bằng theo{" "}
@@ -74,7 +74,7 @@ export default function FinalCTASection({
           </p>
 
           <p
-            className="text-base italic leading-relaxed sm:text-lg md:text-xl"
+            className="text-[17px] italic leading-[1.75] sm:text-lg md:text-xl"
             style={{ color: "rgba(255,255,255,0.9)" }}
           >
             Hãy bắt đầu ngay hôm nay —{" "}
@@ -97,7 +97,7 @@ export default function FinalCTASection({
           <button
             type="button"
             onClick={handleCTAClick}
-            className="mb-6 flex cursor-pointer items-center gap-3 rounded-xl px-12 py-5 text-lg font-bold text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
+            className="mb-6 flex cursor-pointer items-center gap-3 rounded-xl px-12 py-6 text-xl font-bold text-black shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
             style={{
               background:
                 "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
@@ -111,9 +111,9 @@ export default function FinalCTASection({
 
           {/* Urgency bar */}
           <div
-            className="mb-16 rounded-lg px-6 py-3 text-center text-sm font-semibold sm:text-base"
+            className="mb-16 rounded-lg px-6 py-3 text-center text-base font-bold sm:text-lg"
             style={{
-              background: "rgba(251,191,36,0.08)",
+              background: "rgba(251,191,36,0.12)",
               border: "1px solid rgba(251,191,36,0.2)",
             }}
           >

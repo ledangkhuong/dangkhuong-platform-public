@@ -28,6 +28,29 @@ import TestimonialSection from "./sections/TestimonialSection";
 import FAQSection from "./sections/FAQSection";
 import FinalCTASection from "./sections/FinalCTASection";
 
+/* ─── Constants ─────────────────────────────────────── */
+
+const BANK_NAMES: Record<string, string> = {
+  BIDV: "Ngân hàng BIDV",
+  VCB: "Vietcombank",
+  TCB: "Techcombank",
+  MB: "MB Bank",
+  ACB: "ACB",
+  VPB: "VPBank",
+  TPB: "TPBank",
+  STB: "Sacombank",
+  VIB: "VIB",
+  MSB: "MSB",
+  SHB: "SHB",
+  HDB: "HDBank",
+  OCB: "OCB",
+  LPB: "LienVietPostBank",
+  EIB: "Eximbank",
+  NAB: "Nam A Bank",
+  BAB: "Bac A Bank",
+  SCB: "SCB",
+};
+
 /* ─── Types ──────────────────────────────────────────── */
 
 interface PaymentInfo {
@@ -155,13 +178,13 @@ export default function SanPhamSoLanding() {
       <FAQSection />
 
       {/* ═══ REGISTRATION FORM ═══ */}
-      <section ref={registerRef} id="register" className="py-12 sm:py-16 px-4">
+      <section ref={registerRef} id="register" className="py-14 sm:py-20 px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-white">
+            <h2 className="text-[28px] sm:text-3xl font-extrabold mb-3 text-white">
               Đăng Ký & Thanh Toán Ngay
             </h2>
-            <p className="text-sm sm:text-base text-gray-500 leading-relaxed">
+            <p className="text-[15px] sm:text-base text-gray-500 leading-[1.75]">
               Điền thông tin bên dưới — nhận mã QR chuyển khoản ngay lập tức
             </p>
             <div className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2" style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)" }}>
@@ -283,20 +306,21 @@ export default function SanPhamSoLanding() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 mt-4 text-sm sm:text-base font-bold uppercase tracking-wide text-gray-900 transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-4 mt-4 text-base sm:text-lg font-bold uppercase tracking-wide text-gray-900 transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
               style={{
                 background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
+                boxShadow: "0 0 24px rgba(251,191,36,0.3)",
               }}
             >
               {loading ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
               ) : (
-                <ArrowRight size={16} />
+                <ArrowRight size={18} />
               )}
               {loading ? "Đang xử lý..." : "ĐĂNG KÝ NGAY — CHỈ 100.000đ"}
             </button>
 
-            <div className="flex items-center justify-center gap-4 pt-2 text-[11px] text-gray-600">
+            <div className="flex items-center justify-center gap-4 pt-3 text-xs text-gray-500">
               <span>🔒 Thanh toán an toàn</span>
               <span>•</span>
               <span>💳 Chuyển khoản ngân hàng</span>
@@ -325,12 +349,13 @@ export default function SanPhamSoLanding() {
       >
         <button
           onClick={scrollToRegister}
-          className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold uppercase tracking-wide text-gray-900 cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-base font-bold uppercase tracking-wide text-gray-900 cursor-pointer"
           style={{
             background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
+            boxShadow: "0 -2px 20px rgba(251,191,36,0.25)",
           }}
         >
-          Đăng Ký Ngay — 100K <ArrowRight size={14} />
+          Đăng Ký Ngay — 100K <ArrowRight size={16} />
         </button>
       </div>
 
@@ -395,10 +420,35 @@ export default function SanPhamSoLanding() {
 
                   <div className="space-y-3">
                     {[
+                      ...(paymentInfo.bank_code
+                        ? [
+                            {
+                              label: "Ngân hàng",
+                              value:
+                                BANK_NAMES[paymentInfo.bank_code.toUpperCase()] ||
+                                paymentInfo.bank_code,
+                              key: "bank",
+                              copyable: true,
+                              highlight: false,
+                            },
+                          ]
+                        : []),
+                      ...(paymentInfo.bank_account
+                        ? [
+                            {
+                              label: "Số tài khoản",
+                              value: paymentInfo.bank_account,
+                              key: "account",
+                              copyable: true,
+                              highlight: false,
+                            },
+                          ]
+                        : []),
                       {
                         label: "Số tiền",
                         value: `${paymentInfo.amount.toLocaleString("vi-VN")}đ`,
                         key: "amount",
+                        copyable: true,
                         highlight: true,
                       },
                       {
@@ -406,16 +456,17 @@ export default function SanPhamSoLanding() {
                         value: paymentInfo.transfer_content,
                         key: "content",
                         copyable: true,
+                        highlight: false,
                       },
                     ].map((item) => (
                       <div
                         key={item.key}
                         className="flex items-center justify-between p-4 rounded-lg bg-[#1a1a1a]"
                       >
-                        <span className="text-xs text-gray-400">{item.label}</span>
+                        <span className="text-xs sm:text-sm text-gray-400">{item.label}</span>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-sm font-semibold ${
+                            className={`text-sm sm:text-base font-semibold ${
                               item.highlight ? "text-[#FBBF24]" : "text-white font-mono"
                             }`}
                           >
@@ -424,12 +475,13 @@ export default function SanPhamSoLanding() {
                           {item.copyable && (
                             <button
                               onClick={() => copyText(item.value, item.key)}
-                              className="text-gray-500 hover:text-white transition-colors"
+                              className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+                              title={`Copy ${item.label}`}
                             >
                               {copied === item.key ? (
-                                <Check size={13} className="text-[#FBBF24]" />
+                                <Check size={14} className="text-[#FBBF24]" />
                               ) : (
-                                <Copy size={13} />
+                                <Copy size={14} />
                               )}
                             </button>
                           )}

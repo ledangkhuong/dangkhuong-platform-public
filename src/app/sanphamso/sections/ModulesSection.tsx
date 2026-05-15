@@ -78,7 +78,7 @@ export default function ModulesSection() {
             style={{ background: "rgba(251,191,36,0.25)" }}
           />
 
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6 sm:gap-8">
             {MODULES.map((mod, idx) => (
               <div key={mod.number} className="relative flex gap-6">
                 {/* Timeline dot */}
@@ -100,7 +100,7 @@ export default function ModulesSection() {
 
                 {/* Card */}
                 <div
-                  className="flex-1 rounded-2xl border p-6"
+                  className="flex-1 rounded-2xl border p-6 sm:p-8"
                   style={{
                     background: "#111111",
                     borderColor: "rgba(255,255,255,0.05)",
@@ -124,14 +124,14 @@ export default function ModulesSection() {
 
                   {/* Desktop title */}
                   <h3
-                    className="mb-4 hidden text-lg font-bold sm:block"
+                    className="mb-4 hidden text-lg font-extrabold sm:block"
                     style={{ color: "#ffffff" }}
                   >
                     {mod.title}
                   </h3>
 
                   {/* Bullets */}
-                  <ul className="flex flex-col gap-2.5">
+                  <ul className="flex flex-col gap-3">
                     {mod.bullets.map((bullet) => (
                       <li key={bullet} className="flex items-start gap-3">
                         <span
@@ -144,7 +144,7 @@ export default function ModulesSection() {
                           />
                         </span>
                         <span
-                          className="text-sm sm:text-base"
+                          className="text-[15px] sm:text-base"
                           style={{ color: "rgba(255,255,255,0.85)" }}
                         >
                           {bullet}
