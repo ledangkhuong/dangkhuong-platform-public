@@ -1054,18 +1054,27 @@ export default function CafeLanding() {
                     {paymentInfo.amount.toLocaleString("vi-VN")}đ để nhận
                     tài liệu:
                   </p>
-                  <div className="flex justify-center mb-5">
-                    <div className="p-3 rounded-xl bg-white">
+                  <a
+                    href={
+                      paymentInfo.bank_account && paymentInfo.bank_code
+                        ? `https://dl.vietqr.io/pay?ba=${paymentInfo.bank_account}@${paymentInfo.bank_code.toLowerCase()}&am=${paymentInfo.amount}&tn=${encodeURIComponent(paymentInfo.transfer_content)}`
+                        : paymentInfo.qr_url
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex justify-center mb-5"
+                  >
+                    <div className="p-3 rounded-xl bg-white active:scale-95 transition-transform">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={paymentInfo.qr_url}
-                        alt="QR thanh toán"
+                        alt="QR thanh toán — Bấm để mở app ngân hàng"
                         width={200}
                         height={200}
                         className="block"
                       />
                     </div>
-                  </div>
+                  </a>
 
                   <div className="space-y-3">
                     {[
