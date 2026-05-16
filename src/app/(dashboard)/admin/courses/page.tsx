@@ -1,7 +1,7 @@
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   BookOpen,
   Users,
@@ -78,12 +78,13 @@ export default async function AdminCoursesPage() {
 
   const courses = products ?? [];
 
-  // Fetch enrollment counts per product
+  // Fetch enrollment counts per product (use admin client to bypass RLS)
   const productIds = courses.map((c) => c.id);
   let enrollmentMap: Record<string, number> = {};
 
   if (productIds.length > 0) {
-    const { data: enrollments } = await supabase
+    const adminClient = await createAdminClient();
+    const { data: enrollments } = await adminClient
       .from("enrollments")
       .select("product_id");
 
