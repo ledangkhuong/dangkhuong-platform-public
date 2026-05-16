@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   Users, BookOpen, ShoppingCart, FileText, Mail,
-  TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign, BarChart3
+  TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign
 } from "lucide-react";
+import AnalyticsDashboard from "@/components/admin/analytics/AnalyticsDashboardWrapper";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -139,15 +140,6 @@ export default async function AdminPage() {
       actions: ["Tạo campaign", "Quản lý list"],
     },
     {
-      href: "/admin/analytics",
-      icon: BarChart3,
-      title: "Analytics Dashboard",
-      desc: "Biểu đồ doanh thu, học viên, đơn hàng và hiệu suất sản phẩm",
-      count: "Xem báo cáo →",
-      color: "#06b6d4",
-      actions: ["Xem analytics"],
-    },
-    {
       href: "/crm",
       icon: TrendingUp,
       title: "CRM & Analytics",
@@ -171,7 +163,7 @@ export default async function AdminPage() {
     <div>
       <TopBar title="Admin Panel" subtitle="Quản lý toàn bộ nền tảng dangkhuong.com" />
 
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
 
         {/* Warning banner */}
         <div
@@ -198,6 +190,9 @@ export default async function AdminPage() {
             </div>
           ))}
         </div>
+
+        {/* Analytics Dashboard */}
+        <AnalyticsDashboard />
 
         {/* Admin cards */}
         <div className="grid md:grid-cols-3 gap-4">
