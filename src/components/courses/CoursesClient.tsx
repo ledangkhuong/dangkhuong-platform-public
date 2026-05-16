@@ -51,8 +51,9 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
           const color = PLACEHOLDER_COLORS[idx % PLACEHOLDER_COLORS.length];
 
           return (
-            <div
+            <Link
               key={course.id}
+              href={`/courses/${course.slug}`}
               className="card-dark overflow-hidden flex flex-col hover:ring-1 hover:ring-white/10 transition-all group"
             >
               {/* Thumbnail */}
@@ -161,32 +162,31 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
 
                   {/* CTA */}
                   {locked ? (
-                    <button
+                    <span
                       className="btn-gold text-xs py-1.5 px-3"
-                      onClick={() =>
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setCheckoutProduct({
                           id: course.id,
                           name: course.title,
                           price: course.sale_price ?? course.price,
                           description: course.description ?? undefined,
-                        })
-                      }
+                        });
+                      }}
                     >
                       <Lock size={11} />
                       Mua ngay
-                    </button>
+                    </span>
                   ) : (
-                    <Link
-                      href={`/courses/${course.slug}`}
-                      className="btn-success text-xs py-1.5 px-3"
-                    >
+                    <span className="btn-success text-xs py-1.5 px-3">
                       <PlayCircle size={12} />
                       {course.progress > 0 ? "Tiếp tục" : "Vào học"}
-                    </Link>
+                    </span>
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

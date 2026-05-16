@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Calendar,
 } from "lucide-react";
+import DeleteCourseButton from "@/components/admin/DeleteCourseButton";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -302,6 +303,10 @@ export default async function AdminCoursesPage() {
                       <Layers size={12} />
                       Quản lý bài học
                     </Link>
+                    <DeleteCourseButton
+                      courseId={course.id}
+                      courseTitle={course.title}
+                    />
                   </div>
                 </div>
               </div>
