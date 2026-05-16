@@ -1,5 +1,4 @@
 import Link from "next/link";
-import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 import LoginForm from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
@@ -16,16 +15,6 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="card-dark p-6 sm:p-8">
-          {/* Social Login */}
-          <SocialLoginButtons />
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-gray-500 uppercase tracking-wider">Hoặc tiếp tục với email</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
-
           {/* Login Form with Turnstile */}
           <LoginForm />
 

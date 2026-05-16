@@ -51,19 +51,42 @@ export async function POST(req: NextRequest) {
     const supabase = await createAdminClient();
 
     // 2. Tìm đơn hàng theo mã trong nội dung chuyển khoản
-    // Nội dung CK format: "DK{ORDER_CODE}" - VD: "DK123456"
+    // Nội dung CK format: "DK{ORDER_CODE}" - VD: "DKSP123ABC"
+    // SePay code field may contain the full "DKSP..." or just "SP..."
+    // We need to extract the order code (starts with SP/SE/DK prefix patterns)
     const orderCodeMatch = content?.match(/DK([A-Z0-9]+)/i);
-    const orderCode = code || orderCodeMatch?.[1];
+    let orderCode = code || orderCodeMatch?.[1];
 
     if (!orderCode) {
       return NextResponse.json({ success: true, message: "No order code found" });
     }
 
-    const { data: order, error: orderError } = await supabase
+    // Strip "DK" prefix if SePay includes it in the code field
+    // Order codes start with "SP" (sanphamso) or "SE" (slowenglish) etc.
+    orderCode = orderCode.toUpperCase().replace(/^DK/, "");
+
+    // Try to find order - first with extracted code, then with original code
+    let { data: order, error: orderError } = await supabase
       .from("orders")
       .select("*, products(*)")
-      .eq("order_code", orderCode.toUpperCase())
+      .eq("order_code", orderCode)
       .single();
+
+    // Fallback: try with the original code/content if first attempt failed
+    if (orderError || !order) {
+      const fallbackCode = (code || "").toUpperCase();
+      if (fallbackCode && fallbackCode !== orderCode) {
+        const fallback = await supabase
+          .from("orders")
+          .select("*, products(*)")
+          .eq("order_code", fallbackCode)
+          .single();
+        if (fallback.data) {
+          order = fallback.data;
+          orderError = null;
+        }
+      }
+    }
 
     if (orderError || !order) {
       console.error("[Sepay] Order not found:", orderCode);
