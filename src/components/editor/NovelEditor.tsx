@@ -210,7 +210,7 @@ const suggestionItems = createSuggestionItems([
     searchTerms: ["code", "codeblock", "ma nguon"],
     icon: <Code size={18} />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+      (editor.chain().focus().deleteRange(range) as any).toggleCodeBlock?.()?.run() ?? editor.chain().focus().deleteRange(range).run();
     },
   },
   {
@@ -408,7 +408,7 @@ function ToolbarButtons() {
       <button
         type="button"
         className={`novel-toolbar-btn ${editor.isActive("codeBlock") ? "active" : ""}`}
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        onClick={() => (editor.chain().focus() as any).toggleCodeBlock?.()?.run()}
         title="Code Block"
       >
         <Code size={16} />
