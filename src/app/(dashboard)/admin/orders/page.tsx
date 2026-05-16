@@ -2,7 +2,9 @@ import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
+import ConfirmOrderButton from "@/components/admin/ConfirmOrderButton";
 import QRCodeButton from "@/components/admin/QRCodeButton";
+import OrderSearchBar from "@/components/admin/OrderSearchBar";
 import {
   ShoppingCart,
   TrendingUp,
@@ -13,6 +15,7 @@ import {
   CreditCard,
   Calendar,
 } from "lucide-react";
+import { Suspense } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -108,7 +111,14 @@ function StatusIcon({ status }: { status: OrderStatus }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function AdminOrdersPage() {
+interface PageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function AdminOrdersPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const query = (resolvedParams.q ?? "").trim();
+
   // Auth check
   const authClient = await createClient();
   const {
@@ -130,21 +140,49 @@ export default async function AdminOrdersPage() {
   // Fetch orders with product title (bypass RLS)
   const supabase = await createAdminClient();
 
-  const { data: orders, error } = await supabase
+  let dbQuery = supabase
     .from("orders")
     .select("*, products(title)")
-    .order("created_at", { ascending: false })
-    .limit(50);
+    .order("created_at", { ascending: false });
+
+  // Apply search filter
+  if (query) {
+    const q = `%${query}%`;
+    dbQuery = dbQuery.or(
+      `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
+    );
+  } else {
+    dbQuery = dbQuery.limit(50);
+  }
+
+  const { data: orders, error } = await dbQuery;
 
   const rows: OrderRow[] = (orders ?? []) as unknown as OrderRow[];
 
-  // ── Compute stats ──
-  const totalOrders = rows.length;
-  const paidOrders = rows.filter((o) => o.status === "paid").length;
-  const pendingOrders = rows.filter((o) => o.status === "pending").length;
-  const totalRevenue = rows
-    .filter((o) => o.status === "paid")
-    .reduce((sum, o) => sum + o.amount, 0);
+  // ── Compute stats (always from all orders, not just filtered) ──
+  const { count: totalCount } = await supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true });
+  const { count: paidCount } = await supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "paid");
+  const { count: pendingCount } = await supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending");
+  const { data: revenueData } = await supabase
+    .from("orders")
+    .select("amount")
+    .eq("status", "paid");
+  const totalRevenue = (revenueData ?? []).reduce(
+    (sum: number, o: { amount: number }) => sum + o.amount,
+    0
+  );
+
+  const totalOrders = totalCount ?? 0;
+  const paidOrders = paidCount ?? 0;
+  const pendingOrders = pendingCount ?? 0;
 
   return (
     <div>
@@ -215,6 +253,11 @@ export default async function AdminOrdersPage() {
           </div>
         </div>
 
+        {/* ── Search bar ── */}
+        <Suspense fallback={null}>
+          <OrderSearchBar />
+        </Suspense>
+
         {/* ── Orders table ── */}
         <div className="card-dark overflow-hidden">
           {/* Header */}
@@ -223,11 +266,22 @@ export default async function AdminOrdersPage() {
             style={{ borderBottom: "1px solid #2a2a2a" }}
           >
             <span className="text-xs text-gray-500">
-              Hiển thị{" "}
-              <span className="text-white font-medium">{totalOrders}</span> đơn
-              hàng gần nhất
+              {query ? (
+                <>
+                  Tìm thấy{" "}
+                  <span className="text-white font-medium">{rows.length}</span>{" "}
+                  kết quả cho &ldquo;
+                  <span className="text-[#D4A843]">{query}</span>&rdquo;
+                </>
+              ) : (
+                <>
+                  Hiển thị{" "}
+                  <span className="text-white font-medium">{rows.length}</span>{" "}
+                  đơn hàng gần nhất
+                </>
+              )}
             </span>
-            {pendingOrders > 0 && (
+            {pendingOrders > 0 && !query && (
               <span
                 className="text-xs font-medium px-2.5 py-1 rounded-lg"
                 style={{
@@ -247,7 +301,9 @@ export default async function AdminOrdersPage() {
             </div>
           ) : rows.length === 0 ? (
             <div className="p-12 text-center text-gray-600 text-sm">
-              Chưa có đơn hàng nào.
+              {query
+                ? "Không tìm thấy đơn hàng nào khớp với từ khoá."
+                : "Chưa có đơn hàng nào."}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -366,15 +422,24 @@ export default async function AdminOrdersPage() {
                         </span>
                       </td>
 
-                      {/* Xoá */}
+                      {/* Actions */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        {(order.status === "pending" ||
-                          order.status === "cancelled") && (
-                          <DeleteOrderButton
-                            orderId={order.id}
-                            orderCode={order.order_code}
-                          />
-                        )}
+                        <div className="flex items-center gap-1">
+                          {order.status === "pending" && (
+                            <ConfirmOrderButton
+                              orderCode={order.order_code}
+                              customerName={order.customer_name}
+                              amount={order.amount}
+                            />
+                          )}
+                          {(order.status === "pending" ||
+                            order.status === "cancelled") && (
+                            <DeleteOrderButton
+                              orderId={order.id}
+                              orderCode={order.order_code}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
