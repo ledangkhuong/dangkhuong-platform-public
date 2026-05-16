@@ -11,7 +11,7 @@ import {
   FileText, Mail, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
-  FolderOpen,
+  FolderOpen, TrendingUp, Target, UserCheck,
 } from "lucide-react";
 
 const mainNav = [
@@ -37,6 +37,9 @@ const adminNav = [
   { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
   { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
   { href: "/crm/pipeline", icon: GitBranch, label: "Pipeline", roles: ["admin", "manager", "sale"] },
+  { href: "/crm/performance", icon: TrendingUp, label: "Hiệu suất Sale", roles: ["admin", "manager"] },
+  { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
+  { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
   { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
 ];
 

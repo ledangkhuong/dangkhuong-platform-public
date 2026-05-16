@@ -1,8 +1,10 @@
 import TopBar from "@/components/layout/TopBar";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import {
   TrendingUp, ShoppingCart, Users, DollarSign,
   BarChart2, Package, AlertCircle,
+  UserCheck, Target, ClipboardList, AlertTriangle, GitBranch,
 } from "lucide-react";
 
 /* ---------- helpers ---------- */
@@ -30,6 +32,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 
 export default async function CRMPage() {
   const supabase = await createClient();
+  const adminClient = await createAdminClient();
 
   // Fetch all data in parallel
   const [overviewRes, dailyRevenueRes, recentOrdersRes, topProductsRes] = await Promise.all([
@@ -45,6 +48,77 @@ export default async function CRMPage() {
       .select("product_id, products(title), amount")
       .eq("status", "paid"),
   ]);
+
+  // CRM-specific queries
+  const [unassignedRes, pipelineRes, pendingTasksRes, totalContactsRes, customerContactsRes, journeyFunnelRes] = await Promise.all([
+    adminClient
+      .from("crm_contacts")
+      .select("id", { count: "exact", head: true })
+      .is("assigned_to", null)
+      .in("journey_stage", ["visitor", "lead", "contacted"]),
+    adminClient
+      .from("crm_deals")
+      .select("id", { count: "exact", head: true })
+      .not("stage", "in", "(won,lost)"),
+    adminClient
+      .from("crm_next_actions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    adminClient
+      .from("crm_contacts")
+      .select("id", { count: "exact", head: true }),
+    adminClient
+      .from("crm_contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("journey_stage", "customer"),
+    adminClient
+      .from("crm_contacts")
+      .select("journey_stage")
+      .not("journey_stage", "is", null),
+  ]);
+
+  const unassignedLeads = unassignedRes.count ?? 0;
+  const activePipeline = pipelineRes.count ?? 0;
+  const pendingTasks = pendingTasksRes.count ?? 0;
+  const totalContacts = totalContactsRes.count ?? 0;
+  const customerContacts = customerContactsRes.count ?? 0;
+  const conversionRate = totalContacts > 0 ? Math.round((customerContacts / totalContacts) * 100) : 0;
+
+  // Journey funnel aggregation
+  const journeyStageOrder = ["lead", "contacted", "qualified", "negotiation", "customer", "advocate"];
+  const journeyStageLabels: Record<string, string> = {
+    visitor: "Visitor",
+    lead: "Lead",
+    contacted: "Contacted",
+    qualified: "Qualified",
+    negotiation: "Negotiation",
+    customer: "Customer",
+    advocate: "Advocate",
+  };
+  const journeyStageColors: Record<string, string> = {
+    lead: "#3b82f6",
+    contacted: "#8b5cf6",
+    qualified: "#f59e0b",
+    negotiation: "#ef4444",
+    customer: "#22c55e",
+    advocate: "#D4A843",
+  };
+  const journeyCountMap = new Map<string, number>();
+  for (const row of (journeyFunnelRes.data ?? []) as { journey_stage: string }[]) {
+    const stage = row.journey_stage;
+    if (journeyStageOrder.includes(stage)) {
+      journeyCountMap.set(stage, (journeyCountMap.get(stage) ?? 0) + 1);
+    }
+  }
+  const journeyFunnel = journeyStageOrder
+    .map((stage) => ({
+      stage,
+      label: journeyStageLabels[stage] ?? stage,
+      count: journeyCountMap.get(stage) ?? 0,
+      color: journeyStageColors[stage] ?? "#6b7280",
+    }))
+    .filter((item) => item.count > 0 || journeyStageOrder.indexOf(item.stage) < 4);
+  const maxFunnelCount = Math.max(...journeyFunnel.map((f) => f.count), 1);
 
   const overview = overviewRes.data ?? {
     total_orders: 0,
@@ -139,6 +213,100 @@ export default async function CRMPage() {
 
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         {/* Header */}
+        <div>
+          <h2 className="text-xl font-bold text-white">CRM Command Center</h2>
+          <p className="text-gray-400 text-sm">Tổng quan hoạt động kinh doanh & quản lý khách hàng</p>
+        </div>
+
+        {/* CRM Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Lead chưa phân công", value: String(unassignedLeads), icon: AlertTriangle, color: "#ef4444" },
+            { label: "Pipeline đang hoạt động", value: String(activePipeline), icon: Target, color: "#3b82f6" },
+            { label: "Task đang chờ", value: String(pendingTasks), icon: ClipboardList, color: "#f59e0b" },
+            { label: "Tỷ lệ chuyển đổi", value: `${conversionRate}%`, icon: TrendingUp, color: "#22c55e" },
+          ].map((s, i) => (
+            <div key={i} className="stat-card">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">{s.label}</span>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: s.color + "20" }}
+                >
+                  <s.icon size={15} style={{ color: s.color }} />
+                </div>
+              </div>
+              <div className="text-xl font-bold text-white">{s.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { href: "/crm/contacts", label: "Khách hàng", desc: "Quản lý danh sách liên hệ", icon: Users, color: "#D4A843" },
+            { href: "/crm/pipeline", label: "Pipeline", desc: "Theo dõi cơ hội kinh doanh", icon: GitBranch, color: "#8b5cf6" },
+            { href: "/crm/performance", label: "Hiệu suất Sale", desc: "Phân tích hiệu quả bán hàng", icon: TrendingUp, color: "#3b82f6" },
+            { href: "/crm/assignments", label: "Phân công Lead", desc: "Phân bổ lead cho sale", icon: UserCheck, color: "#22c55e" },
+          ].map((link) => (
+            <Link key={link.href} href={link.href}>
+              <div className="card-dark p-4 hover:border-[#3a3a3a] hover:bg-[#1e1e1e] transition-all cursor-pointer group">
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center"
+                    style={{ background: link.color + "15" }}
+                  >
+                    <link.icon size={16} style={{ color: link.color }} />
+                  </div>
+                  <span className="text-sm font-semibold text-white group-hover:text-[#D4A843] transition-colors">
+                    {link.label}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">{link.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Journey Funnel */}
+        <div className="card-dark p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Target size={16} className="text-[#3b82f6]" />
+            <h3 className="font-semibold text-white">Customer Journey Funnel</h3>
+          </div>
+          {journeyFunnel.length > 0 ? (
+            <div className="space-y-3">
+              {journeyFunnel.map((item) => {
+                const barPct = (item.count / maxFunnelCount) * 100;
+                return (
+                  <div key={item.stage} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400 w-24 shrink-0 text-right">
+                      {item.label}
+                    </span>
+                    <div className="flex-1 h-7 rounded-md overflow-hidden" style={{ background: "#1a1a1a" }}>
+                      <div
+                        className="h-full rounded-md flex items-center px-3 transition-all"
+                        style={{
+                          width: `${Math.max(barPct, 5)}%`,
+                          background: item.color + "30",
+                          borderLeft: `3px solid ${item.color}`,
+                        }}
+                      >
+                        <span className="text-xs font-semibold text-white">{item.count}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8 text-gray-600 text-sm">
+              Chưa có dữ liệu journey
+            </div>
+          )}
+        </div>
+
+        {/* Revenue Stats Header */}
         <div>
           <h2 className="text-xl font-bold text-white">Tổng quan doanh số</h2>
           <p className="text-gray-400 text-sm">Dữ liệu cập nhật theo thời gian thực</p>

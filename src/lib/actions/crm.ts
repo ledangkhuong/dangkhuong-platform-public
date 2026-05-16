@@ -310,3 +310,358 @@ export async function importContacts(formData: FormData) {
 
   redirect(`/crm/contacts?imported=${contacts.length}`);
 }
+
+// ─── Assignment Actions ─────────────────────────────────────────────────────
+
+/** Gán contact cho sales rep (thủ công) */
+export async function assignContact(formData: FormData) {
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
+
+  const contactId = formData.get("contact_id") as string;
+  const assignedTo = formData.get("assigned_to") as string;
+
+  if (!contactId || !assignedTo) {
+    redirect("/crm/contacts?error=missing_fields");
+  }
+
+  const now = new Date().toISOString();
+
+  // Update contact assignment
+  const { error: updateError } = await admin
+    .from("crm_contacts")
+    .update({
+      assigned_to: assignedTo,
+      assigned_at: now,
+      assignment_method: "manual",
+    })
+    .eq("id", contactId);
+
+  if (updateError) {
+    console.error("[CRM assignContact]", updateError);
+    redirect("/crm/contacts?error=assign_failed");
+  }
+
+  // Log assignment
+  await admin.from("crm_lead_assignment_log").insert({
+    contact_id: contactId,
+    assigned_to: assignedTo,
+    assigned_by: user.id,
+    method: "manual",
+  });
+
+  // Log activity
+  await admin.from("crm_activities").insert({
+    contact_id: contactId,
+    type: "assignment",
+    content: `Được gán cho nhân viên sale`,
+    created_by: user.id,
+    is_system: true,
+  });
+
+  redirect("/crm/contacts?updated=1");
+}
+
+/** Gán nhiều contacts cho 1 rep */
+export async function bulkAssignContacts(formData: FormData) {
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
+
+  const contactIdsRaw = (formData.get("contact_ids") as string || "").trim();
+  const assignedTo = formData.get("assigned_to") as string;
+
+  if (!contactIdsRaw || !assignedTo) {
+    redirect("/crm/assignments?error=missing_fields");
+  }
+
+  const contactIds = contactIdsRaw.split(",").map((id) => id.trim()).filter(Boolean);
+  const now = new Date().toISOString();
+  let count = 0;
+
+  for (const contactId of contactIds) {
+    const { error } = await admin
+      .from("crm_contacts")
+      .update({
+        assigned_to: assignedTo,
+        assigned_at: now,
+        assignment_method: "manual",
+      })
+      .eq("id", contactId);
+
+    if (!error) {
+      await admin.from("crm_lead_assignment_log").insert({
+        contact_id: contactId,
+        assigned_to: assignedTo,
+        assigned_by: user.id,
+        method: "manual",
+      });
+      count++;
+    }
+  }
+
+  redirect(`/crm/assignments?assigned=${count}`);
+}
+
+/** Auto-assign leads theo round-robin */
+export async function autoAssignLeads(formData: FormData) {
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
+
+  const method = (formData.get("method") as string || "round_robin").trim();
+
+  // Fetch unassigned contacts
+  const { data: unassigned } = await admin
+    .from("crm_contacts")
+    .select("id")
+    .is("assigned_to", null)
+    .order("created_at", { ascending: true });
+
+  if (!unassigned || unassigned.length === 0) {
+    redirect("/crm/assignments?error=no_unassigned");
+  }
+
+  // Fetch all sale reps
+  const { data: reps } = await admin
+    .from("profiles")
+    .select("id, full_name")
+    .eq("role", "sale")
+    .order("full_name", { ascending: true });
+
+  if (!reps || reps.length === 0) {
+    redirect("/crm/assignments?error=no_reps");
+  }
+
+  // Find last assigned rep index for round-robin continuity
+  const { data: lastAssignment } = await admin
+    .from("crm_lead_assignment_log")
+    .select("assigned_to")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  let startIndex = 0;
+  if (lastAssignment) {
+    const lastRepIndex = reps.findIndex((r) => r.id === lastAssignment.assigned_to);
+    if (lastRepIndex >= 0) {
+      startIndex = (lastRepIndex + 1) % reps.length;
+    }
+  }
+
+  const now = new Date().toISOString();
+  let count = 0;
+
+  for (let i = 0; i < unassigned.length; i++) {
+    const contactId = unassigned[i].id;
+    const repIndex = (startIndex + i) % reps.length;
+    const rep = reps[repIndex];
+
+    const { error } = await admin
+      .from("crm_contacts")
+      .update({
+        assigned_to: rep.id,
+        assigned_at: now,
+        assignment_method: "round_robin",
+      })
+      .eq("id", contactId);
+
+    if (!error) {
+      await admin.from("crm_lead_assignment_log").insert({
+        contact_id: contactId,
+        assigned_to: rep.id,
+        assigned_by: user.id,
+        method: "round_robin",
+      });
+      count++;
+    }
+  }
+
+  redirect(`/crm/assignments?auto_assigned=${count}`);
+}
+
+/** Tạo rule phân bổ lead */
+export async function createAssignmentRule(formData: FormData) {
+  await requireStaff();
+  const admin = await createAdminClient();
+
+  const name = (formData.get("name") as string || "").trim();
+  const priority = parseInt(formData.get("priority") as string || "0", 10);
+  const assignTo = formData.get("assign_to") as string;
+  const assignmentMethod = (formData.get("assignment_method") as string || "manual").trim();
+
+  if (!name || !assignTo) {
+    redirect("/crm/assignments?error=missing_fields");
+  }
+
+  // Build conditions from form fields
+  const conditions: Record<string, string> = {};
+  const source = (formData.get("conditions_source") as string || "").trim();
+  const utmSource = (formData.get("conditions_utm_source") as string || "").trim();
+  const utmCampaign = (formData.get("conditions_utm_campaign") as string || "").trim();
+
+  if (source) conditions.source = source;
+  if (utmSource) conditions.utm_source = utmSource;
+  if (utmCampaign) conditions.utm_campaign = utmCampaign;
+
+  const { error } = await admin.from("crm_lead_assignment_rules").insert({
+    name,
+    priority,
+    conditions,
+    assign_to: assignTo,
+    assignment_method: assignmentMethod,
+  });
+
+  if (error) {
+    console.error("[CRM createAssignmentRule]", error);
+    redirect("/crm/assignments?error=rule_create_failed");
+  }
+
+  redirect("/crm/assignments?rule_created=1");
+}
+
+/** Toggle trạng thái active của rule */
+export async function toggleRuleActive(formData: FormData) {
+  await requireStaff();
+  const admin = await createAdminClient();
+
+  const ruleId = formData.get("rule_id") as string;
+  const isActive = (formData.get("is_active") as string) === "true";
+
+  if (!ruleId) {
+    redirect("/crm/assignments?error=missing_rule_id");
+  }
+
+  const { error } = await admin
+    .from("crm_lead_assignment_rules")
+    .update({ is_active: isActive })
+    .eq("id", ruleId);
+
+  if (error) {
+    console.error("[CRM toggleRuleActive]", error);
+    redirect("/crm/assignments?error=rule_update_failed");
+  }
+
+  redirect("/crm/assignments?rule_updated=1");
+}
+
+// ─── Next Action Actions ────────────────────────────────────────────────────
+
+/** Tạo next action cho contact */
+export async function createNextAction(formData: FormData) {
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
+
+  const contactId = formData.get("contact_id") as string;
+  const type = (formData.get("type") as string || "").trim();
+  const title = (formData.get("title") as string || "").trim();
+
+  if (!contactId || !type || !title) {
+    redirect("/crm/contacts?error=missing_fields");
+  }
+
+  const { error } = await admin.from("crm_next_actions").insert({
+    contact_id: contactId,
+    deal_id: (formData.get("deal_id") as string || "").trim() || null,
+    type,
+    title,
+    description: (formData.get("description") as string || "").trim() || null,
+    priority: (formData.get("priority") as string || "medium").trim(),
+    due_at: (formData.get("due_at") as string || "").trim() || null,
+    assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
+    created_by: user.id,
+  });
+
+  if (error) {
+    console.error("[CRM createNextAction]", error);
+    redirect(`/crm/contacts/${contactId}?error=action_create_failed`);
+  }
+
+  redirect(`/crm/contacts/${contactId}?action_created=1`);
+}
+
+/** Đánh dấu next action đã hoàn thành */
+export async function completeNextAction(formData: FormData) {
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
+
+  const actionId = formData.get("action_id") as string;
+  const contactId = formData.get("contact_id") as string;
+
+  if (!actionId || !contactId) {
+    redirect("/crm/contacts?error=missing_fields");
+  }
+
+  const { error } = await admin
+    .from("crm_next_actions")
+    .update({
+      status: "completed",
+      completed_at: new Date().toISOString(),
+      completed_by: user.id,
+    })
+    .eq("id", actionId);
+
+  if (error) {
+    console.error("[CRM completeNextAction]", error);
+    redirect(`/crm/contacts/${contactId}?error=action_complete_failed`);
+  }
+
+  redirect(`/crm/contacts/${contactId}?action_completed=1`);
+}
+
+// ─── Journey Actions ────────────────────────────────────────────────────────
+
+/** Cập nhật journey stage cho contact */
+export async function updateJourneyStage(formData: FormData) {
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
+
+  const contactId = formData.get("contact_id") as string;
+  const journeyStage = (formData.get("journey_stage") as string || "").trim();
+
+  if (!contactId || !journeyStage) {
+    redirect("/crm/contacts?error=missing_fields");
+  }
+
+  const allowedStages = [
+    "visitor",
+    "lead",
+    "contacted",
+    "qualified",
+    "negotiation",
+    "customer",
+    "advocate",
+  ];
+
+  if (!allowedStages.includes(journeyStage)) {
+    redirect(`/crm/contacts/${contactId}?error=invalid_stage`);
+  }
+
+  const updateData: Record<string, unknown> = {
+    journey_stage: journeyStage,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (journeyStage === "customer") {
+    updateData.converted_at = new Date().toISOString();
+  }
+
+  const { error: updateError } = await admin
+    .from("crm_contacts")
+    .update(updateData)
+    .eq("id", contactId);
+
+  if (updateError) {
+    console.error("[CRM updateJourneyStage]", updateError);
+    redirect(`/crm/contacts/${contactId}?error=journey_update_failed`);
+  }
+
+  // Log journey change activity
+  await admin.from("crm_activities").insert({
+    contact_id: contactId,
+    type: "journey_change",
+    content: `Chuyển sang giai đoạn: ${journeyStage}`,
+    created_by: user.id,
+    is_system: true,
+  });
+
+  redirect(`/crm/contacts/${contactId}?journey_updated=1`);
+}

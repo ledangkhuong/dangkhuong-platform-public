@@ -33,6 +33,9 @@ interface Contact {
   last_contacted_at: string | null;
   created_at: string;
   assigned_profile: { full_name: string | null } | null;
+  journey_stage: string;
+  lead_score: number;
+  utm_source: string | null;
 }
 
 interface OrderSummary {
@@ -80,16 +83,27 @@ const sourceConfig: Record<string, { label: string; color: string; bg: string }>
   social:   { label: "MXH",       color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
 };
 
+const journeyStageConfig: Record<string, { label: string; color: string }> = {
+  visitor:      { label: "Khách ghé",    color: "#6b7280" },
+  lead:         { label: "Lead",         color: "#3b82f6" },
+  contacted:    { label: "Đã liên hệ",  color: "#f59e0b" },
+  qualified:    { label: "Tiềm năng",   color: "#a855f7" },
+  negotiation:  { label: "Đàm phán",    color: "#f97316" },
+  customer:     { label: "Khách hàng",  color: "#D4A843" },
+  advocate:     { label: "Đại sứ",      color: "#22c55e" },
+};
+
 /* ---------- Page ---------- */
 
 export default async function CRMContactsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; created?: string; updated?: string; deleted?: string; imported?: string; synced?: string; error?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; journey_stage?: string; created?: string; updated?: string; deleted?: string; imported?: string; synced?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const q = params.q || "";
   const statusFilter = params.status || "";
+  const journeyStageFilter = params.journey_stage || "";
 
   const admin = await createAdminClient();
 
@@ -149,6 +163,8 @@ export default async function CRMContactsPage({
       status: string;
       user_id: string | null;
       created_at: string;
+      journey_stage: string;
+      first_seen_at: string;
     }[] = [];
 
     // Thêm từ orders
@@ -163,6 +179,8 @@ export default async function CRMContactsPage({
         status: customer.hasPaid ? "won" : "new",
         user_id: null,
         created_at: customer.firstOrder,
+        journey_stage: customer.hasPaid ? "customer" : "lead",
+        first_seen_at: customer.firstOrder,
       });
     }
 
@@ -180,6 +198,8 @@ export default async function CRMContactsPage({
         status: "new",
         user_id: p.id,
         created_at: p.created_at as string,
+        journey_stage: "lead",
+        first_seen_at: p.created_at as string,
       });
     }
 
@@ -201,6 +221,9 @@ export default async function CRMContactsPage({
   }
   if (statusFilter) {
     query = query.eq("status", statusFilter);
+  }
+  if (journeyStageFilter) {
+    query = query.eq("journey_stage", journeyStageFilter);
   }
 
   const { data, error } = await query;
@@ -371,6 +394,19 @@ export default async function CRMContactsPage({
                   ))}
                 </select>
               </div>
+              <div className="relative">
+                <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <select
+                  name="journey_stage"
+                  defaultValue={journeyStageFilter}
+                  className="input-dark pl-9 pr-8 py-2 text-sm appearance-none min-w-[140px]"
+                >
+                  <option value="">Tất cả GĐ</option>
+                  {Object.entries(journeyStageConfig).map(([key, cfg]) => (
+                    <option key={key} value={key}>{cfg.label}</option>
+                  ))}
+                </select>
+              </div>
               <button type="submit" className="btn-green px-4 py-2 text-sm font-medium rounded-lg">
                 Lọc
               </button>
@@ -504,7 +540,7 @@ export default async function CRMContactsPage({
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
-                  {["Tên", "Email", "SĐT", "Trạng thái", "Đơn hàng", "Doanh thu", "Nguồn", "Ngày tạo"].map((col) => (
+                  {["Tên", "Email", "SĐT", "Trạng thái", "Giai đoạn", "Điểm", "Phụ trách", "Đơn hàng", "Doanh thu", "Nguồn", "Ngày tạo"].map((col) => (
                     <th
                       key={col}
                       className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
@@ -517,7 +553,7 @@ export default async function CRMContactsPage({
               <tbody>
                 {contacts.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center text-gray-600 text-sm">
+                    <td colSpan={11} className="px-4 py-12 text-center text-gray-600 text-sm">
                       {q || statusFilter
                         ? "Không tìm thấy khách hàng phù hợp."
                         : "Chưa có khách hàng nào. Hãy thêm khách hàng đầu tiên!"}
@@ -547,9 +583,12 @@ export default async function CRMContactsPage({
                               {initial}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-medium text-white truncate">
+                              <Link
+                                href={`/crm/contacts/${contact.id}`}
+                                className="font-medium text-white truncate block hover:underline"
+                              >
                                 {contact.full_name}
-                              </div>
+                              </Link>
                               {contact.company && (
                                 <div className="text-[11px] text-gray-600 truncate flex items-center gap-1">
                                   <Building2 size={10} />
@@ -592,6 +631,42 @@ export default async function CRMContactsPage({
                           >
                             {st.label}
                           </span>
+                        </td>
+
+                        {/* Journey Stage */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {(() => {
+                            const js = journeyStageConfig[contact.journey_stage] || journeyStageConfig.visitor;
+                            return (
+                              <span
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                                style={{ background: js.color + "18", color: js.color, border: `1px solid ${js.color}40` }}
+                              >
+                                {js.label}
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Lead Score */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`text-xs font-bold ${
+                            contact.lead_score >= 81 ? "text-green-400" :
+                            contact.lead_score >= 61 ? "text-amber-400" :
+                            contact.lead_score >= 31 ? "text-blue-400" :
+                            "text-gray-500"
+                          }`}>
+                            {contact.lead_score ?? 0}
+                          </span>
+                        </td>
+
+                        {/* Assigned To */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {contact.assigned_profile?.full_name ? (
+                            <span className="text-xs text-gray-300">{contact.assigned_profile.full_name}</span>
+                          ) : (
+                            <span className="text-xs text-gray-600">Chưa phân</span>
+                          )}
                         </td>
 
                         {/* Orders */}
@@ -678,9 +753,9 @@ export default async function CRMContactsPage({
             <div className="px-4 py-3 border-t border-[#2a2a2a] flex items-center justify-between">
               <p className="text-xs text-gray-500">
                 Hiển thị <span className="text-white font-semibold">{contacts.length}</span> khách hàng
-                {(q || statusFilter) && " (đã lọc)"}
+                {(q || statusFilter || journeyStageFilter) && " (đã lọc)"}
               </p>
-              {(q || statusFilter) && (
+              {(q || statusFilter || journeyStageFilter) && (
                 <Link
                   href="/crm/contacts"
                   className="text-xs text-[#D4A843] hover:underline"
