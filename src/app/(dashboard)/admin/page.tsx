@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   Users, BookOpen, ShoppingCart, FileText, Mail,
-  TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign
+  TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign, BarChart3
 } from "lucide-react";
 
 export default async function AdminPage() {
@@ -137,6 +137,15 @@ export default async function AdminPage() {
       count: `${(subscriberCount ?? 0).toLocaleString("vi-VN")} subscribers`,
       color: "#ec4899",
       actions: ["Tạo campaign", "Quản lý list"],
+    },
+    {
+      href: "/admin/analytics",
+      icon: BarChart3,
+      title: "Analytics Dashboard",
+      desc: "Biểu đồ doanh thu, học viên, đơn hàng và hiệu suất sản phẩm",
+      count: "Xem báo cáo →",
+      color: "#06b6d4",
+      actions: ["Xem analytics"],
     },
     {
       href: "/crm",
