@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -36,22 +36,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Update last_login and award XP (best-effort)
+    // Use user from signInWithPassword response directly (more reliable than getUser)
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const userId = signInData?.user?.id;
+      if (userId) {
         const admin = await createAdminClient();
-        await admin
+        const { error: updateErr } = await admin
           .from("profiles")
           .update({ last_login: new Date().toISOString() })
-          .eq("id", user.id);
+          .eq("id", userId);
+        if (updateErr) {
+          console.error("Failed to update last_login:", updateErr.message);
+        }
         await admin.from("xp_events").insert({
-          user_id: user.id,
+          user_id: userId,
           action: "login",
           xp_amount: 10,
         });
       }
-    } catch {
-      // Non-critical
+    } catch (e) {
+      console.error("last_login/XP update error:", e);
     }
 
     return NextResponse.json({ success: true });

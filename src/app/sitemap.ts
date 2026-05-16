@@ -33,14 +33,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // ── Courses ───────────────────────────────────────────────────
+  // ── Courses (public detail pages) ──────────────────────────────
   const { data: courses } = await admin
     .from("products")
-    .select("id, updated_at, created_at")
-    .eq("active", true);
+    .select("slug, updated_at, created_at")
+    .eq("status", "published");
 
   const coursePages: MetadataRoute.Sitemap = (courses ?? []).map((c) => ({
-    url: `${BASE}/courses/${c.id}`,
+    url: `${BASE}/courses/${c.slug}`,
     lastModified: new Date(c.updated_at || c.created_at),
     changeFrequency: "monthly" as const,
     priority: 0.7,

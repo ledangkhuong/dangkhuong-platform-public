@@ -97,12 +97,31 @@ export async function GET(req: NextRequest) {
 
     const total = count || 0;
 
+    // Fetch stats (total counts by status)
+    const [
+      { count: activeCount },
+      { count: unsubscribedCount },
+      { count: bouncedCount },
+    ] = await Promise.all([
+      admin.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "active"),
+      admin.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "unsubscribed"),
+      admin.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "bounced"),
+    ]);
+
+    const stats = {
+      total: (activeCount || 0) + (unsubscribedCount || 0) + (bouncedCount || 0),
+      active: activeCount || 0,
+      unsubscribed: unsubscribedCount || 0,
+      bounced: bouncedCount || 0,
+    };
+
     return NextResponse.json({
       subscribers: data || [],
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      stats,
     });
   } catch (err) {
     console.error("GET /api/email/subscribers error:", err);

@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
 import { createClient } from "@/lib/supabase/server";
-import { PlayCircle, CheckCircle, Lock, BookOpen, Clock, Award } from "lucide-react";
+import {
+  PlayCircle,
+  CheckCircle,
+  Lock,
+  BookOpen,
+  Clock,
+  Award,
+} from "lucide-react";
 import LessonActions from "@/components/courses/LessonActions";
 import LessonQA from "@/components/courses/LessonQA";
 import VideoPlayer from "@/components/courses/VideoPlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
+import CoursePublicView from "@/components/courses/CoursePublicView";
+
+/* ─── Types ─── */
 
 type Lesson = {
   id: string;
@@ -32,76 +42,71 @@ function formatDuration(sec: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/* ─── Metadata ─── */
+
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const supabase = await createClient();
   const { data: product } = await supabase
     .from("products")
-    .select("title, description")
-    .eq("slug", id)
+    .select("title, description, thumbnail")
+    .eq("slug", slug)
     .single();
 
   if (!product) return { title: "Khoá học không tồn tại" };
   return {
     title: `${product.title} — Lê Đăng Khương Academy`,
     description: product.description ?? undefined,
+    openGraph: {
+      title: `${product.title} — Lê Đăng Khương Academy`,
+      description: product.description ?? undefined,
+      images: product.thumbnail ? [product.thumbnail] : undefined,
+    },
   };
 }
+
+/* ─── Page ─── */
 
 export default async function CourseDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ lesson?: string }>;
 }) {
-  const { id: slug } = await params;
+  const { slug } = await params;
   const { lesson: lessonId } = await searchParams;
 
   const supabase = await createClient();
 
-  // Auth
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  // Auth (optional — page works for both authed & unauthed)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Fetch product
   const { data: product } = await supabase
     .from("products")
-    .select("id, slug, title, description, price, tier_required")
+    .select("id, slug, title, description, price, sale_price, thumbnail, type, tier_required")
     .eq("slug", slug)
     .eq("status", "published")
     .single();
 
   if (!product) notFound();
 
-  // Check access: enrolled or free
-  const { data: enrollment } = await supabase
-    .from("enrollments")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("product_id", product.id)
-    .maybeSingle();
-
-  // Fetch user profile role
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  const hasAccess = profile?.role === "admin" || !!enrollment || product.price === 0;
-
   // Fetch chapters + lessons
   const { data: chaptersRaw } = await supabase
     .from("chapters")
-    .select(`
+    .select(
+      `
       id, title, sort_order,
       lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free)
-    `)
+    `
+    )
     .eq("product_id", product.id)
     .order("sort_order");
 
@@ -109,10 +114,97 @@ export default async function CourseDetailPage({
     id: ch.id,
     title: ch.title,
     sort_order: ch.sort_order,
-    lessons: [...(ch.lessons as Lesson[])].sort((a, b) => a.sort_order - b.sort_order),
+    lessons: [...(ch.lessons as Lesson[])].sort(
+      (a, b) => a.sort_order - b.sort_order
+    ),
   }));
 
-  // Flatten all lessons
+  /* ═══ PUBLIC / UNAUTHENTICATED ═══ */
+  if (!user) {
+    return (
+      <CoursePublicView
+        product={{
+          id: product.id,
+          slug: product.slug,
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          sale_price: product.sale_price,
+          thumbnail: product.thumbnail,
+          type: product.type,
+        }}
+        chapters={chapters.map((ch) => ({
+          ...ch,
+          lessons: ch.lessons.map((l) => ({
+            id: l.id,
+            title: l.title,
+            youtube_id: l.youtube_id,
+            duration_sec: l.duration_sec,
+            is_free: l.is_free,
+            sort_order: l.sort_order,
+          })),
+        }))}
+        isAuthenticated={false}
+      />
+    );
+  }
+
+  /* ═══ AUTHENTICATED ═══ */
+
+  // Check enrollment
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("product_id", product.id)
+    .maybeSingle();
+
+  // Profile role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const hasAccess =
+    profile?.role === "admin" || !!enrollment || product.price === 0;
+
+  /* ═══ AUTHENTICATED BUT NOT ENROLLED (paid course) ═══ */
+  if (!hasAccess) {
+    return (
+      <div>
+        <TopBar title={product.title} subtitle="Khoá học" />
+        <CoursePublicView
+          product={{
+            id: product.id,
+            slug: product.slug,
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            sale_price: product.sale_price,
+            thumbnail: product.thumbnail,
+            type: product.type,
+          }}
+          chapters={chapters.map((ch) => ({
+            ...ch,
+            lessons: ch.lessons.map((l) => ({
+              id: l.id,
+              title: l.title,
+              youtube_id: l.youtube_id,
+              duration_sec: l.duration_sec,
+              is_free: l.is_free,
+              sort_order: l.sort_order,
+            })),
+          }))}
+          isAuthenticated={true}
+          productId={product.id}
+        />
+      </div>
+    );
+  }
+
+  /* ═══ AUTHENTICATED + HAS ACCESS → FULL LEARNING EXPERIENCE ═══ */
+
   const allLessons = chapters.flatMap((ch) => ch.lessons);
   const totalLessons = allLessons.length;
 
@@ -126,8 +218,13 @@ export default async function CourseDetailPage({
   const progressMap = new Map(
     (progressRows ?? []).map((p) => [p.lesson_id, p])
   );
-  const completedCount = [...progressMap.values()].filter((p) => p.completed).length;
-  const progressPct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+  const completedCount = [...progressMap.values()].filter(
+    (p) => p.completed
+  ).length;
+  const progressPct =
+    totalLessons > 0
+      ? Math.round((completedCount / totalLessons) * 100)
+      : 0;
 
   // Determine current lesson
   const currentLesson =
@@ -135,20 +232,22 @@ export default async function CourseDetailPage({
     allLessons.find((l) => !progressMap.get(l.id)?.completed) ||
     allLessons[0];
 
-  // Find the chapter the current lesson belongs to
   const currentChapter = chapters.find((ch) =>
     ch.lessons.some((l) => l.id === currentLesson?.id)
   );
 
-  const currentProgress = currentLesson ? progressMap.get(currentLesson.id) : null;
+  const currentProgress = currentLesson
+    ? progressMap.get(currentLesson.id)
+    : null;
   const canAccessCurrentLesson = hasAccess || currentLesson?.is_free;
 
-  // ─── Sidebar content (reused for desktop & mobile) ─────────────────────
+  // ─── Sidebar content ─────────────────────
   const sidebarContent = (
     <>
-      {/* Header shown only on desktop (mobile has its own in CourseMobileLayout) */}
       <div className="p-4 border-b border-[#2a2a2a] hidden lg:block">
-        <h3 className="font-semibold text-white text-sm">Nội dung khoá học</h3>
+        <h3 className="font-semibold text-white text-sm">
+          Nội dung khoá học
+        </h3>
         <p className="text-xs text-gray-500 mt-0.5">
           {chapters.length} chương &bull; {totalLessons} bài học
         </p>
@@ -165,14 +264,23 @@ export default async function CourseDetailPage({
         const chapterCompleted = chapterLessons.filter(
           (l) => progressMap.get(l.id)?.completed
         ).length;
-        const allCompleted = chapterCompleted === chapterLessons.length && chapterLessons.length > 0;
+        const allCompleted =
+          chapterCompleted === chapterLessons.length &&
+          chapterLessons.length > 0;
 
         return (
           <div key={chapter.id} className="border-b border-[#1f1f1f]">
             <div className="flex items-center justify-between p-3 bg-[#0d0d0d]">
               <div className="flex items-center gap-2">
-                {allCompleted && <CheckCircle size={12} className="text-[#22c55e] shrink-0" />}
-                <span className="text-xs font-semibold text-gray-300">{chapter.title}</span>
+                {allCompleted && (
+                  <CheckCircle
+                    size={12}
+                    className="text-[#22c55e] shrink-0"
+                  />
+                )}
+                <span className="text-xs font-semibold text-gray-300">
+                  {chapter.title}
+                </span>
               </div>
               <span className="text-[10px] text-gray-600">
                 {chapterCompleted}/{chapterLessons.length}
@@ -188,7 +296,11 @@ export default async function CourseDetailPage({
               return (
                 <a
                   key={lesson.id}
-                  href={isAccessible ? `/courses/${slug}?lesson=${lesson.id}` : undefined}
+                  href={
+                    isAccessible
+                      ? `/courses/${slug}?lesson=${lesson.id}`
+                      : undefined
+                  }
                   className={`flex items-center gap-3 px-4 py-2.5 transition-colors
                     ${isAccessible ? "cursor-pointer" : "cursor-not-allowed opacity-60"}
                     ${isActive ? "bg-[#D4A843]/10" : "hover:bg-white/3"}`}
@@ -196,7 +308,10 @@ export default async function CourseDetailPage({
                   {!isAccessible ? (
                     <Lock size={14} className="text-[#f59e0b] shrink-0" />
                   ) : isDone ? (
-                    <CheckCircle size={14} className="text-[#22c55e] shrink-0" />
+                    <CheckCircle
+                      size={14}
+                      className="text-[#22c55e] shrink-0"
+                    />
                   ) : (
                     <PlayCircle
                       size={14}
@@ -209,8 +324,8 @@ export default async function CourseDetailPage({
                         isActive
                           ? "text-[#D4A843] font-medium"
                           : isDone
-                          ? "text-gray-500 line-through"
-                          : "text-gray-300"
+                            ? "text-gray-500 line-through"
+                            : "text-gray-300"
                       }`}
                     >
                       {lesson.title}
@@ -224,7 +339,10 @@ export default async function CourseDetailPage({
                   {lesson.is_free && !hasAccess && (
                     <span
                       className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0"
-                      style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e" }}
+                      style={{
+                        background: "rgba(34,197,94,0.1)",
+                        color: "#22c55e",
+                      }}
                     >
                       Free
                     </span>
@@ -238,39 +356,67 @@ export default async function CourseDetailPage({
 
       {totalLessons > 0 && (
         <div className="p-4">
-          <div
-            className="rounded-lg p-3 text-center"
-            style={{
-              background: "rgba(245,158,11,0.08)",
-              border: "1px solid rgba(245,158,11,0.2)",
-            }}
-          >
-            <Award size={20} className="text-[#f59e0b] mx-auto mb-1.5" />
-            <p className="text-xs font-medium text-[#f59e0b] mb-0.5">Chứng chỉ hoàn thành</p>
-            <p className="text-[10px] text-gray-500">
-              {progressPct === 100
-                ? "Bạn đã hoàn thành khoá học!"
-                : `Hoàn thành 100% để nhận chứng chỉ (đang ở ${progressPct}%)`}
-            </p>
-          </div>
+          {progressPct === 100 ? (
+            <a
+              href={`/certificate/${slug}`}
+              className="block rounded-lg p-3 text-center transition-all hover:scale-[1.02]"
+              style={{
+                background: "rgba(212,168,67,0.1)",
+                border: "1px solid rgba(212,168,67,0.3)",
+              }}
+            >
+              <Award size={22} className="text-[#D4A843] mx-auto mb-1.5" />
+              <p className="text-xs font-bold text-[#D4A843] mb-0.5">
+                Xem chứng chỉ hoàn thành
+              </p>
+              <p className="text-[10px] text-gray-500">
+                Nhấn để xem và tải về chứng chỉ của bạn
+              </p>
+            </a>
+          ) : (
+            <div
+              className="rounded-lg p-3 text-center"
+              style={{
+                background: "rgba(245,158,11,0.08)",
+                border: "1px solid rgba(245,158,11,0.2)",
+              }}
+            >
+              <Award
+                size={20}
+                className="text-[#f59e0b] mx-auto mb-1.5"
+              />
+              <p className="text-xs font-medium text-[#f59e0b] mb-0.5">
+                Chứng chỉ hoàn thành
+              </p>
+              <p className="text-[10px] text-gray-500">
+                {`Hoàn thành 100% để nhận chứng chỉ (đang ở ${progressPct}%)`}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </>
   );
 
-  // ─── Main content ─────────────────────────────────────────────────────
+  // ─── Main content ─────────────────────
   const mainContent = (
     <>
       {/* Access blocked */}
       {!hasAccess && !currentLesson?.is_free && (
         <div
           className="rounded-xl p-6 sm:p-8 text-center mb-5"
-          style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.25)" }}
+          style={{
+            background: "rgba(245,158,11,0.06)",
+            border: "1px solid rgba(245,158,11,0.25)",
+          }}
         >
           <div className="text-3xl sm:text-4xl mb-3">🔐</div>
-          <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Khoá học này yêu cầu đăng ký</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
+            Khoá học này yêu cầu đăng ký
+          </h2>
           <p className="text-sm text-gray-400 mb-4">
-            Mua khoá học hoặc nâng cấp Quyền Đồng Hành để truy cập toàn bộ nội dung.
+            Mua khoá học hoặc nâng cấp Quyền Đồng Hành để truy cập toàn bộ
+            nội dung.
           </p>
           <button className="btn-gold">
             <Lock size={14} />
@@ -295,14 +441,24 @@ export default async function CourseDetailPage({
               >
                 <div
                   className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4"
-                  style={{ background: "linear-gradient(135deg, #111 0%, #1a1a1a 100%)" }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #111 0%, #1a1a1a 100%)",
+                  }}
                 >
-                  <PlayCircle size={48} className="text-[#D4A843] opacity-80 sm:w-16 sm:h-16" />
-                  <p className="text-gray-400 text-xs sm:text-sm text-center">{currentLesson.title}</p>
+                  <PlayCircle
+                    size={48}
+                    className="text-[#D4A843] opacity-80 sm:w-16 sm:h-16"
+                  />
+                  <p className="text-gray-400 text-xs sm:text-sm text-center">
+                    {currentLesson.title}
+                  </p>
                   {currentChapter && (
                     <p className="text-gray-600 text-xs text-center">
                       {currentChapter.title}
-                      {currentLesson.duration_sec ? ` • ${formatDuration(currentLesson.duration_sec)}` : ""}
+                      {currentLesson.duration_sec
+                        ? ` • ${formatDuration(currentLesson.duration_sec)}`
+                        : ""}
                     </p>
                   )}
                   <p className="text-gray-700 text-xs mt-2">
@@ -315,11 +471,14 @@ export default async function CourseDetailPage({
 
           {/* Lesson info */}
           <div className="mb-4 sm:mb-5">
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">{currentLesson.title}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
+              {currentLesson.title}
+            </h2>
             <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 flex-wrap">
               {currentLesson.duration_sec > 0 && (
                 <span className="flex items-center gap-1">
-                  <Clock size={13} /> {formatDuration(currentLesson.duration_sec)}
+                  <Clock size={13} />{" "}
+                  {formatDuration(currentLesson.duration_sec)}
                 </span>
               )}
               {currentChapter && (
@@ -334,21 +493,23 @@ export default async function CourseDetailPage({
           {currentLesson.content && (
             <div className="card-dark p-4 sm:p-5 mb-4 sm:mb-5 prose prose-invert prose-sm max-w-none">
               <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
-                {currentLesson.content.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-                  /^https?:\/\//.test(part) ? (
-                    <a
-                      key={i}
-                      href={part}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#D4A843] underline underline-offset-2 hover:text-[#B8922E] break-all transition-colors"
-                    >
-                      {part}
-                    </a>
-                  ) : (
-                    <span key={i}>{part}</span>
-                  )
-                )}
+                {currentLesson.content
+                  .split(/(https?:\/\/[^\s]+)/g)
+                  .map((part, i) =>
+                    /^https?:\/\//.test(part) ? (
+                      <a
+                        key={i}
+                        href={part}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#D4A843] underline underline-offset-2 hover:text-[#B8922E] break-all transition-colors"
+                      >
+                        {part}
+                      </a>
+                    ) : (
+                      <span key={i}>{part}</span>
+                    )
+                  )}
               </div>
             </div>
           )}
@@ -357,11 +518,18 @@ export default async function CourseDetailPage({
           {totalLessons > 0 && (
             <div className="card-dark p-4 mb-4 sm:mb-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-white">Tiến độ khoá học</span>
-                <span className="text-sm font-bold text-[#22c55e]">{progressPct}%</span>
+                <span className="text-sm font-medium text-white">
+                  Tiến độ khoá học
+                </span>
+                <span className="text-sm font-bold text-[#22c55e]">
+                  {progressPct}%
+                </span>
               </div>
               <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${progressPct}%` }} />
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Hoàn thành {completedCount}/{totalLessons} bài học
@@ -392,7 +560,6 @@ export default async function CourseDetailPage({
   return (
     <div>
       <TopBar title={product.title} subtitle="Khoá học" />
-
       <CourseMobileLayout
         mainContent={mainContent}
         sidebarContent={sidebarContent}

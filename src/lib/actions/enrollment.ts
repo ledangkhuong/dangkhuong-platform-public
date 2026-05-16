@@ -22,9 +22,18 @@ export async function grantCourseAccess(formData: FormData) {
 
   const admin = await createAdminClient();
 
-  // Find user by email via auth admin
-  const { data: { users } } = await admin.auth.admin.listUsers();
-  const targetUser = users.find(u => u.email?.toLowerCase() === email);
+  // Find user by email via auth admin (paginate to handle large user base)
+  let targetUser: { id: string; email?: string } | null = null;
+  let page = 1;
+  const perPage = 500;
+  while (true) {
+    const { data: { users } } = await admin.auth.admin.listUsers({ page, perPage });
+    if (!users || users.length === 0) break;
+    const found = users.find(u => u.email?.toLowerCase() === email);
+    if (found) { targetUser = found; break; }
+    if (users.length < perPage) break;
+    page++;
+  }
 
   if (!targetUser) {
     redirect("/admin/enrollments?error=user_not_found");

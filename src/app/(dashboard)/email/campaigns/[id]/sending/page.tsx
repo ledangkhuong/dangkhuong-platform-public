@@ -35,59 +35,51 @@ export default function SendingProgressPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(Date.now());
 
+  // Helper to update state from campaign data
+  const updateFromCampaign = useCallback((campaign: Record<string, unknown>) => {
+    const newState: SendingState = {
+      status: (campaign.status as SendingState["status"]) ?? "sending",
+      sent_count: (campaign.sent_count as number) ?? 0,
+      failed_count: (campaign.failed_count as number) ?? 0,
+      total_recipients: (campaign.total_recipients as number) ?? 0,
+      name: (campaign.name as string) ?? "",
+      subject: (campaign.subject as string) ?? "",
+      started_at: (campaign.sent_at as string) ?? null,
+    };
+    setState(newState);
+
+    if (newState.status === "sent" || newState.status === "failed") {
+      setCompleted(true);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+  }, []);
+
   // Fetch status + continue
   const pollAndContinue = useCallback(async () => {
     try {
       // Continue sending (this also returns updated status)
       const continueRes = await fetch(`/api/email/campaigns/${campaignId}/continue`, { method: "POST" });
-      if (continueRes.ok) {
-        const data = await continueRes.json();
-        const campaign = data.campaign ?? data;
-        setState({
-          status: campaign.status,
-          sent_count: campaign.sent_count ?? 0,
-          failed_count: campaign.failed_count ?? 0,
-          total_recipients: campaign.total_recipients ?? 0,
-          name: campaign.name ?? "",
-          subject: campaign.subject ?? "",
-          started_at: campaign.sent_at ?? campaign.sending_started_at ?? null,
-        });
+      const data = await continueRes.json();
 
-        if (campaign.status === "sent" || campaign.status === "failed") {
-          setCompleted(true);
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-          }
-        }
+      if (continueRes.ok && data.campaign) {
+        // Continue endpoint returned campaign data
+        updateFromCampaign(data.campaign);
       } else {
-        // If continue fails, just fetch status
+        // Fallback: fetch campaign status directly
         const statusRes = await fetch(`/api/email/campaigns/${campaignId}`);
         if (statusRes.ok) {
-          const data = await statusRes.json();
-          const campaign = data.campaign ?? data;
-          setState({
-            status: campaign.status,
-            sent_count: campaign.sent_count ?? 0,
-            failed_count: campaign.failed_count ?? 0,
-            total_recipients: campaign.total_recipients ?? 0,
-            name: campaign.name ?? "",
-            subject: campaign.subject ?? "",
-            started_at: campaign.sent_at ?? null,
-          });
-          if (campaign.status !== "sending") {
-            setCompleted(campaign.status === "sent");
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current);
-              intervalRef.current = null;
-            }
-          }
+          const statusData = await statusRes.json();
+          const campaign = statusData.campaign ?? statusData;
+          updateFromCampaign(campaign);
         }
       }
     } catch { /* */ } finally {
       setLoading(false);
     }
-  }, [campaignId]);
+  }, [campaignId, updateFromCampaign]);
 
   // Start polling
   useEffect(() => {

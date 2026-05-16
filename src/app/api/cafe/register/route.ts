@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 /**
@@ -52,10 +52,12 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
 
-    const supabase = await createClient();
     const admin = await createAdminClient();
 
-    // 1. Create user via admin API (no Supabase email sent)
+    // 1. Try to create user
+    let userId: string;
+    let isExistingUser = false;
+
     const { data: signUpData, error: signUpError } =
       await admin.auth.admin.createUser({
         email: email.trim(),
@@ -64,47 +66,52 @@ export async function POST(req: NextRequest) {
         user_metadata: { full_name: full_name.trim() },
       });
 
-    if (signUpError) {
-      // Handle already registered
-      if (
-        signUpError.message.includes("already registered") ||
-        signUpError.message.includes("already been registered")
-      ) {
+    const emailAlreadyExists =
+      signUpError?.message?.includes("already registered") ||
+      signUpError?.message?.includes("already been registered") ||
+      (!signUpError &&
+        (!signUpData?.user?.identities ||
+          signUpData.user.identities.length === 0));
+
+    if (emailAlreadyExists) {
+      // Existing user — verify password and create order for them
+      const { createClient: createSupabase } = await import(
+        "@supabase/supabase-js"
+      );
+      const authClient = createSupabase(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      );
+      const { data: signInData, error: signInError } =
+        await authClient.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+      if (signInError || !signInData.user) {
         return NextResponse.json(
           {
             error:
-              "Email đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.",
+              "Email đã đăng ký. Sai mật khẩu — vui lòng nhập đúng mật khẩu tài khoản đã có.",
           },
-          { status: 409 }
+          { status: 401 }
         );
       }
+      userId = signInData.user.id;
+      isExistingUser = true;
+    } else if (signUpError) {
       return NextResponse.json(
         { error: signUpError.message },
         { status: 400 }
       );
-    }
-
-    const userId = signUpData.user?.id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Không thể tạo tài khoản" },
-        { status: 500 }
-      );
-    }
-
-    // Supabase returns fake user with empty identities when email already exists
-    // (anti-enumeration behavior with email confirmation enabled)
-    if (
-      !signUpData.user?.identities ||
-      signUpData.user.identities.length === 0
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Email đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.",
-        },
-        { status: 409 }
-      );
+    } else {
+      if (!signUpData.user?.id) {
+        return NextResponse.json(
+          { error: "Không thể tạo tài khoản" },
+          { status: 500 }
+        );
+      }
+      userId = signUpData.user.id;
     }
 
     // 2. Update profile with phone
@@ -175,24 +182,28 @@ export async function POST(req: NextRequest) {
         : null,
     };
 
-    // 6. Award XP for registration
-    try {
-      await admin.from("xp_events").insert({
-        user_id: userId,
-        action: "register",
-        xp_amount: 100,
-        meta: { source: "cafe_landing" },
-      });
-    } catch {
-      // XP insert failed — non-critical, continue
+    // 6. Award XP (only for new users)
+    if (!isExistingUser) {
+      try {
+        await admin.from("xp_events").insert({
+          user_id: userId,
+          action: "register",
+          xp_amount: 100,
+          meta: { source: "cafe_landing" },
+        });
+      } catch {
+        // Non-critical
+      }
     }
 
-    // 7. Send welcome email
-    try {
-      const { sendWelcomeEmail } = await import("@/lib/email/resend");
-      await sendWelcomeEmail(email.trim(), full_name.trim()).catch(() => {});
-    } catch {
-      // Email service not configured — skip
+    // 7. Send welcome email (only for new users)
+    if (!isExistingUser) {
+      try {
+        const { sendWelcomeEmail } = await import("@/lib/email/resend");
+        await sendWelcomeEmail(email.trim(), full_name.trim()).catch(() => {});
+      } catch {
+        // Email service not configured
+      }
     }
 
     return NextResponse.json({ success: true, order, paymentInfo });

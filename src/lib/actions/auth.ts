@@ -118,17 +118,17 @@ export async function signUp(formData: FormData) {
 
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
   });
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
   // Cập nhật last_login (dùng admin client để bypass RLS)
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
+  const userId = signInData?.user?.id;
+  if (userId) {
     const admin = await createAdminClient();
-    await admin.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", user.id);
-    await admin.from("xp_events").insert({ user_id: user.id, action: "login", xp_amount: 10 });
+    await admin.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", userId);
+    await admin.from("xp_events").insert({ user_id: userId, action: "login", xp_amount: 10 });
   }
   redirect("/dashboard");
 }

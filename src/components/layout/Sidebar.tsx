@@ -278,32 +278,35 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       {/* User + Logout */}
       <div className="border-t border-[#1f1f1f] p-3">
         {!isCompact ? (
-          <div className="flex items-center gap-3">
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt=""
-                className="w-8 h-8 rounded-full object-cover shrink-0"
-              />
-            ) : (
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
-              >
-                {initials}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="w-8 h-8 rounded-full object-cover shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                  style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
+                >
+                  {initials}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-white truncate">{displayName}</div>
+                <div className="text-[11px] text-gray-500 truncate">{email || "Đang tải..."}</div>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{displayName}</div>
-              <div className="text-[11px] text-gray-500 truncate">{email || "Đang tải..."}</div>
             </div>
             <form action={signOut}>
               <button
                 type="submit"
-                title="Đăng xuất"
-                className="text-gray-500 hover:text-red-400 transition-colors p-1"
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-red-400 transition-colors"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid #1f1f1f" }}
               >
-                <LogOut size={15} />
+                <LogOut size={14} />
+                Đăng xuất
               </button>
             </form>
           </div>

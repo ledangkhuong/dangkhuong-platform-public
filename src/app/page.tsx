@@ -59,11 +59,12 @@ const targetAudience = [
   { icon: Rocket, title: "Người mới bắt đầu", desc: "Muốn khởi nghiệp kiếm tiền online từ con số 0 với AI" },
 ];
 
-const courses = [
-  { emoji: "🎬", title: "Học Làm Video VEO3.1 Từ A-Z", badge: "Flagship", desc: "Học làm video Video AI VEO3.1 từ gốc rễ — tự tin tạo prompt, ra video chuyên nghiệp mọi thể loại.", stats: "1,300+ học viên | ⭐ 4.9/5 | 🎬 50+ bài học", slug: "hoc-lam-video-veo3-1" },
-  { emoji: "📈", title: "Xây Kênh Nhàn Tênh - Triệu View", badge: "Độc quyền", desc: "Từ 0 view → triệu view trong 90 ngày với phương pháp đã kiểm chứng qua hàng trăm học viên.", stats: "800+ học viên | ⭐ 4.9/5 | 📅 90 ngày lộ trình", slug: "xay-kenh-trieu-view" },
-  { emoji: "🤖", title: "AI Agent Bán Hàng Tự Động", badge: "Coming Soon", desc: "Xây hệ thống bán hàng 24/7 với AI Agent — không cần nhân viên, không cần tư vấn thủ công.", stats: "⏰ Ra mắt Q2/2026 | 🎁 Ưu đãi early bird", slug: null },
-  { emoji: "💎", title: "30Day10M - Thử Thách 30 Ngày", badge: "Hot", desc: "Lộ trình 30 ngày từ chuyên gia ẩn danh → có video viral + chốt đơn đầu tiên.", stats: "500+ học viên | 💰 Cam kết kết quả", slug: "30day10m" },
+/* Fallback courses used while API data loads */
+const fallbackCourses = [
+  { emoji: "🎬", title: "Học Làm Video VEO3.1 Từ A-Z", badge: "Flagship", desc: "Học làm video Video AI VEO3.1 từ gốc rễ — tự tin tạo prompt, ra video chuyên nghiệp mọi thể loại.", stats: "1,300+ học viên | ⭐ 4.9/5 | 🎬 50+ bài học", slug: "hoc-lam-video-veo3-1", thumbnail: null as string | null, price: 0, sale_price: null as number | null, lessonCount: 0, chapterCount: 0, _static: true },
+  { emoji: "📈", title: "Xây Kênh Nhàn Tênh - Triệu View", badge: "Độc quyền", desc: "Từ 0 view → triệu view trong 90 ngày với phương pháp đã kiểm chứng qua hàng trăm học viên.", stats: "800+ học viên | ⭐ 4.9/5 | 📅 90 ngày lộ trình", slug: "xay-kenh-trieu-view", thumbnail: null as string | null, price: 0, sale_price: null as number | null, lessonCount: 0, chapterCount: 0, _static: true },
+  { emoji: "🤖", title: "AI Agent Bán Hàng Tự Động", badge: "Coming Soon", desc: "Xây hệ thống bán hàng 24/7 với AI Agent — không cần nhân viên, không cần tư vấn thủ công.", stats: "⏰ Ra mắt Q2/2026 | 🎁 Ưu đãi early bird", slug: null as string | null, thumbnail: null as string | null, price: 0, sale_price: null as number | null, lessonCount: 0, chapterCount: 0, _static: true },
+  { emoji: "💎", title: "30Day10M - Thử Thách 30 Ngày", badge: "Hot", desc: "Lộ trình 30 ngày từ chuyên gia ẩn danh → có video viral + chốt đơn đầu tiên.", stats: "500+ học viên | 💰 Cam kết kết quả", slug: "30day10m", thumbnail: null as string | null, price: 0, sale_price: null as number | null, lessonCount: 0, chapterCount: 0, _static: true },
 ];
 
 const testimonials = [
@@ -111,6 +112,34 @@ export default function HomePage() {
   const [turnstileToken, setTurnstileToken] = useState("");
   const handleTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
   const handleTurnstileExpire = useCallback(() => setTurnstileToken(""), []);
+
+  // Dynamic courses from API
+  type DynCourse = typeof fallbackCourses[number];
+  const [dynamicCourses, setDynamicCourses] = useState<DynCourse[]>(fallbackCourses);
+
+  useEffect(() => {
+    fetch("/api/courses/public")
+      .then((r) => r.json())
+      .then((data: { slug: string; title: string; description: string | null; price: number; sale_price: number | null; thumbnail: string | null; lessonCount: number; chapterCount: number }[]) => {
+        if (!Array.isArray(data) || data.length === 0) return;
+        const mapped: DynCourse[] = data.map((c) => ({
+          emoji: "",
+          title: c.title,
+          badge: c.price === 0 ? "Miễn phí" : c.sale_price ? "Sale" : "",
+          desc: c.description ?? "",
+          stats: `${c.lessonCount} bài học | ${c.chapterCount} chương`,
+          slug: c.slug,
+          thumbnail: c.thumbnail,
+          price: c.price,
+          sale_price: c.sale_price,
+          lessonCount: c.lessonCount,
+          chapterCount: c.chapterCount,
+          _static: false,
+        }));
+        setDynamicCourses(mapped);
+      })
+      .catch(() => {/* keep fallback */});
+  }, []);
 
   // Countdown timer
   useEffect(() => {
@@ -462,7 +491,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 6: KHOÁ HỌC ═══ */}
+      {/* ═══ SECTION 6: KHOÁ HỌC (dynamic from DB) ═══ */}
       <section id="courses" className="py-12 sm:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
@@ -473,36 +502,63 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {courses.map((c, i) => (
-              <div key={i} className="bg-[#111] border border-white/5 rounded-2xl p-6 flex flex-col hover:border-[#FBBF24]/20 transition-colors">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-3xl">{c.emoji}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-lg">{c.title}</h3>
-                    </div>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-md"
-                      style={{
-                        background: c.badge === "Coming Soon" ? "rgba(132,204,22,0.1)" : "rgba(251,191,36,0.1)",
-                        color: c.badge === "Coming Soon" ? "#84CC16" : "#FBBF24",
-                      }}>
-                      {c.badge}
-                    </span>
+            {dynamicCourses.map((c, i) => (
+              <div key={c.slug ?? i} className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden flex flex-col hover:border-[#FBBF24]/20 transition-colors">
+                {/* Thumbnail (from DB) */}
+                {c.thumbnail && !c._static && (
+                  <div className="relative aspect-video bg-[#0d0d0d] overflow-hidden">
+                    <img
+                      src={c.thumbnail}
+                      alt={c.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {c.price > 0 && c.sale_price !== null && c.sale_price < c.price && (
+                      <span className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] font-bold bg-red-500 text-white">
+                        -{Math.round(((c.price - c.sale_price) / c.price) * 100)}%
+                      </span>
+                    )}
                   </div>
-                </div>
-                <p className="text-sm text-gray-400 leading-relaxed mb-4 flex-1">{c.desc}</p>
-                <div className="text-xs text-gray-500 mb-4">{c.stats}</div>
-                {c.slug ? (
-                  <Link href={`/courses/${c.slug}`} className="btn-green text-sm py-2.5 justify-center">
-                    Tham gia ngay <ArrowRight size={15} />
-                  </Link>
-                ) : (
-                  <Link href="/register" className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold border border-[#84CC16]/30 text-[#84CC16] hover:bg-[#84CC16]/5 transition-colors">
-                    Đăng ký nhận thông báo <ArrowRight size={15} />
-                  </Link>
                 )}
+
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    {c._static && c.emoji && <span className="text-3xl">{c.emoji}</span>}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-lg">{c.title}</h3>
+                      </div>
+                      {c.badge && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-md"
+                          style={{
+                            background: c.badge === "Coming Soon" ? "rgba(132,204,22,0.1)" : c.badge === "Miễn phí" ? "rgba(34,197,94,0.1)" : "rgba(251,191,36,0.1)",
+                            color: c.badge === "Coming Soon" ? "#84CC16" : c.badge === "Miễn phí" ? "#22c55e" : "#FBBF24",
+                          }}>
+                          {c.badge}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-400 leading-relaxed mb-4 flex-1">{c.desc}</p>
+                  <div className="text-xs text-gray-500 mb-4">{c.stats}</div>
+                  {c.slug ? (
+                    <Link href={`/courses/${c.slug}`} className="btn-green text-sm py-2.5 justify-center">
+                      Xem chi tiết <ArrowRight size={15} />
+                    </Link>
+                  ) : (
+                    <Link href="/register" className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold border border-[#84CC16]/30 text-[#84CC16] hover:bg-[#84CC16]/5 transition-colors">
+                      Đăng ký nhận thông báo <ArrowRight size={15} />
+                    </Link>
+                  )}
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* View all courses link */}
+          <div className="text-center mt-8">
+            <Link href="/courses" className="inline-flex items-center gap-2 text-sm font-medium text-[#FBBF24] hover:text-[#FFD814] transition-colors">
+              Xem tất cả khoá học <ArrowRight size={15} />
+            </Link>
           </div>
         </div>
       </section>

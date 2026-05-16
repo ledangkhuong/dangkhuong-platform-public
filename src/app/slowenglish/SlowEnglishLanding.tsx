@@ -357,8 +357,12 @@ export default function SlowEnglishLanding() {
             <p className="text-[11px] text-gray-600 text-center leading-relaxed pt-2">
               Bằng việc đăng ký, bạn đồng ý với điều khoản sử dụng của Lê Đăng
               Khương Academy.
-              <br />
-              Tài khoản sẽ được dùng để truy cập khoá học sau khi thanh toán.
+            </p>
+            <p className="text-xs text-center pt-3 text-gray-400">
+              Đã có tài khoản?{" "}
+              <span className="text-[#FBBF24]">
+                Nhập đúng email &amp; mật khẩu — hệ thống tự tạo đơn hàng.
+              </span>
             </p>
           </form>
         </div>

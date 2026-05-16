@@ -52,7 +52,10 @@ export async function POST(req: NextRequest) {
 
     const admin = await createAdminClient();
 
-    // 1. Create user
+    // 1. Try to create user
+    let userId: string;
+    let isExistingUser = false;
+
     const { data: signUpData, error: signUpError } =
       await admin.auth.admin.createUser({
         email: email.trim(),
@@ -61,45 +64,52 @@ export async function POST(req: NextRequest) {
         user_metadata: { full_name: full_name.trim() },
       });
 
-    if (signUpError) {
-      if (
-        signUpError.message.includes("already registered") ||
-        signUpError.message.includes("already been registered")
-      ) {
+    const emailAlreadyExists =
+      signUpError?.message?.includes("already registered") ||
+      signUpError?.message?.includes("already been registered") ||
+      (!signUpError &&
+        (!signUpData?.user?.identities ||
+          signUpData.user.identities.length === 0));
+
+    if (emailAlreadyExists) {
+      // Existing user — verify password and create order for them
+      const { createClient: createSupabase } = await import(
+        "@supabase/supabase-js"
+      );
+      const authClient = createSupabase(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      );
+      const { data: signInData, error: signInError } =
+        await authClient.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+      if (signInError || !signInData.user) {
         return NextResponse.json(
           {
             error:
-              "Email đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.",
+              "Email đã đăng ký. Sai mật khẩu — vui lòng nhập đúng mật khẩu tài khoản đã có.",
           },
-          { status: 409 }
+          { status: 401 }
         );
       }
+      userId = signInData.user.id;
+      isExistingUser = true;
+    } else if (signUpError) {
       return NextResponse.json(
         { error: signUpError.message },
         { status: 400 }
       );
-    }
-
-    const userId = signUpData.user?.id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Không thể tạo tài khoản" },
-        { status: 500 }
-      );
-    }
-
-    // Supabase anti-enumeration: empty identities = email already exists
-    if (
-      !signUpData.user?.identities ||
-      signUpData.user.identities.length === 0
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Email đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.",
-        },
-        { status: 409 }
-      );
+    } else {
+      if (!signUpData.user?.id) {
+        return NextResponse.json(
+          { error: "Không thể tạo tài khoản" },
+          { status: 500 }
+        );
+      }
+      userId = signUpData.user.id;
     }
 
     // 2. Update profile
@@ -173,21 +183,22 @@ export async function POST(req: NextRequest) {
         : null,
     };
 
-    // 6. Award XP
-    try {
-      await admin.from("xp_events").insert({
-        user_id: userId,
-        action: "register",
-        xp_amount: 100,
-        meta: { source: "sanphamso_landing" },
-      });
-    } catch {
-      // Non-critical
+    // 6. Award XP (only for new users)
+    if (!isExistingUser) {
+      try {
+        await admin.from("xp_events").insert({
+          user_id: userId,
+          action: "register",
+          xp_amount: 100,
+          meta: { source: "sanphamso_landing" },
+        });
+      } catch {
+        // Non-critical
+      }
     }
 
     // 7. Add to subscribers list
     try {
-      // Check if subscriber already exists
       const { data: existingSub } = await admin
         .from("subscribers")
         .select("id")
@@ -206,12 +217,14 @@ export async function POST(req: NextRequest) {
       // Non-critical
     }
 
-    // 8. Send welcome email
-    try {
-      const { sendWelcomeEmail } = await import("@/lib/email/resend");
-      await sendWelcomeEmail(email.trim(), full_name.trim()).catch(() => {});
-    } catch {
-      // Email service not configured
+    // 8. Send welcome email (only for new users)
+    if (!isExistingUser) {
+      try {
+        const { sendWelcomeEmail } = await import("@/lib/email/resend");
+        await sendWelcomeEmail(email.trim(), full_name.trim()).catch(() => {});
+      } catch {
+        // Email service not configured
+      }
     }
 
     return NextResponse.json({

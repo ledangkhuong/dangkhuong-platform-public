@@ -13,6 +13,17 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
       // If this is a signup confirmation, do post-registration tasks
+      if (data?.user) {
+        const admin = await createAdminClient();
+        const userId = data.user.id;
+
+        // Update last_login for any confirmed user
+        await admin
+          .from("profiles")
+          .update({ last_login: new Date().toISOString() })
+          .eq("id", userId);
+      }
+
       if (type === "signup" && data?.user) {
         const admin = await createAdminClient();
         const userId = data.user.id;
