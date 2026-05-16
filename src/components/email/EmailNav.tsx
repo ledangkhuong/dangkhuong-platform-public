@@ -8,6 +8,8 @@ import {
   Users,
   List,
   FileText,
+  Workflow,
+  Tag,
   BarChart3,
 } from "lucide-react";
 
@@ -17,6 +19,8 @@ const tabs = [
   { label: "Subscribers", href: "/email/subscribers", icon: Users },
   { label: "Lists", href: "/email/lists", icon: List },
   { label: "Templates", href: "/email/templates", icon: FileText },
+  { label: "Automations", href: "/email/automations", icon: Workflow },
+  { label: "Tags", href: "/email/tags", icon: Tag },
   { label: "Analytics", href: "/email/analytics", icon: BarChart3 },
 ];
 

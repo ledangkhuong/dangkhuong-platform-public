@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Mail, Users, Send, Eye, MousePointer, TrendingUp, Plus, Clock,
   CheckCircle, UserMinus, UserCheck, Inbox, AlertTriangle, ArrowRight,
+  Workflow,
 } from "lucide-react";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
@@ -24,15 +25,18 @@ export default async function EmailPage() {
     { count: activeSubscribers },
     { count: unsubscribedCount },
     { count: bouncedCount },
+    { count: activeAutomations },
   ] = await Promise.all([
     supabase.from("subscribers").select("*", { count: "exact", head: true }),
     supabase.from("subscribers").select("*", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("subscribers").select("*", { count: "exact", head: true }).eq("status", "unsubscribed"),
     supabase.from("subscribers").select("*", { count: "exact", head: true }).eq("status", "bounced"),
+    supabase.from("email_automations").select("*", { count: "exact", head: true }).eq("status", "active"),
   ]);
 
   const total = totalSubscribers ?? 0;
   const active = activeSubscribers ?? 0;
+  const automations = activeAutomations ?? 0;
   const unsubscribed = unsubscribedCount ?? 0;
   const bounced = bouncedCount ?? 0;
   const bounceRate = total > 0 ? ((bounced / total) * 100).toFixed(1) : "0.0";
@@ -61,6 +65,7 @@ export default async function EmailPage() {
     { label: "Email đã gửi", value: totalSent.toLocaleString("vi-VN"), sub: `${campaignList.length} campaigns`, icon: Send, color: "#3b82f6" },
     { label: "Open rate TB", value: `${avgOpenRate}%`, sub: `${totalOpened.toLocaleString("vi-VN")} lượt mở`, icon: Eye, color: "#f59e0b" },
     { label: "Click rate TB", value: `${avgClickRate}%`, sub: `${totalClicked.toLocaleString("vi-VN")} lượt click`, icon: MousePointer, color: "#8b5cf6" },
+    { label: "Active Automations", value: automations.toLocaleString("vi-VN"), sub: "workflows đang chạy", icon: Workflow, color: "#14b8a6" },
   ];
 
   return (
@@ -300,6 +305,18 @@ export default async function EmailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Automations quick link */}
+            <Link href="/email/automations" className="card-dark p-4 flex items-center gap-3 hover:bg-[#1f1f1f] transition-colors">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(20,184,166,0.1)" }}>
+                <Workflow size={18} className="text-[#14b8a6]" />
+              </div>
+              <div className="flex-1">
+                <div className="text-white text-sm font-medium">Automations</div>
+                <div className="text-[11px] text-gray-500">{automations} workflow đang hoạt động</div>
+              </div>
+              <ArrowRight size={14} className="text-gray-500" />
+            </Link>
 
             {/* Tips */}
             <div className="card-dark p-4" style={{ borderColor: "rgba(212,168,67,0.2)" }}>
