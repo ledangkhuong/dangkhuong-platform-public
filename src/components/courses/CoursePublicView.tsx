@@ -12,6 +12,8 @@ import {
   Award,
 } from "lucide-react";
 import VideoPlayer from "@/components/courses/VideoPlayer";
+import RichDescription from "@/components/courses/RichDescription";
+import CheckoutModal from "@/components/checkout/CheckoutModal";
 
 /* ─── Types ─── */
 
@@ -37,6 +39,7 @@ interface CoursePublicViewProps {
     slug: string;
     title: string;
     description: string | null;
+    description_html: string | null;
     price: number;
     sale_price: number | null;
     thumbnail: string | null;
@@ -82,6 +85,7 @@ export default function CoursePublicView({
   const [collapsedChapters, setCollapsedChapters] = useState<Set<string>>(
     new Set()
   );
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const sortedChapters = useMemo(
     () =>
@@ -127,6 +131,16 @@ export default function CoursePublicView({
     if (!lesson.is_free || !lesson.youtube_id) return;
     setActiveVideo({ youtubeId: lesson.youtube_id, title: lesson.title });
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleProLesson = () => {
+    if (!isAuthenticated) {
+      window.location.href = "/register";
+      return;
+    }
+    if (!isFree) {
+      setShowCheckout(true);
+    }
   };
 
   return (
@@ -201,6 +215,13 @@ export default function CoursePublicView({
                 <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-6 max-w-2xl">
                   {product.description}
                 </p>
+              )}
+
+              {/* Rich description */}
+              {product.description_html && (
+                <div className="mb-6 max-w-2xl">
+                  <RichDescription html={product.description_html} />
+                </div>
               )}
 
               {/* Stats */}
@@ -406,12 +427,14 @@ export default function CoursePublicView({
                           <div
                             key={lesson.id}
                             onClick={() =>
-                              isFreeLesson && handleFreeLesson(lesson)
-                            }
-                            className={`flex items-center gap-3 py-2.5 px-2 rounded-lg transition-colors ${
                               isFreeLesson
-                                ? "cursor-pointer hover:bg-white/[0.04]"
-                                : ""
+                                ? handleFreeLesson(lesson)
+                                : handleProLesson()
+                            }
+                            className={`flex items-center gap-3 py-2.5 px-2 rounded-lg transition-colors cursor-pointer ${
+                              isFreeLesson
+                                ? "hover:bg-white/[0.04]"
+                                : "hover:bg-white/[0.02]"
                             } ${isPlaying ? "bg-[#D4A843]/10" : ""}`}
                           >
                             {/* Icon */}
@@ -442,8 +465,8 @@ export default function CoursePublicView({
                               {lesson.title}
                             </span>
 
-                            {/* Free badge */}
-                            {lesson.is_free && (
+                            {/* Free / Pro badge */}
+                            {lesson.is_free ? (
                               <span
                                 className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                                 style={{
@@ -454,7 +477,18 @@ export default function CoursePublicView({
                               >
                                 Miễn phí
                               </span>
-                            )}
+                            ) : !isFree ? (
+                              <span
+                                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                style={{
+                                  background: "rgba(212,168,67,0.12)",
+                                  color: "#D4A843",
+                                  border: "1px solid rgba(212,168,67,0.25)",
+                                }}
+                              >
+                                Pro
+                              </span>
+                            ) : null}
 
                             {/* Duration */}
                             {lesson.duration_sec > 0 && (
@@ -544,6 +578,23 @@ export default function CoursePublicView({
 
       {/* Bottom spacer for mobile sticky bar */}
       <div className="h-16 lg:hidden" />
+
+      {/* Checkout Modal for Pro lessons */}
+      {showCheckout && isAuthenticated && !isFree && (
+        <CheckoutModal
+          product={{
+            id: product.id,
+            name: product.title,
+            price: displayPrice,
+            description: product.description ?? undefined,
+          }}
+          onClose={() => setShowCheckout(false)}
+          onSuccess={() => {
+            setShowCheckout(false);
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }

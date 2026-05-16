@@ -7,6 +7,12 @@ import { createClient } from "@/lib/supabase/client";
 import TopBar from "@/components/layout/TopBar";
 import { ArrowLeft, Save, Layers } from "lucide-react";
 import ThumbnailUpload from "@/components/admin/ThumbnailUpload";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(
+  () => import("@/components/admin/RichTextEditor"),
+  { ssr: false, loading: () => <div className="h-[200px] bg-[#151515] rounded-xl animate-pulse" /> }
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -26,6 +32,7 @@ interface CourseForm {
   title: string;
   slug: string;
   description: string;
+  description_html: string;
   thumbnail: string;
   price: number;
   sale_price: number | null;
@@ -54,6 +61,7 @@ export default function EditCoursePage() {
     title: "",
     slug: "",
     description: "",
+    description_html: "",
     thumbnail: "",
     price: 0,
     sale_price: null,
@@ -84,6 +92,7 @@ export default function EditCoursePage() {
         title: data.title ?? "",
         slug: data.slug ?? "",
         description: data.description ?? "",
+        description_html: data.description_html ?? "",
         thumbnail: data.thumbnail ?? "",
         price: data.price ?? 0,
         sale_price: data.sale_price ?? null,
@@ -123,6 +132,7 @@ export default function EditCoursePage() {
       title: form.title.trim(),
       slug: form.slug.trim(),
       description: form.description.trim(),
+      description_html: form.description_html || null,
       thumbnail: form.thumbnail.trim() || null,
       price: Number(form.price) || 0,
       sale_price: form.sale_price ? Number(form.sale_price) : null,
@@ -277,18 +287,36 @@ export default function EditCoursePage() {
             </p>
           </div>
 
-          {/* Description */}
+          {/* Short Description */}
           <div className="card-dark p-4 space-y-2">
             <label className="text-xs font-medium text-gray-400">
-              Mô tả
+              Mô tả ngắn (hiển thị ở danh sách, SEO)
             </label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              placeholder="Mô tả ngắn về khoá học"
-              rows={4}
+              placeholder="Mô tả ngắn gọn về khoá học (1-2 câu)"
+              rows={2}
               className="input-dark w-full resize-none"
+            />
+            <p className="text-[11px] text-gray-600">
+              Dùng cho danh sách khoá học, chia sẻ mạng xã hội, SEO.
+            </p>
+          </div>
+
+          {/* Rich Description */}
+          <div className="card-dark p-4 space-y-2">
+            <label className="text-xs font-medium text-gray-400">
+              Giới thiệu chi tiết khoá học
+            </label>
+            <p className="text-[11px] text-gray-600 mb-2">
+              Nội dung giới thiệu đầy đủ: văn bản, hình ảnh, link, danh sách... Hiển thị trên trang giới thiệu khoá học.
+            </p>
+            <RichTextEditor
+              value={form.description_html}
+              onChange={(html) => setForm((prev) => ({ ...prev, description_html: html }))}
+              placeholder="Viết giới thiệu chi tiết về khoá học..."
             />
           </div>
 

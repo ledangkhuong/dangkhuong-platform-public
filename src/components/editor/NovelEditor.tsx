@@ -192,7 +192,7 @@ const suggestionItems = createSuggestionItems([
     searchTerms: ["todo", "task", "checkbox", "check"],
     icon: <CheckSquare size={18} />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleTaskList().run();
+      (editor.chain().focus().deleteRange(range) as any).toggleTaskList?.()?.run() ?? editor.chain().focus().deleteRange(range).run();
     },
   },
   {
@@ -219,7 +219,7 @@ const suggestionItems = createSuggestionItems([
     searchTerms: ["hr", "divider", "separator", "duong ke"],
     icon: <Minus size={18} />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+      (editor.chain().focus().deleteRange(range) as any).setHorizontalRule?.()?.run() ?? editor.chain().focus().deleteRange(range).run();
     },
   },
   {
@@ -258,7 +258,7 @@ const suggestionItems = createSuggestionItems([
       editor.chain().focus().deleteRange(range).run();
       const url = window.prompt("Nhập URL YouTube:");
       if (url) {
-        editor.chain().focus().setYoutubeVideo({ src: url }).run();
+        (editor.chain().focus() as any).setYoutubeVideo?.({ src: url })?.run();
       }
     },
   },
@@ -442,7 +442,7 @@ function ToolbarButtons() {
       <button
         type="button"
         className="novel-toolbar-btn"
-        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        onClick={() => (editor.chain().focus() as any).setHorizontalRule?.()?.run()}
         title="Divider"
       >
         <Minus size={16} />
@@ -452,7 +452,7 @@ function ToolbarButtons() {
       <button
         type="button"
         className={`novel-toolbar-btn ${editor.isActive("highlight") ? "active" : ""}`}
-        onClick={() => editor.chain().focus().toggleHighlight().run()}
+        onClick={() => (editor.chain().focus() as any).toggleHighlight?.()?.run()}
         title="Highlight"
       >
         <Highlighter size={16} />
@@ -573,7 +573,7 @@ export default function NovelEditor({ initialContent, initialHtml, onChange }: N
               <Code size={14} />
             </BubbleBtn>
             <BubbleBtn
-              action={(e) => e.chain().focus().toggleHighlight().run()}
+              action={(e) => (e.chain().focus() as any).toggleHighlight?.()?.run()}
               isActiveCheck={(e) => e.isActive("highlight")}
               tooltip="Highlight"
             >

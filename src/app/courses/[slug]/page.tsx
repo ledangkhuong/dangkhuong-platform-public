@@ -91,7 +91,7 @@ export default async function CourseDetailPage({
   // Fetch product
   const { data: product } = await supabase
     .from("products")
-    .select("id, slug, title, description, price, sale_price, thumbnail, type, tier_required")
+    .select("id, slug, title, description, description_html, price, sale_price, thumbnail, type, tier_required")
     .eq("slug", slug)
     .eq("status", "published")
     .single();
@@ -128,6 +128,7 @@ export default async function CourseDetailPage({
           slug: product.slug,
           title: product.title,
           description: product.description,
+          description_html: product.description_html ?? null,
           price: product.price,
           sale_price: product.sale_price,
           thumbnail: product.thumbnail,
@@ -180,6 +181,7 @@ export default async function CourseDetailPage({
             slug: product.slug,
             title: product.title,
             description: product.description,
+            description_html: product.description_html ?? null,
             price: product.price,
             sale_price: product.sale_price,
             thumbnail: product.thumbnail,
