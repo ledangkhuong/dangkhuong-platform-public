@@ -32,9 +32,13 @@ export async function GET(req: NextRequest) {
       now.getTime() - 30 * 24 * 60 * 60 * 1000
     ).toISOString();
 
-    const from = searchParams.get("from") || defaultFrom;
-    const to = searchParams.get("to") || defaultTo;
+    const rawFrom = searchParams.get("from") || defaultFrom;
+    const rawTo = searchParams.get("to") || defaultTo;
     const groupBy = searchParams.get("groupBy") || "day";
+
+    // Normalize date range: ensure full day coverage
+    const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
+    const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
 
     // Use admin client to bypass RLS
     const adminClient = await createAdminClient();
@@ -43,15 +47,15 @@ export async function GET(req: NextRequest) {
     const { data: profiles } = await adminClient
       .from("profiles")
       .select("created_at")
-      .gte("created_at", from)
-      .lte("created_at", to);
+      .gte("created_at", fromISO)
+      .lte("created_at", toISO);
 
     // Fetch new enrollments in range
     const { data: enrollments } = await adminClient
       .from("enrollments")
       .select("created_at")
-      .gte("created_at", from)
-      .lte("created_at", to);
+      .gte("created_at", fromISO)
+      .lte("created_at", toISO);
 
     // Group by day or month
     const formatDate = (dateStr: string): string => {
@@ -67,8 +71,8 @@ export async function GET(req: NextRequest) {
       {};
 
     // Generate all date keys in range
-    const startDate = new Date(from);
-    const endDate = new Date(to);
+    const startDate = new Date(fromISO);
+    const endDate = new Date(toISO);
 
     if (groupBy === "month") {
       const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);

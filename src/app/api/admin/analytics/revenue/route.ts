@@ -30,18 +30,22 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const defaultFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const from = searchParams.get("from") || defaultFrom.toISOString();
-  const to = searchParams.get("to") || now.toISOString();
+  const rawFrom = searchParams.get("from") || defaultFrom.toISOString();
+  const rawTo = searchParams.get("to") || now.toISOString();
+
+  // Normalize date range: ensure full day coverage
+  const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
+  const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
 
   // Query orders with adminClient (bypasses RLS)
   const adminClient = await createAdminClient();
 
   const { data: orders, error: queryError } = await adminClient
     .from("orders")
-    .select("paid_at, total")
+    .select("paid_at, amount")
     .eq("status", "paid")
-    .gte("paid_at", from)
-    .lte("paid_at", to)
+    .gte("paid_at", fromISO)
+    .lte("paid_at", toISO)
     .order("paid_at", { ascending: true });
 
   if (queryError) {
@@ -70,7 +74,7 @@ export async function GET(req: NextRequest) {
     }
 
     const existing = grouped.get(key) || { revenue: 0, orders: 0 };
-    existing.revenue += order.total;
+    existing.revenue += order.amount || 0;
     existing.orders += 1;
     grouped.set(key, existing);
   }

@@ -25,8 +25,12 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const defaultFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const from = searchParams.get("from") || defaultFrom.toISOString();
-  const to = searchParams.get("to") || now.toISOString();
+  const rawFrom = searchParams.get("from") || defaultFrom.toISOString();
+  const rawTo = searchParams.get("to") || now.toISOString();
+
+  // Normalize date range: ensure full day coverage
+  const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
+  const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
 
   const adminClient = await createAdminClient();
 
@@ -34,8 +38,8 @@ export async function GET(req: NextRequest) {
     .from("orders")
     .select("amount, product_id, products(title, thumbnail)")
     .eq("status", "paid")
-    .gte("paid_at", from)
-    .lte("paid_at", to);
+    .gte("paid_at", fromISO)
+    .lte("paid_at", toISO);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

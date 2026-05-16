@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
   const statusBreakdown = statuses.map((status) => {
     const filtered = orders.filter((o) => o.status === status);
     const revenue = filtered.reduce(
-      (sum, o) => sum + (o.total_amount || 0),
+      (sum, o) => sum + (o.amount || 0),
       0
     );
     return { status, count: filtered.length, revenue };
