@@ -268,12 +268,16 @@ export default async function AdminCoursesPage() {
                         {lessonCount}
                       </div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-gray-400 mb-0.5">Học viên</div>
-                      <div className="font-semibold text-white">
+                    <Link
+                      href={`/admin/courses/${course.id}/students`}
+                      className="text-center group"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="text-gray-400 mb-0.5 group-hover:text-[#D4A843] transition-colors">Học viên</div>
+                      <div className="font-semibold text-white group-hover:text-[#D4A843] transition-colors">
                         {enrolled.toLocaleString("vi-VN")}
                       </div>
-                    </div>
+                    </Link>
                     <div className="text-center min-w-[80px]">
                       <div className="text-gray-400 mb-0.5">Giá</div>
                       <div className="font-semibold text-[#D4A843]">
@@ -291,6 +295,18 @@ export default async function AdminCoursesPage() {
                     >
                       <Edit2 size={12} />
                       Sửa
+                    </Link>
+                    <Link
+                      href={`/admin/courses/${course.id}/students`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                      style={{
+                        background: "rgba(59,130,246,0.1)",
+                        color: "#3b82f6",
+                        border: "1px solid rgba(59,130,246,0.2)",
+                      }}
+                    >
+                      <Users size={12} />
+                      Học viên
                     </Link>
                     <Link
                       href={`/admin/courses/${course.id}/lessons`}
