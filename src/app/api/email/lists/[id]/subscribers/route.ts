@@ -15,6 +15,9 @@ export async function GET(
       Math.max(1, parseInt(searchParams.get("limit") ?? "50", 10))
     );
     const search = searchParams.get("search") ?? "";
+    if (search.length > 320) {
+      return NextResponse.json({ error: "Search query too long" }, { status: 400 });
+    }
     const offset = (page - 1) * limit;
 
     const supabase = await createAdminClient();

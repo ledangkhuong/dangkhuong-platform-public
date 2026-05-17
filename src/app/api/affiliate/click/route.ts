@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/affiliate/click
@@ -8,6 +9,12 @@ import { createAdminClient } from "@/lib/supabase/server";
  */
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = await rateLimit(`affiliate-click:${ip}`, 30, 60);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+    }
+
     const body = await req.json();
     const { ref_code, page_url, referrer } = body;
 
@@ -16,7 +23,6 @@ export async function POST(req: NextRequest) {
     }
 
     const code = ref_code.toUpperCase();
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const userAgent = req.headers.get("user-agent")?.slice(0, 300) ?? "";
 
     const supabase = await createAdminClient();

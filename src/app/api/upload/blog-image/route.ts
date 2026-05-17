@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
+import crypto from "crypto";
 
 const BUCKET = "thumbnails";
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
@@ -16,7 +18,7 @@ function sanitizeFilename(name: string): string {
 
 /** Validate actual file content via magic bytes, not just declared MIME type */
 function validateImageMagicBytes(buffer: ArrayBuffer): boolean {
-  const bytes = new Uint8Array(buffer.slice(0, 4));
+  const bytes = new Uint8Array(buffer.slice(0, 12));
   // JPEG: FF D8 FF
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return true;
   // PNG: 89 50 4E 47
@@ -25,8 +27,12 @@ function validateImageMagicBytes(buffer: ArrayBuffer): boolean {
   // GIF: 47 49 46 38
   if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38)
     return true;
-  // WebP: 52 49 46 46 (RIFF header)
-  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46)
+  // WebP: bytes 0-3 must be "RIFF" AND bytes 8-11 must be "WEBP"
+  // Without checking WEBP signature, any RIFF container (e.g. AVI, WAV) would pass
+  if (
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  )
     return true;
   return false;
 }
@@ -40,6 +46,16 @@ export async function POST(req: NextRequest) {
     .from("profiles").select("role").eq("id", user.id).single();
   if (!["admin", "manager", "marketing"].includes(profile?.role ?? ""))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  // Rate limit: 5 uploads per minute per IP
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = await rateLimit(`upload:${ip}`, 5, 60);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many uploads. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec || 60) } }
+    );
+  }
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
@@ -84,7 +100,8 @@ export async function POST(req: NextRequest) {
 
   // Generate unique filename with sanitized extension
   const ext = sanitizeFilename(rawExt) || "jpg";
-  const filename = `blog/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const randomSuffix = crypto.randomBytes(6).toString('hex');
+  const filename = `blog/${Date.now()}-${randomSuffix}.${ext}`;
   const buffer = Buffer.from(arrayBuffer);
 
   const { error: uploadError } = await admin.storage

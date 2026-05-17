@@ -14,6 +14,17 @@ import type {
   Subscriber,
 } from "./types";
 
+// ─── HTML Escaping ─────────────────────────────────────────
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // ─── Constants ──────────────────────────────────────────────
 
 const DEFAULT_FROM_EMAIL = "support@ledangkhuong.net";
@@ -126,10 +137,18 @@ function replaceVariables(
 
   let result = text;
   for (const [key, value] of Object.entries(vars)) {
+    // Escape HTML for all values except URLs to prevent injection
+    const safeValue =
+      key.toLowerCase().includes("url") ||
+      key.toLowerCase().includes("link") ||
+      value.startsWith("http")
+        ? value
+        : escapeHtml(value);
+
     // Replace both {{key}} patterns (case-insensitive)
     result = result.replace(
       new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "gi"),
-      value
+      safeValue
     );
   }
 

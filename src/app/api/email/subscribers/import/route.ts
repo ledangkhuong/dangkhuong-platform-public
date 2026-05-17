@@ -48,7 +48,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const text = await file.text();
+    // Read file content and validate it is text, not binary data
+    const arrayBuffer = await file.arrayBuffer();
+    const firstBytes = new Uint8Array(arrayBuffer.slice(0, 8));
+
+    // Reject files that start with common binary magic bytes (images, archives, executables, etc.)
+    const binarySignatures: Array<{ name: string; bytes: number[] }> = [
+      { name: "PNG",  bytes: [0x89, 0x50, 0x4e, 0x47] },
+      { name: "JPEG", bytes: [0xff, 0xd8, 0xff] },
+      { name: "GIF",  bytes: [0x47, 0x49, 0x46] },
+      { name: "PDF",  bytes: [0x25, 0x50, 0x44, 0x46] },
+      { name: "ZIP",  bytes: [0x50, 0x4b, 0x03, 0x04] },
+      { name: "GZIP", bytes: [0x1f, 0x8b] },
+      { name: "EXE",  bytes: [0x4d, 0x5a] },
+      { name: "RIFF", bytes: [0x52, 0x49, 0x46, 0x46] },
+      { name: "ELF",  bytes: [0x7f, 0x45, 0x4c, 0x46] },
+    ];
+
+    for (const sig of binarySignatures) {
+      if (sig.bytes.every((b, i) => firstBytes[i] === b)) {
+        return NextResponse.json(
+          { error: `File appears to be binary (${sig.name}), not CSV text` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Check for null bytes in the first 1KB, which indicate binary content
+    const sampleBytes = new Uint8Array(arrayBuffer.slice(0, 1024));
+    if (sampleBytes.includes(0x00)) {
+      return NextResponse.json(
+        { error: "File contains null bytes and appears to be binary, not CSV text" },
+        { status: 400 }
+      );
+    }
+
+    const text = new TextDecoder().decode(arrayBuffer);
     const lines = text.split(/\r?\n/).filter((line) => line.trim());
 
     if (lines.length < 2) {

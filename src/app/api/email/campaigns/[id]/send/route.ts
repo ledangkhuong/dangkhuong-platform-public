@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { rateLimit } from "@/lib/rate-limit";
 
 const BATCH_SIZE = 50;
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 function createSESClient() {
   return new SESv2Client({
@@ -19,9 +29,9 @@ function renderTemplate(
   subscriber: { email: string; full_name?: string; id: string }
 ): string {
   return html
-    .replace(/\{\{name\}\}/g, subscriber.full_name || "")
-    .replace(/\{\{email\}\}/g, subscriber.email)
-    .replace(/\{\{subscriber_id\}\}/g, subscriber.id);
+    .replace(/\{\{name\}\}/g, escapeHtml(subscriber.full_name || ""))
+    .replace(/\{\{email\}\}/g, escapeHtml(subscriber.email))
+    .replace(/\{\{subscriber_id\}\}/g, escapeHtml(subscriber.id));
 }
 
 function addTrackingPixel(html: string, sendId: string): string {
@@ -96,6 +106,14 @@ export async function POST(
       .single();
     if (!["admin", "manager"].includes(profile?.role ?? ""))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const rl = await rateLimit(`campaign-send:${user.id}`, 3, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many send requests. Please wait." },
+        { status: 429 }
+      );
+    }
 
     const { id } = await params;
     const admin = await createAdminClient();

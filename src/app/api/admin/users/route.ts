@@ -70,6 +70,14 @@ export async function PATCH(req: NextRequest) {
 
   // Use admin client to bypass RLS
   const adminClient = await createAdminClient();
+
+  // Fetch current profile to capture "before" state for audit
+  const { data: previousProfile } = await adminClient
+    .from("profiles")
+    .select("role, tier")
+    .eq("id", user_id)
+    .single();
+
   const { data, error } = await adminClient
     .from("profiles")
     .update(updates)
@@ -90,7 +98,7 @@ export async function PATCH(req: NextRequest) {
       action: "user.role_change",
       target_type: "user",
       target_id: user_id,
-      details: { new_role: role },
+      details: { previous_role: previousProfile?.role ?? "unknown", new_role: role },
       ip_address: ip,
     });
   }
@@ -100,7 +108,7 @@ export async function PATCH(req: NextRequest) {
       action: "user.tier_change",
       target_type: "user",
       target_id: user_id,
-      details: { new_tier: tier },
+      details: { previous_tier: previousProfile?.tier ?? "unknown", new_tier: tier },
       ip_address: ip,
     });
   }

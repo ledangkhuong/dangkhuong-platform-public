@@ -6,14 +6,19 @@ import { rateLimit } from "@/lib/rate-limit";
 // Generate a cryptographically random order code
 // Format: DK + 12 random alphanumeric chars (e.g., "DKa3Bf9Kx2Mn")
 // This gives 62^12 ≈ 3.2 × 10^21 possible codes - practically unguessable
-function generateOrderCode(prefix: string = "DK"): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const bytes = randomBytes(12);
-  let code = prefix;
-  for (let i = 0; i < 12; i++) {
-    code += chars[bytes[i] % chars.length];
+function generateOrderCode(prefix: string = "DK", length = 12): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const maxValid = 256 - (256 % chars.length); // reject values >= this to avoid modulo bias
+  let result = prefix;
+  while (result.length < prefix.length + length) {
+    const bytes = randomBytes(length - (result.length - prefix.length));
+    for (const byte of bytes) {
+      if (byte < maxValid && result.length < prefix.length + length) {
+        result += chars[byte % chars.length];
+      }
+    }
   }
-  return code;
+  return result;
 }
 
 export async function POST(req: NextRequest) {
@@ -102,6 +107,7 @@ export async function POST(req: NextRequest) {
       customer_email: customer_email || user.email,
       customer_phone: customer_phone || null,
       ref_code: refCode,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     }).select().single();
 
     if (orderError) {

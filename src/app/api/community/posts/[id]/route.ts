@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // GET /api/community/posts/[id] — lấy 1 post cụ thể
 export async function GET(
   _req: NextRequest,
@@ -14,6 +16,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+
+  if (!UUID_REGEX.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("posts")
@@ -40,6 +46,10 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+
+  if (!UUID_REGEX.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
 
   // Fetch post to verify ownership
   const { data: post, error: fetchError } = await supabase

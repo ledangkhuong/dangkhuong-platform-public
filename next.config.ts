@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+          { key: "Pragma", value: "no-cache" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
@@ -16,14 +26,24 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value:
+              "camera=(), microphone=(), geolocation=(), payment=(), usb=(), " +
+              "magnetometer=(), gyroscope=(), accelerometer=(), display-capture=(), " +
+              "bluetooth=(), interest-cohort=()",
           },
           { key: "X-DNS-Prefetch-Control", value: "on" },
+          { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+          {
+            key: "Report-To",
+            value:
+              '{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://dangkhuong.report-uri.com/r/d/csp/enforce"}]}',
+          },
           {
             key: "Content-Security-Policy",
             value:
               "default-src 'self'; " +
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.youtube.com https://www.googletagmanager.com; " +
+              // TODO: If the production build breaks without 'unsafe-eval', add it back here
+              "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://www.youtube.com https://www.googletagmanager.com; " +
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
               "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://img.youtube.com https://*.googleusercontent.com; " +
               "font-src 'self' https://fonts.gstatic.com; " +
@@ -32,7 +52,10 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'; " +
               "base-uri 'self'; " +
               "form-action 'self'; " +
-              "object-src 'none'",
+              "object-src 'none'; " +
+              "upgrade-insecure-requests; " +
+              "report-uri https://dangkhuong.report-uri.com/r/d/csp/enforce; " +
+              "report-to csp-endpoint",
           },
         ],
       },

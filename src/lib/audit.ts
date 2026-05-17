@@ -12,7 +12,10 @@ export type AuditAction =
   | "enrollment.delete"
   | "email.campaign_send"
   | "payment.received"
-  | "account.delete";
+  | "account.delete"
+  | "auth.login_failed"
+  | "auth.rate_limited"
+  | "webhook.auth_failed";
 
 interface AuditLogEntry {
   admin_id: string;
@@ -54,19 +57,25 @@ interface AuditLogEntry {
  *   );
  */
 export async function logAudit(entry: AuditLogEntry): Promise<void> {
-  try {
-    const supabase = await createAdminClient();
-    await supabase.from("audit_logs").insert({
-      admin_id: entry.admin_id,
-      admin_email: entry.admin_email || null,
-      action: entry.action,
-      target_type: entry.target_type,
-      target_id: entry.target_id,
-      details: entry.details || {},
-      ip_address: entry.ip_address || null,
-    });
-  } catch (err) {
-    // Best-effort: never let audit logging break the main operation
-    console.error("[Audit] Failed to log:", entry.action, err);
+  const maxRetries = 1;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const supabase = await createAdminClient();
+      const { error } = await supabase.from("audit_logs").insert({
+        admin_id: entry.admin_id,
+        admin_email: entry.admin_email || null,
+        action: entry.action,
+        target_type: entry.target_type,
+        target_id: entry.target_id,
+        details: entry.details || {},
+        ip_address: entry.ip_address || null,
+      });
+      if (!error) return; // success
+      if (attempt < maxRetries) continue; // retry
+      console.error("[Audit] Failed after retry:", error.message);
+    } catch (err) {
+      if (attempt < maxRetries) continue;
+      console.error("[Audit] Exception after retry:", err);
+    }
   }
 }

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, password, full_name, phone, turnstile_token } = await req.json();
+    const { email, password, full_name, phone, turnstile_token, newsletter_opt_in } = await req.json();
 
     // Verify Turnstile CAPTCHA
     const turnstileOk = await verifyTurnstile(turnstile_token);
@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
     if (!password || password.length < 8) {
       return NextResponse.json({ error: "Mật khẩu phải có ít nhất 8 ký tự" }, { status: 400 });
     }
+    if (password.length > 72) {
+      return NextResponse.json({ error: "Mật khẩu không được quá 72 ký tự" }, { status: 400 });
+    }
     if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
       return NextResponse.json({ error: "Mật khẩu phải có chữ hoa, chữ thường và số" }, { status: 400 });
     }
@@ -66,8 +69,8 @@ export async function POST(req: NextRequest) {
       await admin.from("profiles").update({ phone: cleanPhone }).eq("id", created.user.id);
     }
 
-    // Sync subscriber (best-effort)
-    if (created?.user) {
+    // GDPR/PDPA: Only sync subscriber if user explicitly opted in to newsletter
+    if (created?.user && newsletter_opt_in === true) {
       try {
         const normalizedEmail = email.trim().toLowerCase();
         const { data: existingSub } = await admin

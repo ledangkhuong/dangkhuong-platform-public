@@ -16,9 +16,20 @@ export default function CookieConsent() {
   const accept = () => {
     localStorage.setItem("dk_cookie_consent", "accepted");
     setShow(false);
+
+    // Record consent server-side for GDPR/PDPA audit trail
+    fetch("/api/analytics/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "cookie_consent",
+        properties: { decision: "accepted" },
+      }),
+    }).catch(() => {});
   };
 
   const decline = () => {
+    // Only store locally — do not fire tracking API since user declined consent
     localStorage.setItem("dk_cookie_consent", "declined");
     setShow(false);
   };

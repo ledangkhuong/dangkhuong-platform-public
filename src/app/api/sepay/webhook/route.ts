@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import crypto from "crypto";
 
 /**
  * SEPAY WEBHOOK
@@ -24,8 +25,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
     }
 
-    if (apiKey !== envKey) {
+    const apiKeyBuf = Buffer.from(apiKey);
+    const envKeyBuf = Buffer.from(envKey);
+    if (apiKeyBuf.length !== envKeyBuf.length || !crypto.timingSafeEqual(apiKeyBuf, envKeyBuf)) {
       console.error("[Sepay] Unauthorized - API key mismatch");
+      logAudit({
+        admin_id: "system",
+        action: "webhook.auth_failed" as any,
+        target_type: "webhook",
+        target_id: "sepay",
+        details: { ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown" },
+      }).catch(() => {});
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -25,6 +25,9 @@ const useUpstash = !!(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
 );
 
+/** Shared Redis instance for login rate limiting (lazy-initialised). */
+const redis = useUpstash ? Redis.fromEnv() : null;
+
 const upstashLimiters: Record<string, Ratelimit> = {};
 
 function getUpstashLimiter(
@@ -55,9 +58,13 @@ const store = new Map<string, RateLimitEntry>();
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const WINDOW_SEC = 10 * 60; // 10 minutes in seconds
 const BLOCK_MS = 10 * 60 * 1000; // 10 minutes block
+const BLOCK_DURATION_SEC = 10 * 60; // 10 minutes in seconds
 
-export function checkRateLimit(ip: string): {
+// ─── In-memory fallback functions ───────────────────────────────────────────
+
+function checkRateLimitMemory(ip: string): {
   allowed: boolean;
   remainingAttempts: number;
   retryAfterSec: number;
@@ -96,7 +103,7 @@ export function checkRateLimit(ip: string): {
   };
 }
 
-export function recordFailedAttempt(ip: string): void {
+function recordFailedAttemptMemory(ip: string): void {
   const now = Date.now();
   const entry = store.get(ip);
 
@@ -112,8 +119,79 @@ export function recordFailedAttempt(ip: string): void {
   }
 }
 
-export function resetRateLimit(ip: string): void {
+function resetRateLimitMemory(ip: string): void {
   store.delete(ip);
+}
+
+// ─── Redis-backed login rate limiting (with in-memory fallback) ─────────────
+
+export async function checkRateLimit(key: string): Promise<{
+  allowed: boolean;
+  remainingAttempts: number;
+  retryAfterSec: number;
+}> {
+  if (!redis) return checkRateLimitMemory(key);
+
+  const redisKey = `login-attempts:${key}`;
+  const data = (await redis.get(redisKey)) as {
+    attempts: number;
+    blockedUntil?: number;
+  } | null;
+
+  if (data?.blockedUntil && Date.now() < data.blockedUntil) {
+    return {
+      allowed: false,
+      remainingAttempts: 0,
+      retryAfterSec: Math.ceil((data.blockedUntil - Date.now()) / 1000),
+    };
+  }
+
+  const attempts = data?.attempts || 0;
+  if (attempts >= MAX_ATTEMPTS) {
+    return {
+      allowed: false,
+      remainingAttempts: 0,
+      retryAfterSec: BLOCK_DURATION_SEC,
+    };
+  }
+
+  return {
+    allowed: true,
+    remainingAttempts: MAX_ATTEMPTS - attempts,
+    retryAfterSec: 0,
+  };
+}
+
+export async function recordFailedAttempt(key: string): Promise<void> {
+  if (!redis) {
+    recordFailedAttemptMemory(key);
+    return;
+  }
+
+  const redisKey = `login-attempts:${key}`;
+  const data = (await redis.get(redisKey)) as {
+    attempts: number;
+    blockedUntil?: number;
+  } | null;
+  const attempts = (data?.attempts || 0) + 1;
+
+  if (attempts >= MAX_ATTEMPTS) {
+    await redis.set(
+      redisKey,
+      { attempts, blockedUntil: Date.now() + BLOCK_DURATION_SEC * 1000 },
+      { ex: BLOCK_DURATION_SEC }
+    );
+  } else {
+    await redis.set(redisKey, { attempts }, { ex: WINDOW_SEC });
+  }
+}
+
+export async function resetRateLimit(key: string): Promise<void> {
+  if (!redis) {
+    resetRateLimitMemory(key);
+    return;
+  }
+  await redis.del(`login-attempts:${key}`);
 }
 
 // ─── Generic sliding-window rate limiter ─────────────────────────────────────

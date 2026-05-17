@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const FALLBACK_URL = "https://dangkhuong.com";
 
@@ -38,6 +39,13 @@ export async function GET(req: NextRequest) {
       req.headers.get("x-real-ip") ||
       null;
     const userAgent = req.headers.get("user-agent") || null;
+
+    // Rate limit: 60 requests per minute per IP
+    // If rate limited, still redirect (don't break user experience) but skip the database write
+    const rl = await rateLimit(`email-track:${ip || "unknown"}`, 60, 60);
+    if (!rl.allowed) {
+      return redirect(targetUrl);
+    }
 
     const admin = await createAdminClient();
 

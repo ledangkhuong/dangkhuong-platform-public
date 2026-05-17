@@ -194,6 +194,15 @@ export async function DELETE(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function sendBlogNotificationEmail(admin: any, post: any) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -225,14 +234,17 @@ async function sendBlogNotificationEmail(admin: any, post: any) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(
-        batch.map((email: string) => ({
+        batch.map((email: string) => {
+          const safeTitle = escapeHtml(post.title);
+          const safeExcerpt = post.excerpt ? escapeHtml(post.excerpt) : "";
+          return {
           from: fromEmail,
           to: email,
           subject: `Bài viết mới: ${post.title}`,
           html: `
             <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #D4A843;">${post.title}</h2>
-              ${post.excerpt ? `<p style="color: #666;">${post.excerpt}</p>` : ""}
+              <h2 style="color: #D4A843;">${safeTitle}</h2>
+              ${safeExcerpt ? `<p style="color: #666;">${safeExcerpt}</p>` : ""}
               <a href="https://dangkhuong.com/blog/${post.slug}"
                  style="display: inline-block; padding: 12px 24px; background: #D4A843; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
                 Đọc bài viết
@@ -243,7 +255,7 @@ async function sendBlogNotificationEmail(admin: any, post: any) {
               </p>
             </div>
           `,
-        }))
+        };})
       ),
     });
   }

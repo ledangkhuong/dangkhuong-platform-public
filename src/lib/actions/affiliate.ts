@@ -2,15 +2,17 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import crypto from "crypto";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Tạo ref code 6 ký tự, tránh ký tự dễ nhầm (0/O, 1/I/L) */
-function generateRefCode(): string {
+function generateRefCode(length = 6): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.randomBytes(length);
   let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < length; i++) {
+    code += chars[bytes[i] % chars.length];
   }
   return code;
 }

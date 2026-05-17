@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const TRANSPARENT_GIF = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
@@ -30,6 +31,13 @@ export async function GET(req: NextRequest) {
       req.headers.get("x-real-ip") ||
       null;
     const userAgent = req.headers.get("user-agent") || null;
+
+    // Rate limit: 60 requests per minute per IP
+    // If rate limited, still return the pixel (don't break email rendering)
+    const rl = await rateLimit(`email-track:${ip || "unknown"}`, 60, 60);
+    if (!rl.allowed) {
+      return gifResponse();
+    }
 
     const admin = await createAdminClient();
 

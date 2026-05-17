@@ -3,77 +3,83 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // GET /api/crm/recommendations — Get recommendations for a contact
 export async function GET(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (
-    !profile ||
-    !["admin", "manager", "sale", "support", "marketing"].includes(
-      profile.role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (
+      !profile ||
+      !["admin", "manager", "sale", "support", "marketing"].includes(
+        profile.role
+      )
     )
-  )
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const adminClient = await createAdminClient();
+    const adminClient = await createAdminClient();
 
-  const { searchParams } = new URL(req.url);
-  const contact_id = searchParams.get("contact_id");
+    const { searchParams } = new URL(req.url);
+    const contact_id = searchParams.get("contact_id");
 
-  if (!contact_id) {
-    return NextResponse.json(
-      { error: "contact_id is required" },
-      { status: 400 }
-    );
+    if (!contact_id) {
+      return NextResponse.json(
+        { error: "contact_id is required" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await adminClient
+      .from("crm_course_recommendations")
+      .select("*, products(title, price, thumbnail, description)")
+      .eq("contact_id", contact_id)
+      .order("score", { ascending: false });
+
+    if (error) {
+      console.error("[CRM Recommendations GET] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tải gợi ý. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    return NextResponse.json({ recommendations: data });
+  } catch (err) {
+    console.error("[CRM Recommendations GET] Error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const { data, error } = await adminClient
-    .from("crm_course_recommendations")
-    .select("*, products(title, price, thumbnail, description)")
-    .eq("contact_id", contact_id)
-    .order("score", { ascending: false });
-
-  if (error) {
-    console.error("[CRM Recommendations GET] Error:", error);
-    return NextResponse.json({ error: "Có lỗi xảy ra khi tải gợi ý. Vui lòng thử lại." }, { status: 500 });
-  }
-
-  return NextResponse.json({ recommendations: data });
 }
 
 // POST /api/crm/recommendations — Auto-generate recommendations for a contact
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (
-    !profile ||
-    !["admin", "manager", "sale", "support", "marketing"].includes(
-      profile.role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (
+      !profile ||
+      !["admin", "manager", "sale", "support", "marketing"].includes(
+        profile.role
+      )
     )
-  )
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const adminClient = await createAdminClient();
+    const adminClient = await createAdminClient();
 
-  const { contact_id } = await req.json();
+    const { contact_id } = await req.json();
 
   if (!contact_id) {
     return NextResponse.json(
@@ -202,5 +208,9 @@ export async function POST(req: NextRequest) {
     .eq("contact_id", contact_id)
     .order("score", { ascending: false });
 
-  return NextResponse.json({ recommendations: recommendations ?? [] });
+    return NextResponse.json({ recommendations: recommendations ?? [] });
+  } catch (err) {
+    console.error("[CRM Recommendations POST] Error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

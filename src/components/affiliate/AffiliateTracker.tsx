@@ -16,6 +16,10 @@ export default function AffiliateTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // GDPR/PDPA: Do not set tracking cookies or fire tracking calls without consent
+    const consent = typeof window !== "undefined" ? localStorage.getItem("dk_cookie_consent") : null;
+    if (consent !== "accepted") return;
+
     const ref = searchParams.get("ref");
     if (!ref || ref.length < 4 || ref.length > 20) return;
 

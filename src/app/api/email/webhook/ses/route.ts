@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Validate that an SNS message appears to originate from AWS.
@@ -33,8 +35,107 @@ function validateSNSMessage(body: Record<string, unknown>): boolean {
   return true;
 }
 
+/**
+ * Build the canonical string-to-sign for an SNS Notification message.
+ * Fields must appear in byte-sorted order (alphabetical) per the SNS spec.
+ * Subject is included only when present in the message.
+ */
+function buildNotificationStringToSign(
+  msg: Record<string, string>
+): string {
+  let str = "";
+  str += "Message\n" + msg.Message + "\n";
+  str += "MessageId\n" + msg.MessageId + "\n";
+  if (msg.Subject) str += "Subject\n" + msg.Subject + "\n";
+  str += "Timestamp\n" + msg.Timestamp + "\n";
+  str += "TopicArn\n" + msg.TopicArn + "\n";
+  str += "Type\n" + msg.Type + "\n";
+  return str;
+}
+
+/**
+ * Build the canonical string-to-sign for SubscriptionConfirmation
+ * and UnsubscribeConfirmation SNS messages.
+ */
+function buildSubscriptionStringToSign(
+  msg: Record<string, string>
+): string {
+  let str = "";
+  str += "Message\n" + msg.Message + "\n";
+  str += "MessageId\n" + msg.MessageId + "\n";
+  str += "SubscribeURL\n" + msg.SubscribeURL + "\n";
+  str += "Timestamp\n" + msg.Timestamp + "\n";
+  str += "Token\n" + msg.Token + "\n";
+  str += "TopicArn\n" + msg.TopicArn + "\n";
+  str += "Type\n" + msg.Type + "\n";
+  return str;
+}
+
+/**
+ * Verify the cryptographic signature on an SNS message.
+ *
+ * 1. Validates the signing certificate URL (must be HTTPS from amazonaws.com).
+ * 2. Downloads the X.509 certificate from AWS.
+ * 3. Builds the canonical string-to-sign for the message type.
+ * 4. Verifies the RSA-SHA1 signature against the certificate's public key.
+ */
+async function verifySNSSignature(
+  message: Record<string, string>
+): Promise<boolean> {
+  try {
+    // 1. Validate cert URL
+    const certUrl = message.SigningCertURL || message.SigningCertUrl;
+    if (!certUrl) return false;
+
+    const url = new URL(certUrl);
+    if (
+      url.protocol !== "https:" ||
+      !url.hostname.endsWith(".amazonaws.com")
+    ) {
+      return false;
+    }
+
+    // 2. Download the certificate
+    const certResponse = await fetch(certUrl);
+    if (!certResponse.ok) return false;
+    const cert = await certResponse.text();
+
+    // 3. Build the string to sign based on message type
+    let stringToSign = "";
+    if (message.Type === "Notification") {
+      stringToSign = buildNotificationStringToSign(message);
+    } else if (
+      message.Type === "SubscriptionConfirmation" ||
+      message.Type === "UnsubscribeConfirmation"
+    ) {
+      stringToSign = buildSubscriptionStringToSign(message);
+    } else {
+      return false;
+    }
+
+    // 4. Verify signature using SHA1withRSA
+    const verifier = crypto.createVerify("SHA1withRSA");
+    verifier.update(stringToSign);
+    return verifier.verify(cert, message.Signature, "base64");
+  } catch (err) {
+    console.error("[SES Webhook] SNS signature verification error:", err);
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
+    // --- Rate limiting ---
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitResult = await rateLimit(`ses-webhook:${ip}`, 60, 60); // 60 requests per minute
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Rate limited" },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
 
     // --- Authentication: reject messages that don't look like valid SNS ---
@@ -42,6 +143,16 @@ export async function POST(req: NextRequest) {
       console.error("[SES Webhook] SNS validation failed — rejecting request");
       return NextResponse.json(
         { error: "Invalid SNS message" },
+        { status: 403 }
+      );
+    }
+
+    // --- Cryptographic signature verification ---
+    const signatureValid = await verifySNSSignature(body);
+    if (!signatureValid) {
+      console.error("[SES Webhook] SNS signature verification failed");
+      return NextResponse.json(
+        { error: "Invalid signature" },
         { status: 403 }
       );
     }

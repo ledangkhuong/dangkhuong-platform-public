@@ -1,6 +1,10 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
+function escapeLike(str: string): string {
+  return str.replace(/[%_\\]/g, "\\$&");
+}
+
 export async function GET(request: NextRequest) {
   // Auth check
   const supabase = await createClient();
@@ -31,7 +35,7 @@ export async function GET(request: NextRequest) {
     .order("subscriber_count", { ascending: false });
 
   if (search) {
-    query = query.ilike("name", `%${search}%`);
+    query = query.ilike("name", `%${escapeLike(search)}%`);
   }
 
   const { data: tags, error } = await query;

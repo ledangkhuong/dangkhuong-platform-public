@@ -8,6 +8,12 @@ export default function PageTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // GDPR/PDPA: Do not track without explicit cookie consent
+    if (typeof window !== "undefined") {
+      const consent = localStorage.getItem("dk_cookie_consent");
+      if (consent !== "accepted") return;
+    }
+
     const utmParams: Record<string, string> = {};
     ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach((k) => {
       const v = searchParams.get(k);

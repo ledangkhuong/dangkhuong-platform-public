@@ -115,6 +115,7 @@ export default function TurnstileWidget({
         "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad";
       script.async = true;
       script.defer = true;
+      script.crossOrigin = "anonymous";
       document.head.appendChild(script);
     } else {
       // Script exists but Turnstile may not be ready yet

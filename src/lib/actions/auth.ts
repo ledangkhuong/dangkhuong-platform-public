@@ -33,8 +33,10 @@ export async function signUp(formData: FormData) {
     await admin.from("profiles").update({ phone }).eq("id", created.user.id);
   }
 
-  // Add user to subscribers table (best-effort — don't fail registration if this fails)
-  if (created?.user) {
+  // GDPR/PDPA: Only add to subscribers/newsletter if user explicitly opted in.
+  // The registration form must send newsletter_opt_in=true for this to run.
+  const newsletterOptIn = formData.get("newsletter_opt_in") === "true";
+  if (created?.user && newsletterOptIn) {
     try {
       const normalizedEmail = email.trim().toLowerCase();
 
@@ -123,7 +125,7 @@ export async function signIn(formData: FormData) {
   const headersList = await headers();
   const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-  const rateCheck = checkRateLimit(ip);
+  const rateCheck = await checkRateLimit(ip);
   if (!rateCheck.allowed) {
     return `/login?error=${encodeURIComponent("Quá nhiều lần thử. Vui lòng đợi " + Math.ceil(rateCheck.retryAfterSec / 60) + " phút.")}`;
   }
@@ -135,11 +137,11 @@ export async function signIn(formData: FormData) {
   });
 
   if (error) {
-    recordFailedAttempt(ip);
+    await recordFailedAttempt(ip);
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  resetRateLimit(ip);
+  await resetRateLimit(ip);
 
   // Cập nhật last_login (dùng admin client để bypass RLS)
   const userId = signInData?.user?.id;
@@ -197,6 +199,24 @@ export async function deleteAccount(): Promise<{ success: boolean; error?: strin
 
     // Delete user data in order that respects foreign key constraints.
     // Each step is wrapped individually so one missing table doesn't block the rest.
+
+    // 0. GDPR/PDPA: Delete subscriber data (must come before profile deletion)
+    try {
+      const userEmail = user.email;
+      if (userEmail) {
+        // Delete subscriber_list_members first (foreign key to subscribers)
+        const { data: subscriber } = await admin
+          .from("subscribers")
+          .select("id")
+          .eq("email", userEmail)
+          .single();
+        if (subscriber) {
+          await admin.from("subscriber_list_members").delete().eq("subscriber_id", subscriber.id);
+        }
+        // Then delete the subscriber record itself
+        await admin.from("subscribers").delete().eq("email", userEmail);
+      }
+    } catch {}
 
     // 1. Delete user's enrollments
     try { await admin.from("enrollments").delete().eq("user_id", user.id); } catch {}

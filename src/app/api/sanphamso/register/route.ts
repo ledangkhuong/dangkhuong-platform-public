@@ -12,14 +12,19 @@ import { randomBytes } from "crypto";
 const PRODUCT_SLUG = "con-duong-kiem-tien-tu-san-pham-so-2026";
 const PRODUCT_PRICE = 100000; // 100K VND
 
-function generateOrderCode(prefix: string = "SP"): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const bytes = randomBytes(12);
-  let code = prefix;
-  for (let i = 0; i < 12; i++) {
-    code += chars[bytes[i] % chars.length];
+function generateOrderCode(prefix: string = "SP", length = 12): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const maxValid = 256 - (256 % chars.length); // reject values >= this to avoid modulo bias
+  let result = prefix;
+  while (result.length < prefix.length + length) {
+    const bytes = randomBytes(length - (result.length - prefix.length));
+    for (const byte of bytes) {
+      if (byte < maxValid && result.length < prefix.length + length) {
+        result += chars[byte % chars.length];
+      }
+    }
   }
-  return code;
+  return result;
 }
 
 export async function POST(req: NextRequest) {

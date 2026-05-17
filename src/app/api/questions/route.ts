@@ -78,7 +78,13 @@ export async function POST(req: NextRequest) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { content, product_id, lesson_id } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { content, product_id, lesson_id } = body;
 
   if (!content?.trim())
     return NextResponse.json(

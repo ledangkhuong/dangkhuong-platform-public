@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Update order → paid
-  await admin
+  // Update order → paid (optimistic lock: only update if still pending)
+  const { data: updatedOrder, error: updateErr } = await admin
     .from("orders")
     .update({
       status: "paid",
@@ -69,7 +69,17 @@ export async function POST(req: NextRequest) {
       note: `Xác nhận thủ công bởi admin ${user.email}`,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", order.id);
+    .eq("id", order.id)
+    .eq("status", "pending")
+    .select()
+    .single();
+
+  if (!updatedOrder || updateErr) {
+    return NextResponse.json(
+      { error: "Order already processed or status changed" },
+      { status: 409 }
+    );
+  }
 
   // Create enrollment
   let enrolled = false;

@@ -67,6 +67,21 @@ function ResetPasswordForm() {
       return;
     }
 
+    if (password.length > 72) {
+      setError("Mật khẩu không được quá 72 ký tự.");
+      setLoading(false);
+      return;
+    }
+
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasDigit = /[0-9]/.test(password);
+    if (!hasUppercase || !hasLowercase || !hasDigit) {
+      setError("Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số");
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     const { error: updateError } = await supabase.auth.updateUser({
       password,
@@ -77,6 +92,12 @@ function ResetPasswordForm() {
       setLoading(false);
       return;
     }
+
+    // Security: Revoke all other sessions after password change.
+    // This ensures that if the password was compromised, any attacker sessions
+    // using the old credentials are immediately invalidated.
+    // scope: 'others' keeps the current session active while signing out all others.
+    await supabase.auth.signOut({ scope: "others" });
 
     setSuccess(true);
     setLoading(false);

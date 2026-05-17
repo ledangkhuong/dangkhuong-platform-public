@@ -41,10 +41,27 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { content, tags, image_url } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { content, tags, image_url } = body;
   if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
   if (content.trim().length > 5000) {
     return NextResponse.json({ error: "Nội dung quá dài (tối đa 5000 ký tự)" }, { status: 400 });
+  }
+
+  if (image_url) {
+    try {
+      const urlObj = new URL(image_url);
+      if (!["http:", "https:"].includes(urlObj.protocol)) {
+        return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
+    }
   }
 
   const { data, error } = await supabase

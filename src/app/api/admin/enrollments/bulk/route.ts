@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/admin/enrollments/bulk
@@ -23,6 +24,11 @@ export async function POST(req: NextRequest) {
 
   if (!profile || !["admin", "manager"].includes(profile.role))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const rl = await rateLimit(`bulk-enroll:${user.id}`, 5, 60);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
 
   const { emails, product_ids } = await req.json();
 

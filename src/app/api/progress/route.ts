@@ -9,6 +9,21 @@ export async function POST(req: NextRequest) {
 
   const { lesson_id, product_id, completed, watch_sec, note } = await req.json();
 
+  // Verify enrollment before allowing progress update
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("product_id", product_id)
+    .single();
+
+  if (!enrollment) {
+    return NextResponse.json(
+      { error: "Bạn chưa đăng ký khoá học này" },
+      { status: 403 }
+    );
+  }
+
   const { data, error } = await supabase
     .from("lesson_progress")
     .upsert({ user_id: user.id, lesson_id, product_id, completed, watch_sec, note, updated_at: new Date().toISOString() })

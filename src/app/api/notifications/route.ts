@@ -60,48 +60,58 @@ function transformEvent(event: XpEvent): Notification {
 
 // GET /api/notifications — lấy notifications của user (mock từ xp_events)
 export async function GET(_req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data, error } = await supabase
+      .from("xp_events")
+      .select("id, action, xp_amount, created_at, meta")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error("[Notifications] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tải thông báo. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    const notifications: Notification[] = (data as XpEvent[]).map(transformEvent);
+    const unread_count = notifications.filter((n) => !n.read).length;
+
+    return NextResponse.json({ notifications, unread_count });
+  } catch (err) {
+    console.error("[Notifications GET] Error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const { data, error } = await supabase
-    .from("xp_events")
-    .select("id, action, xp_amount, created_at, meta")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  if (error) {
-    console.error("[Notifications] Error:", error);
-    return NextResponse.json({ error: "Có lỗi xảy ra khi tải thông báo. Vui lòng thử lại." }, { status: 500 });
-  }
-
-  const notifications: Notification[] = (data as XpEvent[]).map(transformEvent);
-  const unread_count = notifications.filter((n) => !n.read).length;
-
-  return NextResponse.json({ notifications, unread_count });
 }
 
 // POST /api/notifications — đánh dấu đã đọc
 // Body: { notification_id?: string } — không có id → mark all read
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // notification_id không bắt buộc — ignored trong mock (chưa có notifications table)
+    await req.json().catch(() => ({}));
+
+    // Real impl: UPDATE notifications SET read = true WHERE user_id = ? [AND id = ?]
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[Notifications POST] Error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  // notification_id không bắt buộc — ignored trong mock (chưa có notifications table)
-  await req.json().catch(() => ({}));
-
-  // Real impl: UPDATE notifications SET read = true WHERE user_id = ? [AND id = ?]
-  return NextResponse.json({ ok: true });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/rate-limit";
 import { sendLoginNotificationEmail } from "@/lib/email/resend";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
       "unknown";
 
     // Check rate limit before attempting login
-    const rateCheck = checkRateLimit(ip);
+    const rateCheck = await checkRateLimit(ip);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         {
@@ -49,10 +50,19 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       // Record failed attempt for rate limiting
-      recordFailedAttempt(ip);
+      await recordFailedAttempt(ip);
+
+      // Log failed authentication attempt (non-blocking)
+      logAudit({
+        admin_id: "system",
+        action: "auth.login_failed" as any,
+        target_type: "user",
+        target_id: email || "unknown",
+        details: { ip, reason: "invalid_credentials" },
+      }).catch(() => {});
 
       // Show remaining attempts warning when getting close
-      const updatedCheck = checkRateLimit(ip);
+      const updatedCheck = await checkRateLimit(ip);
       let errorMsg = "Email hoặc mật khẩu không đúng";
       if (updatedCheck.remainingAttempts <= 2 && updatedCheck.remainingAttempts > 0) {
         errorMsg += `. Còn ${updatedCheck.remainingAttempts} lần thử.`;
@@ -65,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Login successful — reset rate limit for this IP
-    resetRateLimit(ip);
+    await resetRateLimit(ip);
 
     // Update last_login and award XP (best-effort)
     const userId = signInData?.user?.id;
