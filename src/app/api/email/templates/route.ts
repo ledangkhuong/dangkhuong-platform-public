@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const VALID_CATEGORIES = ["marketing", "transactional", "newsletter", "automation"];
 
 // GET /api/email/templates — list all templates
 export async function GET(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get("category");
     const isActive = searchParams.get("is_active");
     const search = searchParams.get("search");
 
-    const supabase = await createAdminClient();
+    const adminSupabase = await createAdminClient();
 
-    let query = supabase
+    let query = adminSupabase
       .from("email_templates")
       .select("*")
       .order("updated_at", { ascending: false });
@@ -50,6 +62,18 @@ export async function GET(req: NextRequest) {
 // POST /api/email/templates — create a new template
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const body = await req.json();
     const { name, subject, html_content, text_content, category, variables } = body;
 
@@ -84,7 +108,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createAdminClient();
+    const adminSupabase = await createAdminClient();
 
     const insertData: Record<string, unknown> = {
       name: name.trim(),
@@ -95,7 +119,7 @@ export async function POST(req: NextRequest) {
     if (category !== undefined) insertData.category = category;
     if (variables !== undefined) insertData.variables = variables;
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from("email_templates")
       .insert(insertData)
       .select()

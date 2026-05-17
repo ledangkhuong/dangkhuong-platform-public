@@ -124,6 +124,13 @@ export async function approveConversion(conversionId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (!profile || !["admin", "manager"].includes(profile.role)) return;
+
   const admin = await createAdminClient();
   await admin.from("affiliate_conversions").update({
     status: "approved",
@@ -137,6 +144,13 @@ export async function rejectConversion(conversionId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (!profile || !["admin", "manager"].includes(profile.role)) return;
+
   const admin = await createAdminClient();
   await admin.from("affiliate_conversions").update({
     status: "rejected",
@@ -148,6 +162,13 @@ export async function processPayout(payoutId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (!profile || !["admin", "manager"].includes(profile.role)) return;
 
   const admin = await createAdminClient();
 
@@ -181,6 +202,19 @@ export async function processPayout(payoutId: string) {
 
 /** Admin cập nhật trạng thái affiliate */
 export async function updateAffiliateStatus(affiliateId: string, status: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (!profile || !["admin", "manager"].includes(profile.role)) return;
+
+  if (!["pending", "active", "suspended", "rejected"].includes(status)) return;
+
   const admin = await createAdminClient();
   await admin.from("affiliates").update({
     status,

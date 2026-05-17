@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { searchParams } = new URL(req.url);
-  const limit = parseInt(searchParams.get("limit") || "20");
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20")));
   const offset = parseInt(searchParams.get("offset") || "0");
 
   // Exclude lesson questions (tagged with _q) from community feed
@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
 
   const { content, tags, image_url } = await req.json();
   if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+  if (content.trim().length > 5000) {
+    return NextResponse.json({ error: "Nội dung quá dài (tối đa 5000 ký tự)" }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("posts")

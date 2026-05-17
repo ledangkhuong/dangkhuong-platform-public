@@ -114,6 +114,35 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Affiliate commission (same logic as Sepay webhook)
+  if (order.ref_code) {
+    try {
+      const { data: affiliate } = await admin
+        .from("affiliates")
+        .select("id, user_id, commission_rate")
+        .eq("ref_code", order.ref_code)
+        .eq("status", "active")
+        .single();
+
+      if (affiliate && affiliate.user_id !== order.user_id) {
+        const commissionAmount = Math.round(order.amount * (affiliate.commission_rate / 100));
+        await admin.from("affiliate_conversions").insert({
+          affiliate_id: affiliate.id,
+          order_id: order.id,
+          buyer_id: order.user_id,
+          product_id: order.product_id,
+          order_amount: order.amount,
+          commission_rate: affiliate.commission_rate,
+          commission_amount: commissionAmount,
+          status: "pending",
+        });
+        console.log(`[Admin Confirm] Affiliate ${order.ref_code}: +${commissionAmount}đ commission`);
+      }
+    } catch (affErr) {
+      console.error("[Admin Confirm] Affiliate attribution error:", affErr);
+    }
+  }
+
   return NextResponse.json({
     success: true,
     order_code: order.order_code,

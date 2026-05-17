@@ -70,24 +70,17 @@ export async function GET(req: NextRequest) {
 
       // Increment campaign open_count
       if (send.campaign_id) {
-        const { error: rpcError } = await admin.rpc("exec_sql", {
-          query: `UPDATE email_campaigns SET open_count = open_count + 1 WHERE id = '${send.campaign_id}'`,
-        });
+        const { data: campaign } = await admin
+          .from("email_campaigns")
+          .select("open_count")
+          .eq("id", send.campaign_id)
+          .single();
 
-        if (rpcError) {
-          // Fallback: read-then-write (less safe but works without RPC)
-          const { data: campaign } = await admin
+        if (campaign) {
+          await admin
             .from("email_campaigns")
-            .select("open_count")
-            .eq("id", send.campaign_id)
-            .single();
-
-          if (campaign) {
-            await admin
-              .from("email_campaigns")
-              .update({ open_count: (campaign.open_count || 0) + 1 })
-              .eq("id", send.campaign_id);
-          }
+            .update({ open_count: (campaign.open_count || 0) + 1 })
+            .eq("id", send.campaign_id);
         }
       }
     }

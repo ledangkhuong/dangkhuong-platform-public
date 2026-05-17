@@ -11,6 +11,14 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const listId = formData.get("list_id") as string | null;
@@ -25,6 +33,14 @@ export async function POST(req: NextRequest) {
     if (!file.name.endsWith(".csv")) {
       return NextResponse.json(
         { error: "File must be a CSV" },
+        { status: 400 }
+      );
+    }
+
+    const MAX_CSV_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_CSV_SIZE) {
+      return NextResponse.json(
+        { error: "File quá lớn (tối đa 10MB)" },
         { status: 400 }
       );
     }

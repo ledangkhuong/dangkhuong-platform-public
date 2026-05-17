@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
       .from("products").select("*").eq("id", product_id).single();
 
     if (productError || !product) {
+      console.error("[Create Order] Product lookup error:", productError?.message);
       return NextResponse.json({
-        error: "Không tìm thấy sản phẩm",
-        detail: productError?.message
+        error: "Không tìm thấy sản phẩm"
       }, { status: 404 });
     }
 
@@ -50,8 +50,25 @@ export async function POST(req: NextRequest) {
     const orderCode = generateOrderCode();
     const amount = product.sale_price || product.price;
 
+    if (!amount || amount <= 0) {
+      return NextResponse.json({ error: "Sản phẩm không có giá hợp lệ" }, { status: 400 });
+    }
+
     // Đọc affiliate ref_code từ cookie dk_ref
-    const refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
+    let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
+
+    // Prevent self-referral
+    if (refCode) {
+      const { data: affiliate } = await admin
+        .from("affiliates")
+        .select("user_id")
+        .eq("ref_code", refCode)
+        .eq("status", "active")
+        .single();
+      if (affiliate?.user_id === user.id) {
+        refCode = null; // Don't allow self-referral
+      }
+    }
 
     // Tạo đơn hàng (kèm ref_code nếu có)
     const { data: order, error: orderError } = await admin.from("orders").insert({
@@ -68,9 +85,9 @@ export async function POST(req: NextRequest) {
     }).select().single();
 
     if (orderError) {
-      console.error("[Create Order] Insert error:", orderError);
+      console.error("[Create Order] Insert error:", orderError.message);
       return NextResponse.json({
-        error: "Không thể tạo đơn hàng: " + orderError.message
+        error: "Không thể tạo đơn hàng. Vui lòng thử lại."
       }, { status: 500 });
     }
 
@@ -93,8 +110,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, order, paymentInfo });
   } catch (err: unknown) {
-    console.error("[Create Order] Unexpected:", err);
-    const message = err instanceof Error ? err.message : "Lỗi không xác định";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[Create Order] Error:", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Không thể tạo đơn hàng. Vui lòng thử lại." }, { status: 500 });
   }
 }

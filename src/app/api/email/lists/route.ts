@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // GET /api/email/lists — list all email lists with subscriber counts
 export async function GET() {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabaseAuth
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const supabase = await createAdminClient();
 
     const { data, error } = await supabase
@@ -27,6 +39,18 @@ export async function GET() {
 // POST /api/email/lists — create a new email list
 export async function POST(req: NextRequest) {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabaseAuth
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const body = await req.json();
     const { name, description, color } = body;
 

@@ -15,6 +15,14 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { id } = await params;
     const admin = await createAdminClient();
 
@@ -76,6 +84,14 @@ export async function PUT(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
     const admin = await createAdminClient();
@@ -173,6 +189,14 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
     const admin = await createAdminClient();

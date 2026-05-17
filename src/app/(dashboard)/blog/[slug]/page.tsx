@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import DOMPurify from "isomorphic-dompurify";
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
@@ -354,7 +355,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           {post.content && (
             <div
               className="blog-content text-gray-300 text-sm leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
             />
           )}
         </article>

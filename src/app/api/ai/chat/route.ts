@@ -24,6 +24,9 @@ Giới hạn:
 - Không làm bài tập thay học viên
 - Luôn khuyến khích học viên tự thực hành`;
 
+// Simple per-user rate limit (20 messages per hour)
+const AI_RATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -31,6 +34,29 @@ export async function POST(req: NextRequest) {
 
   const { messages, context } = await req.json();
   if (!messages?.length) return NextResponse.json({ error: "Messages required" }, { status: 400 });
+
+  // Input validation: limit messages array size and total content length
+  if (messages.length > 30) {
+    return NextResponse.json({ error: "Quá nhiều tin nhắn. Vui lòng bắt đầu cuộc hội thoại mới." }, { status: 400 });
+  }
+  const totalLength = messages.reduce((sum: number, m: any) => sum + (m.content?.length || 0), 0);
+  if (totalLength > 30000) {
+    return NextResponse.json({ error: "Nội dung quá dài" }, { status: 400 });
+  }
+
+  // Per-user rate limiting
+  const userId = user.id;
+  const now = Date.now();
+  const userLimit = AI_RATE_LIMIT.get(userId);
+
+  if (userLimit && userLimit.resetAt > now) {
+    if (userLimit.count >= 20) {
+      return NextResponse.json({ error: "Bạn đã sử dụng hết lượt chat. Vui lòng thử lại sau." }, { status: 429 });
+    }
+    userLimit.count++;
+  } else {
+    AI_RATE_LIMIT.set(userId, { count: 1, resetAt: now + 60 * 60 * 1000 });
+  }
 
   // Build system with user context
   let systemPrompt = SYSTEM_PROMPT;

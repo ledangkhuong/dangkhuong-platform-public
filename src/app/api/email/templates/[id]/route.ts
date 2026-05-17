@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const VALID_CATEGORIES = ["marketing", "transactional", "newsletter", "automation"];
 
@@ -9,10 +9,22 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const supabase = await createAdminClient();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data, error } = await supabase
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const { id } = await params;
+    const adminSupabase = await createAdminClient();
+
+    const { data, error } = await adminSupabase
       .from("email_templates")
       .select("*")
       .eq("id", id)
@@ -40,6 +52,18 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { id } = await params;
     const body = await req.json();
     const { name, subject, html_content, text_content, category, variables, thumbnail_url, is_active } = body;
@@ -74,9 +98,9 @@ export async function PUT(
 
     updates.updated_at = new Date().toISOString();
 
-    const supabase = await createAdminClient();
+    const adminSupabase = await createAdminClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from("email_templates")
       .update(updates)
       .eq("id", id)
@@ -109,10 +133,22 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const supabase = await createAdminClient();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { error } = await supabase
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const { id } = await params;
+    const adminSupabase = await createAdminClient();
+
+    const { error } = await adminSupabase
       .from("email_templates")
       .update({ is_active: false, updated_at: new Date().toISOString() })
       .eq("id", id);

@@ -19,14 +19,17 @@ export async function POST(req: NextRequest) {
     const isPlaceholder = !envKey || envKey.includes("your-");
 
     if (isPlaceholder) {
-      console.warn("[Sepay] ⚠️ SEPAY_API_KEY chưa được cấu hình! Webhook sẽ xử lý nhưng không xác thực.");
-    } else if (apiKey !== envKey) {
-      console.error("[Sepay] ❌ Unauthorized - API key không khớp. Received:", apiKey?.slice(0, 8) + "...");
+      console.error("[Sepay] SEPAY_API_KEY not configured! Rejecting.");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+    }
+
+    if (apiKey !== envKey) {
+      console.error("[Sepay] Unauthorized - API key mismatch");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    console.log("[Sepay Webhook] Payload:", JSON.stringify(body));
+    console.log("[Sepay Webhook] Received:", { transferType: body.transferType, code: body.code, amount: body.transferAmount });
 
     /**
      * Cấu trúc body từ Sepay:
@@ -105,10 +108,10 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Sepay] ✅ Found order ${matchedCode} (status: ${order.status})`);
 
-    // Skip if already paid
-    if (order.status === "paid") {
-      console.log(`[Sepay] Order ${matchedCode} already paid, skipping`);
-      return NextResponse.json({ success: true, message: "Already paid" });
+    // Only process pending orders
+    if (order.status !== "pending") {
+      console.log(`[Sepay] Order ${matchedCode} status is '${order.status}', skipping`);
+      return NextResponse.json({ success: true, message: `Order status is ${order.status}` });
     }
 
     // 3. Kiểm tra số tiền
@@ -137,14 +140,19 @@ export async function POST(req: NextRequest) {
       paidAt = new Date().toISOString();
     }
 
-    await supabase.from("orders").update({
+    const { data: updatedOrder, error: updateErr } = await supabase.from("orders").update({
       status: "paid",
       sepay_txn_id: referenceCode,
       sepay_content: content,
       bank_code: gateway,
       paid_at: paidAt,
       updated_at: new Date().toISOString(),
-    }).eq("id", order.id);
+    }).eq("id", order.id).eq("status", "pending").select().single();
+
+    if (!updatedOrder || updateErr) {
+      console.log(`[Sepay] Order ${matchedCode} already processed (race condition prevented)`);
+      return NextResponse.json({ success: true, message: "Already processed" });
+    }
 
     // 5. Cấp quyền truy cập khoá học
     if (order.user_id && order.product_id) {

@@ -124,12 +124,8 @@ export async function POST(req: NextRequest) {
 
         // Increment campaign unsubscribe_count
         if (send.campaign_id) {
-          const { error: rpcError } = await admin.rpc("exec_sql", {
-            query: `UPDATE email_campaigns SET unsubscribe_count = unsubscribe_count + 1 WHERE id = '${send.campaign_id}'`,
-          });
-
-          if (rpcError) {
-            // Fallback: read-then-write
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(send.campaign_id)) {
             const { data: campaign } = await admin
               .from("email_campaigns")
               .select("unsubscribe_count")

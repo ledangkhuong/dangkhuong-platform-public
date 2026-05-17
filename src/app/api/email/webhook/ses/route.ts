@@ -183,30 +183,28 @@ async function handleDelivery(admin: AdminClient, send: EmailSend) {
   });
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function incrementCampaignCounter(
   admin: AdminClient,
   campaignId: string,
   counterName: string
 ) {
-  const { error: rpcError } = await admin.rpc("exec_sql", {
-    query: `UPDATE email_campaigns SET ${counterName} = ${counterName} + 1 WHERE id = '${campaignId}'`,
-  });
+  // Validate campaignId is a proper UUID to prevent injection
+  if (!UUID_REGEX.test(campaignId)) return;
 
-  if (rpcError) {
-    // Fallback: read-then-write
-    const { data: campaign } = await admin
+  const { data: campaign } = await admin
+    .from("email_campaigns")
+    .select(counterName)
+    .eq("id", campaignId)
+    .single();
+
+  if (campaign) {
+    await admin
       .from("email_campaigns")
-      .select(counterName)
-      .eq("id", campaignId)
-      .single();
-
-    if (campaign) {
-      await admin
-        .from("email_campaigns")
-        .update({
-          [counterName]: ((campaign as Record<string, number>)[counterName] || 0) + 1,
-        })
-        .eq("id", campaignId);
-    }
+      .update({
+        [counterName]: ((campaign as Record<string, number>)[counterName] || 0) + 1,
+      })
+      .eq("id", campaignId);
   }
 }

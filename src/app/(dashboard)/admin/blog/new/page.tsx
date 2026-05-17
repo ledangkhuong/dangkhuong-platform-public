@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import DOMPurify from "isomorphic-dompurify";
 import { DEFAULT_AUTHOR } from "@/lib/author-config";
 import TopBar from "@/components/layout/TopBar";
 import type { JSONContent } from "novel";
@@ -473,7 +474,7 @@ export default function NewBlogPostPage() {
               </div>
               <div
                 className="blog-content text-gray-300 text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: htmlContent }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
               />
             </div>
           ) : (

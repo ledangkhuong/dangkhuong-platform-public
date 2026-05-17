@@ -25,9 +25,15 @@ export async function GET(req: NextRequest): Promise<NextResponse<SearchResponse
     return NextResponse.json({ results: [], total: 0 });
   }
 
+  // Limit keyword length to prevent abuse
+  if (q.trim().length > 100) {
+    return NextResponse.json({ results: [], total: 0 });
+  }
+
   const supabase = await createClient();
   const results: SearchResultItem[] = [];
-  const keyword = q.trim();
+  // Escape LIKE special characters to prevent wildcard injection
+  const keyword = q.trim().replace(/[%_\\]/g, '\\$&');
 
   // Search courses (products table)
   if (type === "all" || type === "courses") {

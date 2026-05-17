@@ -3,6 +3,19 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 const FALLBACK_URL = "https://dangkhuong.com";
 
+const ALLOWED_DOMAINS = ["dangkhuong.com", "www.dangkhuong.com"];
+
+function isAllowedUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_DOMAINS.some(
+      (d) => parsed.hostname === d || parsed.hostname.endsWith("." + d)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function redirect(url: string) {
   return NextResponse.redirect(url, { status: 302 });
 }
@@ -12,7 +25,8 @@ export async function GET(req: NextRequest) {
   const encodedUrl = req.nextUrl.searchParams.get("url");
 
   const decodedUrl = encodedUrl ? decodeURIComponent(encodedUrl) : null;
-  const targetUrl = decodedUrl || FALLBACK_URL;
+  const targetUrl =
+    decodedUrl && isAllowedUrl(decodedUrl) ? decodedUrl : FALLBACK_URL;
 
   if (!sid) {
     return redirect(targetUrl);
@@ -67,24 +81,17 @@ export async function GET(req: NextRequest) {
 
       // Increment campaign click_count
       if (send.campaign_id) {
-        const { error: rpcError } = await admin.rpc("exec_sql", {
-          query: `UPDATE email_campaigns SET click_count = click_count + 1 WHERE id = '${send.campaign_id}'`,
-        });
+        const { data: campaign } = await admin
+          .from("email_campaigns")
+          .select("click_count")
+          .eq("id", send.campaign_id)
+          .single();
 
-        if (rpcError) {
-          // Fallback: read-then-write
-          const { data: campaign } = await admin
+        if (campaign) {
+          await admin
             .from("email_campaigns")
-            .select("click_count")
-            .eq("id", send.campaign_id)
-            .single();
-
-          if (campaign) {
-            await admin
-              .from("email_campaigns")
-              .update({ click_count: (campaign.click_count || 0) + 1 })
-              .eq("id", send.campaign_id);
-          }
+            .update({ click_count: (campaign.click_count || 0) + 1 })
+            .eq("id", send.campaign_id);
         }
       }
     }

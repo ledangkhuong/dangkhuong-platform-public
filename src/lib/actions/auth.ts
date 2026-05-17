@@ -2,6 +2,8 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/rate-limit";
 
 export async function signUp(formData: FormData) {
   const email = formData.get("email") as string;
@@ -117,12 +119,28 @@ export async function signUp(formData: FormData) {
 }
 
 export async function signIn(formData: FormData) {
+  // Rate limit check
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  const rateCheck = checkRateLimit(ip);
+  if (!rateCheck.allowed) {
+    return `/login?error=${encodeURIComponent("Quá nhiều lần thử. Vui lòng đợi " + Math.ceil(rateCheck.retryAfterSec / 60) + " phút.")}`;
+  }
+
   const supabase = await createClient();
   const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
   });
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
+
+  if (error) {
+    recordFailedAttempt(ip);
+    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  }
+
+  resetRateLimit(ip);
+
   // Cập nhật last_login (dùng admin client để bypass RLS)
   const userId = signInData?.user?.id;
   if (userId) {
