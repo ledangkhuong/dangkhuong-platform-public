@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import crypto from "crypto";
 import TopBar from "@/components/layout/TopBar";
 import { createClient } from "@/lib/supabase/server";
 import CertificateView from "@/components/certificate/CertificateView";
@@ -9,15 +10,12 @@ import type { Metadata } from "next";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function generateCertificateId(userId: string, productId: string): string {
-  // Deterministic certificate ID from user + product
-  const raw = `${userId}-${productId}`;
-  let hash = 0;
-  for (let i = 0; i < raw.length; i++) {
-    const chr = raw.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0;
-  }
-  return `DK-${Math.abs(hash).toString(36).toUpperCase().padStart(8, "0")}`;
+  return crypto
+    .createHash("sha256")
+    .update(`${userId}:${productId}`)
+    .digest("hex")
+    .slice(0, 10)
+    .toUpperCase();
 }
 
 function formatDate(iso: string): string {

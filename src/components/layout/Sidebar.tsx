@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -122,9 +123,11 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex items-center justify-between px-4 h-16 border-b border-[#1f1f1f]">
         {!isCompact && (
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <img
+            <Image
               src="/images/about/portrait.jpg"
               alt="Lê Đăng Khương"
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-lg object-cover"
             />
             <div>
@@ -135,9 +138,11 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         )}
         {isCompact && (
           <Link href="/dashboard">
-            <img
+            <Image
               src="/images/about/portrait.jpg"
               alt="Lê Đăng Khương"
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-lg object-cover mx-auto"
             />
           </Link>
@@ -284,9 +289,11 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               {profile?.avatar_url ? (
-                <img
+                <Image
                   src={profile.avatar_url}
                   alt=""
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full object-cover shrink-0"
                 />
               ) : (

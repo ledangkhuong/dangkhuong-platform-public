@@ -3,8 +3,8 @@
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, use } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { updateProfile } from "@/lib/actions/auth";
-import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff } from "lucide-react";
+import { updateProfile, deleteAccount } from "@/lib/actions/auth";
+import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff, AlertTriangle } from "lucide-react";
 
 const tabs = [
   { id: "profile", label: "Hồ sơ", icon: User },
@@ -298,6 +298,9 @@ function NotificationsTab() {
                 </div>
                 <button
                   onClick={() => toggle(item.key)}
+                  role="switch"
+                  aria-checked={prefs[item.key]}
+                  aria-label={item.label}
                   className="shrink-0 w-11 h-6 rounded-full transition-all duration-200 relative"
                   style={{ background: prefs[item.key] ? "#D4A843" : "#333" }}
                 >
@@ -320,19 +323,118 @@ function NotificationsTab() {
 }
 
 function SecurityTab() {
+  // Password change state
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError(null);
+    setPwSuccess(false);
+
+    // Client-side validation
+    if (!currentPassword) {
+      setPwError("Vui lòng nhập mật khẩu hiện tại.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwError("Mật khẩu mới phải có ít nhất 8 ký tự.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPwError(data.error ?? "Có lỗi xảy ra. Vui lòng thử lại.");
+      } else {
+        setPwSuccess(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch {
+      setPwError("Có lỗi xảy ra. Vui lòng thử lại.");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError(null);
+    const result = await deleteAccount();
+    if (result.success) {
+      // Session is now invalidated on the server; redirect to home
+      window.location.href = "/";
+    } else {
+      setDeleteError(result.error ?? "Có lỗi xảy ra. Vui lòng thử lại.");
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
+      {/* Change password */}
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Đổi mật khẩu</h3>
-        <div className="space-y-3 max-w-md">
+
+        {pwSuccess && (
+          <div
+            className="flex items-center gap-2 p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20 mb-4"
+            style={{ background: "rgba(212,168,67,0.08)" }}
+          >
+            <Check size={15} />
+            Đã cập nhật mật khẩu thành công!
+          </div>
+        )}
+        {pwError && (
+          <div
+            className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20 mb-4"
+            style={{ background: "rgba(239,68,68,0.08)" }}
+          >
+            {pwError}
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordChange} className="space-y-3 max-w-md">
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
             <div className="relative">
-              <input type={showOld ? "text" : "password"} className="input-dark w-full pr-10 text-sm" placeholder="••••••••" />
-              <button onClick={() => setShowOld(!showOld)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+              <input
+                type={showOld ? "text" : "password"}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="input-dark w-full pr-10 text-sm"
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowOld(!showOld)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              >
                 {showOld ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
@@ -340,26 +442,101 @@ function SecurityTab() {
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
             <div className="relative">
-              <input type={showNew ? "text" : "password"} className="input-dark w-full pr-10 text-sm" placeholder="••••••••" />
-              <button onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+              <input
+                type={showNew ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="input-dark w-full pr-10 text-sm"
+                placeholder="Ít nhất 8 ký tự"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              >
                 {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1.5 font-medium">Xác nhận mật khẩu mới</label>
-            <input type="password" className="input-dark w-full text-sm" placeholder="••••••••" />
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input-dark w-full pr-10 text-sm"
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              >
+                {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </div>
-          <button className="btn-green text-sm mt-2">Cập nhật mật khẩu</button>
-        </div>
+          <button
+            type="submit"
+            disabled={pwLoading}
+            className="btn-green text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {pwLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
+          </button>
+        </form>
       </div>
 
+      {/* Danger zone */}
       <div className="card-dark p-6" style={{ borderColor: "rgba(239,68,68,0.2)" }}>
         <h3 className="font-semibold text-red-400 mb-2">Vùng nguy hiểm</h3>
-        <p className="text-xs text-gray-400 mb-4">Hành động này không thể hoàn tác.</p>
-        <button className="text-sm font-medium text-red-400 px-4 py-2 rounded-lg border border-red-900 hover:bg-red-950 transition-colors">
-          Xoá tài khoản
-        </button>
+        <p className="text-xs text-gray-400 mb-4">Hành động này không thể hoàn tác. Tất cả dữ liệu của bạn sẽ bị xoá vĩnh viễn.</p>
+
+        {deleteError && (
+          <div
+            className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20 mb-4"
+            style={{ background: "rgba(239,68,68,0.08)" }}
+          >
+            {deleteError}
+          </div>
+        )}
+
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-sm font-medium text-red-400 px-4 py-2 rounded-lg border border-red-900 hover:bg-red-950 transition-colors"
+          >
+            Xoá tài khoản
+          </button>
+        ) : (
+          <div
+            className="p-4 rounded-lg border border-red-900/50 space-y-3"
+            style={{ background: "rgba(239,68,68,0.05)" }}
+          >
+            <div className="flex items-start gap-2 text-sm text-red-300">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <span>Bạn có chắc chắn muốn xoá tài khoản? Tất cả dữ liệu bao gồm khoá học, tiến độ và lịch sử sẽ bị xoá vĩnh viễn và không thể khôi phục.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="text-sm font-medium text-white bg-red-700 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
+              >
+                {deleteLoading ? "Đang xoá..." : "Xác nhận xoá tài khoản"}
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); }}
+                disabled={deleteLoading}
+                className="text-sm text-gray-400 hover:text-gray-200 px-4 py-2 rounded-lg transition-colors"
+              >
+                Huỷ
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

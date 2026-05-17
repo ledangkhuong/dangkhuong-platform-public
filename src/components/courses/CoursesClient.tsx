@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PlayCircle, Lock, CheckCircle, ChevronDown, BookOpen } from "lucide-react";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
@@ -31,6 +32,23 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
   const [checkoutProduct, setCheckoutProduct] = useState<{
     id: string; name: string; price: number; description?: string;
   } | null>(null);
+
+  const searchParams = useSearchParams();
+
+  // Auto-open checkout modal when ?checkout=<productId> is in the URL
+  useEffect(() => {
+    const checkoutId = searchParams.get("checkout");
+    if (!checkoutId) return;
+    const course = courses.find((c) => c.id === checkoutId);
+    if (course && !course.enrolled && course.price > 0) {
+      setCheckoutProduct({
+        id: course.id,
+        name: course.title,
+        price: course.sale_price ?? course.price,
+        description: course.description ?? undefined,
+      });
+    }
+  }, [searchParams, courses]);
 
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">

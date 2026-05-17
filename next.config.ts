@@ -42,7 +42,10 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value:
               "default-src 'self'; " +
-              // TODO: If the production build breaks without 'unsafe-eval', add it back here
+              // 'unsafe-inline' is required for Next.js inline scripts (style/script hydration).
+              // Removing it would require a full nonce-based CSP infrastructure (middleware + per-request nonces).
+              // 'wasm-unsafe-eval' is kept to allow WebAssembly modules (e.g. Cloudflare Turnstile, video processing).
+              // 'unsafe-eval' is intentionally excluded — it is not needed by the current build.
               "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://www.youtube.com https://www.googletagmanager.com; " +
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
               "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://img.youtube.com https://*.googleusercontent.com; " +

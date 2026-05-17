@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import TopBar from "@/components/layout/TopBar";
 import CoursesClient from "@/components/courses/CoursesClient";
@@ -94,7 +95,9 @@ export default async function CoursesPage() {
     return (
       <div>
         <TopBar title="Khoá học" subtitle="Học từ những người đã làm được" />
-        <CoursesClient courses={courses} />
+        <Suspense fallback={null}>
+          <CoursesClient courses={courses} />
+        </Suspense>
       </div>
     );
   }

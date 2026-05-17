@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import SanPhamSoLanding from "./SanPhamSoLanding";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Lộ Trình Kiếm Tiền Từ Sản Phẩm Số 2026 | Lê Đăng Khương",
   description:
     "Chỉ với 100K — sở hữu lộ trình kiếm tiền từ sản phẩm số 2026 trị giá 1.000.000đ. Không cần vốn lớn, không cần kho hàng, tận dụng AI làm việc 10x năng suất.",
+  alternates: {
+    canonical: "/sanphamso",
+  },
   openGraph: {
     title: "Lộ Trình Kiếm Tiền Từ Sản Phẩm Kỹ Thuật Số 2026",
     description:

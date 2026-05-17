@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 interface PublicHeaderProps {
@@ -35,9 +36,11 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-14">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <img
+          <Image
             src="/images/about/portrait.jpg"
             alt="Lê Đăng Khương"
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-lg object-cover"
           />
           <span className="text-sm font-bold text-white leading-tight hidden sm:block">
@@ -67,9 +70,11 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
             <>
               {/* Avatar */}
               {user.avatar_url ? (
-                <img
+                <Image
                   src={user.avatar_url}
                   alt=""
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (

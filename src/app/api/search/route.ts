@@ -49,8 +49,8 @@ export async function GET(req: NextRequest): Promise<NextResponse<SearchResponse
   if (type === "all" || type === "courses") {
     const { data: courses } = await supabase
       .from("products")
-      .select("id, name, price, thumbnail")
-      .ilike("name", `%${keyword}%`)
+      .select("id, slug, title, price, thumbnail")
+      .ilike("title", `%${keyword}%`)
       .limit(5);
 
     if (courses) {
@@ -58,11 +58,11 @@ export async function GET(req: NextRequest): Promise<NextResponse<SearchResponse
         results.push({
           type: "courses",
           id: String(course.id),
-          title: String(course.name ?? ""),
+          title: String(course.title ?? ""),
           subtitle: course.price != null
             ? `${Number(course.price).toLocaleString("vi-VN")}đ`
             : undefined,
-          url: `/courses/${course.id}`,
+          url: `/courses/${course.slug}`,
         });
       }
     }

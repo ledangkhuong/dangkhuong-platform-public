@@ -1,7 +1,7 @@
 "use client";
 
 import TopBar from "@/components/layout/TopBar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -100,6 +100,41 @@ export default function CommunityPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [postError, setPostError] = useState<string | null>(null);
+  const [likeError, setLikeError] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showImageTooltip, setShowImageTooltip] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const COMMON_EMOJIS = ["😀", "😂", "😍", "🥰", "😎", "🤔", "👍", "👏", "🙌", "❤️", "🔥", "💯", "🎉", "✨", "🚀", "💪", "🌟", "😊", "🤩", "💡"];
+
+  const insertAtCursor = (text: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setPostText(prev => prev + text);
+      return;
+    }
+    const start = el.selectionStart ?? postText.length;
+    const end = el.selectionEnd ?? postText.length;
+    const next = postText.slice(0, start) + text + postText.slice(end);
+    setPostText(next);
+    // Restore focus and move cursor after inserted text
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + text.length, start + text.length);
+    }, 0);
+  };
+
+  const handleEmojiClick = (emoji: string) => {
+    insertAtCursor(emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleLinkInsert = () => {
+    const url = window.prompt("Nhập URL:");
+    if (!url || !url.trim()) return;
+    insertAtCursor(`[link](${url.trim()})`);
+  };
 
   useEffect(() => {
     fetch("/api/community/posts?limit=20")
@@ -153,12 +188,19 @@ export default function CommunityPage() {
         wasLiked ? next.add(postId) : next.delete(postId);
         return next;
       });
+      setPosts(prev => prev.map(p => p.id === postId
+        ? { ...p, likes_count: p.likes_count + (wasLiked ? 1 : -1) }
+        : p
+      ));
+      setLikeError("Không thể thực hiện hành động này. Vui lòng thử lại.");
+      setTimeout(() => setLikeError(null), 3000);
     });
   };
 
   const handlePost = async () => {
     if (!postText.trim() || posting) return;
     setPosting(true);
+    setPostError(null);
     try {
       const res = await fetch("/api/community/posts", {
         method: "POST",
@@ -170,7 +212,12 @@ export default function CommunityPage() {
         setPosts(prev => [data.post, ...prev]);
         setPostText("");
         setTags([]);
+        setPostError(null);
+      } else {
+        setPostError("Đăng bài thất bại. Vui lòng thử lại.");
       }
+    } catch {
+      setPostError("Đăng bài thất bại. Vui lòng thử lại.");
     } finally {
       setPosting(false);
     }
@@ -188,7 +235,7 @@ export default function CommunityPage() {
           <div className="card-dark p-4">
             <div className="flex gap-3 mb-3">
               {myProfile?.avatar_url ? (
-                <img src={myProfile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                <img src={myProfile.avatar_url} alt={myProfile.full_name} className="w-9 h-9 rounded-full object-cover shrink-0" />
               ) : (
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                   style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}>
@@ -196,6 +243,7 @@ export default function CommunityPage() {
                 </div>
               )}
               <textarea
+                ref={textareaRef}
                 value={postText}
                 onChange={e => setPostText(e.target.value)}
                 placeholder="Chia sẻ học hỏi, thắc mắc hay thành tích của bạn..."
@@ -204,10 +252,56 @@ export default function CommunityPage() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex gap-2">
-                <button className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"><Image size={16} /></button>
-                <button className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"><Link2 size={16} /></button>
-                <button className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"><Smile size={16} /></button>
+              <div className="flex gap-2 relative">
+                {/* Image button */}
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowImageTooltip(v => !v); setShowEmojiPicker(false); }}
+                    className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
+                    title="Hình ảnh">
+                    <Image size={16} />
+                  </button>
+                  {showImageTooltip && (
+                    <div className="absolute left-0 bottom-full mb-2 z-20 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-3 py-2 text-xs text-gray-300 whitespace-nowrap shadow-lg">
+                      Tính năng đang phát triển
+                      <button
+                        onClick={() => setShowImageTooltip(false)}
+                        className="ml-2 text-gray-500 hover:text-white">✕</button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Link button */}
+                <button
+                  onClick={handleLinkInsert}
+                  className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
+                  title="Chèn link">
+                  <Link2 size={16} />
+                </button>
+
+                {/* Emoji button + picker */}
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowEmojiPicker(v => !v); setShowImageTooltip(false); }}
+                    className={`p-2 rounded-lg transition-colors ${showEmojiPicker ? "text-[#D4A843] bg-white/5" : "text-gray-500 hover:text-white hover:bg-white/5"}`}
+                    title="Emoji">
+                    <Smile size={16} />
+                  </button>
+                  {showEmojiPicker && (
+                    <div className="absolute left-0 bottom-full mb-2 z-20 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-2 shadow-lg">
+                      <div className="grid grid-cols-5 gap-1">
+                        {COMMON_EMOJIS.map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => handleEmojiClick(emoji)}
+                            className="w-8 h-8 flex items-center justify-center text-lg rounded-lg hover:bg-white/10 transition-colors">
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <button
                 onClick={handlePost}
@@ -216,7 +310,17 @@ export default function CommunityPage() {
                 {posting ? "Đang đăng..." : "Đăng bài"}
               </button>
             </div>
+            {postError && (
+              <p className="mt-2 text-xs text-red-400">{postError}</p>
+            )}
           </div>
+
+          {/* Like error toast */}
+          {likeError && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-900/90 border border-red-700 text-red-200 text-sm px-4 py-2.5 rounded-xl shadow-lg pointer-events-none">
+              {likeError}
+            </div>
+          )}
 
           {/* Loading Skeleton */}
           {loading && (
@@ -256,7 +360,7 @@ export default function CommunityPage() {
                 {/* Author */}
                 <div className="flex items-center gap-3 mb-3">
                   {post.profiles?.avatar_url ? (
-                    <img src={post.profiles.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                    <img src={post.profiles.avatar_url} alt={fullName} className="w-9 h-9 rounded-full object-cover shrink-0" />
                   ) : (
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                       style={{ background: isVip ? "linear-gradient(135deg, #D4A843, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
@@ -320,9 +424,9 @@ export default function CommunityPage() {
                 <div className="text-2xl font-bold text-[#D4A843] mb-1">{myProfile.xp.toLocaleString()} XP</div>
                 <div className="text-xs text-gray-500 mb-2">Level {myProfile.level} — {levelTitle(myProfile.level)}</div>
                 <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${Math.min(100, (myProfile.xp % xpForLevel(myProfile.level)) / xpForLevel(myProfile.level) * 100)}%` }} />
+                  <div className="progress-fill" style={{ width: `${Math.min(100, Math.round(((myProfile.xp - (myProfile.level - 1) * 200) / 200) * 100))}%` }} />
                 </div>
-                <div className="text-xs text-gray-600 mt-1">{xpForLevel(myProfile.level) - (myProfile.xp % xpForLevel(myProfile.level))} XP để lên Level {myProfile.level + 1}</div>
+                <div className="text-xs text-gray-600 mt-1">{Math.max(0, myProfile.level * 200 - myProfile.xp)} XP để lên Level {myProfile.level + 1}</div>
               </>
             ) : (
               <div className="space-y-2 animate-pulse">
@@ -359,7 +463,7 @@ export default function CommunityPage() {
                       className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#D4A843]/10" : "hover:bg-white/3"} transition-colors`}>
                       <span className="text-sm">{rankBadge(rank)}</span>
                       {user.avatar_url ? (
-                        <img src={user.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        <img src={user.avatar_url} alt={user.full_name} className="w-7 h-7 rounded-full object-cover" />
                       ) : (
                         <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                           style={{ background: isMe ? "linear-gradient(135deg,#D4A843,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
@@ -389,12 +493,12 @@ export default function CommunityPage() {
             <div className="flex gap-1 mb-2">
               {[1, 2, 3, 4, 5].map(d => (
                 <div key={d} className="flex-1 h-6 rounded flex items-center justify-center text-xs"
-                  style={{ background: d <= 2 ? "#D4A843" : "#2a2a2a", color: d <= 2 ? "white" : "#444" }}>
-                  {d <= 2 ? "✓" : d}
+                  style={{ background: d <= Math.min((myProfile?.streak ?? 0), 5) ? "#D4A843" : "#2a2a2a", color: d <= Math.min((myProfile?.streak ?? 0), 5) ? "white" : "#444" }}>
+                  {d <= Math.min((myProfile?.streak ?? 0), 5) ? "✓" : d}
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600">2/5 ngày hoàn thành</p>
+            <p className="text-[10px] text-gray-600">{Math.min((myProfile?.streak ?? 0), 5)}/5 ngày hoàn thành</p>
           </div>
         </aside>
       </div>

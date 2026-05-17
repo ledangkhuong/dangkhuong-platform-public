@@ -1,5 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import RegisterForm from "@/components/auth/RegisterForm";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Đăng Ký Tài Khoản | Lê Đăng Khương Academy",
+  description:
+    "Tạo tài khoản miễn phí để nhận Bí Mật Video AI Triệu View và truy cập khoá học của Lê Đăng Khương.",
+  alternates: {
+    canonical: "/register",
+  },
+};
 
 export default function RegisterPage() {
   return (

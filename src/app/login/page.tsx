@@ -1,5 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import LoginForm from "@/components/auth/LoginForm";
+
+export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   return (
@@ -8,7 +11,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-14 h-14 rounded-2xl mb-4 object-cover inline-block" />
+          <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={56} height={56} className="w-14 h-14 rounded-2xl mb-4 object-cover inline-block" />
           <h1 className="text-2xl font-bold text-white">Đăng nhập</h1>
           <p className="text-gray-400 mt-1 text-sm">Chào mừng trở lại — <span className="text-[#D4A843]">dangkhuong.com</span></p>
         </div>

@@ -324,12 +324,12 @@ export default function CoursePublicView({
                   Vào học ngay
                 </Link>
               ) : (
-                <Link
-                  href={`/courses?checkout=${product.id}`}
+                <button
+                  onClick={() => setShowCheckout(true)}
                   className="btn-gold w-full justify-center text-sm py-3"
                 >
                   Mua khoá học — {formatPrice(displayPrice)}
-                </Link>
+                </button>
               )}
 
               {!isAuthenticated && (
@@ -566,12 +566,12 @@ export default function CoursePublicView({
               Vào học
             </Link>
           ) : (
-            <Link
-              href={`/courses?checkout=${product.id}`}
+            <button
+              onClick={() => setShowCheckout(true)}
               className="btn-gold text-sm py-2.5 px-5"
             >
               Mua ngay
-            </Link>
+            </button>
           )}
         </div>
       </div>

@@ -34,6 +34,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
   const [copied, setCopied] = useState<string>("");
   const [countdown, setCountdown] = useState(900);
+  const [expired, setExpired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [fullName, setFullName] = useState("");
@@ -75,12 +76,12 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
     }
   }, [order, onSuccess]);
 
-  // Poll for payment status every 5 seconds
+  // Poll for payment status every 5 seconds — stop when expired
   useEffect(() => {
-    if (step !== "payment" || !order) return;
+    if (step !== "payment" || !order || expired) return;
     const interval = setInterval(checkPayment, 5000);
     return () => clearInterval(interval);
-  }, [step, order, checkPayment]);
+  }, [step, order, expired, checkPayment]);
 
   // Countdown timer
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(timer);
-          setPaymentStatus("error");
+          setExpired(true);
           return 0;
         }
         return c - 1;
@@ -153,6 +154,16 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
       handleCreateOrder();
     }
   }, [fullName, email, handleCreateOrder]);
+
+  const handleReset = useCallback(() => {
+    setStep("creating");
+    setOrder(null);
+    setPaymentStatus("idle");
+    setCountdown(900);
+    setExpired(false);
+    setErrorMsg("");
+    autoCreatedRef.current = false;
+  }, []);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -227,6 +238,24 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
         {/* Step: Payment */}
         {step === "payment" && order && (
           <div className="p-5">
+            {/* Expired overlay */}
+            {expired && (
+              <div className="py-8 text-center">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ background: "rgba(239,68,68,0.12)", border: "2px solid rgba(239,68,68,0.3)" }}>
+                  <AlertCircle size={28} className="text-red-400" />
+                </div>
+                <p className="text-white font-semibold mb-1">Đơn hàng đã hết hạn.</p>
+                <p className="text-gray-400 text-sm mb-6">Vui lòng tạo đơn mới.</p>
+                <button onClick={handleReset} className="btn-green w-full justify-center text-sm py-3">
+                  Tạo đơn mới
+                </button>
+              </div>
+            )}
+
+            {/* Normal payment UI */}
+            {!expired && (
+            <>
             {/* Countdown */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 text-sm">
@@ -307,12 +336,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               </div>
             )}
 
-            {paymentStatus === "error" && (
-              <div className="mt-3 p-3 rounded-lg flex items-center gap-2 text-sm"
-                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                <AlertCircle size={14} className="text-red-400 shrink-0" />
-                <span className="text-red-400">Đã hết thời gian. Vui lòng tạo đơn mới.</span>
-              </div>
+            </>
             )}
           </div>
         )}

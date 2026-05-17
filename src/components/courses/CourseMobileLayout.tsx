@@ -35,18 +35,20 @@ export default function CourseMobileLayout({
       <div className="lg:hidden">
         <div className="p-4 overflow-y-auto">{mainContent}</div>
 
-        {/* Floating button to toggle lesson list */}
-        <button
-          onClick={() => setShowSidebar(true)}
-          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-4 py-3 rounded-full shadow-lg text-sm font-medium text-white transition-transform active:scale-95"
-          style={{
-            background: "linear-gradient(135deg, #D4A843, #B8922E)",
-            boxShadow: "0 4px 20px rgba(212,168,67,0.3)",
-          }}
-        >
-          <List size={18} />
-          <span>{chapterCount} chương &middot; {lessonCount} bài</span>
-        </button>
+        {/* Floating button to toggle lesson list — only show when there is content */}
+        {(chapterCount > 0 || lessonCount > 0) && (
+          <button
+            onClick={() => setShowSidebar(true)}
+            className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-4 py-3 rounded-full shadow-lg text-sm font-medium text-white transition-transform active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, #D4A843, #B8922E)",
+              boxShadow: "0 4px 20px rgba(212,168,67,0.3)",
+            }}
+          >
+            <List size={18} />
+            <span>{chapterCount} chương &middot; {lessonCount} bài</span>
+          </button>
+        )}
 
         {/* Mobile sidebar overlay */}
         {showSidebar && (

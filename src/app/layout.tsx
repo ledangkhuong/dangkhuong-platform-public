@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   metadataBase: new URL("https://dangkhuong.com"),
   alternates: {
-    canonical: "/",
     types: {
       "application/rss+xml": "/feed.xml",
     },

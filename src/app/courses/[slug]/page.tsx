@@ -16,6 +16,19 @@ import VideoPlayer from "@/components/courses/VideoPlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = await createAdminClient();
+  const { data: products } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("status", "published");
+
+  return (products || []).map((p) => ({ slug: p.slug }));
+}
+
 /* ─── Types ─── */
 
 type Lesson = {
@@ -241,8 +254,6 @@ export default async function CourseDetailPage({
   const currentProgress = currentLesson
     ? progressMap.get(currentLesson.id)
     : null;
-  const canAccessCurrentLesson = hasAccess || currentLesson?.is_free;
-
   // ─── Sidebar content ─────────────────────
   const sidebarContent = (
     <>
@@ -403,30 +414,6 @@ export default async function CourseDetailPage({
   // ─── Main content ─────────────────────
   const mainContent = (
     <>
-      {/* Access blocked */}
-      {!hasAccess && !currentLesson?.is_free && (
-        <div
-          className="rounded-xl p-6 sm:p-8 text-center mb-5"
-          style={{
-            background: "rgba(245,158,11,0.06)",
-            border: "1px solid rgba(245,158,11,0.25)",
-          }}
-        >
-          <div className="text-3xl sm:text-4xl mb-3">🔐</div>
-          <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
-            Khoá học này yêu cầu đăng ký
-          </h2>
-          <p className="text-sm text-gray-400 mb-4">
-            Mua khoá học hoặc nâng cấp Quyền Đồng Hành để truy cập toàn bộ
-            nội dung.
-          </p>
-          <button className="btn-gold">
-            <Lock size={14} />
-            Mua khoá học — {product.price.toLocaleString("vi-VN")}đ
-          </button>
-        </div>
-      )}
-
       {/* Video player */}
       {(hasAccess || currentLesson?.is_free) && currentLesson && (
         <>

@@ -74,16 +74,16 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
 
   return (
     <header className="sticky top-0 z-30" style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(8px)" }}>
-      {/* Notification Bar — hide on small screens */}
+      {/* Notification Bar — visible on all screens, compact on mobile */}
       {notification && (
-        <div className="notification-bar hidden sm:flex items-center justify-center gap-3 py-2 px-4 text-sm">
-          <Bell size={13} className="text-[#D4A843]" />
+        <div className="notification-bar flex flex-wrap items-center justify-center gap-x-2 gap-y-1 py-1.5 sm:py-2 px-3 sm:px-4 text-sm">
+          <Bell size={13} className="text-[#D4A843] shrink-0" />
           <span className="text-gray-400 text-xs">
             Lê Đăng Khương vừa cập nhật:
           </span>
-          <span className="badge-green">{notification.label}</span>
+          <span className="badge-green shrink-0">{notification.label}</span>
           <span className="text-white text-xs font-medium">{notification.text}</span>
-          <div className="flex gap-1 ml-1">
+          <div className="hidden sm:flex gap-1 ml-1">
             {[1,2,3,4,5].map(i => (
               <div key={i} className="w-1.5 h-1.5 rounded-full"
                 style={{ background: i === 1 ? "#D4A843" : "#333" }} />
@@ -96,6 +96,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
       <div className="flex items-center justify-between px-4 sm:px-6 h-14 border-b border-[#1f1f1f]">
         <div className="flex items-center gap-3">
           <button onClick={handleMenuClick}
+            aria-label="Mở menu"
             className="text-gray-500 hover:text-white transition-colors lg:hidden">
             <Menu size={20} />
           </button>

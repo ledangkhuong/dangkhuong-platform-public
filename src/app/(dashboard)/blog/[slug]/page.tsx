@@ -4,6 +4,7 @@ import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_AUTHOR } from "@/lib/author-config";
 import {
@@ -14,6 +15,19 @@ import {
   Clock,
 } from "lucide-react";
 import ShareButtons from "@/components/blog/ShareButtons";
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const supabase = await createAdminClient();
+  const { data: posts } = await supabase
+    .from("blog_posts")
+    .select("slug")
+    .eq("status", "published");
+
+  return (posts || []).map((p) => ({ slug: p.slug }));
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -252,12 +266,25 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fire-and-forget: increment views
-  supabase
-    .from("blog_posts")
-    .update({ views: (post.views ?? 0) + 1 })
-    .eq("id", post.id)
-    .then(() => {});
+  // Fire-and-forget: increment views with cookie-based dedup (24h window)
+  const cookieStore = await cookies();
+  const viewCookieName = `viewed_blog_${slug}`;
+  const alreadyViewed = cookieStore.has(viewCookieName);
+
+  if (!alreadyViewed) {
+    supabase
+      .from("blog_posts")
+      .update({ views: (post.views ?? 0) + 1 })
+      .eq("id", post.id)
+      .then(() => {});
+
+    cookieStore.set(viewCookieName, "1", {
+      maxAge: 60 * 60 * 24, // 24 hours
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+    });
+  }
 
   const publishedDate = post.published_at
     ? formatDate(post.published_at)

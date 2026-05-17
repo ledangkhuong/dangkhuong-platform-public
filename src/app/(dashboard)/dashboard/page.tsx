@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       ? supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true)
       : Promise.resolve({ count: 0 }),
     user
-      ? supabase.from("posts").select("id", { count: "exact", head: true }).eq("author_id", user.id)
+      ? supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", user.id)
       : Promise.resolve({ count: 0 }),
   ]);
 

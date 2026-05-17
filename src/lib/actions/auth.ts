@@ -168,18 +168,70 @@ export async function getUser() {
   return { ...user, profile };
 }
 
+/** Escape the five HTML special characters to prevent stored XSS. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const full_name = formData.get("full_name") as string;
-  const phone = formData.get("phone") as string;
-  const bio = formData.get("bio") as string;
+  // ── full_name ──────────────────────────────────────────────────────────────
+  const rawFullName = (formData.get("full_name") as string | null) ?? "";
+  const full_name = rawFullName.trim();
+  if (!full_name) {
+    redirect("/settings?error=" + encodeURIComponent("Vui lòng nhập họ và tên"));
+  }
+  if (full_name.length > 100) {
+    redirect("/settings?error=" + encodeURIComponent("Họ và tên không được vượt quá 100 ký tự"));
+  }
+
+  // ── phone ──────────────────────────────────────────────────────────────────
+  // Optional field; validate only when a non-empty value is supplied.
+  const rawPhone = (formData.get("phone") as string | null) ?? "";
+  const phone = rawPhone.replace(/\s+/g, "");
+  if (phone) {
+    // Vietnamese local format: 10 digits starting with 0, or 11-digit variant
+    // International format: +84 followed by 9-10 digits
+    const viLocal = /^0\d{9,10}$/;
+    const viIntl  = /^\+84\d{9,10}$/;
+    if (!viLocal.test(phone) && !viIntl.test(phone)) {
+      redirect(
+        "/settings?error=" +
+          encodeURIComponent(
+            "Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng (VD: 0912345678 hoặc +84912345678)"
+          )
+      );
+    }
+  }
+
+  // ── bio ────────────────────────────────────────────────────────────────────
+  const rawBio = (formData.get("bio") as string | null) ?? "";
+  const bio = rawBio.trim();
+  if (bio.length > 500) {
+    redirect("/settings?error=" + encodeURIComponent("Giới thiệu bản thân không được vượt quá 500 ký tự"));
+  }
+
+  // ── sanitise against stored XSS ───────────────────────────────────────────
+  const safeName  = escapeHtml(full_name);
+  const safePhone = phone ? escapeHtml(phone) : null;
+  const safeBio   = bio   ? escapeHtml(bio)   : null;
 
   const { error } = await supabase
     .from("profiles")
-    .update({ full_name, phone, bio, updated_at: new Date().toISOString() })
+    .update({
+      full_name: safeName,
+      phone: safePhone,
+      bio: safeBio,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", user.id);
 
   if (error) redirect(`/settings?error=${encodeURIComponent(error.message)}`);
@@ -228,8 +280,8 @@ export async function deleteAccount(): Promise<{ success: boolean; error?: strin
     try { await admin.from("xp_events").delete().eq("user_id", user.id); } catch {}
 
     // 4. Delete user's community comments before posts (comments reference posts)
-    try { await admin.from("community_comments").delete().eq("user_id", user.id); } catch {}
-    try { await admin.from("community_posts").delete().eq("user_id", user.id); } catch {}
+    try { await admin.from("comments").delete().eq("user_id", user.id); } catch {}
+    try { await admin.from("posts").delete().eq("user_id", user.id); } catch {}
 
     // 5. Delete user's lesson progress
     try { await admin.from("lesson_progress").delete().eq("user_id", user.id); } catch {}

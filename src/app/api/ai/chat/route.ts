@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -24,9 +25,6 @@ Giới hạn:
 - Không làm bài tập thay học viên
 - Luôn khuyến khích học viên tự thực hành`;
 
-// Simple per-user rate limit (20 messages per hour)
-const AI_RATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
-
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,18 +42,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nội dung quá dài" }, { status: 400 });
   }
 
-  // Per-user rate limiting
+  // Per-user rate limiting: 20 messages per hour, backed by Upstash Redis
+  // (falls back to in-memory sliding window when Upstash is not configured)
   const userId = user.id;
-  const now = Date.now();
-  const userLimit = AI_RATE_LIMIT.get(userId);
-
-  if (userLimit && userLimit.resetAt > now) {
-    if (userLimit.count >= 20) {
-      return NextResponse.json({ error: "Bạn đã sử dụng hết lượt chat. Vui lòng thử lại sau." }, { status: 429 });
-    }
-    userLimit.count++;
-  } else {
-    AI_RATE_LIMIT.set(userId, { count: 1, resetAt: now + 60 * 60 * 1000 });
+  const rl = await rateLimit(`ai-chat:${userId}`, 20, 3600);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Bạn đã sử dụng hết lượt chat. Vui lòng thử lại sau." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    );
   }
 
   // Build system with user context

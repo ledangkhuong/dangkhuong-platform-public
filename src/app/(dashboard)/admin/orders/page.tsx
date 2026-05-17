@@ -5,6 +5,7 @@ import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import ConfirmOrderButton from "@/components/admin/ConfirmOrderButton";
 import QRCodeButton from "@/components/admin/QRCodeButton";
 import OrderSearchBar from "@/components/admin/OrderSearchBar";
+import BulkDeleteOrders from "@/components/admin/BulkDeleteOrders";
 import {
   ShoppingCart,
   TrendingUp,
@@ -257,6 +258,17 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         <Suspense fallback={null}>
           <OrderSearchBar />
         </Suspense>
+
+        {/* ── Bulk delete ── */}
+        <BulkDeleteOrders
+          orders={rows.map((o) => ({
+            id: o.id,
+            order_code: o.order_code,
+            customer_name: o.customer_name,
+            amount: o.amount,
+            status: o.status,
+          }))}
+        />
 
         {/* ── Orders table ── */}
         <div className="card-dark overflow-hidden">
