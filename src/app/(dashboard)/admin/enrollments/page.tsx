@@ -2,6 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { grantCourseAccess, revokeCourseAccess } from "@/lib/actions/enrollment";
+import BulkEnrollForm from "@/components/admin/BulkEnrollForm";
 import {
   BookOpen,
   UserPlus,
@@ -259,6 +260,15 @@ export default async function AdminEnrollmentsPage({
             </button>
           </form>
         </div>
+
+        {/* ── Bulk grant form ── */}
+        <BulkEnrollForm
+          courses={(products ?? []).map((p) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price ?? 0,
+          }))}
+        />
 
         {/* ── Enrollments table ── */}
         <div className="card-dark overflow-hidden">
