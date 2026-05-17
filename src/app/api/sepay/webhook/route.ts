@@ -179,6 +179,24 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // 4b. Handle subscription orders
+    if (order.payment_method === "subscription" || (updatedOrder as Record<string, unknown>).payment_method === "subscription") {
+      try {
+        const confirmRes = await fetch(new URL("/api/subscriptions/confirm", req.url).toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: order.id }),
+        });
+        if (!confirmRes.ok) {
+          console.warn("[Sepay] Subscription confirm failed:", await confirmRes.text());
+        } else {
+          console.log(`[Sepay] ✅ Subscription activated for order ${matchedCode}`);
+        }
+      } catch (subErr) {
+        console.error("[Sepay] Subscription confirm error:", subErr);
+      }
+    }
+
     // 5. Cấp quyền truy cập khoá học
     if (order.user_id && order.product_id) {
       await supabase.from("enrollments").upsert({

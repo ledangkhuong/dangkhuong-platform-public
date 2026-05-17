@@ -14,6 +14,7 @@ import {
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
+  CreditCard,
 } from "lucide-react";
 
 const mainNav = [
@@ -24,6 +25,7 @@ const mainNav = [
   { href: "/blog", icon: FileText, label: "Blog" },
   { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },
   { href: "/events", icon: Calendar, label: "Sự kiện" },
+  { href: "/subscriptions", icon: CreditCard, label: "Gói đăng ký" },
   { href: "/dashboard/affiliate", icon: Zap, label: "Affiliate" },
 ];
 
@@ -44,6 +46,7 @@ const adminNav = [
   { href: "/crm/performance", icon: TrendingUp, label: "Hiệu suất Sale", roles: ["admin", "manager"] },
   { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
   { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
+  { href: "/admin/subscriptions", icon: CreditCard, label: "Quản lý Gói", roles: ["admin", "manager"] },
   { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
   { href: "/admin/zalo", icon: MessageCircle, label: "Zalo OA", roles: ["admin"] },
 ];

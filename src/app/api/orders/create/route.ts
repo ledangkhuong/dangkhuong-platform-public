@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { randomBytes } from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
+import { isPayOSConfigured } from "@/lib/payos";
 
 // Generate a cryptographically random order code
 // Format: DK + 12 random alphanumeric chars (e.g., "DKa3Bf9Kx2Mn")
@@ -120,7 +121,8 @@ export async function POST(req: NextRequest) {
     // Thông tin thanh toán
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
     const bankCode = process.env.SEPAY_BANK_CODE;
-    const hasSepay = bankAccount && bankCode && !bankAccount.includes("your-");
+    const hasSepay = !!(bankAccount && bankCode && !bankAccount.includes("your-"));
+    const hasPayOS = isPayOSConfigured();
 
     const paymentInfo = {
       order_code: orderCode,
@@ -131,7 +133,9 @@ export async function POST(req: NextRequest) {
       qr_url: hasSepay
         ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${order.amount}&des=DK${orderCode}`
         : null,
-      manual: !hasSepay,
+      manual: !hasSepay && !hasPayOS,
+      sepay_available: hasSepay,
+      payos_available: hasPayOS,
     };
 
     return NextResponse.json({ success: true, order, paymentInfo });

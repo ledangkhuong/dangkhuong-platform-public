@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw, CreditCard, Tag, Loader2 } from "lucide-react";
+import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw, CreditCard, Tag, Loader2, Wallet, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { event as fbEvent } from "@/lib/fbpixel";
 
@@ -19,6 +19,8 @@ interface Order {
   amount: number;
   transferContent: string;
   manual: boolean;
+  sepayAvailable: boolean;
+  payosAvailable: boolean;
 }
 
 interface CheckoutModalProps {
@@ -28,9 +30,22 @@ interface CheckoutModalProps {
 }
 
 type PaymentStatus = "idle" | "pending" | "success" | "error";
+type PaymentMethod = "sepay" | "payos";
+
+/** Helper to auto-trigger PayOS when it's the only option */
+function AutoTriggerPayOS({ onTrigger }: { onTrigger: () => void }) {
+  const triggered = useRef(false);
+  useEffect(() => {
+    if (!triggered.current) {
+      triggered.current = true;
+      onTrigger();
+    }
+  }, [onTrigger]);
+  return null;
+}
 
 export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProps) {
-  const [step, setStep] = useState<"coupon" | "creating" | "payment" | "success">("coupon");
+  const [step, setStep] = useState<"coupon" | "creating" | "method" | "payment" | "success">("coupon");
   const [order, setOrder] = useState<Order | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
   const [copied, setCopied] = useState<string>("");
@@ -42,6 +57,8 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const autoCreatedRef = useRef(false);
+  const [, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [payosLoading, setPayosLoading] = useState(false);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -179,6 +196,9 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
       });
       const data = await res.json();
       if (data.success && data.order) {
+        const hasSepay = data.paymentInfo?.sepay_available ?? false;
+        const hasPayOS = data.paymentInfo?.payos_available ?? false;
+
         setOrder({
           id: data.order.id,
           code: data.paymentInfo?.transfer_content || data.order.order_code,
@@ -186,9 +206,23 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
           amount: data.order.amount,
           transferContent: data.paymentInfo?.transfer_content || `DK${data.order.order_code}`,
           manual: data.paymentInfo?.manual || false,
+          sepayAvailable: hasSepay,
+          payosAvailable: hasPayOS,
         });
-        setStep("payment");
-        setPaymentStatus("pending");
+
+        // If both methods available, show method selection step
+        if (hasSepay && hasPayOS) {
+          setStep("method");
+        } else if (hasPayOS && !hasSepay) {
+          // Only PayOS available — go directly to PayOS
+          setPaymentMethod("payos");
+          setStep("method"); // will auto-trigger PayOS flow
+        } else {
+          // Only SePay or manual — go straight to bank transfer payment
+          setPaymentMethod("sepay");
+          setStep("payment");
+          setPaymentStatus("pending");
+        }
       } else {
         setErrorMsg(data.error || "Không thể tạo đơn hàng");
         setPaymentStatus("error");
@@ -216,11 +250,43 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
     setCountdown(900);
     setExpired(false);
     setErrorMsg("");
+    setPaymentMethod(null);
+    setPayosLoading(false);
     autoCreatedRef.current = false;
   }, []);
 
   const handleProceedToPayment = () => {
     setStep("creating");
+  };
+
+  const handleSelectSepay = () => {
+    setPaymentMethod("sepay");
+    setStep("payment");
+    setPaymentStatus("pending");
+  };
+
+  const handleSelectPayOS = async () => {
+    if (!order || payosLoading) return;
+    setPayosLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/payos/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: order.id }),
+      });
+      const data = await res.json();
+      if (data.success && data.checkoutUrl) {
+        // Redirect to PayOS checkout page
+        window.location.href = data.checkoutUrl;
+      } else {
+        setErrorMsg(data.error || "Không thể tạo link thanh toán PayOS");
+      }
+    } catch {
+      setErrorMsg("Lỗi kết nối. Vui lòng thử lại.");
+    } finally {
+      setPayosLoading(false);
+    }
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -387,6 +453,109 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                   Thử lại
                 </button>
               </>
+            )}
+          </div>
+        )}
+
+        {/* Step: Method selection (when both PayOS and SePay are available) */}
+        {step === "method" && order && (
+          <div className="p-5">
+            <div className="mb-4">
+              <div className="flex items-center justify-between p-3 rounded-lg mb-3" style={{ background: "#222" }}>
+                <span className="text-xs text-gray-400">Thanh toán</span>
+                <span className="text-sm font-bold text-[#D4A843]">{formatPrice(order.amount)}</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-400 mb-4">Chọn phương thức thanh toán:</p>
+
+            <div className="space-y-3">
+              {/* PayOS option */}
+              {order.payosAvailable && (
+                <button
+                  onClick={handleSelectPayOS}
+                  disabled={payosLoading}
+                  className="w-full p-4 rounded-xl text-left transition-all hover:scale-[1.01]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(212,168,67,0.02))",
+                    border: "1px solid rgba(212,168,67,0.25)",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: "rgba(212,168,67,0.15)" }}
+                    >
+                      <Wallet size={20} className="text-[#D4A843]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white text-sm">
+                        {payosLoading ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 size={14} className="animate-spin" />
+                            Đang tạo link thanh toán...
+                          </span>
+                        ) : (
+                          "MoMo / ZaloPay / Ngân hàng"
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        Thanh toán nhanh qua ví điện tử hoặc internet banking
+                      </div>
+                    </div>
+                    {!payosLoading && (
+                      <div className="badge-green text-[10px] shrink-0">Khuyên dùng</div>
+                    )}
+                  </div>
+                </button>
+              )}
+
+              {/* SePay bank transfer option */}
+              {order.sepayAvailable && (
+                <button
+                  onClick={handleSelectSepay}
+                  className="w-full p-4 rounded-xl text-left transition-all hover:scale-[1.01]"
+                  style={{
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid #333",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: "rgba(255,255,255,0.06)" }}
+                    >
+                      <Building2 size={20} className="text-gray-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white text-sm">
+                        Chuyển khoản ngân hàng
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        Quét mã QR hoặc chuyển khoản thủ công
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              )}
+
+              {/* PayOS-only fallback: auto-trigger if only PayOS */}
+              {order.payosAvailable && !order.sepayAvailable && !payosLoading && (
+                <AutoTriggerPayOS onTrigger={handleSelectPayOS} />
+              )}
+            </div>
+
+            {errorMsg && (
+              <div
+                className="p-3 rounded-lg flex items-center gap-2 text-sm mt-4"
+                style={{
+                  background: "rgba(239,68,68,0.1)",
+                  border: "1px solid rgba(239,68,68,0.2)",
+                }}
+              >
+                <AlertCircle size={14} className="text-red-400 shrink-0" />
+                <span className="text-red-400">{errorMsg}</span>
+              </div>
             )}
           </div>
         )}
