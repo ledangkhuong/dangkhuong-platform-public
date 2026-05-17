@@ -17,7 +17,12 @@ export async function verifyTurnstile(token: string | null | undefined): Promise
     return true;
   }
 
-  if (!token) return false;
+  // If client-side Turnstile timed out or errored, allow login gracefully.
+  // This handles cases where Cloudflare CDN is slow/blocked in user's region.
+  if (!token || token === "__turnstile_timeout__" || token === "__turnstile_error__") {
+    console.warn(`[Turnstile] Client bypass: ${token || "empty"}`);
+    return true;
+  }
 
   try {
     const res = await fetch(VERIFY_URL, {
@@ -30,6 +35,7 @@ export async function verifyTurnstile(token: string | null | undefined): Promise
     return data.success === true;
   } catch (err) {
     console.error("[Turnstile] Verification error:", err);
-    return false;
+    // On network error, allow login rather than blocking users
+    return true;
   }
 }

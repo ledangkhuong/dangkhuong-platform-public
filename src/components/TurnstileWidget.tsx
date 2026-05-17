@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
   onExpire?: () => void;
+  onError?: () => void;
   className?: string;
+  /** Timeout in ms before auto-bypassing. Default 8000ms */
+  timeout?: number;
 }
 
 declare global {
@@ -17,6 +20,7 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           "expired-callback"?: () => void;
+          "error-callback"?: () => void;
           theme?: "dark" | "light" | "auto";
           size?: "normal" | "compact";
         }
@@ -31,13 +35,34 @@ declare global {
 export default function TurnstileWidget({
   onVerify,
   onExpire,
+  onError,
   className = "",
+  timeout = 8000,
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const renderedRef = useRef(false);
+  const verifiedRef = useRef(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+  const handleVerify = useCallback(
+    (token: string) => {
+      verifiedRef.current = true;
+      onVerify(token);
+    },
+    [onVerify]
+  );
+
+  const handleError = useCallback(() => {
+    // On Turnstile error, auto-bypass so user can still login
+    if (!verifiedRef.current) {
+      verifiedRef.current = true;
+      onVerify("__turnstile_error__");
+      onError?.();
+    }
+  }, [onVerify, onError]);
 
   const renderWidget = useCallback(() => {
     if (
@@ -51,12 +76,26 @@ export default function TurnstileWidget({
     renderedRef.current = true;
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      callback: onVerify,
+      callback: handleVerify,
       "expired-callback": onExpire,
+      "error-callback": handleError,
       theme: "dark",
       size: "normal",
     });
-  }, [siteKey, onVerify, onExpire]);
+  }, [siteKey, handleVerify, onExpire, handleError]);
+
+  useEffect(() => {
+    // Timeout: if Turnstile doesn't verify within timeout, bypass it
+    const timer = setTimeout(() => {
+      if (!verifiedRef.current) {
+        setTimedOut(true);
+        verifiedRef.current = true;
+        onVerify("__turnstile_timeout__");
+      }
+    }, timeout);
+
+    return () => clearTimeout(timer);
+  }, [timeout, onVerify]);
 
   useEffect(() => {
     // If Turnstile is already loaded, render immediately
@@ -98,6 +137,9 @@ export default function TurnstileWidget({
   }, [renderWidget]);
 
   if (!siteKey) return null;
+
+  // If timed out, hide the widget completely
+  if (timedOut) return null;
 
   return <div ref={containerRef} className={className} />;
 }
