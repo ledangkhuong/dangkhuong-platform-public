@@ -9,7 +9,7 @@ import { signOut } from "@/lib/actions/auth";
 import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
 import { siteConfig } from "@/lib/site-config";
 import {
-  LayoutDashboard, BookOpen, Users, MessageSquare,
+  LayoutDashboard, BookOpen, Users, MessageSquare, MessageCircle,
   FileText, Mail, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
@@ -45,6 +45,7 @@ const adminNav = [
   { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
   { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
   { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
+  { href: "/admin/zalo", icon: MessageCircle, label: "Zalo OA", roles: ["admin"] },
 ];
 
 const settingsNav = [

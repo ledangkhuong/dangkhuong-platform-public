@@ -225,6 +225,21 @@ export async function POST(req: NextRequest) {
       } catch {
         console.warn("[Sepay] Email confirmation failed (non-critical)");
       }
+
+      // 8b. Gửi thông báo Zalo OA
+      try {
+        const { notifyPurchaseViaZalo } = await import("@/lib/zalo-notifications");
+        const { data: zaloProfile } = await supabase.from("profiles").select("full_name").eq("id", order.user_id).single();
+        await notifyPurchaseViaZalo(
+          order.user_id as string,
+          zaloProfile?.full_name || "bạn",
+          products?.name as string || "Sản phẩm",
+          order.amount as number,
+          order.order_code as string,
+        );
+      } catch {
+        console.warn("[Sepay] Zalo notification failed (non-critical)");
+      }
     }
 
     // 9. Affiliate conversion attribution

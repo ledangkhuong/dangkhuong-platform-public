@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import TopBar from "@/components/layout/TopBar";
-import { ArrowLeft, Save, Layers } from "lucide-react";
+import { ArrowLeft, Save, Layers, Megaphone } from "lucide-react";
 import ThumbnailUpload from "@/components/admin/ThumbnailUpload";
 import dynamic from "next/dynamic";
 
@@ -223,18 +223,32 @@ export default function EditCoursePage() {
             <ArrowLeft size={14} />
             Quay lại
           </Link>
-          <Link
-            href={`/admin/courses/${id}/lessons`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-            style={{
-              background: "rgba(212,168,67,0.1)",
-              color: "#D4A843",
-              border: "1px solid rgba(212,168,67,0.2)",
-            }}
-          >
-            <Layers size={12} />
-            Quản lý bài học
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/sales/${form.slug}`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: "rgba(34,197,94,0.1)",
+                color: "#22c55e",
+                border: "1px solid rgba(34,197,94,0.2)",
+              }}
+            >
+              <Megaphone size={12} />
+              Sales Page
+            </Link>
+            <Link
+              href={`/admin/courses/${id}/lessons`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: "rgba(212,168,67,0.1)",
+                color: "#D4A843",
+                border: "1px solid rgba(212,168,67,0.2)",
+              }}
+            >
+              <Layers size={12} />
+              Quản lý bài học
+            </Link>
+          </div>
         </div>
 
         {/* Messages */}

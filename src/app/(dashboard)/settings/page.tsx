@@ -4,7 +4,7 @@ import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, use } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { updateProfile, deleteAccount } from "@/lib/actions/auth";
-import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff, AlertTriangle, MessageCircle, Link2, Unlink } from "lucide-react";
 
 const tabs = [
   { id: "profile", label: "Hồ sơ", icon: User },
@@ -21,6 +21,7 @@ type UserProfile = {
   xp: number;
   level: number;
   email: string;
+  zalo_user_id: string | null;
 };
 
 function ProfileTab({
@@ -34,6 +35,8 @@ function ProfileTab({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [zaloLinked, setZaloLinked] = useState(false);
+  const [unlinkingZalo, setUnlinkingZalo] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -41,12 +44,13 @@ function ProfileTab({
       if (!user) return;
       supabase
         .from("profiles")
-        .select("full_name, phone, bio, tier, xp, level, avatar_url")
+        .select("full_name, phone, bio, tier, xp, level, avatar_url, zalo_user_id")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data) {
             setProfile({ ...data, email: user.email ?? "" });
+            setZaloLinked(!!data.zalo_user_id);
             if (data.avatar_url) setAvatarUrl(data.avatar_url);
             const name = data.full_name ?? user.email ?? "?";
             const parts = name.trim().split(/\s+/);
@@ -245,6 +249,59 @@ function ProfileTab({
         <div className="flex justify-end mt-4">
           <button className="btn-green text-sm">Lưu</button>
         </div>
+      </div>
+
+      {/* Zalo link */}
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+          <MessageCircle size={16} className="text-[#D4A843]" /> Liên kết Zalo
+        </h3>
+        {zaloLinked ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-[#22c55e]">
+              <Link2 size={14} />
+              <span>Đã liên kết với Zalo</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              Bạn sẽ nhận thông báo qua Zalo khi có đơn hàng mới, bài học mới và các cập nhật quan trọng.
+            </p>
+            <button
+              onClick={async () => {
+                setUnlinkingZalo(true);
+                try {
+                  const res = await fetch("/api/zalo/unlink", { method: "POST" });
+                  if (res.ok) {
+                    setZaloLinked(false);
+                  }
+                } catch { /* ignore */ } finally {
+                  setUnlinkingZalo(false);
+                }
+              }}
+              disabled={unlinkingZalo}
+              className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+            >
+              <Unlink size={12} />
+              {unlinkingZalo ? "Đang huỷ..." : "Huỷ liên kết Zalo"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-400">
+              Liên kết tài khoản Zalo để nhận thông báo đơn hàng, bài học mới và nhắc nhở học tập qua Zalo.
+            </p>
+            <div className="p-3 rounded-lg text-xs text-gray-400 space-y-2" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+              <p className="font-medium text-gray-300">Cách liên kết:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Mở Zalo và tìm kiếm OA &quot;Lê Đăng Khương Academy&quot;</li>
+                <li>Nhấn &quot;Theo dõi&quot; OA</li>
+                <li>Hệ thống sẽ tự động liên kết tài khoản của bạn</li>
+              </ol>
+              <p className="text-gray-500 mt-2">
+                Lưu ý: Số điện thoại Zalo cần trùng với số điện thoại đã đăng ký trên nền tảng để liên kết tự động.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
