@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import TopBar from "@/components/layout/TopBar";
 import CoursesClient from "@/components/courses/CoursesClient";
 import CoursesPublicGrid from "@/components/courses/CoursesPublicGrid";
@@ -16,8 +16,9 @@ export default async function CoursesPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch published products with chapter + lesson counts
-  const { data: products } = await supabase
+  // Fetch published products with chapter + lesson counts (admin client bypasses RLS)
+  const adminDb = await createAdminClient();
+  const { data: products } = await adminDb
     .from("products")
     .select(
       `
@@ -41,18 +42,18 @@ export default async function CoursesPage() {
 
   /* ── Authenticated: full dashboard experience ── */
   if (user) {
-    const { data: enrollments } = await supabase
+    const { data: enrollments } = await adminDb
       .from("enrollments")
       .select("product_id")
       .eq("user_id", user.id);
 
-    const { data: progressRows } = await supabase
+    const { data: progressRows } = await adminDb
       .from("lesson_progress")
       .select("product_id, completed")
       .eq("user_id", user.id)
       .eq("completed", true);
 
-    const { data: profile } = await supabase
+    const { data: profile } = await adminDb
       .from("profiles")
       .select("role")
       .eq("id", user.id)

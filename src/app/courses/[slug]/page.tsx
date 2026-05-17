@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   PlayCircle,
   CheckCircle,
@@ -102,8 +102,9 @@ export default async function CourseDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch product
-  const { data: product } = await supabase
+  // Fetch product (use admin client to bypass RLS)
+  const adminDb = await createAdminClient();
+  const { data: product } = await adminDb
     .from("products")
     .select("id, slug, title, description, description_html, price, sale_price, thumbnail, type, tier_required")
     .eq("slug", slug)
@@ -112,8 +113,9 @@ export default async function CourseDetailPage({
 
   if (!product) notFound();
 
-  // Fetch chapters + lessons
-  const { data: chaptersRaw } = await supabase
+  // Fetch chapters + lessons (use admin client to bypass RLS on chapters/lessons tables)
+  const adminClient = await createAdminClient();
+  const { data: chaptersRaw } = await adminClient
     .from("chapters")
     .select(
       `
@@ -167,8 +169,8 @@ export default async function CourseDetailPage({
 
   /* ═══ AUTHENTICATED ═══ */
 
-  // Check enrollment
-  const { data: enrollment } = await supabase
+  // Check enrollment (use admin client to bypass RLS)
+  const { data: enrollment } = await adminClient
     .from("enrollments")
     .select("id, created_at")
     .eq("user_id", user.id)
@@ -176,7 +178,7 @@ export default async function CourseDetailPage({
     .maybeSingle();
 
   // Profile role
-  const { data: profile } = await supabase
+  const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
@@ -228,8 +230,8 @@ export default async function CourseDetailPage({
   const allLessons = chapters.flatMap((ch) => ch.lessons);
   const totalLessons = allLessons.length;
 
-  // Fetch user progress
-  const { data: progressRows } = await supabase
+  // Fetch user progress (admin client to bypass RLS)
+  const { data: progressRows } = await adminClient
     .from("lesson_progress")
     .select("lesson_id, completed, watch_sec, note")
     .eq("user_id", user.id)
