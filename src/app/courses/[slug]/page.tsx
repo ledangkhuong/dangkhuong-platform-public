@@ -104,8 +104,7 @@ export default async function CourseDetailPage({
   if (!product) notFound();
 
   // Fetch chapters + lessons (use admin client to bypass RLS on chapters/lessons tables)
-  const adminClient = await createAdminClient();
-  const { data: chaptersRaw } = await adminClient
+  const { data: chaptersRaw, error: chaptersError } = await adminDb
     .from("chapters")
     .select(
       `
@@ -115,6 +114,14 @@ export default async function CourseDetailPage({
     )
     .eq("product_id", product.id)
     .order("sort_order");
+
+  console.log("[CourseDetail]", {
+    slug,
+    productId: product.id,
+    chaptersCount: chaptersRaw?.length ?? 0,
+    chaptersError: chaptersError?.message ?? null,
+    rawData: JSON.stringify(chaptersRaw),
+  });
 
   const chapters: Chapter[] = (chaptersRaw ?? []).map((ch) => ({
     id: ch.id,
@@ -160,7 +167,7 @@ export default async function CourseDetailPage({
   /* ═══ AUTHENTICATED ═══ */
 
   // Check enrollment (use admin client to bypass RLS)
-  const { data: enrollment } = await adminClient
+  const { data: enrollment } = await adminDb
     .from("enrollments")
     .select("id, created_at")
     .eq("user_id", user.id)
@@ -168,7 +175,7 @@ export default async function CourseDetailPage({
     .maybeSingle();
 
   // Profile role
-  const { data: profile } = await adminClient
+  const { data: profile } = await adminDb
     .from("profiles")
     .select("role")
     .eq("id", user.id)
@@ -221,7 +228,7 @@ export default async function CourseDetailPage({
   const totalLessons = allLessons.length;
 
   // Fetch user progress (admin client to bypass RLS)
-  const { data: progressRows } = await adminClient
+  const { data: progressRows } = await adminDb
     .from("lesson_progress")
     .select("lesson_id, completed, watch_sec, note")
     .eq("user_id", user.id)
