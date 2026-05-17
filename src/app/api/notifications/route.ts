@@ -1,64 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-type EventType = "login" | "lesson_complete" | "post_created" | "register";
-
-interface Notification {
-  id: string;
-  type: "system" | "achievement" | "community" | "welcome";
-  title: string;
-  message: string;
-  read: boolean;
-  created_at: string;
-}
-
-interface XpEvent {
-  id: string;
-  action: string;
-  xp_amount: number | null;
-  created_at: string;
-  meta?: Record<string, unknown> | null;
-}
-
-const TYPE_MAP: Record<EventType, Notification["type"]> = {
-  login: "system",
-  lesson_complete: "achievement",
-  post_created: "community",
-  register: "welcome",
-};
-
-const TITLE_MAP: Record<Notification["type"], string> = {
-  system: "Hoạt động hệ thống",
-  achievement: "Thành tích mới!",
-  community: "Cộng đồng",
-  welcome: "Chào mừng!",
-};
-
-const MESSAGE_MAP: Record<EventType, (xp: number | null) => string> = {
-  login: () => "Bạn đã đăng nhập thành công.",
-  lesson_complete: (xp) => `Bạn đã hoàn thành một bài học${xp ? ` và nhận được ${xp} XP` : ""}.`,
-  post_created: (xp) => `Bài viết của bạn đã được đăng thành công${xp ? ` (+${xp} XP)` : ""}.`,
-  register: () => "Chào mừng bạn đến với nền tảng! Hãy bắt đầu hành trình học tập.",
-};
-
-function transformEvent(event: XpEvent): Notification {
-  const action = event.action as EventType;
-  const type = TYPE_MAP[action] ?? "system";
-  const title = TITLE_MAP[type];
-  const messageFn = MESSAGE_MAP[action];
-  const message = messageFn ? messageFn(event.xp_amount) : "Có hoạt động mới trên tài khoản của bạn.";
-
-  return {
-    id: event.id,
-    type,
-    title,
-    message,
-    read: false,
-    created_at: event.created_at,
-  };
-}
-
-// GET /api/notifications — lấy notifications của user (mock từ xp_events)
+// GET /api/notifications — fetch notifications for current user
 export async function GET(_req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -71,30 +14,38 @@ export async function GET(_req: NextRequest) {
     }
 
     const { data, error } = await supabase
-      .from("xp_events")
-      .select("id, action, xp_amount, created_at, meta")
+      .from("notifications")
+      .select("id, type, title, message, link, read, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(50);
 
     if (error) {
-      console.error("[Notifications] Error:", error);
-      return NextResponse.json({ error: "Có lỗi xảy ra khi tải thông báo. Vui lòng thử lại." }, { status: 500 });
+      console.error("[Notifications GET] Error:", error);
+      return NextResponse.json(
+        { error: "Có lỗi xảy ra khi tải thông báo." },
+        { status: 500 }
+      );
     }
 
-    const notifications: Notification[] = (data as XpEvent[]).map(transformEvent);
-    const unread_count = notifications.filter((n) => !n.read).length;
+    const notifications = data ?? [];
+    const unread_count = notifications.filter(
+      (n: { read: boolean }) => !n.read
+    ).length;
 
     return NextResponse.json({ notifications, unread_count });
   } catch (err) {
     console.error("[Notifications GET] Error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
-// POST /api/notifications — đánh dấu đã đọc
-// Body: { notification_id?: string } — không có id → mark all read
-export async function POST(req: NextRequest) {
+// PATCH /api/notifications — mark as read
+// Body: { id: string } for single notification, or { all: true } for all
+export async function PATCH(req: NextRequest) {
   try {
     const supabase = await createClient();
     const {
@@ -105,13 +56,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // notification_id không bắt buộc — ignored trong mock (chưa có notifications table)
-    await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
 
-    // Real impl: UPDATE notifications SET read = true WHERE user_id = ? [AND id = ?]
+    if (body.all === true) {
+      // Mark all unread notifications as read
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
+
+      if (error) {
+        console.error("[Notifications PATCH all] Error:", error);
+        return NextResponse.json(
+          { error: "Không thể đánh dấu đã đọc." },
+          { status: 500 }
+        );
+      }
+    } else if (body.id && typeof body.id === "string") {
+      // Mark single notification as read
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", body.id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("[Notifications PATCH single] Error:", error);
+        return NextResponse.json(
+          { error: "Không thể đánh dấu đã đọc." },
+          { status: 500 }
+        );
+      }
+    } else {
+      return NextResponse.json(
+        { error: "Body phải có { id: string } hoặc { all: true }." },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[Notifications POST] Error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("[Notifications PATCH] Error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

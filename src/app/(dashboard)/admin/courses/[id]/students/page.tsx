@@ -8,6 +8,8 @@ import {
   BookCheck,
   Clock,
   GraduationCap,
+  Download,
+  Filter,
 } from "lucide-react";
 import CourseStudentList from "@/components/admin/CourseStudentList";
 
@@ -27,14 +29,49 @@ interface ChapterRow {
   lessons: LessonRow[];
 }
 
+type FilterTab = "all" | "completed" | "in_progress" | "inactive";
+
+const FILTER_TABS: { key: FilterTab; label: string }[] = [
+  { key: "all", label: "Tất cả" },
+  { key: "completed", label: "Hoàn thành" },
+  { key: "in_progress", label: "Đang học" },
+  { key: "inactive", label: "Không hoạt động" },
+];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatDateVN(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+}
+
+function escapeCSV(val: string): string {
+  if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+    return `"${val.replace(/"/g, '""')}"`;
+  }
+  return val;
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default async function CourseStudentsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ filter?: string }>;
 }) {
   const { id: courseId } = await params;
+  const { filter: filterParam } = await searchParams;
+
+  const activeFilter: FilterTab =
+    filterParam && ["all", "completed", "in_progress", "inactive"].includes(filterParam)
+      ? (filterParam as FilterTab)
+      : "all";
 
   /* ── Auth ───────────────────────────────────────────────────── */
   const supabase = await createClient();
@@ -146,7 +183,9 @@ export default async function CourseStudentsPage({
     questionsByUser[q.user_id].push(q);
   }
 
-  const students = enrollments.map((enrollment: any) => {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const allStudents = enrollments.map((enrollment: any) => {
     const userProgress = progressByUser[enrollment.user_id] || [];
     const userQuestions = questionsByUser[enrollment.user_id] || [];
     const completedLessons = userProgress.filter((p) => p.completed).length;
@@ -163,6 +202,10 @@ export default async function CourseStudentsPage({
         : null;
 
     const prof = enrollment.profiles || {};
+    const progressPct =
+      totalLessons > 0
+        ? Math.round((completedLessons / totalLessons) * 100)
+        : 0;
 
     return {
       enrollmentId: enrollment.id,
@@ -177,6 +220,7 @@ export default async function CourseStudentsPage({
       totalLessons,
       totalWatchSec,
       lastActivity,
+      progressPct,
       questionCount: userQuestions.length,
       lessonProgress: userProgress.map((p) => ({
         lessonId: p.lesson_id,
@@ -196,12 +240,33 @@ export default async function CourseStudentsPage({
     };
   });
 
-  /* ── Stats ──────────────────────────────────────────────────── */
-  const totalStudents = students.length;
+  /* ── Filter students by active tab ──────────────────────────── */
+  const filteredStudents = allStudents.filter((s) => {
+    switch (activeFilter) {
+      case "completed":
+        return totalLessons > 0 && s.completedLessons === totalLessons;
+      case "in_progress":
+        return (
+          s.completedLessons > 0 &&
+          (totalLessons === 0 || s.completedLessons < totalLessons) &&
+          (s.lastActivity ? new Date(s.lastActivity) > sevenDaysAgo : false)
+        );
+      case "inactive":
+        return (
+          !s.lastActivity ||
+          new Date(s.lastActivity) <= sevenDaysAgo
+        );
+      default:
+        return true;
+    }
+  });
+
+  /* ── Stats (computed from ALL students, not filtered) ───────── */
+  const totalStudents = allStudents.length;
   const avgCompletion =
     totalStudents > 0
       ? Math.round(
-          students.reduce(
+          allStudents.reduce(
             (sum, s) =>
               sum +
               (totalLessons > 0
@@ -212,13 +277,48 @@ export default async function CourseStudentsPage({
         )
       : 0;
 
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const activeThisWeek = students.filter(
-    (s) => s.lastActivity && new Date(s.lastActivity) > weekAgo
+  const activeThisWeek = allStudents.filter(
+    (s) => s.lastActivity && new Date(s.lastActivity) > sevenDaysAgo
   ).length;
-  const completedAll = students.filter(
+  const completedAll = allStudents.filter(
     (s) => totalLessons > 0 && s.completedLessons === totalLessons
   ).length;
+
+  /* ── Tab counts ─────────────────────────────────────────────── */
+  const tabCounts: Record<FilterTab, number> = {
+    all: allStudents.length,
+    completed: completedAll,
+    in_progress: allStudents.filter(
+      (s) =>
+        s.completedLessons > 0 &&
+        (totalLessons === 0 || s.completedLessons < totalLessons) &&
+        (s.lastActivity ? new Date(s.lastActivity) > sevenDaysAgo : false)
+    ).length,
+    inactive: allStudents.filter(
+      (s) => !s.lastActivity || new Date(s.lastActivity) <= sevenDaysAgo
+    ).length,
+  };
+
+  /* ── CSV data URI ───────────────────────────────────────────── */
+  const csvHeader = "Tên,Email,Tiến độ (%),Ngày đăng ký,Ngày hoàn thành\n";
+  const csvRows = allStudents
+    .map((s) => {
+      const completionDate =
+        totalLessons > 0 && s.completedLessons === totalLessons && s.lastActivity
+          ? formatDateVN(s.lastActivity)
+          : "";
+      return [
+        escapeCSV(s.fullName),
+        escapeCSV(s.email),
+        String(s.progressPct),
+        formatDateVN(s.enrolledAt),
+        completionDate,
+      ].join(",");
+    })
+    .join("\n");
+  const csvContent = csvHeader + csvRows;
+  const csvDataUri =
+    "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
 
   /* ── Render ─────────────────────────────────────────────────── */
   return (
@@ -266,9 +366,71 @@ export default async function CourseStudentsPage({
           />
         </div>
 
+        {/* Filter tabs + CSV export */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Filter tabs */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-[#151515]" style={{ border: "1px solid #2a2a2a" }}>
+            {FILTER_TABS.map((tab) => {
+              const isActive = activeFilter === tab.key;
+              return (
+                <Link
+                  key={tab.key}
+                  href={
+                    tab.key === "all"
+                      ? `/admin/courses/${courseId}/students`
+                      : `/admin/courses/${courseId}/students?filter=${tab.key}`
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-[#D4A843]/15 text-[#D4A843]"
+                      : "text-gray-500 hover:text-gray-300 hover:bg-[#1f1f1f]"
+                  }`}
+                >
+                  {tab.label}
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      isActive
+                        ? "bg-[#D4A843]/20 text-[#D4A843]"
+                        : "bg-[#252525] text-gray-600"
+                    }`}
+                  >
+                    {tabCounts[tab.key]}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* CSV Export */}
+          <a
+            href={csvDataUri}
+            download={`students-${course.slug || courseId}.csv`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-gray-300 hover:text-white hover:bg-[#1f1f1f] transition-colors shrink-0"
+            style={{ border: "1px solid #2a2a2a" }}
+          >
+            <Download size={14} />
+            Xuất CSV
+          </a>
+        </div>
+
+        {/* Active filter indicator */}
+        {activeFilter !== "all" && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Filter size={12} />
+            <span>
+              Đang lọc:{" "}
+              <span className="text-[#D4A843] font-medium">
+                {FILTER_TABS.find((t) => t.key === activeFilter)?.label}
+              </span>
+              {" "}&middot;{" "}
+              {filteredStudents.length} học viên
+            </span>
+          </div>
+        )}
+
         {/* Student list */}
         <CourseStudentList
-          students={students}
+          students={filteredStudents}
           courseStructure={courseStructure}
           courseId={courseId}
           totalLessons={totalLessons}

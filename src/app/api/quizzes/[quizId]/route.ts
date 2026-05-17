@@ -44,6 +44,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
+/** Fisher-Yates (Knuth) in-place shuffle */
+function shuffleArray<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ quizId: string }> }
@@ -75,7 +84,7 @@ export async function GET(
   // Fetch quiz
   const { data: quiz, error: quizError } = await supabase
     .from("quizzes")
-    .select("id, lesson_id, title, pass_score, created_at")
+    .select("id, lesson_id, title, pass_score, time_limit_minutes, created_at")
     .eq("id", quizId)
     .single();
 
@@ -93,13 +102,21 @@ export async function GET(
     .eq("quiz_id", quizId)
     .order("sort_order", { ascending: true });
 
-  // SECURITY: Strip is_correct from each option before sending to client
-  const safeQuestions = (questions ?? []).map((q) => ({
-    ...q,
-    options: (q.options as { text: string; is_correct: boolean }[]).map(
-      (opt) => ({ text: opt.text })
-    ),
-  }));
+  // SECURITY: Strip is_correct from each option before sending to client.
+  // Add original_index so grading still works after option shuffling.
+  const safeQuestions = (questions ?? []).map((q) => {
+    const optionsWithIndex = (
+      q.options as { text: string; is_correct: boolean }[]
+    ).map((opt, idx) => ({ text: opt.text, original_index: idx }));
+
+    // Shuffle options within each question
+    shuffleArray(optionsWithIndex);
+
+    return { ...q, options: optionsWithIndex };
+  });
+
+  // Shuffle question order
+  shuffleArray(safeQuestions);
 
   // Fetch user's best attempt for this quiz
   const { data: bestAttempt } = await supabase

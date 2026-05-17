@@ -56,18 +56,34 @@ function formatTime(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/* ───────── Auto-complete threshold ───────── */
+const AUTO_COMPLETE_THRESHOLD = 0.8; // 80%
+
 /* ───────── Component ───────── */
 export default function VideoPlayer({
   youtubeId,
   title,
+  lessonId,
+  productId,
+  initialCompleted,
+  onAutoCompleted,
 }: {
   youtubeId: string;
   title?: string;
+  /** Pass these three props to enable auto-completion at 80% watch progress */
+  lessonId?: string;
+  productId?: string;
+  initialCompleted?: boolean;
+  /** Called after auto-completion succeeds so the parent can update UI */
+  onAutoCompleted?: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerDivRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /* Track whether auto-complete already fired this session */
+  const autoCompletedRef = useRef(!!initialCompleted);
 
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -79,6 +95,7 @@ export default function VideoPlayer({
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [autoCompleteToast, setAutoCompleteToast] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ─── Create player ─── */
@@ -158,6 +175,34 @@ export default function VideoPlayer({
     };
   }, [createPlayer]);
 
+  /* ─── Auto-complete handler ─── */
+  const triggerAutoComplete = useCallback(async () => {
+    if (!lessonId || !productId) return;
+    if (autoCompletedRef.current) return;
+    autoCompletedRef.current = true;
+
+    try {
+      const res = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lesson_id: lessonId,
+          product_id: productId,
+          completed: true,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed");
+
+      setAutoCompleteToast(true);
+      setTimeout(() => setAutoCompleteToast(false), 4000);
+      onAutoCompleted?.();
+    } catch {
+      // Silently fail — user can still use the manual button
+      autoCompletedRef.current = false;
+    }
+  }, [lessonId, productId, onAutoCompleted]);
+
   /* ─── Time update loop ─── */
   useEffect(() => {
     if (!ready) return;
@@ -167,16 +212,29 @@ export default function VideoPlayer({
         playerRef.current &&
         typeof playerRef.current.getCurrentTime === "function"
       ) {
-        setCurrentTime(playerRef.current.getCurrentTime());
+        const ct = playerRef.current.getCurrentTime();
+        setCurrentTime(ct);
         const d = playerRef.current.getDuration();
-        if (d > 0) setDuration(d);
+        if (d > 0) {
+          setDuration(d);
+
+          // Auto-complete at 80% watch progress
+          if (
+            ct / d >= AUTO_COMPLETE_THRESHOLD &&
+            !autoCompletedRef.current &&
+            lessonId &&
+            productId
+          ) {
+            triggerAutoComplete();
+          }
+        }
       }
     }, 500);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [ready]);
+  }, [ready, lessonId, productId, triggerAutoComplete]);
 
   /* ─── Fullscreen listener ─── */
   useEffect(() => {
@@ -317,6 +375,25 @@ export default function VideoPlayer({
             </p>
           </div>
         )}
+
+        {/* Auto-complete toast */}
+        {autoCompleteToast && (
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+            style={{ animation: "fadeSlideIn 0.3s ease-out" }}
+          >
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#22c55e]/90 backdrop-blur-sm text-white text-sm font-medium shadow-lg">
+              <span>&#x2705;</span>
+              <span>Bài học đã hoàn thành!</span>
+            </div>
+          </div>
+        )}
+        <style>{`
+          @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+          }
+        `}</style>
 
         {/* Watermark */}
         <div className="absolute bottom-14 right-3 text-[10px] text-white/15 select-none pointer-events-none z-20">

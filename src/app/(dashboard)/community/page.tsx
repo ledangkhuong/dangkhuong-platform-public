@@ -3,7 +3,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, useRef } from "react";
 import NextImage from "next/image";
-import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface Post {
@@ -21,6 +21,19 @@ interface Post {
     avatar_url: string | null;
     level: number;
     tier: string;
+  } | null;
+}
+
+interface Comment {
+  id: string;
+  user_id: string;
+  post_id: string;
+  content: string;
+  created_at: string;
+  profiles: {
+    full_name: string;
+    avatar_url: string | null;
+    level: number;
   } | null;
 }
 
@@ -104,8 +117,66 @@ export default function CommunityPage() {
   const [postError, setPostError] = useState<string | null>(null);
   const [likeError, setLikeError] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showImageTooltip, setShowImageTooltip] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [openComments, setOpenComments] = useState<string | null>(null);
+  const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>({});
+  const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({});
+  const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [commentPosting, setCommentPosting] = useState<Record<string, boolean>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+
+    // Client-side validation
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setPostError("Chỉ chấp nhận ảnh JPEG, PNG, GIF, WebP.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPostError("Ảnh quá lớn. Tối đa 5MB.");
+      return;
+    }
+
+    // Show local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setImagePreview(localUrl);
+    setUploading(true);
+    setPostError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload/community-image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+      setImageUrl(data.url);
+    } catch (err) {
+      setImagePreview(null);
+      setImageUrl(null);
+      setPostError(err instanceof Error ? err.message : "Tải ảnh lên thất bại.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+    setImageUrl(null);
+  };
 
   const COMMON_EMOJIS = ["😀", "😂", "😍", "🥰", "😎", "🤔", "👍", "👏", "🙌", "❤️", "🔥", "💯", "🎉", "✨", "🚀", "💪", "🌟", "😊", "🤩", "💡"];
 
@@ -199,20 +270,21 @@ export default function CommunityPage() {
   };
 
   const handlePost = async () => {
-    if (!postText.trim() || posting) return;
+    if (!postText.trim() || posting || uploading) return;
     setPosting(true);
     setPostError(null);
     try {
       const res = await fetch("/api/community/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: postText.trim(), tags }),
+        body: JSON.stringify({ content: postText.trim(), tags, image_url: imageUrl || undefined }),
       });
       const data = await res.json();
       if (data.post) {
         setPosts(prev => [data.post, ...prev]);
         setPostText("");
         setTags([]);
+        removeImage();
         setPostError(null);
       } else {
         setPostError("Đăng bài thất bại. Vui lòng thử lại.");
@@ -221,6 +293,58 @@ export default function CommunityPage() {
       setPostError("Đăng bài thất bại. Vui lòng thử lại.");
     } finally {
       setPosting(false);
+    }
+  };
+
+  const fetchComments = async (postId: string) => {
+    setCommentsLoading(prev => ({ ...prev, [postId]: true }));
+    try {
+      const res = await fetch(`/api/community/comments?post_id=${postId}`);
+      const data = await res.json();
+      setCommentsMap(prev => ({ ...prev, [postId]: data.comments || [] }));
+    } catch {
+      setCommentsMap(prev => ({ ...prev, [postId]: [] }));
+    } finally {
+      setCommentsLoading(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const toggleComments = (postId: string) => {
+    if (openComments === postId) {
+      setOpenComments(null);
+    } else {
+      setOpenComments(postId);
+      if (!commentsMap[postId]) {
+        fetchComments(postId);
+      }
+    }
+  };
+
+  const handleCommentSubmit = async (postId: string) => {
+    const text = (commentText[postId] || "").trim();
+    if (!text || commentPosting[postId]) return;
+    setCommentPosting(prev => ({ ...prev, [postId]: true }));
+    try {
+      const res = await fetch("/api/community/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: postId, content: text }),
+      });
+      const data = await res.json();
+      if (data.comment) {
+        setCommentsMap(prev => ({
+          ...prev,
+          [postId]: [...(prev[postId] || []), data.comment],
+        }));
+        setCommentText(prev => ({ ...prev, [postId]: "" }));
+        setPosts(prev => prev.map(p =>
+          p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p
+        ));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCommentPosting(prev => ({ ...prev, [postId]: false }));
     }
   };
 
@@ -254,23 +378,22 @@ export default function CommunityPage() {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex gap-2 relative">
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
                 {/* Image button */}
-                <div className="relative">
-                  <button
-                    onClick={() => { setShowImageTooltip(v => !v); setShowEmojiPicker(false); }}
-                    className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
-                    title="Hình ảnh">
-                    <Image size={16} />
-                  </button>
-                  {showImageTooltip && (
-                    <div className="absolute left-0 bottom-full mb-2 z-20 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-3 py-2 text-xs text-gray-300 whitespace-nowrap shadow-lg">
-                      Tính năng đang phát triển
-                      <button
-                        onClick={() => setShowImageTooltip(false)}
-                        className="ml-2 text-gray-500 hover:text-white">✕</button>
-                    </div>
-                  )}
-                </div>
+                <button
+                  onClick={() => { fileInputRef.current?.click(); setShowEmojiPicker(false); }}
+                  disabled={uploading || !!imageUrl}
+                  className={`p-2 rounded-lg transition-colors ${imageUrl ? "text-[#D4A843] bg-white/5" : "text-gray-500 hover:text-white hover:bg-white/5"} ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  title="Hình ảnh">
+                  {uploading ? <Loader2 size={16} className="animate-spin" /> : <Image size={16} />}
+                </button>
 
                 {/* Link button */}
                 <button
@@ -283,7 +406,7 @@ export default function CommunityPage() {
                 {/* Emoji button + picker */}
                 <div className="relative">
                   <button
-                    onClick={() => { setShowEmojiPicker(v => !v); setShowImageTooltip(false); }}
+                    onClick={() => setShowEmojiPicker(v => !v)}
                     className={`p-2 rounded-lg transition-colors ${showEmojiPicker ? "text-[#D4A843] bg-white/5" : "text-gray-500 hover:text-white hover:bg-white/5"}`}
                     title="Emoji">
                     <Smile size={16} />
@@ -306,11 +429,37 @@ export default function CommunityPage() {
               </div>
               <button
                 onClick={handlePost}
-                disabled={!postText.trim() || posting}
-                className={`btn-green text-sm py-1.5 px-4 ${(!postText.trim() || posting) ? "opacity-40 cursor-not-allowed" : ""}`}>
+                disabled={!postText.trim() || posting || uploading}
+                className={`btn-green text-sm py-1.5 px-4 ${(!postText.trim() || posting || uploading) ? "opacity-40 cursor-not-allowed" : ""}`}>
                 {posting ? "Đang đăng..." : "Đăng bài"}
               </button>
             </div>
+            {/* Image preview */}
+            {imagePreview && (
+              <div className="mt-3 relative inline-block">
+                <NextImage
+                  src={imagePreview}
+                  alt="Preview"
+                  width={200}
+                  height={200}
+                  className="rounded-xl object-cover max-h-48 w-auto"
+                  unoptimized
+                />
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                    <Loader2 size={24} className="text-white animate-spin" />
+                  </div>
+                )}
+                {!uploading && (
+                  <button
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center bg-red-600 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg"
+                    title="Xoá ảnh">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            )}
             {postError && (
               <p className="mt-2 text-xs text-red-400">{postError}</p>
             )}
@@ -380,6 +529,20 @@ export default function CommunityPage() {
                 {/* Content */}
                 <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line mb-3">{post.content}</p>
 
+                {/* Post Image */}
+                {post.image_url && (
+                  <div className="mb-3 rounded-xl overflow-hidden">
+                    <NextImage
+                      src={post.image_url}
+                      alt="Post image"
+                      width={600}
+                      height={400}
+                      className="w-full h-auto max-h-96 object-cover rounded-xl"
+                      unoptimized
+                    />
+                  </div>
+                )}
+
                 {/* Tags */}
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex gap-1.5 mb-3 flex-wrap">
@@ -400,12 +563,98 @@ export default function CommunityPage() {
                     <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
                     <span>{post.likes_count}</span>
                   </button>
-                  <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#D4A843] transition-colors">
+                  <button
+                    onClick={() => toggleComments(post.id)}
+                    className={`flex items-center gap-1.5 text-sm transition-colors ${openComments === post.id ? "text-[#D4A843]" : "text-gray-500 hover:text-[#D4A843]"}`}>
                     <MessageCircle size={15} /> <span>{post.comments_count}</span>
                   </button>
                   <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-400 transition-colors">
                     <Share2 size={15} />
                   </button>
+                </div>
+
+                {/* Comment Section */}
+                <div
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
+                  style={{
+                    maxHeight: openComments === post.id ? "600px" : "0px",
+                    opacity: openComments === post.id ? 1 : 0,
+                  }}
+                >
+                  <div className="mt-3 pt-3 border-t border-[#2a2a2a] bg-[#161616] rounded-lg p-3">
+                    {/* Loading */}
+                    {commentsLoading[post.id] && (
+                      <div className="flex items-center gap-2 py-4 justify-center">
+                        <div className="w-4 h-4 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-gray-500">Đang tải bình luận...</span>
+                      </div>
+                    )}
+
+                    {/* Comments list */}
+                    {!commentsLoading[post.id] && (
+                      <div className="max-h-[280px] overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-[#2a2a2a] scrollbar-track-transparent">
+                        {(commentsMap[post.id] || []).length === 0 ? (
+                          <p className="text-xs text-gray-600 text-center py-3">Chưa có bình luận nào</p>
+                        ) : (
+                          (commentsMap[post.id] || []).map(comment => {
+                            const cName = comment.profiles?.full_name ?? "Thành viên";
+                            const cInitials = getAvatarInitials(cName);
+                            return (
+                              <div key={comment.id} className="flex gap-2">
+                                {comment.profiles?.avatar_url ? (
+                                  <NextImage
+                                    src={comment.profiles.avatar_url}
+                                    alt={cName}
+                                    width={24}
+                                    height={24}
+                                    className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <div
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5"
+                                    style={{ background: "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}
+                                  >
+                                    {cInitials}
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium text-white">{cName}</span>
+                                    <span className="text-[10px] text-gray-600">{formatCreatedAt(comment.created_at)}</span>
+                                  </div>
+                                  <p className="text-xs text-gray-300 leading-relaxed mt-0.5 break-words">{comment.content}</p>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
+
+                    {/* Comment input */}
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-[#2a2a2a]">
+                      <input
+                        type="text"
+                        value={commentText[post.id] || ""}
+                        onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
+                        onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(post.id); } }}
+                        placeholder="Viết bình luận..."
+                        className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-[#D4A843] transition-colors"
+                      />
+                      <button
+                        onClick={() => handleCommentSubmit(post.id)}
+                        disabled={!(commentText[post.id] || "").trim() || commentPosting[post.id]}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                          (commentText[post.id] || "").trim() && !commentPosting[post.id]
+                            ? "bg-[#D4A843] text-black hover:bg-[#c49a3a]"
+                            : "bg-[#2a2a2a] text-gray-600 cursor-not-allowed"
+                        }`}
+                      >
+                        {commentPosting[post.id] ? "..." : "Gửi"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             );

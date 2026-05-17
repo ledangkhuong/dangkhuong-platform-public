@@ -307,3 +307,57 @@ export async function sendVerificationEmail(to: string, name: string, confirmUrl
     html,
   );
 }
+
+export async function sendEnrollmentWelcomeEmail(
+  to: string,
+  name: string,
+  courseName: string,
+  courseSlug: string,
+) {
+  const courseUrl = `https://dangkhuong.com/courses/${courseSlug}`;
+  return sesSendEmail(
+    to,
+    `Chào mừng bạn đến với khoá học ${escapeHtml(courseName)}! 🎓`,
+    baseTemplate(`
+      <h1>Chào mừng bạn đến với khoá học! 🎓</h1>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
+      <p>Chúc mừng bạn đã đăng ký thành công khoá học <strong style="color:#fff;">${escapeHtml(courseName)}</strong>!</p>
+      <p>Quyền truy cập của bạn đã được kích hoạt. Bắt đầu học ngay để nắm vững kiến thức và kỹ năng mới.</p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${escapeHtml(courseUrl)}" style="display:inline-block;padding:14px 32px;background:#FFD814;color:#0a0a0a;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Bắt đầu học ngay →</a>
+      </div>
+      <div class="divider"></div>
+      <p style="margin:0;font-size:13px;color:#6b7280;">Nếu bạn có bất kỳ câu hỏi nào, chỉ cần reply email này — chúng tôi sẽ hỗ trợ bạn.</p>
+      <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Lê Đăng Khương</p>
+    `),
+  );
+}
+
+export async function sendCourseCompletionEmail(
+  to: string,
+  name: string,
+  courseName: string,
+  courseSlug: string,
+) {
+  const certificateUrl = `https://dangkhuong.com/certificate/${courseSlug}`;
+  return sesSendEmail(
+    to,
+    `Chúc mừng! Bạn đã hoàn thành khoá học ${escapeHtml(courseName)} 🏆`,
+    baseTemplate(`
+      <h1>Chúc mừng, ${escapeHtml(name)}! 🏆</h1>
+      <p>Bạn đã hoàn thành <strong style="color:#fff;">tất cả bài học</strong> trong khoá học <span class="highlight">${escapeHtml(courseName)}</span>.</p>
+      <p>Đây là một thành tích tuyệt vời — hãy tự hào về bản thân mình!</p>
+      <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+        <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+        <div style="color:#D4A843;font-weight:700;font-size:18px;">Hoàn thành xuất sắc!</div>
+        <div style="color:#9ca3af;font-size:13px;margin-top:4px;">${escapeHtml(courseName)}</div>
+      </div>
+      <p>Chứng chỉ hoàn thành khoá học của bạn đã sẵn sàng:</p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${escapeHtml(certificateUrl)}" style="display:inline-block;padding:14px 32px;background:#FFD814;color:#0a0a0a;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Xem chứng chỉ →</a>
+      </div>
+      <div class="divider"></div>
+      <p style="margin:0;font-size:13px;color:#6b7280;">Tiếp tục hành trình học tập — khám phá thêm các khoá học khác tại <a href="https://dangkhuong.com/courses" style="color:#D4A843;">dangkhuong.com/courses</a></p>
+    `),
+  );
+}

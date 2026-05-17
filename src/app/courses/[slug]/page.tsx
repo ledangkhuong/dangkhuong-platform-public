@@ -9,12 +9,14 @@ import {
   BookOpen,
   Clock,
   Award,
+  ClipboardCheck,
 } from "lucide-react";
 import LessonActions from "@/components/courses/LessonActions";
 import LessonQA from "@/components/courses/LessonQA";
 import VideoPlayer from "@/components/courses/VideoPlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
+import LessonQuiz from "@/components/courses/LessonQuiz";
 
 // force-dynamic: this page is personalized (auth state, enrollment, progress)
 export const dynamic = "force-dynamic";
@@ -29,6 +31,7 @@ type Lesson = {
   content: string | null;
   sort_order: number;
   is_free: boolean;
+  unlock_after_days?: number;
 };
 
 type Chapter = {
@@ -111,7 +114,7 @@ export default async function CourseDetailPage({
     .select(
       `
       id, title, sort_order,
-      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free)
+      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days)
     `
     )
     .eq("product_id", product.id)
@@ -278,6 +281,52 @@ export default async function CourseDetailPage({
       ? Math.round((completedCount / totalLessonsAuth) * 100)
       : 0;
 
+  // ── Sequential lesson locking ──
+  // A lesson is sequentially unlocked if:
+  //   1. It is the very first lesson in the course, OR
+  //   2. ALL lessons that come before it (within the same chapter by sort_order,
+  //      and all lessons in all previous chapters) are completed.
+  const sequentiallyUnlockedSet = new Set<string>();
+  let allPreviousCompleted = true;
+  for (const ch of chapters) {
+    for (const lesson of ch.lessons) {
+      if (allPreviousCompleted) {
+        sequentiallyUnlockedSet.add(lesson.id);
+      }
+      if (!progressMap.get(lesson.id)?.completed) {
+        allPreviousCompleted = false;
+      }
+    }
+  }
+
+  // Drip lock helper (unlock_after_days from enrollment date)
+  const isDripLocked = (lesson: Lesson): boolean => {
+    if (
+      !enrolledAt ||
+      !lesson.unlock_after_days ||
+      lesson.unlock_after_days === 0
+    )
+      return false;
+    const enrollDate = new Date(enrolledAt);
+    const unlockDate = new Date(
+      enrollDate.getTime() + lesson.unlock_after_days * 24 * 60 * 60 * 1000
+    );
+    return new Date() < unlockDate;
+  };
+
+  // Combined lock: lesson must pass BOTH sequential AND drip checks
+  const isLessonLocked = (lesson: Lesson): boolean => {
+    return !sequentiallyUnlockedSet.has(lesson.id) || isDripLocked(lesson);
+  };
+
+  // Find the first uncompleted & unlocked lesson (for "go to next" button)
+  const nextUncompletedLesson = allLessons.find(
+    (l) =>
+      !progressMap.get(l.id)?.completed &&
+      sequentiallyUnlockedSet.has(l.id) &&
+      !isDripLocked(l)
+  );
+
   // Determine current lesson
   const currentLesson =
     (lessonId && allLessons.find((l) => l.id === lessonId)) ||
@@ -341,7 +390,8 @@ export default async function CourseDetailPage({
               const prog = progressMap.get(lesson.id);
               const isActive = lesson.id === currentLesson?.id;
               const isDone = prog?.completed ?? false;
-              const isAccessible = hasAccess || lesson.is_free;
+              const locked = isLessonLocked(lesson);
+              const isAccessible = (hasAccess || lesson.is_free) && !locked;
 
               return (
                 <a
@@ -353,10 +403,10 @@ export default async function CourseDetailPage({
                   }
                   className={`flex items-center gap-3 px-4 py-2.5 transition-colors
                     ${isAccessible ? "cursor-pointer" : "cursor-not-allowed opacity-60"}
-                    ${isActive ? "bg-[#D4A843]/10" : "hover:bg-white/3"}`}
+                    ${isActive && !locked ? "bg-[#D4A843]/10" : isAccessible ? "hover:bg-white/3" : ""}`}
                 >
-                  {!isAccessible ? (
-                    <Lock size={14} className="text-[#f59e0b] shrink-0" />
+                  {locked ? (
+                    <Lock size={14} className="text-gray-600 shrink-0" />
                   ) : isDone ? (
                     <CheckCircle
                       size={14}
@@ -371,11 +421,13 @@ export default async function CourseDetailPage({
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-xs leading-snug ${
-                        isActive
-                          ? "text-[#D4A843] font-medium"
-                          : isDone
-                            ? "text-gray-500 line-through"
-                            : "text-gray-300"
+                        locked
+                          ? "text-gray-600"
+                          : isActive
+                            ? "text-[#D4A843] font-medium"
+                            : isDone
+                              ? "text-gray-500 line-through"
+                              : "text-gray-300"
                       }`}
                     >
                       {lesson.title}
@@ -448,17 +500,56 @@ export default async function CourseDetailPage({
     </>
   );
 
+  // ─── Check if current lesson is locked ──
+  const currentLessonLocked = currentLesson ? isLessonLocked(currentLesson) : false;
+
   // ─── Main content ─────────────────────
   const mainContent = (
     <>
+      {/* Locked lesson message */}
+      {currentLesson && currentLessonLocked && (
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+          <div
+            className="rounded-2xl p-8 max-w-md w-full"
+            style={{
+              background: "rgba(245,158,11,0.06)",
+              border: "1px solid rgba(245,158,11,0.2)",
+            }}
+          >
+            <div className="text-4xl mb-4">&#x1F512;</div>
+            <h3 className="text-lg font-bold text-white mb-2">
+              Bài học chưa được mở khoá
+            </h3>
+            <p className="text-sm text-gray-400 mb-6">
+              Vui lòng hoàn thành bài học trước đó để mở khoá bài này
+            </p>
+            {nextUncompletedLesson && (
+              <a
+                href={`/courses/${slug}?lesson=${nextUncompletedLesson.id}`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-black transition-all hover:scale-[1.02]"
+                style={{
+                  background: "linear-gradient(135deg, #D4A843, #B8922E)",
+                }}
+              >
+                <PlayCircle size={16} />
+                Đến bài tiếp theo
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Video player */}
-      {(hasAccess || currentLesson?.is_free) && currentLesson && (
+      {(hasAccess || currentLesson?.is_free) && currentLesson && !currentLessonLocked && (
         <>
           <div className="mb-4 sm:mb-5">
             {currentLesson.youtube_id ? (
               <VideoPlayer
                 youtubeId={currentLesson.youtube_id}
                 title={currentLesson.title}
+                lessonId={currentLesson.id}
+                productId={product.id}
+                initialCompleted={currentProgress?.completed ?? false}
               />
             ) : (
               <div
@@ -570,6 +661,15 @@ export default async function CourseDetailPage({
               productId={product.id}
               initialCompleted={currentProgress?.completed ?? false}
             />
+          </div>
+
+          {/* Quiz */}
+          <div className="mb-4 sm:mb-5">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
+              <ClipboardCheck size={16} className="text-[#D4A843]" />
+              Bài kiểm tra
+            </h3>
+            <LessonQuiz lessonId={currentLesson.id} />
           </div>
 
           {/* Q&A */}

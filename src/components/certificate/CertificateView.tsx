@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Download, Share2, Loader2, CheckCircle } from "lucide-react";
+import { Download, Share2, Loader2, CheckCircle, Printer, ExternalLink } from "lucide-react";
 
 interface CertificateViewProps {
   studentName: string;
@@ -58,12 +58,54 @@ export default function CertificateView({
     });
   }, []);
 
+  const handlePrintPDF = useCallback(() => {
+    const styleId = "cert-print-styles";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        @media print {
+          body * { visibility: hidden !important; }
+          [data-cert-print], [data-cert-print] * { visibility: visible !important; }
+          [data-cert-print] {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          @page { size: landscape; margin: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    window.print();
+  }, []);
+
+  const handleLinkedInShare = useCallback(() => {
+    const params = new URLSearchParams({
+      startTask: "CERTIFICATION_NAME",
+      name: courseName,
+      organizationName: "Lê Đăng Khương Academy",
+      certUrl: window.location.href,
+      certId: certificateId,
+    });
+    window.open(
+      `https://www.linkedin.com/profile/add?${params.toString()}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }, [courseName, certificateId]);
+
   return (
     <div className="space-y-6">
       {/* Certificate Card */}
       <div className="overflow-x-auto pb-4">
         <div
           ref={certRef}
+          data-cert-print
           style={{
             width: 960,
             height: 680,
@@ -403,6 +445,19 @@ export default function CertificateView({
         </button>
 
         <button
+          onClick={handlePrintPDF}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-colors"
+          style={{
+            background: "#1f1f1f",
+            color: "#ccc",
+            border: "1px solid #333",
+          }}
+        >
+          <Printer size={16} />
+          Tải PDF
+        </button>
+
+        <button
           onClick={handleShare}
           className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-colors"
           style={{
@@ -422,6 +477,19 @@ export default function CertificateView({
               Chia sẻ
             </>
           )}
+        </button>
+
+        <button
+          onClick={handleLinkedInShare}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+          style={{
+            background: "rgba(10,102,194,0.15)",
+            color: "#5BA4E5",
+            border: "1px solid rgba(10,102,194,0.4)",
+          }}
+        >
+          <ExternalLink size={16} />
+          Thêm vào LinkedIn
         </button>
       </div>
     </div>

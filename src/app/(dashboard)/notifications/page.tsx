@@ -1,25 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import {
+  Bell,
+  BookOpen,
+  Trophy,
+  MessageCircle,
+  CheckCheck,
+} from "lucide-react";
 
-type NotificationType = "achievement" | "community" | "system" | "welcome";
+type NotificationType = "achievement" | "community" | "system" | "welcome" | "course" | string;
 
 interface Notification {
   id: string;
   type: NotificationType;
   title: string;
   message: string;
+  link?: string | null;
   read: boolean;
   created_at: string;
 }
 
-const TYPE_ICON: Record<NotificationType, string> = {
-  achievement: "\u{1F3C6}",
-  community: "\u{1F4AC}",
-  system: "\u{26A1}",
-  welcome: "\u{1F389}",
+const TYPE_ICON: Record<string, typeof Bell> = {
+  system: Bell,
+  achievement: Trophy,
+  course: BookOpen,
+  community: MessageCircle,
+  welcome: Bell,
 };
+
+function getIcon(type: string) {
+  return TYPE_ICON[type] || Bell;
+}
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -27,33 +39,71 @@ function timeAgo(dateStr: string) {
   if (mins < 1) return "vừa xong";
   if (mins < 60) return `${mins} phút trước`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} tiếng trước`;
+  if (hours < 24) return `${hours} giờ trước`;
   const days = Math.floor(hours / 24);
-  return `${days} ngày trước`;
+  if (days < 30) return `${days} ngày trước`;
+  const months = Math.floor(days / 30);
+  return `${months} tháng trước`;
 }
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/notifications")
-      .then((r) => r.json())
-      .then((d) => {
-        setNotifications(d.notifications || []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      const data = await res.json();
+      setNotifications(data.notifications || []);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
   const markAllRead = async () => {
-    await fetch("/api/notifications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true }),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch {
+      // silently fail
+    }
   };
+
+  const markOneRead = async (id: string) => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+    } catch {
+      // silently fail
+    }
+  };
+
+  const handleClick = (n: Notification) => {
+    if (!n.read) {
+      markOneRead(n.id);
+    }
+    if (n.link) {
+      window.location.href = n.link;
+    }
+  };
+
+  const hasUnread = notifications.some((n) => !n.read);
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto">
@@ -66,7 +116,7 @@ export default function NotificationsPage() {
             Tất cả thông báo của bạn
           </p>
         </div>
-        {notifications.some((n) => !n.read) && (
+        {hasUnread && (
           <button
             onClick={markAllRead}
             className="text-xs text-[#D4A843] hover:underline flex items-center gap-1"
@@ -87,7 +137,7 @@ export default function NotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <div className="card-dark p-10 text-center">
-          <div className="text-4xl mb-3">🔔</div>
+          <Bell size={40} className="mx-auto mb-3 text-gray-600" />
           <h3 className="font-bold text-white mb-1">Chưa có thông báo</h3>
           <p className="text-sm text-gray-400">
             Các thông báo mới sẽ xuất hiện ở đây.
@@ -95,35 +145,48 @@ export default function NotificationsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {notifications.map((n) => (
-            <div
-              key={n.id}
-              className="card-dark p-4 flex items-start gap-3 transition-colors"
-              style={{
-                borderLeft: n.read ? "none" : "3px solid #D4A843",
-              }}
-            >
-              <span className="text-2xl shrink-0">
-                {TYPE_ICON[n.type] || "\u{1F514}"}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-sm text-white">
-                    {n.title}
-                  </h3>
-                  {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-[#D4A843] shrink-0" />
-                  )}
+          {notifications.map((n) => {
+            const Icon = getIcon(n.type);
+            return (
+              <div
+                key={n.id}
+                onClick={() => handleClick(n)}
+                className={`card-dark p-4 flex items-start gap-3 transition-colors ${
+                  n.link ? "cursor-pointer hover:bg-white/5" : ""
+                }`}
+                style={{
+                  borderLeft: n.read ? "none" : "3px solid #D4A843",
+                }}
+              >
+                <div className="shrink-0 mt-0.5">
+                  <Icon
+                    size={20}
+                    className={n.read ? "text-gray-500" : "text-[#D4A843]"}
+                  />
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
-                  {n.message}
-                </p>
-                <span className="text-[10px] text-gray-600 mt-1 block">
-                  {timeAgo(n.created_at)}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3
+                      className={`font-semibold text-sm ${
+                        n.read ? "text-gray-400" : "text-white"
+                      }`}
+                    >
+                      {n.title}
+                    </h3>
+                    {!n.read && (
+                      <span className="w-2 h-2 rounded-full bg-[#D4A843] shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
+                    {n.message}
+                  </p>
+                  <span className="text-[10px] text-gray-600 mt-1 block">
+                    {timeAgo(n.created_at)}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

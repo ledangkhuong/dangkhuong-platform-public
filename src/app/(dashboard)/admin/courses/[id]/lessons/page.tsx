@@ -42,9 +42,19 @@ import {
   Check,
   Loader2,
   Clock,
+  Paperclip,
+  Upload,
+  FileText,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface LessonAttachment {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+}
 
 interface Lesson {
   id: string;
@@ -58,6 +68,7 @@ interface Lesson {
   sort_order: number;
   is_free: boolean;
   unlock_after_days: number;
+  attachments: LessonAttachment[];
   created_at: string;
 }
 
@@ -78,6 +89,7 @@ interface LessonFormData {
   content: string;
   is_free: boolean;
   unlock_after_days: number;
+  attachments: LessonAttachment[];
 }
 
 interface CourseOption {
@@ -93,6 +105,7 @@ const defaultLessonForm: LessonFormData = {
   content: "",
   is_free: false,
   unlock_after_days: 0,
+  attachments: [],
 };
 
 // ─── Sortable Chapter ─────────────────────────────────────────────────────────
@@ -362,6 +375,7 @@ export default function LessonsPage() {
       content: lessonForm.content || null,
       is_free: lessonForm.is_free,
       unlock_after_days: lessonForm.unlock_after_days || 0,
+      attachments: lessonForm.attachments,
       sort_order: maxOrder + 1,
     });
 
@@ -384,6 +398,7 @@ export default function LessonsPage() {
         content: lessonForm.content || null,
         is_free: lessonForm.is_free,
         unlock_after_days: lessonForm.unlock_after_days || 0,
+        attachments: lessonForm.attachments,
       })
       .eq("id", lessonId);
 
@@ -417,6 +432,7 @@ export default function LessonsPage() {
       content: lesson.content || "",
       is_free: lesson.is_free,
       unlock_after_days: lesson.unlock_after_days || 0,
+      attachments: lesson.attachments || [],
     });
   };
 
@@ -1371,6 +1387,14 @@ function LessonFormComponent({
         </div>
       </div>
 
+      {/* Attachments section */}
+      <LessonAttachmentsSection
+        attachments={lessonForm.attachments}
+        onAttachmentsChange={(attachments) =>
+          setLessonForm({ ...lessonForm, attachments })
+        }
+      />
+
       <div className="flex items-center gap-3 pt-2">
         <button
           onClick={() =>
@@ -1390,6 +1414,143 @@ function LessonFormComponent({
           Hủy
         </button>
       </div>
+    </div>
+  );
+}
+
+// ─── Lesson Attachments Section ──────────────────────────────────────────────
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function LessonAttachmentsSection({
+  attachments,
+  onAttachmentsChange,
+}: {
+  attachments: LessonAttachment[];
+  onAttachmentsChange: (attachments: LessonAttachment[]) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset the input so the same file can be selected again
+    e.target.value = "";
+
+    setUploadError(null);
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload/lesson-attachment", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setUploadError(data.error || "Upload failed");
+        return;
+      }
+
+      onAttachmentsChange([
+        ...attachments,
+        {
+          url: data.url,
+          name: data.name,
+          size: data.size,
+          type: data.type,
+        },
+      ]);
+    } catch {
+      setUploadError("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = (index: number) => {
+    onAttachmentsChange(attachments.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div
+      className="p-4 rounded-lg space-y-3"
+      style={{ backgroundColor: "#151515", border: "1px solid #252525" }}
+    >
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-2 text-gray-400 text-xs font-medium">
+          <Paperclip size={14} />
+          {"Tài liệu đính kèm"}
+        </label>
+        <label
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+            uploading
+              ? "opacity-50 cursor-not-allowed text-gray-500"
+              : "text-amber-400 hover:text-amber-300 hover:bg-white/5"
+          }`}
+          style={{ border: "1px solid #2a2a2a" }}
+        >
+          {uploading ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Upload size={13} />
+          )}
+          {uploading ? "Đang tải lên..." : "Thêm tài liệu"}
+          <input
+            type="file"
+            className="hidden"
+            accept=".pdf,.docx,.xlsx,.pptx,.zip"
+            onChange={handleUpload}
+            disabled={uploading}
+          />
+        </label>
+      </div>
+
+      {uploadError && (
+        <p className="text-red-400 text-xs">{uploadError}</p>
+      )}
+
+      {attachments.length === 0 ? (
+        <p className="text-gray-600 text-xs italic">
+          {"Chưa có tài liệu nào. Hỗ trợ: PDF, DOCX, XLSX, PPTX, ZIP (tối đa 10MB)."}
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {attachments.map((att, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg"
+              style={{ backgroundColor: "#1a1a1a", border: "1px solid #2a2a2a" }}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText size={14} className="text-blue-400 shrink-0" />
+                <span className="text-white text-xs truncate">{att.name}</span>
+                <span className="text-gray-500 text-[10px] shrink-0">
+                  {formatFileSize(att.size)}
+                </span>
+              </div>
+              <button
+                onClick={() => handleRemove(idx)}
+                className="text-gray-500 hover:text-red-400 p-1 shrink-0 transition-colors"
+                title="Xóa tài liệu"
+                type="button"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

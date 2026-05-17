@@ -100,9 +100,9 @@ export async function POST(req: NextRequest) {
       meta: { order_id: order.id, product_id: order.product_id },
     });
 
-    // Send confirmation email
+    // Send emails (purchase confirmation + enrollment welcome)
     try {
-      const { sendPurchaseConfirmation } = await import("@/lib/email/resend");
+      const { sendPurchaseConfirmation, sendEnrollmentWelcomeEmail } = await import("@/lib/email/resend");
       const { data: profile } = await admin
         .from("profiles")
         .select("full_name")
@@ -111,17 +111,31 @@ export async function POST(req: NextRequest) {
       const { data: authUser } = await admin.auth.admin.getUserById(
         order.user_id
       );
-      if (authUser?.user?.email) {
+      const email = authUser?.user?.email;
+      const name = profile?.full_name || "bạn";
+
+      if (email) {
+        // Purchase confirmation
         await sendPurchaseConfirmation(
-          authUser.user.email,
-          profile?.full_name || "bạn",
+          email,
+          name,
           order.products?.name || "Sản phẩm",
           order.amount,
           order.order_code
         ).catch(() => {});
+
+        // Enrollment welcome email
+        if (enrolled) {
+          await sendEnrollmentWelcomeEmail(
+            email,
+            name,
+            order.products?.name || order.products?.title || "Khoá học",
+            order.products?.slug || "",
+          ).catch(() => {});
+        }
       }
     } catch {
-      // Non-critical
+      // Email failure should not break enrollment
     }
   }
 

@@ -47,6 +47,53 @@ export async function POST(req: NextRequest) {
         meta: { lesson_id, product_id },
       });
     }
+
+    // Check if ALL lessons in the course are now completed → send completion email
+    try {
+      // Count total lessons for this product (via chapters)
+      const { data: chapters } = await supabase
+        .from("chapters")
+        .select("lessons(id)")
+        .eq("product_id", product_id);
+
+      const totalLessons = (chapters ?? []).reduce(
+        (sum, ch) => sum + ((ch.lessons as { id: string }[]) ?? []).length,
+        0,
+      );
+
+      // Count completed lesson_progress for this user + product
+      const { count: completedCount } = await supabase
+        .from("lesson_progress")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("product_id", product_id)
+        .eq("completed", true);
+
+      if (totalLessons > 0 && (completedCount ?? 0) >= totalLessons) {
+        const { sendCourseCompletionEmail } = await import("@/lib/email/resend");
+        const { data: product } = await supabase
+          .from("products")
+          .select("name, title, slug")
+          .eq("id", product_id)
+          .single();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        if (user.email && product?.slug) {
+          await sendCourseCompletionEmail(
+            user.email,
+            profile?.full_name || "bạn",
+            product.name || product.title || "Khoá học",
+            product.slug,
+          ).catch(() => {});
+        }
+      }
+    } catch {
+      // Email failure should not break progress tracking
+    }
   }
 
   return NextResponse.json({ progress: data });

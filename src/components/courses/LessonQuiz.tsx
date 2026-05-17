@@ -10,7 +10,7 @@
  */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ClipboardCheck,
   Loader2,
@@ -19,12 +19,14 @@ import {
   RotateCcw,
   Trophy,
   AlertCircle,
+  Clock,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface QuizOption {
   text: string;
+  original_index: number;
 }
 
 interface QuizQuestion {
@@ -40,6 +42,7 @@ interface Quiz {
   lesson_id: string;
   title: string;
   pass_score: number;
+  time_limit_minutes?: number;
   questions: QuizQuestion[];
 }
 
@@ -73,6 +76,10 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
+
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const autoSubmitFired = useRef(false);
 
   const fetchQuiz = useCallback(async () => {
     try {
@@ -115,19 +122,58 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
     fetchQuiz();
   }, [fetchQuiz]);
 
-  const handleSelectOption = (questionId: string, optionIndex: number) => {
+  // Initialize timer when quiz loads and has a time limit
+  useEffect(() => {
+    if (
+      quiz?.time_limit_minutes &&
+      quiz.time_limit_minutes > 0 &&
+      !result
+    ) {
+      setTimeLeft(quiz.time_limit_minutes * 60);
+      autoSubmitFired.current = false;
+    }
+  }, [quiz?.id, quiz?.time_limit_minutes, result]);
+
+  // Countdown interval
+  const timerActive = timeLeft !== null && timeLeft > 0 && !result;
+  useEffect(() => {
+    if (!timerActive) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
+  const handleSelectOption = (
+    questionId: string,
+    originalIndex: number
+  ) => {
     if (result) return; // Don't allow changes after submission
-    setAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+    setAnswers((prev) => ({ ...prev, [questionId]: originalIndex }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (force = false) => {
     if (!quiz) return;
 
-    // Check all questions answered
-    const unanswered = quiz.questions.filter((q) => answers[q.id] === undefined);
-    if (unanswered.length > 0) {
-      setError(`Vui lòng trả lời tất cả ${unanswered.length} câu hỏi còn lại`);
-      return;
+    // Check all questions answered (skip check on auto-submit from timer)
+    if (!force) {
+      const unanswered = quiz.questions.filter(
+        (q) => answers[q.id] === undefined
+      );
+      if (unanswered.length > 0) {
+        setError(
+          `Vui lòng trả lời tất cả ${unanswered.length} câu hỏi còn lại`
+        );
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -165,10 +211,23 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
     }
   };
 
+  // Auto-submit when timer reaches 0 (force = true skips unanswered check)
+  useEffect(() => {
+    if (timeLeft === 0 && !result && !submitting && !autoSubmitFired.current) {
+      autoSubmitFired.current = true;
+      handleSubmit(true);
+    }
+  }, [timeLeft, result, submitting]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleRetry = () => {
     setAnswers({});
     setResult(null);
     setError(null);
+    // Reset timer for retry
+    if (quiz?.time_limit_minutes && quiz.time_limit_minutes > 0) {
+      setTimeLeft(quiz.time_limit_minutes * 60);
+      autoSubmitFired.current = false;
+    }
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -221,9 +280,27 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
     <div className="card-dark overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2 mb-1">
-          <ClipboardCheck size={16} className="text-[#D4A843]" />
-          <h3 className="text-sm font-semibold text-white">{quiz.title}</h3>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <ClipboardCheck size={16} className="text-[#D4A843]" />
+            <h3 className="text-sm font-semibold text-white">{quiz.title}</h3>
+          </div>
+          {/* Countdown timer */}
+          {timeLeft !== null && !result && (
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold ${
+                timeLeft < 30
+                  ? "text-red-400 bg-red-500/10"
+                  : timeLeft < 120
+                    ? "text-amber-400 bg-amber-500/10"
+                    : "text-gray-300 bg-white/5"
+              }`}
+            >
+              <Clock size={13} />
+              {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:
+              {String(timeLeft % 60).padStart(2, "0")}
+            </div>
+          )}
         </div>
         <p className="text-xs text-gray-500">
           {quiz.questions.length} câu hỏi — Cần đạt {quiz.pass_score}% để
@@ -236,8 +313,8 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
         {quiz.questions.map((question, qIndex) => {
           const isCorrectAnswer =
             result && result.correct_answers[question.id] !== undefined;
-          const correctOptionIndex = result?.correct_answers[question.id];
-          const selectedOption = answers[question.id];
+          const correctOriginalIndex = result?.correct_answers[question.id];
+          const selectedOriginalIndex = answers[question.id];
 
           return (
             <div key={question.id} className="space-y-2.5">
@@ -252,11 +329,12 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
               {/* Options */}
               <div className="space-y-1.5 ml-1">
                 {question.options.map((option, optIndex) => {
-                  const isSelected = selectedOption === optIndex;
+                  const oi = option.original_index;
+                  const isSelected = selectedOriginalIndex === oi;
                   const isCorrect =
-                    isCorrectAnswer && correctOptionIndex === optIndex;
+                    isCorrectAnswer && correctOriginalIndex === oi;
                   const isWrong =
-                    result && isSelected && correctOptionIndex !== optIndex;
+                    result && isSelected && correctOriginalIndex !== oi;
 
                   let borderColor = "border-white/[0.08]";
                   let bgColor = "bg-transparent";
@@ -282,7 +360,7 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
                     <button
                       key={optIndex}
                       onClick={() =>
-                        handleSelectOption(question.id, optIndex)
+                        handleSelectOption(question.id, oi)
                       }
                       disabled={!!result}
                       className={`w-full text-left px-3 py-2.5 rounded-lg border ${borderColor} ${bgColor} transition-all flex items-center gap-2.5 group ${
@@ -397,7 +475,7 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
           </button>
         ) : (
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit()}
             disabled={submitting}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40"
             style={{
