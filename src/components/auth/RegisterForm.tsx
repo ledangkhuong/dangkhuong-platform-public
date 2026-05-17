@@ -75,18 +75,19 @@ export default function RegisterForm() {
 
       {/* Họ và tên */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-1.5">
           Họ và tên
         </label>
-        <input name="full_name" type="text" placeholder="Nguyễn Văn A" className="input-dark w-full" required />
+        <input id="fullName" name="full_name" type="text" placeholder="Nguyễn Văn A" className="input-dark w-full" required />
       </div>
 
       {/* Số điện thoại */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1.5">
           Số điện thoại <span className="text-red-400">*</span>
         </label>
         <input
+          id="phone"
           name="phone"
           type="tel"
           placeholder="0912345678"
@@ -100,10 +101,10 @@ export default function RegisterForm() {
 
       {/* Email */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">
           Email
         </label>
-        <input name="email" type="email" placeholder="ban@email.com" className="input-dark w-full" required />
+        <input id="email" name="email" type="email" placeholder="ban@email.com" className="input-dark w-full" required />
         <p className="text-[10px] text-amber-500/80 mt-1">
           Vui lòng sử dụng email chính xác. Một số tính năng sẽ bị hạn chế nếu email không đúng.
         </p>
@@ -111,18 +112,18 @@ export default function RegisterForm() {
 
       {/* Mật khẩu */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1.5">
           Mật khẩu
         </label>
-        <PasswordInput name="password" placeholder="Tối thiểu 8 ký tự" minLength={8} />
+        <PasswordInput id="password" name="password" placeholder="Tối thiểu 8 ký tự" minLength={8} />
       </div>
 
       {/* Xác nhận mật khẩu */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label htmlFor="passwordConfirm" className="block text-sm font-medium text-gray-300 mb-1.5">
           Xác nhận mật khẩu
         </label>
-        <PasswordInput name="password_confirm" placeholder="Nhập lại mật khẩu" minLength={8} />
+        <PasswordInput id="passwordConfirm" name="password_confirm" placeholder="Nhập lại mật khẩu" minLength={8} />
       </div>
 
       {/* Turnstile CAPTCHA */}

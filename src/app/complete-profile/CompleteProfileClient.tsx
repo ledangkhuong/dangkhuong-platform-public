@@ -120,12 +120,13 @@ export default function CompleteProfilePage() {
         <div className="card-dark p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1.5">
                 Số điện thoại <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
+                  id="phone"
                   type="tel"
                   placeholder="0912345678"
                   value={phone}

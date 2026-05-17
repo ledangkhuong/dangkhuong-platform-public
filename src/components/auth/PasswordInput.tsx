@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 interface PasswordInputProps {
+  id?: string;
   name?: string;
   placeholder?: string;
   required?: boolean;
@@ -12,6 +13,7 @@ interface PasswordInputProps {
 }
 
 export default function PasswordInput({
+  id,
   name = "password",
   placeholder = "Tối thiểu 8 ký tự",
   required = true,
@@ -23,6 +25,7 @@ export default function PasswordInput({
   return (
     <div className="relative">
       <input
+        id={id}
         name={name}
         type={show ? "text" : "password"}
         placeholder={placeholder}

@@ -1,4 +1,5 @@
 import TopBar from "@/components/layout/TopBar";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Trophy, Flame, Zap } from "lucide-react";
 
@@ -119,7 +120,7 @@ export default async function LeaderboardPage() {
                   <div key={i} className="flex flex-col items-center gap-2">
                     <div className="text-2xl">{rankBadge(positions[i])}</div>
                     {l.avatar_url ? (
-                      <img src={l.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+                      <Image src={l.avatar_url} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" unoptimized />
                     ) : (
                       <div
                         className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
@@ -180,7 +181,7 @@ export default async function LeaderboardPage() {
                   </div>
                   <div className="text-lg w-6 text-center">{rankBadge(rank)}</div>
                   {l.avatar_url ? (
-                    <img src={l.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                    <Image src={l.avatar_url} alt="" width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
                   ) : (
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
@@ -223,7 +224,7 @@ export default async function LeaderboardPage() {
                   <div className="w-6 text-center text-sm font-bold text-gray-400">{myRank}</div>
                   <div className="text-lg w-6 text-center">{rankBadge(myRank)}</div>
                   {myAvatarUrl ? (
-                    <img src={myAvatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                    <Image src={myAvatarUrl} alt="" width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
                   ) : (
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"

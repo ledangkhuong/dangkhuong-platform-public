@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw, CreditCard, Tag, Loader2, Wallet, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { event as fbEvent } from "@/lib/fbpixel";
@@ -597,13 +598,13 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
             {order.qrUrl && (
               <div className="flex justify-center mb-4">
                 <div className="p-3 rounded-xl bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={order.qrUrl}
                     alt="QR thanh toán"
                     width={200}
                     height={200}
                     className="block"
+                    unoptimized
                   />
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, useRef } from "react";
+import NextImage from "next/image";
 import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -235,7 +236,7 @@ export default function CommunityPage() {
           <div className="card-dark p-4">
             <div className="flex gap-3 mb-3">
               {myProfile?.avatar_url ? (
-                <img src={myProfile.avatar_url} alt={myProfile.full_name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                <NextImage src={myProfile.avatar_url} alt={myProfile.full_name} width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
               ) : (
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                   style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}>
@@ -360,7 +361,7 @@ export default function CommunityPage() {
                 {/* Author */}
                 <div className="flex items-center gap-3 mb-3">
                   {post.profiles?.avatar_url ? (
-                    <img src={post.profiles.avatar_url} alt={fullName} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                    <NextImage src={post.profiles.avatar_url} alt={fullName} width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
                   ) : (
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                       style={{ background: isVip ? "linear-gradient(135deg, #D4A843, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
@@ -463,7 +464,7 @@ export default function CommunityPage() {
                       className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#D4A843]/10" : "hover:bg-white/3"} transition-colors`}>
                       <span className="text-sm">{rankBadge(rank)}</span>
                       {user.avatar_url ? (
-                        <img src={user.avatar_url} alt={user.full_name} className="w-7 h-7 rounded-full object-cover" />
+                        <NextImage src={user.avatar_url} alt={user.full_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" unoptimized />
                       ) : (
                         <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                           style={{ background: isMe ? "linear-gradient(135deg,#D4A843,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>

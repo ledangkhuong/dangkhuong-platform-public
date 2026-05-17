@@ -69,13 +69,13 @@ export default function LoginForm() {
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
-        <input name="email" type="email" placeholder="ban@email.com" className="input-dark w-full" required />
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
+        <input id="email" name="email" type="email" placeholder="ban@email.com" className="input-dark w-full" required />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">Mật khẩu</label>
-        <PasswordInput name="password" placeholder="••••••••" />
+        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1.5">Mật khẩu</label>
+        <PasswordInput id="password" name="password" placeholder="••••••••" />
       </div>
 
       {/* Honeypot — hidden from real users, bots auto-fill it */}
@@ -84,8 +84,8 @@ export default function LoginForm() {
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#D4A843" }} />
+        <label htmlFor="rememberMe" className="flex items-center gap-2 cursor-pointer">
+          <input id="rememberMe" type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#D4A843" }} />
           <span className="text-sm text-gray-400">Ghi nhớ đăng nhập</span>
         </label>
         <Link href="/forgot-password" className="text-sm text-[#D4A843] hover:underline">

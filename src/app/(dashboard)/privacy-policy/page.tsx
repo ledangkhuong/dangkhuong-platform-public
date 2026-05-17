@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Chính sách bảo mật | Đăng Khương",
-  description: "Chính sách bảo mật của nền tảng Đăng Khương — dangkhuong.com",
+  title: "Chính sách bảo mật | Đăng Khương Academy",
+  description:
+    "Chính sách bảo mật và bảo vệ dữ liệu cá nhân của nền tảng Đăng Khương Academy — dangkhuong.com",
 };
 
 const sections = [
@@ -109,8 +110,16 @@ const sections = [
     ],
   },
   {
+    id: "tre-em",
+    title: "8. Bảo vệ trẻ em",
+    content: [
+      "Nền tảng không dành cho người dưới 16 tuổi. Chúng tôi không cố ý thu thập dữ liệu cá nhân của trẻ em dưới 16 tuổi.",
+      "Nếu phát hiện đã thu thập dữ liệu của trẻ em, chúng tôi sẽ xoá ngay lập tức. Nếu bạn là phụ huynh và phát hiện con mình đã cung cấp thông tin, vui lòng liên hệ chúng tôi qua email support@ledangkhuong.net.",
+    ],
+  },
+  {
     id: "thay-doi",
-    title: "8. Thay đổi chính sách bảo mật",
+    title: "9. Thay đổi chính sách bảo mật",
     content: [
       "Chúng tôi có thể cập nhật chính sách bảo mật này theo thời gian để phản ánh các thay đổi trong hoạt động hoặc yêu cầu pháp lý.",
       "Khi có thay đổi quan trọng, chúng tôi sẽ thông báo cho bạn qua email đã đăng ký hoặc thông qua thông báo trên nền tảng.",
@@ -119,7 +128,7 @@ const sections = [
   },
   {
     id: "lien-he",
-    title: "9. Liên hệ",
+    title: "10. Liên hệ",
     content: [
       "Nếu bạn có bất kỳ câu hỏi, yêu cầu hoặc khiếu nại nào liên quan đến chính sách bảo mật hoặc cách chúng tôi xử lý dữ liệu cá nhân, vui lòng liên hệ:",
     ],
@@ -136,7 +145,7 @@ export default function PrivacyPolicyPage() {
             Chính sách bảo mật
           </h1>
           <p className="text-gray-400 text-sm">
-            Cập nhật lần cuối: 17 tháng 5, 2026
+            Cập nhật lần cuối: 18 tháng 5, 2026
           </p>
         </div>
       </div>
@@ -232,53 +241,55 @@ export default function PrivacyPolicyPage() {
 
               {/* Contact info for the last section */}
               {section.id === "lien-he" && (
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#111] p-5 mt-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-gray-500 text-sm w-24 shrink-0">
-                      Nền tảng:
+                <div className="card-dark p-5 mt-4 space-y-2">
+                  <p className="text-gray-300">
+                    <span className="text-gray-500">Nền tảng:</span>{" "}
+                    <span className="text-white font-medium">
+                      Lê Đăng Khương Academy
                     </span>
-                    <span className="text-white text-sm font-medium">
+                  </p>
+                  <p className="text-gray-300">
+                    <span className="text-gray-500">Website:</span>{" "}
+                    <Link href="/" className="text-[#D4A843] hover:underline">
                       dangkhuong.com
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-gray-500 text-sm w-24 shrink-0">
-                      Chủ sở hữu:
-                    </span>
-                    <span className="text-white text-sm font-medium">
-                      Đăng Khương
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-gray-500 text-sm w-24 shrink-0">
-                      Email:
-                    </span>
+                    </Link>
+                  </p>
+                  <p className="text-gray-300">
+                    <span className="text-gray-500">Email:</span>{" "}
                     <a
-                      href="mailto:support@dangkhuong.com"
-                      className="text-[#D4A843] hover:text-[#e6be5a] text-sm transition-colors"
+                      href="mailto:support@ledangkhuong.net"
+                      className="text-[#D4A843] hover:underline"
                     >
-                      support@dangkhuong.com
+                      support@ledangkhuong.net
                     </a>
-                  </div>
+                  </p>
+                  <p className="text-gray-300">
+                    <span className="text-gray-500">
+                      Người chịu trách nhiệm bảo vệ dữ liệu:
+                    </span>{" "}
+                    <span className="text-white font-medium">
+                      Lê Đăng Khương
+                    </span>
+                  </p>
                 </div>
               )}
             </section>
           ))}
 
-          {/* Footer note */}
-          <div className="border-t border-[#1a1a1a] pt-8 pb-4">
-            <p className="text-gray-500 text-sm text-center">
-              &copy; {new Date().getFullYear()} Đăng Khương. Tất cả quyền được
-              bảo lưu.
-            </p>
-            <p className="text-gray-600 text-xs text-center mt-2">
-              <Link
-                href="/dashboard"
-                className="text-[#D4A843] hover:text-[#e6be5a] transition-colors"
-              >
-                Quay lại trang chủ
-              </Link>
-            </p>
+          {/* Related links */}
+          <div className="pt-6 border-t border-[#1a1a1a] flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/terms-of-service"
+              className="text-sm text-[#D4A843] hover:underline"
+            >
+              Điều khoản dịch vụ &rarr;
+            </Link>
+            <Link
+              href="/"
+              className="text-sm text-[#D4A843] hover:underline"
+            >
+              &larr; Quay về trang chủ
+            </Link>
           </div>
         </div>
       </div>

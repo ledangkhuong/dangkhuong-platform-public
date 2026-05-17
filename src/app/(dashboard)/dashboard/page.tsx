@@ -1,5 +1,6 @@
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import {
   BookOpen, FolderOpen, FileText,
@@ -29,6 +30,12 @@ export default async function DashboardPage() {
 
   // Fetch authenticated user
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Redirect unauthenticated users to login
+  if (!user) {
+    const { redirect } = await import("next/navigation");
+    redirect("/login");
+  }
 
   // Fetch profile (XP, level, tier, full_name)
   const { data: profile } = user
@@ -244,7 +251,7 @@ export default async function DashboardPage() {
                 return (
                   <div key={post.id} className="flex items-center gap-3 p-4">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                      <Image src={avatarUrl} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover shrink-0" unoptimized />
                     ) : (
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"

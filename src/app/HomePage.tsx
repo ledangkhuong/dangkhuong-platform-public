@@ -205,7 +205,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-9 h-9 rounded-lg object-cover" />
+            <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={36} height={36} className="w-9 h-9 rounded-lg object-cover" />
             <div>
               <div className="text-sm font-bold leading-tight">Lê Đăng Khương</div>
             </div>
@@ -300,7 +300,7 @@ export default function HomePage() {
           <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3 max-w-2xl mx-auto">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="relative rounded-xl overflow-hidden aspect-video border border-white/10 hover:border-[#FBBF24]/30 transition-colors bg-[#111]">
-                <img src={`/images/students/channel-${i}.jpg`} alt={`Video triệu view ${i}`} className="w-full h-full object-cover" />
+                <Image src={`/images/students/channel-${i}.jpg`} alt={`Video triệu view ${i}`} width={400} height={225} className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
@@ -407,16 +407,16 @@ export default function HomePage() {
             {/* Photo */}
             <div className="lg:col-span-2">
               <div className="aspect-[3/4] rounded-2xl overflow-hidden relative border border-white/10">
-                <img
+                <Image
                   src="/images/about/portrait.jpg"
                   alt="Lê Đăng Khương"
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
+                  fill
+                  className="object-cover"
                 />
                 <div className="hidden w-full h-full flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg, #1a1a1a, #111)" }}>
                   <div className="text-center">
-                    <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-28 h-28 rounded-full mx-auto mb-3 object-cover" />
+                    <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={112} height={112} className="w-28 h-28 rounded-full mx-auto mb-3 object-cover" />
                     <div className="text-lg font-bold">Lê Đăng Khương</div>
                     <div className="text-sm text-[#FBBF24]">Founder Kohada</div>
                   </div>
@@ -507,10 +507,11 @@ export default function HomePage() {
                 {/* Thumbnail (from DB) */}
                 {c.thumbnail && !c._static && (
                   <div className="relative aspect-video bg-[#0d0d0d] overflow-hidden">
-                    <img
+                    <Image
                       src={c.thumbnail}
                       alt={c.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     {c.price > 0 && c.sale_price !== null && c.sale_price < c.price && (
                       <span className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] font-bold bg-red-500 text-white">
@@ -627,23 +628,12 @@ export default function HomePage() {
 
           {/* Banner image */}
           <div className="mb-10 rounded-2xl overflow-hidden border border-[#FBBF24]/20">
-            <img
+            <Image
               src="/images/hero/offer-banner.jpg"
               alt="Bí Mật Video AI Triệu View - Khoá học miễn phí"
+              width={1200}
+              height={600}
               className="w-full h-auto object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                if (target.parentElement) {
-                  target.parentElement.innerHTML = `
-                    <div style="background: linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(132,204,22,0.08) 100%); padding: 48px 24px; text-align: center;">
-                      <div style="font-size: 48px; margin-bottom: 12px;">🎁</div>
-                      <div style="color: #FBBF24; font-weight: 700; font-size: 20px; margin-bottom: 8px;">BÍ MẬT VIDEO AI TRIỆU VIEW</div>
-                      <div style="color: #9ca3af; font-size: 14px;">Tải ảnh banner lên: /images/hero/offer-banner.jpg</div>
-                    </div>
-                  `;
-                }
-              }}
             />
           </div>
 
@@ -783,7 +773,7 @@ export default function HomePage() {
             {/* Col 1: About */}
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-8 h-8 rounded-lg object-cover" />
+                <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={32} height={32} className="w-8 h-8 rounded-lg object-cover" />
                 <span className="font-bold text-sm">Lê Đăng Khương</span>
               </div>
               <ul className="space-y-2 text-sm text-gray-500">
@@ -827,11 +817,10 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
-            <p>© 2026 Lê Đăng Khương | dangkhuong.com | Powered by Kohada</p>
+            <p>&copy; {new Date().getFullYear()} Lê Đăng Khương | dangkhuong.com | Powered by Kohada</p>
             <div className="flex gap-4">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors">Refund Policy</a>
+              <a href="/privacy-policy" className="hover:text-white transition-colors">Chính sách bảo mật</a>
+              <a href="/terms-of-service" className="hover:text-white transition-colors">Điều khoản dịch vụ</a>
             </div>
           </div>
         </div>
@@ -910,7 +899,7 @@ export default function HomePage() {
                 <>
                   {/* Header */}
                   <div className="text-center mb-6">
-                    <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-14 h-14 rounded-2xl mb-3 object-cover inline-block" />
+                    <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={56} height={56} className="w-14 h-14 rounded-2xl mb-3 object-cover inline-block" />
                     <h3 className="text-xl font-bold mb-1">Tạo tài khoản miễn phí</h3>
                     <p className="text-sm text-gray-400">
                       Đăng ký để nhận <span className="text-[#FBBF24] font-semibold">&quot;Bí Mật Video AI Triệu View&quot;</span>

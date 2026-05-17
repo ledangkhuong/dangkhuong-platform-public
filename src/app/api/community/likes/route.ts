@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // POST /api/community/likes — toggle like
 export async function POST(req: NextRequest) {
@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
     .eq("post_id", post_id)
     .maybeSingle();
 
+  const admin = await createAdminClient();
+
   if (existing) {
     // Unlike
     const { error: deleteError } = await supabase
@@ -33,19 +35,11 @@ export async function POST(req: NextRequest) {
     if (deleteError)
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
 
-    // Decrement likes_count (floor at 0)
-    const { data: currentPost } = await supabase
-      .from("posts")
-      .select("likes_count")
-      .eq("id", post_id)
-      .single();
+    // Atomic decrement — avoids race condition with concurrent requests
+    const { data: updated } = await admin
+      .rpc("decrement_likes_count", { p_post_id: post_id });
 
-    const newCount = Math.max(0, (currentPost?.likes_count ?? 1) - 1);
-    await supabase
-      .from("posts")
-      .update({ likes_count: newCount })
-      .eq("id", post_id);
-
+    const newCount = updated ?? 0;
     return NextResponse.json({ liked: false, likes_count: newCount });
   } else {
     // Like
@@ -56,21 +50,13 @@ export async function POST(req: NextRequest) {
     if (insertError)
       return NextResponse.json({ error: insertError.message }, { status: 500 });
 
-    // Increment likes_count
-    const { data: currentPost } = await supabase
-      .from("posts")
-      .select("likes_count")
-      .eq("id", post_id)
-      .single();
+    // Atomic increment — avoids race condition with concurrent requests
+    const { data: updated } = await admin
+      .rpc("increment_likes_count", { p_post_id: post_id });
 
-    const newCount = (currentPost?.likes_count ?? 0) + 1;
-    await supabase
-      .from("posts")
-      .update({ likes_count: newCount })
-      .eq("id", post_id);
+    const newCount = updated ?? 0;
 
-    // Award XP to post author (the person who is liked earns XP, or the liker?)
-    // Per spec: award 5 XP with action "post_liked" — awarding to the liker
+    // Award XP to the liker
     await supabase.from("xp_events").insert({
       user_id: user.id,
       action: "post_liked",

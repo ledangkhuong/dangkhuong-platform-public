@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Bell, Menu, Settings, LogOut, User } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import NotificationDropdown from "@/components/layout/NotificationDropdown";
 import SearchModal, { useSearchShortcut } from "@/components/layout/SearchModal";
 import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
@@ -134,10 +135,13 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
               className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50"
             >
               {profile?.avatar_url ? (
-                <img
+                <Image
                   src={profile.avatar_url}
                   alt={displayName}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <div
@@ -162,10 +166,13 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
                 <div className="px-4 py-3 border-b border-[#2a2a2a]">
                   <div className="flex items-center gap-3">
                     {profile?.avatar_url ? (
-                      <img
+                      <Image
                         src={profile.avatar_url}
                         alt=""
+                        width={36}
+                        height={36}
                         className="w-9 h-9 rounded-full object-cover shrink-0"
+                        unoptimized
                       />
                     ) : (
                       <div

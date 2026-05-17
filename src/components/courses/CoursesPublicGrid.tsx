@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen, PlayCircle, ArrowRight } from "lucide-react";
 
 type PublicCourse = {
@@ -66,10 +67,11 @@ export default function CoursesPublicGrid({
                 {/* Thumbnail */}
                 <div className="relative aspect-video bg-[#1a1a1a] overflow-hidden">
                   {course.thumbnail ? (
-                    <img
+                    <Image
                       src={course.thumbnail}
                       alt={course.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div

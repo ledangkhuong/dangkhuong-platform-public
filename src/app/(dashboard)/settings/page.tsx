@@ -2,6 +2,7 @@
 
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, use } from "react";
+import NextImage from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { updateProfile, deleteAccount } from "@/lib/actions/auth";
 import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff, AlertTriangle, MessageCircle, Link2, Unlink } from "lucide-react";
@@ -150,7 +151,7 @@ function ProfileTab({
         <h3 className="font-semibold text-white mb-4">Ảnh đại diện</h3>
         <div className="flex items-center gap-5">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover shrink-0" />
+            <NextImage src={avatarUrl} alt="Avatar" width={80} height={80} className="w-20 h-20 rounded-full object-cover shrink-0" unoptimized />
           ) : (
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
@@ -160,10 +161,10 @@ function ProfileTab({
             </div>
           )}
           <div>
-            <label className="px-3 py-1.5 rounded-lg text-sm font-medium mb-2 inline-flex cursor-pointer hover:bg-[#333] transition-colors"
+            <label htmlFor="avatarUpload" className="px-3 py-1.5 rounded-lg text-sm font-medium mb-2 inline-flex cursor-pointer hover:bg-[#333] transition-colors"
               style={{ background: "#2a2a2a", color: "#9ca3af" }}>
               {uploadingAvatar ? "Đang tải..." : "Tải ảnh lên"}
-              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+              <input id="avatarUpload" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
             </label>
             <p className="text-xs text-gray-500">JPG, PNG — tự crop vuông &amp; nén dưới 0.5MB</p>
             {avatarError && <p className="text-xs text-red-400 mt-1">{avatarError}</p>}
@@ -177,8 +178,9 @@ function ProfileTab({
         <form action={updateProfile} className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Họ và tên</label>
+              <label htmlFor="settingsFullName" className="block text-xs text-gray-400 mb-1.5 font-medium">Họ và tên</label>
               <input
+                id="settingsFullName"
                 name="full_name"
                 type="text"
                 defaultValue={profile?.full_name ?? ""}
@@ -187,8 +189,9 @@ function ProfileTab({
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Email</label>
+              <label htmlFor="settingsEmail" className="block text-xs text-gray-400 mb-1.5 font-medium">Email</label>
               <input
+                id="settingsEmail"
                 type="email"
                 value={profile?.email ?? ""}
                 readOnly
@@ -196,8 +199,9 @@ function ProfileTab({
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Số điện thoại</label>
+              <label htmlFor="settingsPhone" className="block text-xs text-gray-400 mb-1.5 font-medium">Số điện thoại</label>
               <input
+                id="settingsPhone"
                 name="phone"
                 type="tel"
                 defaultValue={profile?.phone ?? ""}
@@ -207,8 +211,9 @@ function ProfileTab({
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Bio ngắn</label>
+            <label htmlFor="settingsBio" className="block text-xs text-gray-400 mb-1.5 font-medium">Bio ngắn</label>
             <textarea
+              id="settingsBio"
               name="bio"
               defaultValue={profile?.bio ?? ""}
               rows={3}
@@ -477,9 +482,10 @@ function SecurityTab() {
 
         <form onSubmit={handlePasswordChange} className="space-y-3 max-w-md">
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
+            <label htmlFor="currentPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
             <div className="relative">
               <input
+                id="currentPassword"
                 type={showOld ? "text" : "password"}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -497,9 +503,10 @@ function SecurityTab() {
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
+            <label htmlFor="newPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
             <div className="relative">
               <input
+                id="newPassword"
                 type={showNew ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -517,9 +524,10 @@ function SecurityTab() {
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Xác nhận mật khẩu mới</label>
+            <label htmlFor="confirmPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Xác nhận mật khẩu mới</label>
             <div className="relative">
               <input
+                id="confirmPassword"
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

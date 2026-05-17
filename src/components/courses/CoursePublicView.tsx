@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   PlayCircle,
   Lock,
@@ -201,10 +202,11 @@ export default function CoursePublicView({
         {/* Background */}
         {product.thumbnail && !activeVideo && (
           <div className="absolute inset-0 z-0">
-            <img
+            <Image
               src={product.thumbnail}
               alt=""
-              className="w-full h-full object-cover opacity-15"
+              fill
+              className="object-cover opacity-15"
             />
             <div
               className="absolute inset-0"
@@ -223,9 +225,11 @@ export default function CoursePublicView({
               {/* Thumbnail (mobile only, when no video is playing) */}
               {product.thumbnail && !activeVideo && (
                 <div className="lg:hidden mb-6 rounded-xl overflow-hidden border border-[#2a2a2a]">
-                  <img
+                  <Image
                     src={product.thumbnail}
                     alt={product.title}
+                    width={800}
+                    height={450}
                     className="w-full aspect-video object-cover"
                   />
                 </div>
@@ -279,9 +283,11 @@ export default function CoursePublicView({
               {/* Thumbnail desktop */}
               {product.thumbnail && (
                 <div className="hidden lg:block mb-4 rounded-lg overflow-hidden border border-[#2a2a2a]">
-                  <img
+                  <Image
                     src={product.thumbnail}
                     alt={product.title}
+                    width={400}
+                    height={225}
                     className="w-full aspect-video object-cover"
                   />
                 </div>

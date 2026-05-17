@@ -68,8 +68,9 @@ export default function ForgotPasswordForm() {
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
         <input
+          id="email"
           name="email"
           type="email"
           placeholder="ban@email.com"

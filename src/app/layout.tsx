@@ -60,12 +60,19 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className="antialiased min-h-screen" style={{ background: "#0a0a0a", color: "#f5f5f5" }} suppressHydrationWarning>
+        {/* Skip to main content — accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#D4A843] focus:text-black focus:text-sm focus:font-semibold focus:outline-none"
+        >
+          Chuyển đến nội dung chính
+        </a>
         <Suspense fallback={null}>
           <PageTracker />
           <FacebookPixel />
           <AffiliateTracker />
         </Suspense>
-        {children}
+        <main id="main-content">{children}</main>
         <CookieConsent />
       </body>
     </html>
