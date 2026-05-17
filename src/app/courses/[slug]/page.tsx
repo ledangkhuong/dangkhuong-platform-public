@@ -16,18 +16,8 @@ import VideoPlayer from "@/components/courses/VideoPlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-  const { createAdminClient } = await import("@/lib/supabase/server");
-  const supabase = await createAdminClient();
-  const { data: products } = await supabase
-    .from("products")
-    .select("slug")
-    .eq("status", "published");
-
-  return (products || []).map((p) => ({ slug: p.slug }));
-}
+// force-dynamic: this page is personalized (auth state, enrollment, progress)
+export const dynamic = "force-dynamic";
 
 /* ─── Types ─── */
 
