@@ -126,7 +126,7 @@ export default function RegisterForm() {
       </div>
 
       {/* Turnstile CAPTCHA */}
-      <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} />
+      <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} appearance="interaction-only" />
 
       <p className="text-xs text-gray-500 pt-1">
         Bằng cách đăng ký, bạn đồng ý với{" "}

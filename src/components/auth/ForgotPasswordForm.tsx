@@ -79,7 +79,7 @@ export default function ForgotPasswordForm() {
       </div>
 
       {/* Turnstile CAPTCHA */}
-      <TurnstileWidget onVerify={handleVerify} />
+      <TurnstileWidget onVerify={handleVerify} appearance="interaction-only" />
 
       <button
         type="submit"

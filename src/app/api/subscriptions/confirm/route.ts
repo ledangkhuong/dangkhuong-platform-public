@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { calculateExpiryDate } from "@/lib/subscription";
 import type { BillingPeriod } from "@/lib/subscription";
@@ -12,10 +12,44 @@ import type { BillingPeriod } from "@/lib/subscription";
  * when an order with payment_method "subscription" is confirmed,
  * or by admin manually confirming the order.
  *
+ * Security: requires either a valid internal webhook secret OR admin role.
+ *
  * Body: { order_id: string }
  */
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth guard: only internal webhooks or admins can call this ──
+    const internalSecret = process.env.INTERNAL_WEBHOOK_SECRET;
+    const authHeader = req.headers.get("authorization") || "";
+    const isInternalCall =
+      internalSecret &&
+      authHeader === `Bearer ${internalSecret}`;
+
+    if (!isInternalCall) {
+      // Fall back to admin auth check
+      const supabaseAuth = await createClient();
+      const {
+        data: { user },
+      } = await supabaseAuth.auth.getUser();
+      if (!user) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+      const { data: profile } = await supabaseAuth
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (!profile || !["admin", "manager"].includes(profile.role)) {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
+    }
+
     let body: { order_id?: string };
     try {
       body = await req.json();

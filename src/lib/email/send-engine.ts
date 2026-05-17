@@ -33,7 +33,7 @@ const COMPANY_NAME = "Lê Đăng Khương Academy";
 
 function getAppUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong-platform.vercel.app"
+    process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com"
   );
 }
 

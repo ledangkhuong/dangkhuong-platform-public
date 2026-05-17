@@ -9,11 +9,16 @@ const AUTH_ROUTES = ["/login", "/register"];
 // CSRF: Webhook routes exempt from origin check (called by external services)
 const CSRF_EXEMPT_ROUTES = [
   "/api/sepay/webhook",
+  "/api/payos/webhook",
+  "/api/payos/success",
+  "/api/payos/cancel",
+  "/api/zalo/webhook",
   "/api/email/webhook/ses",
   "/api/email/track/open",
   "/api/email/track/click",
   "/api/email/unsubscribe",
   "/api/email/automations/process",
+  "/api/subscriptions/confirm",
 ];
 
 const ALLOWED_ORIGINS = [

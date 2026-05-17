@@ -182,9 +182,13 @@ export async function POST(req: NextRequest) {
     // 4b. Handle subscription orders
     if (order.payment_method === "subscription" || (updatedOrder as Record<string, unknown>).payment_method === "subscription") {
       try {
+        const confirmHeaders: Record<string, string> = { "Content-Type": "application/json" };
+        if (process.env.INTERNAL_WEBHOOK_SECRET) {
+          confirmHeaders["Authorization"] = `Bearer ${process.env.INTERNAL_WEBHOOK_SECRET}`;
+        }
         const confirmRes = await fetch(new URL("/api/subscriptions/confirm", req.url).toString(), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: confirmHeaders,
           body: JSON.stringify({ order_id: order.id }),
         });
         if (!confirmRes.ok) {

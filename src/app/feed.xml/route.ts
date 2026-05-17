@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
+import { getBaseUrl } from "@/lib/site-config";
 
-const BASE = "https://dangkhuong.com";
+const BASE = getBaseUrl();
 
 export async function GET() {
   const admin = await createAdminClient();

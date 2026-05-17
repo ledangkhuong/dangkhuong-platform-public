@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import LoginForm from "@/components/auth/LoginForm";
 
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Đăng nhập — Lê Đăng Khương Academy",
+  description: "Đăng nhập vào tài khoản Lê Đăng Khương Academy để học các khoá học Video AI, xây kênh triệu view.",
+  robots: { index: false, follow: false },
+};
 
 export default function LoginPage() {
   return (

@@ -54,3 +54,14 @@ export const siteConfig = {
 } as const;
 
 export type SiteConfig = typeof siteConfig;
+
+/**
+ * Returns the canonical base URL for the site.
+ * Uses NEXT_PUBLIC_APP_URL env var, falling back to the configured domain.
+ * Never returns a trailing slash.
+ */
+export function getBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (envUrl) return envUrl.replace(/\/$/, "");
+  return `https://${siteConfig.domain}`;
+}

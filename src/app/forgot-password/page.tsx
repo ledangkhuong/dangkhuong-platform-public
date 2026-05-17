@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Quên mật khẩu — Lê Đăng Khương Academy",
+  description: "Khôi phục mật khẩu tài khoản Lê Đăng Khương Academy.",
+  robots: { index: false, follow: false },
+};
 
 export default function ForgotPasswordPage() {
   return (

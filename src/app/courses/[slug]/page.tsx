@@ -64,6 +64,9 @@ export async function generateMetadata({
   return {
     title: `${product.title} — Lê Đăng Khương Academy`,
     description: product.description ?? undefined,
+    alternates: {
+      canonical: `/courses/${slug}`,
+    },
     openGraph: {
       title: `${product.title} — Lê Đăng Khương Academy`,
       description: product.description ?? undefined,
@@ -123,10 +126,50 @@ export default async function CourseDetailPage({
     ),
   }));
 
+  // ── JSON-LD Structured Data (schema.org/Course) ──
+  const totalLessons = chapters.reduce((sum, ch) => sum + ch.lessons.length, 0);
+  const totalDuration = chapters.reduce(
+    (sum, ch) => sum + ch.lessons.reduce((s, l) => s + (l.duration_sec || 0), 0),
+    0
+  );
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: product.title,
+    description: product.description || undefined,
+    provider: {
+      "@type": "Organization",
+      name: "Lê Đăng Khương Academy",
+      url: "https://dangkhuong.com",
+    },
+    url: `https://dangkhuong.com/courses/${product.slug}`,
+    image: product.thumbnail || undefined,
+    numberOfCredits: totalLessons,
+    timeRequired: totalDuration > 0 ? `PT${Math.ceil(totalDuration / 60)}M` : undefined,
+    inLanguage: "vi",
+    offers: {
+      "@type": "Offer",
+      price: product.sale_price ?? product.price ?? 0,
+      priceCurrency: "VND",
+      availability: "https://schema.org/InStock",
+      url: `https://dangkhuong.com/courses/${product.slug}`,
+    },
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: "online",
+      courseWorkload: totalDuration > 0 ? `PT${Math.ceil(totalDuration / 60)}M` : undefined,
+    },
+  };
+
   /* ═══ PUBLIC / UNAUTHENTICATED ═══ */
   if (!user) {
     return (
-      <CoursePublicView
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <CoursePublicView
         product={{
           id: product.id,
           slug: product.slug,
@@ -151,6 +194,7 @@ export default async function CourseDetailPage({
         }))}
         isAuthenticated={false}
       />
+      </>
     );
   }
 
@@ -214,7 +258,7 @@ export default async function CourseDetailPage({
   /* ═══ AUTHENTICATED + HAS ACCESS → FULL LEARNING EXPERIENCE ═══ */
 
   const allLessons = chapters.flatMap((ch) => ch.lessons);
-  const totalLessons = allLessons.length;
+  const totalLessonsAuth = allLessons.length;
 
   // Fetch user progress (admin client to bypass RLS)
   const { data: progressRows } = await adminDb
@@ -230,8 +274,8 @@ export default async function CourseDetailPage({
     (p) => p.completed
   ).length;
   const progressPct =
-    totalLessons > 0
-      ? Math.round((completedCount / totalLessons) * 100)
+    totalLessonsAuth > 0
+      ? Math.round((completedCount / totalLessonsAuth) * 100)
       : 0;
 
   // Determine current lesson
@@ -255,7 +299,7 @@ export default async function CourseDetailPage({
           Nội dung khoá học
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          {chapters.length} chương &bull; {totalLessons} bài học
+          {chapters.length} chương &bull; {totalLessonsAuth} bài học
         </p>
       </div>
 
@@ -360,7 +404,7 @@ export default async function CourseDetailPage({
         );
       })}
 
-      {totalLessons > 0 && (
+      {totalLessonsAuth > 0 && (
         <div className="p-4">
           {progressPct === 100 ? (
             <a
@@ -497,7 +541,7 @@ export default async function CourseDetailPage({
           )}
 
           {/* Progress card */}
-          {totalLessons > 0 && (
+          {totalLessonsAuth > 0 && (
             <div className="card-dark p-4 mb-4 sm:mb-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-white">
@@ -514,7 +558,7 @@ export default async function CourseDetailPage({
                 />
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Hoàn thành {completedCount}/{totalLessons} bài học
+                Hoàn thành {completedCount}/{totalLessonsAuth} bài học
               </p>
             </div>
           )}
@@ -545,7 +589,7 @@ export default async function CourseDetailPage({
       <CourseMobileLayout
         mainContent={mainContent}
         sidebarContent={sidebarContent}
-        lessonCount={totalLessons}
+        lessonCount={totalLessonsAuth}
         chapterCount={chapters.length}
       />
     </div>

@@ -93,7 +93,7 @@ export default function LoginForm() {
         </Link>
       </div>
 
-      <TurnstileWidget onVerify={setTurnstileToken} />
+      <TurnstileWidget onVerify={setTurnstileToken} appearance="interaction-only" />
 
       <button
         type="submit"

@@ -48,7 +48,7 @@ function baseTemplate(content: string) {
       ${content}
     </div>
     <div class="footer">
-      © 2025 Lê Đăng Khương Academy · <a href="https://dangkhuong.com" style="color:#4b5563;">dangkhuong.com</a><br/>
+      © ${new Date().getFullYear()} Lê Đăng Khương Academy · <a href="https://dangkhuong.com" style="color:#4b5563;">dangkhuong.com</a><br/>
       Bạn nhận email này vì đã đăng ký tại dangkhuong.com<br/>
       <a href="https://dangkhuong.com/unsubscribe" style="color:#4b5563;">Huỷ đăng ký</a>
     </div>

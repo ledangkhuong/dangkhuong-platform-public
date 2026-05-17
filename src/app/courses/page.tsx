@@ -8,6 +8,9 @@ export const metadata = {
   title: "Khoá học — Lê Đăng Khương Academy",
   description:
     "Khoá học Video AI, Xây kênh triệu view, Sản phẩm số & AI Agent từ Lê Đăng Khương.",
+  alternates: {
+    canonical: "/courses",
+  },
 };
 
 export default async function CoursesPage() {

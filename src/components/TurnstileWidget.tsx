@@ -9,6 +9,9 @@ interface TurnstileWidgetProps {
   className?: string;
   /** Timeout in ms before showing load error. Default 10000ms */
   timeout?: number;
+  /** Widget appearance: "always" shows the widget, "interaction-only" shows only when
+   *  Cloudflare needs user interaction, "execute" is fully invisible. Default: "interaction-only" */
+  appearance?: "always" | "interaction-only" | "execute";
 }
 
 declare global {
@@ -22,7 +25,8 @@ declare global {
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
           theme?: "dark" | "light" | "auto";
-          size?: "normal" | "compact";
+          size?: "normal" | "compact" | "invisible";
+          appearance?: "always" | "interaction-only" | "execute";
         }
       ) => string;
       reset: (widgetId: string) => void;
@@ -38,6 +42,7 @@ export default function TurnstileWidget({
   onError,
   className = "",
   timeout = 10000,
+  appearance = "interaction-only",
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -80,7 +85,8 @@ export default function TurnstileWidget({
       "expired-callback": onExpire,
       "error-callback": handleError,
       theme: "dark",
-      size: "normal",
+      size: appearance === "execute" ? "invisible" : "normal",
+      appearance,
     });
   }, [siteKey, handleVerify, onExpire, handleError]);
 
