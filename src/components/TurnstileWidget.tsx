@@ -7,7 +7,7 @@ interface TurnstileWidgetProps {
   onExpire?: () => void;
   onError?: () => void;
   className?: string;
-  /** Timeout in ms before auto-bypassing. Default 8000ms */
+  /** Timeout in ms before auto-bypassing. Default 3000ms */
   timeout?: number;
 }
 
@@ -37,7 +37,7 @@ export default function TurnstileWidget({
   onExpire,
   onError,
   className = "",
-  timeout = 8000,
+  timeout = 3000,
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
