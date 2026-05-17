@@ -41,6 +41,7 @@ import {
   FolderOutput,
   Check,
   Loader2,
+  Clock,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ interface Lesson {
   content: string | null;
   sort_order: number;
   is_free: boolean;
+  unlock_after_days: number;
   created_at: string;
 }
 
@@ -75,6 +77,7 @@ interface LessonFormData {
   duration_sec: number;
   content: string;
   is_free: boolean;
+  unlock_after_days: number;
 }
 
 interface CourseOption {
@@ -89,6 +92,7 @@ const defaultLessonForm: LessonFormData = {
   duration_sec: 0,
   content: "",
   is_free: false,
+  unlock_after_days: 0,
 };
 
 // ─── Sortable Chapter ─────────────────────────────────────────────────────────
@@ -357,6 +361,7 @@ export default function LessonsPage() {
       duration_sec: lessonForm.duration_sec || 0,
       content: lessonForm.content || null,
       is_free: lessonForm.is_free,
+      unlock_after_days: lessonForm.unlock_after_days || 0,
       sort_order: maxOrder + 1,
     });
 
@@ -378,6 +383,7 @@ export default function LessonsPage() {
         duration_sec: lessonForm.duration_sec || 0,
         content: lessonForm.content || null,
         is_free: lessonForm.is_free,
+        unlock_after_days: lessonForm.unlock_after_days || 0,
       })
       .eq("id", lessonId);
 
@@ -410,6 +416,7 @@ export default function LessonsPage() {
       duration_sec: lesson.duration_sec,
       content: lesson.content || "",
       is_free: lesson.is_free,
+      unlock_after_days: lesson.unlock_after_days || 0,
     });
   };
 
@@ -1170,6 +1177,12 @@ function SortableLessonRow({
                 Xem miễn phí
               </span>
             )}
+            {lesson.unlock_after_days > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs text-blue-400">
+                <Clock size={12} />
+                Mở sau {lesson.unlock_after_days} ngày
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -1333,6 +1346,28 @@ function LessonFormComponent({
           >
             Cho phép xem miễn phí (preview)
           </label>
+        </div>
+
+        <div>
+          <label className="block text-gray-400 text-xs mb-1">
+            Mở khoá sau (ngày)
+          </label>
+          <input
+            type="number"
+            value={lessonForm.unlock_after_days}
+            onChange={(e) =>
+              setLessonForm({
+                ...lessonForm,
+                unlock_after_days: parseInt(e.target.value) || 0,
+              })
+            }
+            className="input-dark w-full px-3 py-2 rounded-lg text-sm"
+            min={0}
+            placeholder="0"
+          />
+          <p className="text-[10px] text-gray-600 mt-1">
+            0 = mở ngay khi ghi danh. Ví dụ: 7 = mở sau 7 ngày kể từ khi học viên ghi danh.
+          </p>
         </div>
       </div>
 

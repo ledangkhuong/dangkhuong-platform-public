@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PasswordInput from "@/components/auth/PasswordInput";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -101,6 +102,8 @@ export default function LoginForm() {
       >
         {loading ? "Đang đăng nhập..." : "Đăng nhập"}
       </button>
+
+      <SocialLoginButtons />
     </form>
   );
 }

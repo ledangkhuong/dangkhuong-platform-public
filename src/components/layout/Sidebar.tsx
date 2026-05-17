@@ -7,12 +7,13 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/actions/auth";
 import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
+import { siteConfig } from "@/lib/site-config";
 import {
   LayoutDashboard, BookOpen, Users, MessageSquare,
   FileText, Mail, BarChart3, Settings, LogOut,
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
-  FolderOpen, TrendingUp, Target, UserCheck,
+  FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
 } from "lucide-react";
 
 const mainNav = [
@@ -32,6 +33,8 @@ const adminNav = [
   { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager"] },
   { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager"] },
   { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
+  { href: "/admin/coupons", icon: Tag, label: "Mã giảm giá", roles: ["admin", "manager"] },
+  { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager"] },
   { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
   { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support"] },
   { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
@@ -124,14 +127,14 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {!isCompact && (
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <Image
-              src="/images/about/portrait.jpg"
-              alt="Lê Đăng Khương"
+              src={siteConfig.owner.avatar}
+              alt={siteConfig.owner.name}
               width={32}
               height={32}
               className="w-8 h-8 rounded-lg object-cover"
             />
             <div>
-              <div className="text-sm font-bold text-white leading-tight">Lê Đăng Khương</div>
+              <div className="text-sm font-bold text-white leading-tight">{siteConfig.owner.name}</div>
               <div className="text-[10px] text-gray-500 leading-tight">Academy</div>
             </div>
           </Link>
@@ -139,8 +142,8 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {isCompact && (
           <Link href="/dashboard">
             <Image
-              src="/images/about/portrait.jpg"
-              alt="Lê Đăng Khương"
+              src={siteConfig.owner.avatar}
+              alt={siteConfig.owner.name}
               width={32}
               height={32}
               className="w-8 h-8 rounded-lg object-cover mx-auto"

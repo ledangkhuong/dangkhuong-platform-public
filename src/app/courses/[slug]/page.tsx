@@ -39,6 +39,7 @@ type Lesson = {
   content: string | null;
   sort_order: number;
   is_free: boolean;
+  unlock_after_days?: number;
 };
 
 type Chapter = {
@@ -117,7 +118,7 @@ export default async function CourseDetailPage({
     .select(
       `
       id, title, sort_order,
-      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free)
+      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days)
     `
     )
     .eq("product_id", product.id)
@@ -156,6 +157,7 @@ export default async function CourseDetailPage({
             duration_sec: l.duration_sec,
             is_free: l.is_free,
             sort_order: l.sort_order,
+            unlock_after_days: l.unlock_after_days ?? undefined,
           })),
         }))}
         isAuthenticated={false}
@@ -168,7 +170,7 @@ export default async function CourseDetailPage({
   // Check enrollment
   const { data: enrollment } = await supabase
     .from("enrollments")
-    .select("id")
+    .select("id, created_at")
     .eq("user_id", user.id)
     .eq("product_id", product.id)
     .maybeSingle();
@@ -182,6 +184,7 @@ export default async function CourseDetailPage({
 
   const hasAccess =
     profile?.role === "admin" || !!enrollment || product.price === 0;
+  const enrolledAt = enrollment?.created_at ?? undefined;
 
   /* ═══ AUTHENTICATED BUT NOT ENROLLED (paid course) ═══ */
   if (!hasAccess) {
@@ -209,10 +212,12 @@ export default async function CourseDetailPage({
               duration_sec: l.duration_sec,
               is_free: l.is_free,
               sort_order: l.sort_order,
+              unlock_after_days: l.unlock_after_days ?? undefined,
             })),
           }))}
           isAuthenticated={true}
           productId={product.id}
+          enrolledAt={enrolledAt}
         />
       </div>
     );

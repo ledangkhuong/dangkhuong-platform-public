@@ -24,6 +24,7 @@ interface Lesson {
   duration_sec: number;
   is_free: boolean;
   sort_order: number;
+  unlock_after_days?: number;
 }
 
 interface Chapter {
@@ -48,6 +49,7 @@ interface CoursePublicViewProps {
   chapters: Chapter[];
   isAuthenticated: boolean;
   productId?: string;
+  enrolledAt?: string; // ISO date when user enrolled
 }
 
 /* ─── Helpers ─── */
@@ -71,12 +73,34 @@ function formatTotalDuration(sec: number) {
   return `${m} phút`;
 }
 
+function isDripLocked(lesson: Lesson, enrolledAt?: string): boolean {
+  if (!enrolledAt || !lesson.unlock_after_days || lesson.unlock_after_days === 0)
+    return false;
+  const enrollDate = new Date(enrolledAt);
+  const unlockDate = new Date(
+    enrollDate.getTime() + lesson.unlock_after_days * 24 * 60 * 60 * 1000
+  );
+  return new Date() < unlockDate;
+}
+
+function dripDaysLeft(lesson: Lesson, enrolledAt?: string): number {
+  if (!enrolledAt || !lesson.unlock_after_days || lesson.unlock_after_days === 0)
+    return 0;
+  const enrollDate = new Date(enrolledAt);
+  const unlockDate = new Date(
+    enrollDate.getTime() + lesson.unlock_after_days * 24 * 60 * 60 * 1000
+  );
+  const diff = unlockDate.getTime() - new Date().getTime();
+  return Math.max(0, Math.ceil(diff / (24 * 60 * 60 * 1000)));
+}
+
 /* ─── Component ─── */
 
 export default function CoursePublicView({
   product,
   chapters,
   isAuthenticated,
+  enrolledAt,
 }: CoursePublicViewProps) {
   const [activeVideo, setActiveVideo] = useState<{
     youtubeId: string;
@@ -418,27 +442,44 @@ export default function CoursePublicView({
                       style={{ borderTop: "1px solid #1f1f1f" }}
                     >
                       {chapterLessons.map((lesson) => {
+                        const dripLocked = isDripLocked(lesson, enrolledAt);
                         const isFreeLesson =
-                          lesson.is_free && !!lesson.youtube_id;
+                          lesson.is_free && !!lesson.youtube_id && !dripLocked;
                         const isPlaying =
                           activeVideo?.youtubeId === lesson.youtube_id;
+                        const remainingDays = dripLocked
+                          ? dripDaysLeft(lesson, enrolledAt)
+                          : 0;
 
                         return (
                           <div
                             key={lesson.id}
                             onClick={() =>
-                              isFreeLesson
-                                ? handleFreeLesson(lesson)
-                                : handleProLesson()
+                              dripLocked
+                                ? undefined
+                                : isFreeLesson
+                                  ? handleFreeLesson(lesson)
+                                  : handleProLesson()
                             }
-                            className={`flex items-center gap-3 py-2.5 px-2 rounded-lg transition-colors cursor-pointer ${
-                              isFreeLesson
-                                ? "hover:bg-white/[0.04]"
-                                : "hover:bg-white/[0.02]"
+                            className={`flex items-center gap-3 py-2.5 px-2 rounded-lg transition-colors ${
+                              dripLocked
+                                ? "cursor-not-allowed opacity-60"
+                                : "cursor-pointer"
+                            } ${
+                              dripLocked
+                                ? ""
+                                : isFreeLesson
+                                  ? "hover:bg-white/[0.04]"
+                                  : "hover:bg-white/[0.02]"
                             } ${isPlaying ? "bg-[#D4A843]/10" : ""}`}
                           >
                             {/* Icon */}
-                            {lesson.is_free ? (
+                            {dripLocked ? (
+                              <Clock
+                                size={16}
+                                className="text-gray-500 shrink-0"
+                              />
+                            ) : lesson.is_free ? (
                               <PlayCircle
                                 size={16}
                                 className={
@@ -457,16 +498,30 @@ export default function CoursePublicView({
                             {/* Title */}
                             <span
                               className={`text-sm flex-1 ${
-                                lesson.is_free
-                                  ? "text-gray-200"
-                                  : "text-gray-500"
+                                dripLocked
+                                  ? "text-gray-500"
+                                  : lesson.is_free
+                                    ? "text-gray-200"
+                                    : "text-gray-500"
                               } ${isPlaying ? "text-[#D4A843] font-medium" : ""}`}
                             >
                               {lesson.title}
                             </span>
 
-                            {/* Free / Pro badge */}
-                            {lesson.is_free ? (
+                            {/* Drip badge */}
+                            {dripLocked ? (
+                              <span
+                                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                style={{
+                                  background: "rgba(107,114,128,0.12)",
+                                  color: "#9ca3af",
+                                  border: "1px solid rgba(107,114,128,0.25)",
+                                }}
+                              >
+                                Mở sau {remainingDays} ngày
+                              </span>
+                            ) : /* Free / Pro badge */
+                            lesson.is_free ? (
                               <span
                                 className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                                 style={{

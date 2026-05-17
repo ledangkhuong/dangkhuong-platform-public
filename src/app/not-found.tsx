@@ -1,4 +1,5 @@
 /* Plain <a> tags used instead of next/link to avoid prerender serialization issues */
+import { siteConfig } from "@/lib/site-config";
 
 export default function NotFound() {
   return (
@@ -154,7 +155,7 @@ export default function NotFound() {
                 color: "#4b5563",
               }}
             >
-              © 2026 Lê Đăng Khương Academy
+              {siteConfig.footer.copyright}
             </p>
           </div>
         </div>

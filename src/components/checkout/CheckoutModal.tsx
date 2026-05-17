@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw, CreditCard } from "lucide-react";
+import { X, Copy, Check, Clock, CheckCircle, AlertCircle, RefreshCw, CreditCard, Tag, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { event as fbEvent } from "@/lib/fbpixel";
 
 interface Product {
   id: string;
@@ -29,7 +30,7 @@ interface CheckoutModalProps {
 type PaymentStatus = "idle" | "pending" | "success" | "error";
 
 export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProps) {
-  const [step, setStep] = useState<"creating" | "payment" | "success">("creating");
+  const [step, setStep] = useState<"coupon" | "creating" | "payment" | "success">("coupon");
   const [order, setOrder] = useState<Order | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
   const [copied, setCopied] = useState<string>("");
@@ -41,6 +42,18 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const autoCreatedRef = useRef(false);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [couponApplied, setCouponApplied] = useState<{
+    code: string;
+    discount_type: string;
+    discount_value: number;
+    discount_amount: number;
+    final_amount: number;
+  } | null>(null);
 
   // Auto-fetch user info on mount
   useEffect(() => {
@@ -69,6 +82,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
       if (data.status === "paid") {
         setPaymentStatus("success");
         setStep("success");
+        fbEvent("Purchase", { value: order.amount, currency: "VND" });
         onSuccess();
       }
     } catch {
@@ -108,6 +122,45 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
   const formatPrice = (price: number) =>
     price.toLocaleString("vi-VN") + "₫";
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError("");
+    setCouponApplied(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          order_amount: product.price,
+        }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCouponApplied({
+          code: couponCode.trim().toUpperCase(),
+          discount_type: data.discount_type,
+          discount_value: data.discount_value,
+          discount_amount: data.discount_amount,
+          final_amount: data.final_amount,
+        });
+      } else {
+        setCouponError(data.error || "Mã giảm giá không hợp lệ");
+      }
+    } catch {
+      setCouponError("Lỗi kết nối. Vui lòng thử lại.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(null);
+    setCouponCode("");
+    setCouponError("");
+  };
+
   const handleCreateOrder = useCallback(async () => {
     if (loading) return;
     setLoading(true);
@@ -121,6 +174,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
           customer_name: fullName || "Khách hàng",
           customer_email: email,
           customer_phone: phone,
+          ...(couponApplied ? { coupon_code: couponApplied.code } : {}),
         }),
       });
       const data = await res.json();
@@ -145,18 +199,18 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
     } finally {
       setLoading(false);
     }
-  }, [fullName, email, phone, product.id, loading]);
+  }, [fullName, email, phone, product.id, loading, couponApplied]);
 
-  // Auto-create order once user data is loaded
+  // Auto-create order when entering the "creating" step
   useEffect(() => {
-    if (fullName && email && !autoCreatedRef.current) {
+    if (step === "creating" && fullName && email && !autoCreatedRef.current) {
       autoCreatedRef.current = true;
       handleCreateOrder();
     }
-  }, [fullName, email, handleCreateOrder]);
+  }, [step, fullName, email, handleCreateOrder]);
 
   const handleReset = useCallback(() => {
-    setStep("creating");
+    setStep("coupon");
     setOrder(null);
     setPaymentStatus("idle");
     setCountdown(900);
@@ -164,6 +218,10 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
     setErrorMsg("");
     autoCreatedRef.current = false;
   }, []);
+
+  const handleProceedToPayment = () => {
+    setStep("creating");
+  };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -193,10 +251,10 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
           </button>
         </div>
 
-        {/* Step: Creating order */}
-        {step === "creating" && (
+        {/* Step: Coupon — product info + coupon input + proceed button */}
+        {step === "coupon" && (
           <div className="p-5">
-            <div className="p-4 rounded-xl mb-5" style={{ background: "#222", border: "1px solid #333" }}>
+            <div className="p-4 rounded-xl mb-4" style={{ background: "#222", border: "1px solid #333" }}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="font-semibold text-white text-sm mb-1">{product.name}</div>
@@ -205,11 +263,109 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                   )}
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-xl font-bold text-[#D4A843]">{formatPrice(product.price)}</div>
+                  {couponApplied ? (
+                    <>
+                      <div className="text-sm text-gray-500 line-through">{formatPrice(product.price)}</div>
+                      <div className="text-xl font-bold text-[#22c55e]">{formatPrice(couponApplied.final_amount)}</div>
+                    </>
+                  ) : (
+                    <div className="text-xl font-bold text-[#D4A843]">{formatPrice(product.price)}</div>
+                  )}
                 </div>
               </div>
             </div>
 
+            {/* Coupon discount summary */}
+            {couponApplied && (
+              <div
+                className="flex items-center justify-between p-3 rounded-lg mb-4"
+                style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}
+              >
+                <span className="text-xs text-gray-400">Giảm giá</span>
+                <span className="text-sm font-semibold text-[#22c55e]">
+                  -{formatPrice(couponApplied.discount_amount)}
+                </span>
+              </div>
+            )}
+
+            {/* Coupon input */}
+            <div className="mb-5">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Tag size={13} className="text-gray-500" />
+                <span className="text-xs font-medium text-gray-400">Mã giảm giá</span>
+              </div>
+
+              {couponApplied ? (
+                <div
+                  className="flex items-center justify-between p-3 rounded-lg"
+                  style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Check size={14} className="text-[#22c55e]" />
+                    <span className="text-sm font-mono font-bold text-[#22c55e]">{couponApplied.code}</span>
+                    <span className="text-xs text-gray-400">
+                      ({couponApplied.discount_type === "percent"
+                        ? `-${couponApplied.discount_value}%`
+                        : `-${formatPrice(couponApplied.discount_amount)}`})
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleRemoveCoupon}
+                    className="text-gray-500 hover:text-red-400 transition-colors p-1"
+                    title="Bỏ mã giảm giá"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
+                    placeholder="Nhập mã giảm giá"
+                    className="flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-gray-600 outline-none transition-colors font-mono"
+                    style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApplyCoupon(); } }}
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponCode.trim()}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-50"
+                    style={{
+                      background: "linear-gradient(135deg, #D4A843, #b8922e)",
+                    }}
+                  >
+                    {couponLoading ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      "Áp dụng"
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {couponError && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <AlertCircle size={12} className="text-red-400 shrink-0" />
+                  <span className="text-xs text-red-400">{couponError}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Proceed button */}
+            <button
+              onClick={handleProceedToPayment}
+              className="btn-green w-full justify-center text-sm py-3 font-semibold"
+            >
+              Tiếp tục thanh toán {couponApplied ? formatPrice(couponApplied.final_amount) : formatPrice(product.price)}
+            </button>
+          </div>
+        )}
+
+        {/* Step: Creating order */}
+        {step === "creating" && (
+          <div className="p-5">
             {!errorMsg && (
               <div className="flex items-center justify-center py-6">
                 <span className="flex items-center gap-2 text-sm text-gray-400">

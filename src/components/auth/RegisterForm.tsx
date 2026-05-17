@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/auth/PasswordInput";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -141,6 +142,8 @@ export default function RegisterForm() {
       >
         {loading ? "Đang xử lý..." : "Tạo tài khoản"}
       </button>
+
+      <SocialLoginButtons />
     </form>
   );
 }
