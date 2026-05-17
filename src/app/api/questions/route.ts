@@ -34,8 +34,10 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[Questions GET] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải câu hỏi. Vui lòng thử lại." }, { status: 500 });
+  }
 
   // Transform to Q&A format
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,8 +105,10 @@ export async function POST(req: NextRequest) {
     .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url)`)
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[Questions POST] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi gửi câu hỏi. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ question: data });
 }
@@ -152,8 +156,10 @@ export async function PATCH(req: NextRequest) {
     .select(`*, profiles!comments_user_id_fkey(full_name, avatar_url)`)
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[Questions PATCH] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi trả lời câu hỏi. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ question: { id, reply: data } });
 }

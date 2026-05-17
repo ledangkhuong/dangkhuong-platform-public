@@ -11,6 +11,7 @@ export type AuditAction =
   | "enrollment.create"
   | "enrollment.delete"
   | "email.campaign_send"
+  | "payment.received"
   | "account.delete";
 
 interface AuditLogEntry {

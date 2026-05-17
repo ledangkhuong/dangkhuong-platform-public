@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
     .upsert({ user_id: user.id, lesson_id, product_id, completed, watch_sec, note, updated_at: new Date().toISOString() })
     .select().single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[Progress POST] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật tiến độ. Vui lòng thử lại." }, { status: 500 });
+  }
 
   // Thêm XP khi hoàn thành bài học lần đầu
   if (completed) {
@@ -48,6 +51,9 @@ export async function GET(req: NextRequest) {
   if (product_id) query.eq("product_id", product_id);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[Progress GET] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải tiến độ. Vui lòng thử lại." }, { status: 500 });
+  }
   return NextResponse.json({ progress: data });
 }

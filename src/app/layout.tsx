@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import PageTracker from "@/components/analytics/PageTracker";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
+import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -63,6 +64,7 @@ export default function RootLayout({
           <AffiliateTracker />
         </Suspense>
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

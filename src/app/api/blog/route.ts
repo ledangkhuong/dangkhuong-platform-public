@@ -128,8 +128,10 @@ export async function POST(req: NextRequest) {
       .eq("id", id)
       .select()
       .single();
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[Blog Update] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật bài viết. Vui lòng thử lại." }, { status: 500 });
+    }
     result = data;
   } else {
     // Create new
@@ -138,8 +140,10 @@ export async function POST(req: NextRequest) {
       .insert(postData)
       .select()
       .single();
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[Blog Create] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tạo bài viết. Vui lòng thử lại." }, { status: 500 });
+    }
     result = data;
   }
 
@@ -183,7 +187,8 @@ export async function DELETE(req: NextRequest) {
   const { error } = await admin.from("blog_posts").delete().eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[Blog Delete] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại." }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

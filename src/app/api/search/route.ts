@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type SearchResultItem = {
   type: string;
@@ -16,7 +17,16 @@ export type SearchResponse = {
 
 type SearchType = "all" | "courses" | "blog" | "community";
 
-export async function GET(req: NextRequest): Promise<NextResponse<SearchResponse>> {
+export async function GET(req: NextRequest): Promise<NextResponse<SearchResponse | { error: string }>> {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  const rateLimitResult = await rateLimit(`search:${ip}`, 30, 60);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." } as { error: string },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") ?? "";
   const type = (searchParams.get("type") ?? "all") as SearchType;

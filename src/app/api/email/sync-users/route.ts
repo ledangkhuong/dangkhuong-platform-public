@@ -45,8 +45,9 @@ export async function POST() {
       });
 
       if (error) {
+        console.error("[Email SyncUsers] Failed to list users:", error);
         return NextResponse.json(
-          { error: `Failed to list users: ${error.message}` },
+          { error: "Có lỗi xảy ra khi đồng bộ người dùng. Vui lòng thử lại." },
           { status: 500 }
         );
       }
@@ -65,8 +66,9 @@ export async function POST() {
       .select("id, email, user_id");
 
     if (subError) {
+      console.error("[Email SyncUsers] Failed to fetch subscribers:", subError);
       return NextResponse.json(
-        { error: `Failed to fetch subscribers: ${subError.message}` },
+        { error: "Có lỗi xảy ra khi đồng bộ người dùng. Vui lòng thử lại." },
         { status: 500 }
       );
     }

@@ -33,7 +33,8 @@ export async function GET(
     const { data: members, error, count } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email List Subscribers GET] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tải danh sách người đăng ký. Vui lòng thử lại." }, { status: 500 });
     }
 
     let subscribers = (members ?? []).map((m) => ({
@@ -103,7 +104,8 @@ export async function POST(
       .select();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email List Subscribers POST] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi thêm người đăng ký. Vui lòng thử lại." }, { status: 500 });
     }
 
     // Update subscriber_count on the list
@@ -156,7 +158,8 @@ export async function DELETE(
       .in("subscriber_id", subscriber_ids);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email List Subscribers DELETE] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi xóa người đăng ký. Vui lòng thử lại." }, { status: 500 });
     }
 
     // Update subscriber_count on the list

@@ -49,7 +49,8 @@ export async function GET(
   const { data, count, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[Email Automation Enrollments GET] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải danh sách đăng ký. Vui lòng thử lại." }, { status: 500 });
   }
 
   return NextResponse.json({
@@ -123,7 +124,8 @@ export async function DELETE(
     .eq("id", enrollmentId);
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+    console.error("[Email Automation Enrollments DELETE] Error:", updateError);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật trạng thái đăng ký. Vui lòng thử lại." }, { status: 500 });
   }
 
   // Log the action

@@ -108,7 +108,8 @@ export async function PUT(
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Lists PUT] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật danh sách. Vui lòng thử lại." }, { status: 500 });
     }
 
     if (!data) {
@@ -151,7 +152,8 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Lists DELETE] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi xóa danh sách. Vui lòng thử lại." }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

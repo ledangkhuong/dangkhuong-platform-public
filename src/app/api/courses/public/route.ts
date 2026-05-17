@@ -16,7 +16,8 @@ export async function GET() {
     .order("sort_order");
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[CoursesPublic] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải danh sách khóa học. Vui lòng thử lại." }, { status: 500 });
   }
 
   const courses = (products ?? []).map((p) => {

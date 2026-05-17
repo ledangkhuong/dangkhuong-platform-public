@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 /**
  * SEPAY WEBHOOK
@@ -153,6 +154,20 @@ export async function POST(req: NextRequest) {
       console.log(`[Sepay] Order ${matchedCode} already processed (race condition prevented)`);
       return NextResponse.json({ success: true, message: "Already processed" });
     }
+
+    // Audit log for successful payment
+    await logAudit({
+      admin_id: "system",
+      action: "order.confirm" as any,
+      target_type: "order",
+      target_id: order.id as string,
+      details: {
+        order_code: matchedCode,
+        amount: transferAmount,
+        source: "sepay_webhook",
+        bank: gateway,
+      },
+    });
 
     // 5. Cấp quyền truy cập khoá học
     if (order.user_id && order.product_id) {

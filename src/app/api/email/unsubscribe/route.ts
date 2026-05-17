@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/email/unsubscribe — fetch subscriber info for the unsubscribe page
 export async function GET(req: NextRequest) {
   try {
+    // Rate limit: 10 GET requests per minute per IP
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const rl = await rateLimit(`unsub-get:${ip}`, 10, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rl.retryAfterSec) },
+        }
+      );
+    }
+
     const sid = req.nextUrl.searchParams.get("sid");
     const email = req.nextUrl.searchParams.get("email");
 
@@ -69,6 +86,22 @@ export async function GET(req: NextRequest) {
 // POST /api/email/unsubscribe — process unsubscribe request
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 POST (unsubscribe) requests per minute per IP
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const rl = await rateLimit(`unsub-post:${ip}`, 5, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rl.retryAfterSec) },
+        }
+      );
+    }
+
     const body = await req.json();
     const { email, send_id, reason } = body;
 
@@ -79,7 +112,46 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Require a valid send_id to prevent unauthenticated unsubscribe abuse
+    if (!send_id) {
+      return NextResponse.json(
+        { error: "send_id is required" },
+        { status: 400 }
+      );
+    }
+
     const admin = await createAdminClient();
+
+    // Validate that send_id corresponds to a real send for this email address
+    // This prevents attackers from unsubscribing arbitrary emails without a valid link
+    const { data: send } = await admin
+      .from("email_sends")
+      .select("id, campaign_id, subscriber_id")
+      .eq("id", send_id)
+      .single();
+
+    if (!send) {
+      return NextResponse.json(
+        { error: "Invalid send_id" },
+        { status: 400 }
+      );
+    }
+
+    // Verify the send's subscriber matches the provided email
+    if (send.subscriber_id) {
+      const { data: sendSubscriber } = await admin
+        .from("subscribers")
+        .select("email")
+        .eq("id", send.subscriber_id)
+        .single();
+
+      if (!sendSubscriber || sendSubscriber.email !== email) {
+        return NextResponse.json(
+          { error: "send_id does not match email" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Find subscriber by email
     const { data: subscriber, error: subError } = await admin
@@ -104,43 +176,33 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", subscriber.id);
 
-    // If send_id provided, record the event and increment counter
-    if (send_id) {
-      const { data: send } = await admin
-        .from("email_sends")
-        .select("id, campaign_id, subscriber_id")
-        .eq("id", send_id)
-        .single();
+    // Record the unsubscribe event using the validated send
+    await admin.from("email_events").insert({
+      send_id: send.id,
+      campaign_id: send.campaign_id,
+      subscriber_id: send.subscriber_id || subscriber.id,
+      event_type: "unsubscribe",
+      metadata: { reason: reason || null },
+    });
 
-      if (send) {
-        // Insert unsubscribe event
-        await admin.from("email_events").insert({
-          send_id: send.id,
-          campaign_id: send.campaign_id,
-          subscriber_id: send.subscriber_id || subscriber.id,
-          event_type: "unsubscribe",
-          metadata: { reason: reason || null },
-        });
+    // Increment campaign unsubscribe_count
+    if (send.campaign_id) {
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(send.campaign_id)) {
+        const { data: campaign } = await admin
+          .from("email_campaigns")
+          .select("unsubscribe_count")
+          .eq("id", send.campaign_id)
+          .single();
 
-        // Increment campaign unsubscribe_count
-        if (send.campaign_id) {
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (uuidRegex.test(send.campaign_id)) {
-            const { data: campaign } = await admin
-              .from("email_campaigns")
-              .select("unsubscribe_count")
-              .eq("id", send.campaign_id)
-              .single();
-
-            if (campaign) {
-              await admin
-                .from("email_campaigns")
-                .update({
-                  unsubscribe_count: (campaign.unsubscribe_count || 0) + 1,
-                })
-                .eq("id", send.campaign_id);
-            }
-          }
+        if (campaign) {
+          await admin
+            .from("email_campaigns")
+            .update({
+              unsubscribe_count: (campaign.unsubscribe_count || 0) + 1,
+            })
+            .eq("id", send.campaign_id);
         }
       }
     }

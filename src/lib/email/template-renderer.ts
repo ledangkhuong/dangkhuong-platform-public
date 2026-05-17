@@ -25,6 +25,9 @@ const COMPANY_NAME = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy
  * renderTemplate("Xin chào {{name}}", { name: "Khương" })
  * // => "Xin chào Khương"
  */
+// Keys whose values are safe URLs (already constructed by us) and must not be escaped
+const URL_VARIABLE_KEYS = new Set(["unsubscribe_url"]);
+
 export function renderTemplate(
   html: string,
   variables: Record<string, string>
@@ -34,7 +37,12 @@ export function renderTemplate(
   for (const [key, value] of Object.entries(variables)) {
     // Thay thế cả {{key}} và {{ key }} (có khoảng trắng)
     const pattern = new RegExp(`\\{\\{\\s*${escapeRegExp(key)}\\s*\\}\\}`, "g");
-    rendered = rendered.replace(pattern, value);
+    // Escape HTML in user-supplied values to prevent XSS injection
+    // URL variables are constructed internally and must remain unescaped
+    const safeValue = URL_VARIABLE_KEYS.has(key)
+      ? value
+      : escapeHtml(String(value));
+    rendered = rendered.replace(pattern, safeValue);
   }
 
   return rendered;
@@ -149,6 +157,19 @@ export function prepareEmailHtml(
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
+
+/**
+ * Escape HTML special characters to prevent XSS injection
+ * through template variable values (e.g. subscriber name containing <script>)
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
 
 /** Escape ký tự đặc biệt trong RegExp */
 function escapeRegExp(str: string): string {

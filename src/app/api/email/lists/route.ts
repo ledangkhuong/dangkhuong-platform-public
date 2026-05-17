@@ -24,7 +24,8 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Lists GET] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tải danh sách. Vui lòng thử lại." }, { status: 500 });
     }
 
     return NextResponse.json({ lists: data });
@@ -74,7 +75,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Lists POST] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tạo danh sách. Vui lòng thử lại." }, { status: 500 });
     }
 
     return NextResponse.json({ list: data }, { status: 201 });

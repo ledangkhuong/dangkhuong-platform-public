@@ -5,7 +5,7 @@ import { sendLoginNotificationEmail } from "@/lib/email/resend";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, turnstileToken } = await req.json();
 
     // Get client IP for rate limiting
     const ip =
@@ -21,6 +21,16 @@ export async function POST(req: NextRequest) {
           error: `Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau ${Math.ceil(rateCheck.retryAfterSec / 60)} phút.`,
         },
         { status: 429 }
+      );
+    }
+
+    // Verify Turnstile CAPTCHA
+    const { verifyTurnstile } = await import("@/lib/turnstile");
+    const isTurnstileValid = await verifyTurnstile(turnstileToken || "");
+    if (!isTurnstileValid) {
+      return NextResponse.json(
+        { error: "Xác minh bảo mật thất bại. Vui lòng thử lại." },
+        { status: 400 }
       );
     }
 

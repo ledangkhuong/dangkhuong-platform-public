@@ -1,20 +1,47 @@
 /**
- * In-memory rate limiter for login attempts and generic endpoints.
+ * Rate limiter with optional Upstash Redis backend for distributed limiting.
  *
- * SERVERLESS LIMITATION: This rate limiter uses an in-memory Map, which means
- * it resets on every cold start in serverless environments (e.g. Vercel).
- * Each serverless instance maintains its own independent store, so rate limits
- * are not shared across instances.
+ * When UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars are set,
+ * uses @upstash/ratelimit with Redis for distributed rate limiting that persists
+ * across cold starts and is shared across all serverless instances.
  *
- * For production at scale, consider using @upstash/ratelimit with Redis, which
- * provides distributed rate limiting that persists across cold starts and is
- * shared across all serverless instances.
- *
- * That said, in-memory rate limiting still provides meaningful protection:
+ * When Upstash is not configured, falls back to an in-memory implementation.
+ * In-memory rate limiting still provides meaningful protection:
  * - It limits abuse within a single warm instance
  * - Most traffic hits a small pool of warm instances
  * - It's zero-dependency and zero-latency
+ *
+ * NOTE: The in-memory fallback resets on every cold start in serverless
+ * environments (e.g. Vercel). Each serverless instance maintains its own
+ * independent store, so rate limits are not shared across instances.
  */
+
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+// ─── Upstash Redis configuration ────────────────────────────────────────────
+
+const useUpstash = !!(
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+);
+
+const upstashLimiters: Record<string, Ratelimit> = {};
+
+function getUpstashLimiter(
+  prefix: string,
+  maxRequests: number,
+  windowSeconds: number
+): Ratelimit {
+  const key = `${prefix}:${maxRequests}:${windowSeconds}`;
+  if (!upstashLimiters[key]) {
+    upstashLimiters[key] = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(maxRequests, `${windowSeconds} s`),
+      prefix: `rl:${prefix}`,
+    });
+  }
+  return upstashLimiters[key];
+}
 
 // ─── Login-specific rate limiting ────────────────────────────────────────────
 
@@ -99,19 +126,16 @@ const genericStore = new Map<string, SlidingWindowEntry>();
 
 /**
  * Generic rate limiter for any endpoint.
- * Uses a sliding window algorithm: tracks individual request timestamps
- * and counts how many fall within the most recent `windowSeconds`.
+ *
+ * When Upstash is configured (UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN),
+ * uses distributed Redis-based sliding window. Otherwise falls back to an
+ * in-memory sliding window algorithm.
  *
  * Returns { allowed: boolean, retryAfterSec: number }
  *
- * NOTE: This is in-memory and resets on cold start. For production
- * at scale, consider using @upstash/ratelimit with Redis.
- * However, this still provides protection within a single instance
- * and is much better than no rate limiting.
- *
  * @example
  * ```ts
- * const { allowed, retryAfterSec } = rateLimit(`api:${ip}`, 100, 60);
+ * const { allowed, retryAfterSec } = await rateLimit(`api:${ip}`, 100, 60);
  * if (!allowed) {
  *   return Response.json(
  *     { error: "Too many requests", retryAfterSec },
@@ -120,11 +144,24 @@ const genericStore = new Map<string, SlidingWindowEntry>();
  * }
  * ```
  */
-export function rateLimit(
+export async function rateLimit(
   key: string,
   maxRequests: number,
   windowSeconds: number
-): { allowed: boolean; retryAfterSec: number } {
+): Promise<{ allowed: boolean; retryAfterSec: number }> {
+  // ── Upstash Redis path ──────────────────────────────────────────────────
+  if (useUpstash) {
+    const limiter = getUpstashLimiter("api", maxRequests, windowSeconds);
+    const result = await limiter.limit(key);
+    return {
+      allowed: result.success,
+      retryAfterSec: result.success
+        ? 0
+        : Math.ceil((result.reset - Date.now()) / 1000),
+    };
+  }
+
+  // ── In-memory fallback ──────────────────────────────────────────────────
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
   const windowStart = now - windowMs;

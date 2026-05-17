@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = await rateLimit(`register:${ip}`, 5, 60);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+      );
+    }
+
     const { email, password, full_name, phone, turnstile_token } = await req.json();
 
     // Verify Turnstile CAPTCHA

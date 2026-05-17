@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
     .eq("id", user.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[CompleteProfile] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại." }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

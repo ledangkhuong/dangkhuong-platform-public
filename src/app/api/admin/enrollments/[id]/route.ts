@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { logAudit } from "@/lib/audit";
 
 /**
  * DELETE /api/admin/enrollments/[id]
@@ -67,8 +68,18 @@ export async function DELETE(
     .eq("id", enrollmentId);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[Admin Enrollments DELETE] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi xóa đăng ký. Vui lòng thử lại." }, { status: 500 });
   }
+
+  await logAudit({
+    admin_id: user.id,
+    action: "enrollment.delete",
+    target_type: "enrollment",
+    target_id: enrollmentId,
+    details: { user_id: enrollment.user_id, product_id: enrollment.product_id },
+    ip_address: _request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown",
+  });
 
   return NextResponse.json({ success: true });
 }

@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
   const ua = req.headers.get("user-agent") ?? "";
 
-  const rateLimitResult = rateLimit(`analytics:${ip}`, 60, 60);
+  const rateLimitResult = await rateLimit(`analytics:${ip}`, 60, 60);
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },

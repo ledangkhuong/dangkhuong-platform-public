@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 /**
  * POST /api/admin/enrollments/bulk
@@ -111,6 +112,19 @@ export async function POST(req: NextRequest) {
     } else {
       granted.push(rawEmail);
     }
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  if (granted.length > 0) {
+    await logAudit({
+      admin_id: user.id,
+      action: "enrollment.create",
+      target_type: "enrollment",
+      target_id: "bulk",
+      details: { emails: granted, product_ids, total: granted.length },
+      ip_address: ip,
+    });
   }
 
   return NextResponse.json({

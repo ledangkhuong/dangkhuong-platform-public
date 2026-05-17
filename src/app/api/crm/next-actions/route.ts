@@ -43,8 +43,10 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[CRM NextActions GET] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải danh sách hành động. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ actions: data });
 }
@@ -100,8 +102,10 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[CRM NextActions POST] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tạo hành động. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ action: data }, { status: 201 });
 }
@@ -153,8 +157,10 @@ export async function PATCH(req: NextRequest) {
     .select()
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[CRM NextActions PATCH] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật hành động. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ action: data });
 }

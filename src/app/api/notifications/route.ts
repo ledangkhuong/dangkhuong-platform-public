@@ -77,7 +77,8 @@ export async function GET(_req: NextRequest) {
     .limit(10);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[Notifications] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải thông báo. Vui lòng thử lại." }, { status: 500 });
   }
 
   const notifications: Notification[] = (data as XpEvent[]).map(transformEvent);

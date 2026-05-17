@@ -20,7 +20,7 @@ const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com",
   "https://dangkhuong.com",
   "https://www.dangkhuong.com",
-  "http://localhost:3000",
+  ...(process.env.NODE_ENV === "development" ? ["http://localhost:3000"] : []),
 ];
 
 export async function proxy(request: NextRequest) {
@@ -105,6 +105,11 @@ export async function proxy(request: NextRequest) {
       }
     }
   } catch {
+    // Fail-closed for protected routes
+    const isProtected = PROTECTED.some(p => path.startsWith(p));
+    if (isProtected) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
     return NextResponse.next({ request });
   }
 

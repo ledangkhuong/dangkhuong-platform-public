@@ -52,7 +52,8 @@ export async function GET(req: NextRequest) {
     const { data, count, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Campaigns GET] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tải chiến dịch. Vui lòng thử lại." }, { status: 500 });
     }
 
     const total = count || 0;
@@ -149,7 +150,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Campaigns POST] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tạo chiến dịch. Vui lòng thử lại." }, { status: 500 });
     }
 
     return NextResponse.json({ campaign: data }, { status: 201 });

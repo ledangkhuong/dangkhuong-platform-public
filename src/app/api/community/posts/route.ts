@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 // POST /api/community/posts — tạo post mới
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-  const rateLimitResult = rateLimit(`posts:${ip}`, 10, 60);
+  const rateLimitResult = await rateLimit(`posts:${ip}`, 10, 60);
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },

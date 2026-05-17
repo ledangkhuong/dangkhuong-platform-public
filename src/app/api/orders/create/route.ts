@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { randomBytes } from "crypto";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Generate a cryptographically random order code
 // Format: DK + 12 random alphanumeric chars (e.g., "DKa3Bf9Kx2Mn")
@@ -17,6 +18,15 @@ function generateOrderCode(prefix: string = "DK"): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = await rateLimit(`orders:${ip}`, 10, 60);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+      );
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });

@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Automations GET] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tải tự động hóa. Vui lòng thử lại." }, { status: 500 });
     }
 
     return NextResponse.json({ automations: data || [] });
@@ -134,7 +135,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[Email Automations POST] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi tạo tự động hóa. Vui lòng thử lại." }, { status: 500 });
     }
 
     return NextResponse.json({ automation: data }, { status: 201 });

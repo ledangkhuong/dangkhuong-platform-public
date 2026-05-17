@@ -41,8 +41,10 @@ export async function GET(req: NextRequest) {
     .eq("contact_id", contact_id)
     .order("score", { ascending: false });
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[CRM Recommendations GET] Error:", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi tải gợi ý. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ recommendations: data });
 }
@@ -188,8 +190,10 @@ export async function POST(req: NextRequest) {
     .from("crm_course_recommendations")
     .upsert(insertPayload, { onConflict: "contact_id,product_id", ignoreDuplicates: true });
 
-  if (insertError)
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+  if (insertError) {
+    console.error("[CRM Recommendations POST] Error:", insertError);
+    return NextResponse.json({ error: "Có lỗi xảy ra khi lưu gợi ý. Vui lòng thử lại." }, { status: 500 });
+  }
 
   // Fetch the final recommendations
   const { data: recommendations } = await adminClient
