@@ -341,7 +341,32 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
                 {question.question_text}
               </p>
 
-              {/* Options */}
+              {/* Short answer textarea */}
+              {question.question_type === "short_answer" ? (
+                <div className="ml-1">
+                  {result ? (
+                    <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+                      <p className="text-sm text-gray-300 whitespace-pre-wrap">
+                        {textAnswers[question.id] || "(Chưa trả lời)"}
+                      </p>
+                      <p className="text-xs text-[#D4A843] mt-2 flex items-center gap-1.5">
+                        <CheckCircle2 size={12} />
+                        Đã gửi câu trả lời
+                      </p>
+                    </div>
+                  ) : (
+                    <textarea
+                      placeholder="Nhập câu trả lời của bạn..."
+                      value={textAnswers[question.id] || ""}
+                      onChange={(e) => setTextAnswers(prev => ({...prev, [question.id]: e.target.value}))}
+                      className="w-full p-3 rounded-lg text-sm text-white placeholder-gray-500 resize-none"
+                      style={{ background: '#1a1a1a', border: '1px solid #333', minHeight: '100px' }}
+                      rows={4}
+                    />
+                  )}
+                </div>
+              ) : (
+              /* Options for multiple_choice / true_false */
               <div className="space-y-1.5 ml-1">
                 {question.options.map((option, optIndex) => {
                   const oi = option.original_index;
@@ -435,6 +460,7 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
                   );
                 })}
               </div>
+              )}
             </div>
           );
         })}
