@@ -29,7 +29,6 @@ type Lesson = {
   content: string | null;
   sort_order: number;
   is_free: boolean;
-  unlock_after_days?: number;
 };
 
 type Chapter = {
@@ -104,24 +103,16 @@ export default async function CourseDetailPage({
   if (!product) notFound();
 
   // Fetch chapters + lessons (use admin client to bypass RLS on chapters/lessons tables)
-  const { data: chaptersRaw, error: chaptersError } = await adminDb
+  const { data: chaptersRaw } = await adminDb
     .from("chapters")
     .select(
       `
       id, title, sort_order,
-      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days)
+      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free)
     `
     )
     .eq("product_id", product.id)
     .order("sort_order");
-
-  console.log("[CourseDetail]", {
-    slug,
-    productId: product.id,
-    chaptersCount: chaptersRaw?.length ?? 0,
-    chaptersError: chaptersError?.message ?? null,
-    rawData: JSON.stringify(chaptersRaw),
-  });
 
   const chapters: Chapter[] = (chaptersRaw ?? []).map((ch) => ({
     id: ch.id,
@@ -156,7 +147,6 @@ export default async function CourseDetailPage({
             duration_sec: l.duration_sec,
             is_free: l.is_free,
             sort_order: l.sort_order,
-            unlock_after_days: l.unlock_after_days ?? undefined,
           })),
         }))}
         isAuthenticated={false}
@@ -211,8 +201,7 @@ export default async function CourseDetailPage({
               duration_sec: l.duration_sec,
               is_free: l.is_free,
               sort_order: l.sort_order,
-              unlock_after_days: l.unlock_after_days ?? undefined,
-            })),
+              })),
           }))}
           isAuthenticated={true}
           productId={product.id}
