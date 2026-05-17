@@ -85,6 +85,12 @@ export default function VideoPlayer({
   /* Track whether auto-complete already fired this session */
   const autoCompletedRef = useRef(!!initialCompleted);
 
+  /* ─── Resume-from-last-position state ─── */
+  const savedWatchSecRef = useRef<number | null>(null);
+  const resumeAppliedRef = useRef(false);
+  const lastSaveTimeRef = useRef(0); // timestamp of last save to server
+  const [resumeToast, setResumeToast] = useState<string | null>(null);
+
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -97,6 +103,20 @@ export default function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [autoCompleteToast, setAutoCompleteToast] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* ─── Fetch saved watch position on mount ─── */
+  useEffect(() => {
+    if (!lessonId || !productId || initialCompleted) return;
+    fetch(`/api/progress?lesson_id=${lessonId}&product_id=${productId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        const rec = json?.progress?.[0];
+        if (rec?.watch_sec && rec.watch_sec > 5) {
+          savedWatchSecRef.current = rec.watch_sec;
+        }
+      })
+      .catch(() => {});
+  }, [lessonId, productId, initialCompleted]);
 
   /* ─── Create player ─── */
   const createPlayer = useCallback(() => {
@@ -129,6 +149,21 @@ export default function VideoPlayer({
           setDuration(e.target.getDuration());
           setVolume(e.target.getVolume());
           setMuted(e.target.isMuted());
+
+          /* Resume from saved position */
+          if (
+            savedWatchSecRef.current &&
+            savedWatchSecRef.current > 5 &&
+            !resumeAppliedRef.current &&
+            !initialCompleted
+          ) {
+            resumeAppliedRef.current = true;
+            const seekTo = Math.max(0, savedWatchSecRef.current - 3);
+            e.target.seekTo(seekTo, true);
+            setCurrentTime(seekTo);
+            setResumeToast(formatTime(savedWatchSecRef.current));
+            setTimeout(() => setResumeToast(null), 3000);
+          }
         },
         onStateChange: (e: { data: number }) => {
           setPlaying(e.data === window.YT.PlayerState.PLAYING);
@@ -226,6 +261,23 @@ export default function VideoPlayer({
             productId
           ) {
             triggerAutoComplete();
+          }
+
+          // Save watch_sec every 10 seconds (fire-and-forget)
+          if (lessonId && productId) {
+            const now = Date.now();
+            if (now - lastSaveTimeRef.current >= 10_000) {
+              lastSaveTimeRef.current = now;
+              fetch("/api/progress", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  lesson_id: lessonId,
+                  product_id: productId,
+                  watch_sec: Math.floor(ct),
+                }),
+              }).catch(() => {});
+            }
           }
         }
       }
@@ -388,6 +440,19 @@ export default function VideoPlayer({
             </div>
           </div>
         )}
+        {/* Resume toast */}
+        {resumeToast && (
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+            style={{ animation: "fadeSlideIn 0.3s ease-out" }}
+          >
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#3b82f6]/90 backdrop-blur-sm text-white text-sm font-medium shadow-lg">
+              <span>&#x25B6;</span>
+              <span>Tiếp tục từ {resumeToast}</span>
+            </div>
+          </div>
+        )}
+
         <style>{`
           @keyframes fadeSlideIn {
             from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
@@ -421,6 +486,12 @@ export default function VideoPlayer({
           {/* Progress bar */}
           <div
             className="h-1 bg-white/20 rounded-full cursor-pointer group mb-2 hover:h-1.5 transition-all"
+            role="slider"
+            aria-label="Tiến trình video"
+            aria-valuemin={0}
+            aria-valuemax={duration}
+            aria-valuenow={currentTime}
+            tabIndex={0}
             onClick={seek}
           >
             <div
@@ -436,6 +507,7 @@ export default function VideoPlayer({
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
+              aria-label={playing ? "Tạm dừng" : "Phát video"}
               className="p-1 hover:text-[#D4A843] transition-colors"
             >
               {playing ? <Pause size={18} /> : <Play size={18} />}
@@ -445,6 +517,7 @@ export default function VideoPlayer({
             <div className="flex items-center gap-1 group/vol">
               <button
                 onClick={toggleMute}
+                aria-label={muted ? "Bật âm thanh" : "Tắt âm thanh"}
                 className="p-1 hover:text-[#D4A843] transition-colors"
               >
                 {muted || volume === 0 ? (
@@ -478,6 +551,7 @@ export default function VideoPlayer({
                   e.stopPropagation();
                   setShowSpeed(!showSpeed);
                 }}
+                aria-label="Tốc độ phát"
                 className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
               >
                 <Gauge size={13} />
@@ -511,6 +585,7 @@ export default function VideoPlayer({
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
+              aria-label={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
               className="p-1 hover:text-[#D4A843] transition-colors"
             >
               {isFullscreen ? (

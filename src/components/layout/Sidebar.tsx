@@ -172,7 +172,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto" role="navigation" aria-label="Menu chính">
         {/* Main nav */}
         <div>
           {mainNav.map((item) => {

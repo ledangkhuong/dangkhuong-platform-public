@@ -144,7 +144,7 @@ export default function NotificationsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2" aria-live="polite">
           {notifications.map((n) => {
             const Icon = getIcon(n.type);
             return (

@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/notifications";
+
+// --- Level / streak helpers ---
+const LEVEL_THRESHOLDS = [
+  0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 9000, 13000, 18000,
+];
+
+const LEVEL_TITLES: Record<number, string> = {
+  1: "Người Mới",
+  2: "Người Mới",
+  3: "Học Viên",
+  4: "Học Viên Tích Cực",
+  5: "Thành Viên",
+  6: "Thành Viên Nòng Cốt",
+  7: "Chuyên Gia",
+  8: "Chuyên Gia Cao Cấp",
+  9: "Mentor",
+  10: "Mentor Cao Cấp",
+  11: "Leader",
+  12: "Grand Master",
+};
+
+function getLevelFromXP(xp: number): number {
+  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (xp >= LEVEL_THRESHOLDS[i]) return i + 1;
+  }
+  return 1;
+}
+
+const STREAK_MILESTONES = [7, 14, 30, 60];
 
 // POST — đánh dấu bài học hoàn thành
 export async function POST(req: NextRequest) {
@@ -46,6 +76,50 @@ export async function POST(req: NextRequest) {
         user_id: user.id, action: "lesson_complete", xp_amount: 30,
         meta: { lesson_id, product_id },
       });
+
+      // --- Achievement notifications (level-up & streak milestones) ---
+      try {
+        const adminClient = await createAdminClient();
+
+        // Fetch current profile to get XP (already incremented by DB trigger) and streak
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("xp, streak")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          const newXP = profile.xp ?? 0;
+          const oldXP = newXP - 30; // XP before this award
+          const oldLevel = getLevelFromXP(oldXP);
+          const newLevel = getLevelFromXP(newXP);
+
+          if (newLevel > oldLevel) {
+            await createNotification(
+              adminClient,
+              user.id,
+              "achievement",
+              `🎉 Lên cấp ${newLevel}!`,
+              `Chúc mừng bạn đã đạt cấp ${newLevel} — ${LEVEL_TITLES[newLevel] ?? ""}! Tiếp tục học để mở khoá nhiều thành tựu hơn.`,
+              "/leaderboard",
+            );
+          }
+
+          // Streak milestone check
+          const streak = profile.streak ?? 0;
+          if (STREAK_MILESTONES.includes(streak)) {
+            await createNotification(
+              adminClient,
+              user.id,
+              "achievement",
+              `🔥 Streak ${streak} ngày!`,
+              `Tuyệt vời! Bạn đã duy trì chuỗi học ${streak} ngày liên tiếp.`,
+            );
+          }
+        }
+      } catch {
+        // Notification failure should never break progress tracking
+      }
     }
 
     // Check if ALL lessons in the course are now completed → send completion email
@@ -108,9 +182,12 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const product_id = searchParams.get("product_id");
 
+  const lesson_id = searchParams.get("lesson_id");
+
   const query = supabase.from("lesson_progress")
     .select("*").eq("user_id", user.id);
   if (product_id) query.eq("product_id", product_id);
+  if (lesson_id) query.eq("lesson_id", lesson_id);
 
   const { data, error } = await query;
   if (error) {

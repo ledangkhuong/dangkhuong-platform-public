@@ -104,7 +104,12 @@ export async function GET(
 
   // SECURITY: Strip is_correct from each option before sending to client.
   // Add original_index so grading still works after option shuffling.
+  // For short_answer questions, don't include options (there are none).
   const safeQuestions = (questions ?? []).map((q) => {
+    if (q.question_type === "short_answer") {
+      return { ...q, options: [] };
+    }
+
     const optionsWithIndex = (
       q.options as { text: string; is_correct: boolean }[]
     ).map((opt, idx) => ({ text: opt.text, original_index: idx }));

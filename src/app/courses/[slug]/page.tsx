@@ -10,6 +10,13 @@ import {
   Clock,
   Award,
   ClipboardCheck,
+  Paperclip,
+  Download,
+  FileText,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  File,
 } from "lucide-react";
 import LessonActions from "@/components/courses/LessonActions";
 import LessonQA from "@/components/courses/LessonQA";
@@ -32,6 +39,7 @@ type Lesson = {
   sort_order: number;
   is_free: boolean;
   unlock_after_days?: number;
+  attachments?: { url: string; name: string; size: number; type: string }[] | null;
 };
 
 type Chapter = {
@@ -46,6 +54,24 @@ function formatDuration(sec: number) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes === 0) return "0 B";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
+function AttachmentFileIcon({ type }: { type: string }) {
+  const iconClass = "text-gray-500 shrink-0";
+  if (type.startsWith("image/")) return <FileImage size={18} className={iconClass} />;
+  if (type.startsWith("video/")) return <FileVideo size={18} className={iconClass} />;
+  if (type.startsWith("audio/")) return <FileAudio size={18} className={iconClass} />;
+  if (type === "application/pdf" || type.includes("document") || type.includes("text"))
+    return <FileText size={18} className={iconClass} />;
+  return <File size={18} className={iconClass} />;
 }
 
 /* ─── Metadata ─── */
@@ -114,7 +140,7 @@ export default async function CourseDetailPage({
     .select(
       `
       id, title, sort_order,
-      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days)
+      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
     `
     )
     .eq("product_id", product.id)
@@ -627,6 +653,38 @@ export default async function CourseDetailPage({
                       <span key={i}>{part}</span>
                     )
                   )}
+              </div>
+            </div>
+          )}
+
+          {/* Attachments */}
+          {currentLesson.attachments && currentLesson.attachments.length > 0 && (
+            <div className="card-dark p-4 sm:p-5 mb-4 sm:mb-5">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
+                <Paperclip size={16} className="text-[#D4A843]" />
+                Tài liệu đính kèm
+              </h3>
+              <div className="space-y-2">
+                {currentLesson.attachments.map((att, i) => (
+                  <a
+                    key={i}
+                    href={att.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group"
+                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #2a2a2a' }}
+                  >
+                    <AttachmentFileIcon type={att.type} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-300 truncate group-hover:text-[#D4A843] transition-colors">
+                        {att.name}
+                      </p>
+                      <p className="text-[10px] text-gray-600">{formatFileSize(att.size)}</p>
+                    </div>
+                    <Download size={14} className="text-gray-500 group-hover:text-[#D4A843] shrink-0 transition-colors" />
+                  </a>
+                ))}
               </div>
             </div>
           )}

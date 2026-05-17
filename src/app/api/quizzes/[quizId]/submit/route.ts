@@ -1,8 +1,9 @@
 /**
  * POST /api/quizzes/[quizId]/submit — Submit quiz answers and get graded
  *
- * Body: { answers: { [questionId: string]: number } }
- *   - number = selected option index (0-based)
+ * Body: { answers: { [questionId: string]: number | string } }
+ *   - number = selected option index (0-based) for multiple_choice / true_false
+ *   - string = text answer for short_answer questions
  *
  * Server-side grading:
  *   1. Fetch correct answers from DB (never trust client)
@@ -44,7 +45,7 @@ export async function POST(
 
   const { quizId } = await params;
   const body = await req.json();
-  const answers: Record<string, number> = body.answers;
+  const answers: Record<string, number | string> = body.answers;
 
   if (!answers || typeof answers !== "object") {
     return NextResponse.json(
@@ -70,7 +71,7 @@ export async function POST(
   // Fetch all questions with correct answers (server-side only)
   const { data: questions } = await supabase
     .from("quiz_questions")
-    .select("id, options")
+    .select("id, question_type, options, correct_answer")
     .eq("quiz_id", quizId);
 
   if (!questions || questions.length === 0) {
@@ -82,9 +83,32 @@ export async function POST(
 
   // Grade: compare submitted answers with correct answers
   let correctCount = 0;
-  const correctAnswers: Record<string, number> = {};
+  const correctAnswers: Record<string, number | string> = {};
 
   for (const question of questions) {
+    if (question.question_type === "short_answer") {
+      // For short_answer: compare trimmed/lowercased text, or auto-mark correct if no correct_answer
+      const correctText = (question as Record<string, unknown>).correct_answer as string | null;
+      const studentAnswer = answers[question.id];
+
+      if (correctText) {
+        correctAnswers[question.id] = correctText;
+        if (
+          typeof studentAnswer === "string" &&
+          studentAnswer.trim().toLowerCase() === correctText.trim().toLowerCase()
+        ) {
+          correctCount++;
+        }
+      } else {
+        // No correct_answer defined — auto-mark as correct (teacher reviews manually)
+        correctAnswers[question.id] = "__auto_correct__";
+        if (studentAnswer !== undefined && String(studentAnswer).trim().length > 0) {
+          correctCount++;
+        }
+      }
+      continue;
+    }
+
     const options = question.options as { text: string; is_correct: boolean }[];
     // Find the correct option index
     const correctIndex = options.findIndex((opt) => opt.is_correct);

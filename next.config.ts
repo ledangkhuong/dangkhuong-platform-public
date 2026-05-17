@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
               "magnetometer=(), gyroscope=(), accelerometer=(), display-capture=(), " +
               "bluetooth=(), interest-cohort=()",
           },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
           { key: "X-DNS-Prefetch-Control", value: "on" },
           { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
           {
@@ -43,15 +44,15 @@ const nextConfig: NextConfig = {
             value:
               "default-src 'self'; " +
               // 'unsafe-inline' is required for Next.js inline scripts (style/script hydration).
-              // Removing it would require a full nonce-based CSP infrastructure (middleware + per-request nonces).
-              // 'wasm-unsafe-eval' is kept to allow WebAssembly modules (e.g. Cloudflare Turnstile, video processing).
-              // 'unsafe-eval' is intentionally excluded — it is not needed by the current build.
-              "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://www.youtube.com https://www.googletagmanager.com; " +
+              // 'wasm-unsafe-eval' is kept for WebAssembly modules (e.g. Cloudflare Turnstile).
+              // 'unsafe-eval' is required by html2canvas for dynamic canvas rendering.
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://www.youtube.com https://connect.facebook.net https://www.googletagmanager.com; " +
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-              "img-src 'self' data: blob: https://*.supabase.co https://i.ytimg.com https://img.youtube.com https://*.googleusercontent.com; " +
-              "font-src 'self' https://fonts.gstatic.com; " +
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com https://api.anthropic.com; " +
-              "frame-src https://www.youtube.com https://challenges.cloudflare.com; " +
+              "img-src 'self' data: blob: https: http:; " +
+              "font-src 'self' data: https://fonts.gstatic.com; " +
+              "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://challenges.cloudflare.com https://api.anthropic.com https://www.facebook.com https://api.qrserver.com; " +
+              "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com; " +
+              "media-src 'self' https://www.youtube.com; " +
               "frame-ancestors 'none'; " +
               "base-uri 'self'; " +
               "form-action 'self'; " +

@@ -32,7 +32,7 @@ interface QuizOption {
 interface QuizQuestion {
   id: string;
   question_text: string;
-  question_type: "multiple_choice" | "true_false";
+  question_type: "multiple_choice" | "true_false" | "short_answer";
   options: QuizOption[];
   sort_order: number;
 }
@@ -58,7 +58,7 @@ interface SubmitResult {
   passed: boolean;
   correct_count: number;
   total_questions: number;
-  correct_answers: Record<string, number>;
+  correct_answers: Record<string, number | string>;
 }
 
 interface LessonQuizProps {
@@ -73,6 +73,7 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [textAnswers, setTextAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
@@ -165,9 +166,12 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
 
     // Check all questions answered (skip check on auto-submit from timer)
     if (!force) {
-      const unanswered = quiz.questions.filter(
-        (q) => answers[q.id] === undefined
-      );
+      const unanswered = quiz.questions.filter((q) => {
+        if (q.question_type === "short_answer") {
+          return !textAnswers[q.id]?.trim();
+        }
+        return answers[q.id] === undefined;
+      });
       if (unanswered.length > 0) {
         setError(
           `Vui lòng trả lời tất cả ${unanswered.length} câu hỏi còn lại`
@@ -180,10 +184,18 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
     setError(null);
 
     try {
+      // Merge text answers (short_answer) into the answers object
+      const mergedAnswers: Record<string, number | string> = { ...answers };
+      for (const [qId, text] of Object.entries(textAnswers)) {
+        if (text.trim()) {
+          mergedAnswers[qId] = text;
+        }
+      }
+
       const res = await fetch(`/api/quizzes/${quiz.id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ answers: mergedAnswers }),
       });
 
       const data = await res.json();
@@ -221,6 +233,7 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
 
   const handleRetry = () => {
     setAnswers({});
+    setTextAnswers({});
     setResult(null);
     setError(null);
     // Reset timer for retry
@@ -288,6 +301,8 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
           {/* Countdown timer */}
           {timeLeft !== null && !result && (
             <div
+              aria-live="assertive"
+              aria-label="Thời gian còn lại"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold ${
                 timeLeft < 30
                   ? "text-red-400 bg-red-500/10"
@@ -436,6 +451,7 @@ export default function LessonQuiz({ lessonId }: LessonQuizProps) {
       {/* Result banner */}
       {result && (
         <div
+          role="alert"
           className={`mx-4 mb-3 rounded-lg px-4 py-3 flex items-center gap-3 ${
             result.passed
               ? "bg-[#22c55e]/10 border border-[#22c55e]/20"
