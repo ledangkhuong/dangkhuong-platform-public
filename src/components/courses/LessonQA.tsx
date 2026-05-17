@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
   MessageCircleQuestion,
   Send,
@@ -196,7 +197,7 @@ export default function LessonQA({
                   {/* Question */}
                   <div className="flex items-start gap-2">
                     {q.profiles?.avatar_url ? (
-                      <img src={q.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" />
+                      <Image src={q.profiles.avatar_url} alt="" width={24} height={24} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" unoptimized />
                     ) : (
                       <div
                         className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5"
