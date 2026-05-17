@@ -85,7 +85,7 @@ export default function TurnstileWidget({
       "expired-callback": onExpire,
       "error-callback": handleError,
       theme: "dark",
-      size: appearance === "execute" ? "invisible" : "normal",
+      size: appearance === "always" ? "normal" : "invisible",
       appearance,
     });
   }, [siteKey, handleVerify, onExpire, handleError]);
@@ -163,5 +163,14 @@ export default function TurnstileWidget({
     );
   }
 
-  return <div ref={containerRef} className={className} />;
+  // When invisible/interaction-only, hide the container completely after verification
+  const isHidden = appearance !== "always";
+
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={isHidden ? { position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" } : undefined}
+    />
+  );
 }
