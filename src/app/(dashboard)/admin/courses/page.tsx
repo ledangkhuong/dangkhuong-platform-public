@@ -271,7 +271,6 @@ export default async function AdminCoursesPage() {
                     <Link
                       href={`/admin/courses/${course.id}/students`}
                       className="text-center group"
-                      onClick={(e) => e.stopPropagation()}
                     >
                       <div className="text-gray-400 mb-0.5 group-hover:text-[#D4A843] transition-colors">Học viên</div>
                       <div className="font-semibold text-white group-hover:text-[#D4A843] transition-colors">
