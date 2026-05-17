@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { randomBytes } from "crypto";
 
 /**
  * POST /api/sanphamso/register
@@ -11,12 +12,14 @@ import { verifyTurnstile } from "@/lib/turnstile";
 const PRODUCT_SLUG = "con-duong-kiem-tien-tu-san-pham-so-2026";
 const PRODUCT_PRICE = 100000; // 100K VND
 
-function generateOrderCode() {
-  return (
-    "SP" +
-    Date.now().toString(36).toUpperCase() +
-    Math.random().toString(36).slice(2, 5).toUpperCase()
-  );
+function generateOrderCode(prefix: string = "SP"): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = randomBytes(12);
+  let code = prefix;
+  for (let i = 0; i < 12; i++) {
+    code += chars[bytes[i] % chars.length];
+  }
+  return code;
 }
 
 export async function POST(req: NextRequest) {
@@ -44,11 +47,30 @@ export async function POST(req: NextRequest) {
         { error: "Vui lòng nhập email" },
         { status: 400 }
       );
-    if (!password || password.length < 6)
+    if (!password || password.length < 8) {
       return NextResponse.json(
-        { error: "Mật khẩu tối thiểu 6 ký tự" },
+        { error: "Mật khẩu phải có ít nhất 8 ký tự" },
         { status: 400 }
       );
+    }
+    if (!/[A-Z]/.test(password)) {
+      return NextResponse.json(
+        { error: "Mật khẩu phải có ít nhất 1 chữ hoa" },
+        { status: 400 }
+      );
+    }
+    if (!/[a-z]/.test(password)) {
+      return NextResponse.json(
+        { error: "Mật khẩu phải có ít nhất 1 chữ thường" },
+        { status: 400 }
+      );
+    }
+    if (!/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: "Mật khẩu phải có ít nhất 1 số" },
+        { status: 400 }
+      );
+    }
 
     const admin = await createAdminClient();
 
@@ -98,8 +120,9 @@ export async function POST(req: NextRequest) {
       userId = signInData.user.id;
       isExistingUser = true;
     } else if (signUpError) {
+      console.error("[SanPhamSo Register] Signup error:", signUpError);
       return NextResponse.json(
-        { error: signUpError.message },
+        { error: "Không thể tạo tài khoản. Vui lòng thử lại sau." },
         { status: 400 }
       );
     } else {
@@ -162,7 +185,7 @@ export async function POST(req: NextRequest) {
     if (orderError) {
       console.error("[SanPhamSo Register] Order error:", orderError);
       return NextResponse.json(
-        { error: "Lỗi tạo đơn hàng: " + orderError.message },
+        { error: "Lỗi tạo đơn hàng. Vui lòng thử lại sau." },
         { status: 500 }
       );
     }

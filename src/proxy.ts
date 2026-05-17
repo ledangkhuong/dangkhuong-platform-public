@@ -6,7 +6,52 @@ const PROTECTED = ["/dashboard", "/courses", "/community", "/crm", "/email", "/l
 // Routes chỉ dành cho khách (chưa đăng nhập)
 const AUTH_ROUTES = ["/login", "/register"];
 
+// CSRF: Webhook routes exempt from origin check (called by external services)
+const CSRF_EXEMPT_ROUTES = [
+  "/api/sepay/webhook",
+  "/api/email/webhook/ses",
+  "/api/email/track/open",
+  "/api/email/track/click",
+  "/api/email/unsubscribe",
+  "/api/email/automations/process",
+];
+
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com",
+  "https://dangkhuong.com",
+  "https://www.dangkhuong.com",
+  "http://localhost:3000",
+];
+
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+
+  // ── CSRF Protection for API mutating requests ──
+  if (path.startsWith("/api/") && !["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+    const isExempt = CSRF_EXEMPT_ROUTES.some(route => path.startsWith(route));
+    if (!isExempt && process.env.NODE_ENV !== "development") {
+      const origin = request.headers.get("origin");
+      const referer = request.headers.get("referer");
+
+      let originAllowed = false;
+      if (origin) {
+        originAllowed = ALLOWED_ORIGINS.includes(origin);
+      } else if (referer) {
+        try {
+          originAllowed = ALLOWED_ORIGINS.includes(new URL(referer).origin);
+        } catch { /* invalid referer */ }
+      }
+      // No origin AND no referer on mutating request = reject (fail-closed)
+      if (!origin && !referer) originAllowed = false;
+
+      if (!originAllowed) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+    // API routes don't need auth redirect logic below
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   try {
@@ -28,7 +73,6 @@ export async function proxy(request: NextRequest) {
     );
 
     const { data: { user } } = await supabase.auth.getUser();
-    const path = request.nextUrl.pathname;
 
     // Redirect to login nếu chưa đăng nhập và vào protected route
     const isProtected = PROTECTED.some(p => path.startsWith(p));
@@ -68,5 +112,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/|cafe|robots.txt|sitemap.xml).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|cafe|robots.txt|sitemap.xml).*)"],
 };

@@ -4,6 +4,17 @@
  */
 import { sendEmail as sesSendEmail } from "./ses";
 
+// ─── Utilities ──────────────────────────────────────────────────
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // ─── Templates ───────────────────────────────────────────────────
 
 function baseTemplate(content: string) {
@@ -51,9 +62,9 @@ function baseTemplate(content: string) {
 export async function sendWelcomeEmail(to: string, name: string) {
   return sesSendEmail(
     to,
-    `Chào mừng ${name} đến với Lê Đăng Khương Academy! 🎉`,
+    `Chào mừng ${escapeHtml(name)} đến với Lê Đăng Khương Academy! 🎉`,
     baseTemplate(`
-      <h1>Chào mừng bạn, ${name}! 🚀</h1>
+      <h1>Chào mừng bạn, ${escapeHtml(name)}! 🚀</h1>
       <p>Tôi là <span class="highlight">Lê Đăng Khương</span> — và tôi rất vui khi bạn tham gia cộng đồng.</p>
       <p>Đây là những gì bạn có thể làm ngay:</p>
       <ul style="color:#9ca3af; font-size:14px; line-height:2; padding-left:20px; margin:0 0 20px;">
@@ -80,18 +91,18 @@ export async function sendPurchaseConfirmation(
   const formattedAmount = amount.toLocaleString("vi-VN") + "₫";
   return sesSendEmail(
     to,
-    `✅ Xác nhận thanh toán — ${productName}`,
+    `✅ Xác nhận thanh toán — ${escapeHtml(productName)}`,
     baseTemplate(`
       <h1>Thanh toán thành công! 🎉</h1>
-      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
       <p>Chúng tôi đã nhận được thanh toán của bạn và quyền truy cập đã được kích hoạt.</p>
       <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Sản phẩm</div>
-        <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:12px;">${productName}</div>
+        <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:12px;">${escapeHtml(productName)}</div>
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Số tiền</div>
-        <div style="color:#D4A843;font-weight:700;font-size:18px;margin-bottom:12px;">${formattedAmount}</div>
+        <div style="color:#D4A843;font-weight:700;font-size:18px;margin-bottom:12px;">${escapeHtml(formattedAmount)}</div>
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Mã đơn hàng</div>
-        <div style="color:#9ca3af;font-family:monospace;font-size:13px;">DK${orderCode}</div>
+        <div style="color:#9ca3af;font-family:monospace;font-size:13px;">DK${escapeHtml(orderCode)}</div>
       </div>
       <a href="https://dangkhuong.com/courses" class="btn">Vào học ngay →</a>
       <div class="divider"></div>
@@ -110,8 +121,8 @@ export async function sendWeeklyNewsletter(
     to,
     subject,
     baseTemplate(`
-      <h1>${subject}</h1>
-      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <h1>${escapeHtml(subject)}</h1>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
       ${body}
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">— Lê Đăng Khương<br/>
@@ -130,13 +141,13 @@ export async function sendLessonCompleteNudge(
     to,
     `🔥 Tiếp tục đà học tập — bài tiếp theo đang chờ bạn!`,
     baseTemplate(`
-      <h1>Bạn đang làm rất tốt, ${name}! 💪</h1>
+      <h1>Bạn đang làm rất tốt, ${escapeHtml(name)}! 💪</h1>
       <p>Bạn đã hoàn thành bài học trước. Tiếp tục ngay để giữ đà học tập!</p>
       <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin:20px 0;">
         <div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Bài tiếp theo</div>
-        <div style="color:#fff;font-weight:600;">${nextLessonTitle}</div>
+        <div style="color:#fff;font-weight:600;">${escapeHtml(nextLessonTitle)}</div>
       </div>
-      <a href="${courseUrl}" class="btn">Tiếp tục học →</a>
+      <a href="${escapeHtml(courseUrl)}" class="btn">Tiếp tục học →</a>
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">
         Nhất quán mỗi ngày — đó là bí quyết thực sự. Chỉ 20 phút hôm nay!
@@ -155,15 +166,15 @@ export async function sendPasswordResetEmail(
     `🔑 Đặt lại mật khẩu — Lê Đăng Khương Academy`,
     baseTemplate(`
       <h1>Đặt lại mật khẩu</h1>
-      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
       <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Bấm nút bên dưới để tạo mật khẩu mới:</p>
       <div style="text-align:center;margin:28px 0;">
-        <a href="${resetLink}" class="btn">Đặt lại mật khẩu →</a>
+        <a href="${escapeHtml(resetLink)}" class="btn">Đặt lại mật khẩu →</a>
       </div>
       <p style="font-size:13px;color:#6b7280;">Link này sẽ hết hạn sau 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.</p>
       <div class="divider"></div>
       <p style="margin:0;font-size:12px;color:#4b5563;">Nếu nút không hoạt động, copy và dán link sau vào trình duyệt:<br/>
-      <a href="${resetLink}" style="color:#D4A843;word-break:break-all;font-size:11px;">${resetLink}</a></p>
+      <a href="${escapeHtml(resetLink)}" style="color:#D4A843;word-break:break-all;font-size:11px;">${escapeHtml(resetLink)}</a></p>
     `),
   );
 }
@@ -177,16 +188,16 @@ export async function sendEventReminder(
 ) {
   return sesSendEmail(
     to,
-    `⏰ Nhắc nhở: "${eventTitle}" bắt đầu trong 1 tiếng!`,
+    `⏰ Nhắc nhở: "${escapeHtml(eventTitle)}" bắt đầu trong 1 tiếng!`,
     baseTemplate(`
       <h1>Sắp đến giờ rồi! ⏰</h1>
-      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
       <p>Sự kiện bạn đã đăng ký sắp bắt đầu:</p>
       <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
-        <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:8px;">${eventTitle}</div>
-        <div style="color:#D4A843;font-size:13px;">🕐 ${eventTime}</div>
+        <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:8px;">${escapeHtml(eventTitle)}</div>
+        <div style="color:#D4A843;font-size:13px;">🕐 ${escapeHtml(eventTime)}</div>
       </div>
-      <a href="${joinUrl}" class="btn">Tham gia ngay →</a>
+      <a href="${escapeHtml(joinUrl)}" class="btn">Tham gia ngay →</a>
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Hẹn gặp bạn ở đó!</p>
     `),
@@ -202,13 +213,13 @@ export async function sendAffiliateCommissionEmail(
   const formatted = commissionAmount.toLocaleString("vi-VN") + "₫";
   return sesSendEmail(
     to,
-    `Bạn vừa nhận hoa hồng ${formatted} — Lê Đăng Khương Academy`,
+    `Bạn vừa nhận hoa hồng ${escapeHtml(formatted)} — Lê Đăng Khương Academy`,
     baseTemplate(`
-      <h1>Chúc mừng, ${name}!</h1>
-      <p>Một khách hàng vừa mua <span class="highlight">${productName}</span> qua link giới thiệu của bạn.</p>
+      <h1>Chúc mừng, ${escapeHtml(name)}!</h1>
+      <p>Một khách hàng vừa mua <span class="highlight">${escapeHtml(productName)}</span> qua link giới thiệu của bạn.</p>
       <div style="background:#222;border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
         <div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Hoa hồng nhận được</div>
-        <div style="color:#D4A843;font-weight:700;font-size:26px;">${formatted}</div>
+        <div style="color:#D4A843;font-weight:700;font-size:26px;">${escapeHtml(formatted)}</div>
       </div>
       <p>Khoản hoa hồng đang chờ duyệt. Bạn có thể theo dõi chi tiết tại trang Affiliate.</p>
       <a href="https://dangkhuong.com/dashboard/affiliate" class="btn">Xem Affiliate Dashboard →</a>
@@ -247,24 +258,24 @@ export async function sendLoginNotificationEmail(
     `🔐 Đăng nhập mới vào tài khoản của bạn`,
     baseTemplate(`
       <h1>Phát hiện đăng nhập mới 🔐</h1>
-      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
       <p>Tài khoản của bạn vừa được đăng nhập thành công từ một thiết bị:</p>
       <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
           <span style="color:#6b7280;font-size:12px;">Thời gian</span>
-          <span style="color:#fff;font-size:13px;">${loginTime}</span>
+          <span style="color:#fff;font-size:13px;">${escapeHtml(loginTime)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
           <span style="color:#6b7280;font-size:12px;">Trình duyệt</span>
-          <span style="color:#fff;font-size:13px;">${browser}</span>
+          <span style="color:#fff;font-size:13px;">${escapeHtml(browser)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
           <span style="color:#6b7280;font-size:12px;">Hệ điều hành</span>
-          <span style="color:#fff;font-size:13px;">${os}</span>
+          <span style="color:#fff;font-size:13px;">${escapeHtml(os)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;">
           <span style="color:#6b7280;font-size:12px;">Địa chỉ IP</span>
-          <span style="color:#9ca3af;font-family:monospace;font-size:13px;">${ip}</span>
+          <span style="color:#9ca3af;font-family:monospace;font-size:13px;">${escapeHtml(ip)}</span>
         </div>
       </div>
       <p>Nếu đây là bạn, không cần làm gì thêm.</p>
@@ -278,14 +289,14 @@ export async function sendLoginNotificationEmail(
 
 export async function sendVerificationEmail(to: string, name: string, confirmUrl: string) {
   const html = baseTemplate(`
-    <h1>Xin chào ${name}! 👋</h1>
+    <h1>Xin chào ${escapeHtml(name)}! 👋</h1>
     <p>Cảm ơn bạn đã đăng ký tài khoản tại <span class="highlight">Lê Đăng Khương Academy</span>.</p>
     <p>Vui lòng nhấn nút bên dưới để xác thực địa chỉ email và kích hoạt tài khoản của bạn:</p>
     <p style="text-align:center; margin:24px 0;">
-      <a href="${confirmUrl}" class="btn">Xác thực tài khoản</a>
+      <a href="${escapeHtml(confirmUrl)}" class="btn">Xác thực tài khoản</a>
     </p>
     <p style="font-size:12px; color:#6b7280;">Nếu nút không hoạt động, bạn có thể copy đường link sau vào trình duyệt:<br/>
-    <a href="${confirmUrl}" style="color:#D4A843; word-break:break-all; font-size:11px;">${confirmUrl}</a></p>
+    <a href="${escapeHtml(confirmUrl)}" style="color:#D4A843; word-break:break-all; font-size:11px;">${escapeHtml(confirmUrl)}</a></p>
     <div class="divider"></div>
     <p style="font-size:12px; color:#6b7280; margin:0;">Link xác thực có hiệu lực trong 24 giờ. Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
   `);

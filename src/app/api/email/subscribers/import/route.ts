@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 // POST /api/email/subscribers/import — bulk import subscribers from CSV
 export async function POST(req: NextRequest) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -11,12 +12,14 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const adminClient = await createAdminClient();
+    const { data: profile } = await adminClient
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const formData = await req.formData();
@@ -71,7 +74,6 @@ export async function POST(req: NextRequest) {
     const tagsIdx = header.indexOf("tags");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const admin = await createAdminClient();
 
     const errors: string[] = [];
     let imported = 0;
@@ -128,7 +130,7 @@ export async function POST(req: NextRequest) {
       if (subscribersToUpsert.length === 0) continue;
 
       // Upsert: on conflict (email), update full_name and phone if provided
-      const { data: upserted, error: upsertError } = await admin
+      const { data: upserted, error: upsertError } = await adminClient
         .from("subscribers")
         .upsert(subscribersToUpsert, {
           onConflict: "email",
@@ -137,8 +139,9 @@ export async function POST(req: NextRequest) {
         .select("id");
 
       if (upsertError) {
+        console.error("Import upsert error:", upsertError.message);
         errors.push(
-          `Batch starting at row ${i + 2}: ${upsertError.message}`
+          `Batch starting at row ${i + 2}: import failed`
         );
         skipped += subscribersToUpsert.length;
         continue;
@@ -157,7 +160,7 @@ export async function POST(req: NextRequest) {
         );
 
         // Use upsert to avoid duplicate key errors
-        const { error: listError } = await admin
+        const { error: listError } = await adminClient
           .from("subscriber_list_members")
           .upsert(listMembers, {
             onConflict: "subscriber_id,list_id",
@@ -165,7 +168,8 @@ export async function POST(req: NextRequest) {
           });
 
         if (listError) {
-          errors.push(`Error adding batch to list: ${listError.message}`);
+          console.error("Import list assignment error:", listError.message);
+          errors.push(`Error adding batch to list`);
         }
       }
     }

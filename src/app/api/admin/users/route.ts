@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 const VALID_ROLES = ["student", "admin", "manager", "marketing", "sale", "support"];
 const VALID_TIERS = ["free", "member", "vip"];
@@ -77,7 +78,31 @@ export async function PATCH(req: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[Admin Users PATCH] Update failed:", error.message);
+    return NextResponse.json({ error: "Có lỗi xảy ra. Vui lòng thử lại." }, { status: 500 });
+  }
+
+  // Audit log for role/tier changes
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (role !== undefined) {
+    await logAudit({
+      admin_id: user.id,
+      action: "user.role_change",
+      target_type: "user",
+      target_id: user_id,
+      details: { new_role: role },
+      ip_address: ip,
+    });
+  }
+  if (tier !== undefined) {
+    await logAudit({
+      admin_id: user.id,
+      action: "user.tier_change",
+      target_type: "user",
+      target_id: user_id,
+      details: { new_tier: tier },
+      ip_address: ip,
+    });
   }
 
   return NextResponse.json({ user: data });
@@ -160,12 +185,25 @@ export async function DELETE(req: NextRequest) {
       // 5. Finally delete auth user
       const { error: delErr } = await adminClient.auth.admin.deleteUser(uid);
       if (delErr) {
-        results.errors.push(`${uid}: ${delErr.message}`);
+        console.error(`[Admin Users DELETE] Auth delete failed for ${uid}:`, delErr.message);
+        results.errors.push(`${uid}: Xoá tài khoản thất bại`);
       } else {
         results.deleted++;
+
+        // Audit log for successful deletion
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+        await logAudit({
+          admin_id: user.id,
+          action: "user.delete",
+          target_type: "user",
+          target_id: uid,
+          details: { reason: "admin_action" },
+          ip_address: ip,
+        });
       }
     } catch (err) {
-      results.errors.push(`${uid}: ${err instanceof Error ? err.message : "Unknown error"}`);
+      console.error(`[Admin Users DELETE] Unexpected error for ${uid}:`, err);
+      results.errors.push(`${uid}: Có lỗi xảy ra khi xoá tài khoản`);
     }
   }
 

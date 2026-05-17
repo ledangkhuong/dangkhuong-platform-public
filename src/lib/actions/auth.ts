@@ -183,3 +183,53 @@ export async function updateProfile(formData: FormData) {
   if (error) redirect(`/settings?error=${encodeURIComponent(error.message)}`);
   redirect("/settings?saved=1");
 }
+
+export async function deleteAccount(): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  try {
+    const admin = await createAdminClient();
+
+    // Delete user data in order that respects foreign key constraints.
+    // Each step is wrapped individually so one missing table doesn't block the rest.
+
+    // 1. Delete user's enrollments
+    try { await admin.from("enrollments").delete().eq("user_id", user.id); } catch {}
+
+    // 2. Delete user's orders
+    try { await admin.from("orders").delete().eq("user_id", user.id); } catch {}
+
+    // 3. Delete user's xp_events
+    try { await admin.from("xp_events").delete().eq("user_id", user.id); } catch {}
+
+    // 4. Delete user's community comments before posts (comments reference posts)
+    try { await admin.from("community_comments").delete().eq("user_id", user.id); } catch {}
+    try { await admin.from("community_posts").delete().eq("user_id", user.id); } catch {}
+
+    // 5. Delete user's lesson progress
+    try { await admin.from("lesson_progress").delete().eq("user_id", user.id); } catch {}
+
+    // 6. Delete user's notifications
+    try { await admin.from("notifications").delete().eq("user_id", user.id); } catch {}
+
+    // 7. Delete user's profile
+    try { await admin.from("profiles").delete().eq("id", user.id); } catch {}
+
+    // 8. Delete auth user (this also invalidates their session)
+    const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
+    if (deleteError) {
+      console.error("Failed to delete auth user:", deleteError);
+      return { success: false, error: "Không thể xóa tài khoản. Vui lòng thử lại." };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Delete account error:", err);
+    return { success: false, error: "Có lỗi xảy ra. Vui lòng thử lại." };
+  }
+}

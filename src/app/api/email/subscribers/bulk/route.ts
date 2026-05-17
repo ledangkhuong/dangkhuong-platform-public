@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 // POST /api/email/subscribers/bulk — bulk actions on subscribers
 export async function POST(req: NextRequest) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -11,12 +12,14 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const adminClient = await createAdminClient();
+    const { data: profile } = await adminClient
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
@@ -36,18 +39,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const admin = await createAdminClient();
     let affected = 0;
 
     switch (action) {
       case "delete": {
-        const { count, error } = await admin
+        const { count, error } = await adminClient
           .from("subscribers")
           .delete({ count: "exact" })
           .in("id", subscriber_ids);
 
-        if (error)
-          return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) {
+          console.error("Bulk delete error:", error.message);
+          return NextResponse.json({ error: "Failed to delete subscribers" }, { status: 500 });
+        }
 
         affected = count || 0;
         break;
@@ -67,15 +71,17 @@ export async function POST(req: NextRequest) {
           added_at: new Date().toISOString(),
         }));
 
-        const { error } = await admin
+        const { error } = await adminClient
           .from("subscriber_list_members")
           .upsert(listMembers, {
             onConflict: "subscriber_id,list_id",
             ignoreDuplicates: true,
           });
 
-        if (error)
-          return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) {
+          console.error("Bulk add_to_list error:", error.message);
+          return NextResponse.json({ error: "Failed to add subscribers to list" }, { status: 500 });
+        }
 
         affected = subscriber_ids.length;
         break;
@@ -89,14 +95,16 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const { count, error } = await admin
+        const { count, error } = await adminClient
           .from("subscriber_list_members")
           .delete({ count: "exact" })
           .eq("list_id", list_id)
           .in("subscriber_id", subscriber_ids);
 
-        if (error)
-          return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) {
+          console.error("Bulk remove_from_list error:", error.message);
+          return NextResponse.json({ error: "Failed to remove subscribers from list" }, { status: 500 });
+        }
 
         affected = count || 0;
         break;
@@ -127,13 +135,15 @@ export async function POST(req: NextRequest) {
           updateData.unsubscribed_at = new Date().toISOString();
         }
 
-        const { count, error } = await admin
+        const { count, error } = await adminClient
           .from("subscribers")
           .update(updateData, { count: "exact" })
           .in("id", subscriber_ids);
 
-        if (error)
-          return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) {
+          console.error("Bulk update_status error:", error.message);
+          return NextResponse.json({ error: "Failed to update subscriber status" }, { status: 500 });
+        }
 
         affected = count || 0;
         break;
@@ -148,23 +158,25 @@ export async function POST(req: NextRequest) {
         }
 
         // Fetch current tags for each subscriber, merge, then update
-        const { data: subscribers, error: fetchError } = await admin
+        const { data: subscribers, error: fetchError } = await adminClient
           .from("subscribers")
           .select("id, tags")
           .in("id", subscriber_ids);
 
-        if (fetchError)
+        if (fetchError) {
+          console.error("Bulk add_tags fetch error:", fetchError.message);
           return NextResponse.json(
-            { error: fetchError.message },
+            { error: "Failed to update subscriber tags" },
             { status: 500 }
           );
+        }
 
         let updateCount = 0;
         for (const sub of subscribers || []) {
           const currentTags: string[] = sub.tags || [];
           const newTags = [...new Set([...currentTags, ...tags])];
 
-          const { error: updateError } = await admin
+          const { error: updateError } = await adminClient
             .from("subscribers")
             .update({
               tags: newTags,

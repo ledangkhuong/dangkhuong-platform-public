@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/community/posts — lấy danh sách posts
 export async function GET(req: NextRequest) {
@@ -18,12 +19,24 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("GET /api/community/posts error:", error.message);
+    return NextResponse.json({ error: "Không thể tải bài viết. Vui lòng thử lại." }, { status: 500 });
+  }
   return NextResponse.json({ posts: data });
 }
 
 // POST /api/community/posts — tạo post mới
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  const rateLimitResult = rateLimit(`posts:${ip}`, 10, 60);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+    );
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,7 +53,10 @@ export async function POST(req: NextRequest) {
     .select(`*, profiles(full_name, avatar_url, level, tier)`)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("POST /api/community/posts error:", error.message);
+    return NextResponse.json({ error: "Không thể tạo bài viết. Vui lòng thử lại." }, { status: 500 });
+  }
 
   // Thêm XP
   await supabase.from("xp_events").insert({ user_id: user.id, action: "post_created", xp_amount: 50 });

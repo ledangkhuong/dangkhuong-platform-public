@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 // GET /api/email/subscribers/export — export subscribers as CSV
 export async function GET(req: NextRequest) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -11,15 +12,16 @@ export async function GET(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const admin = await createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const admin = await createAdminClient();
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status") || "";
     const listId = searchParams.get("list_id") || "";
@@ -40,8 +42,10 @@ export async function GET(req: NextRequest) {
       }
 
       const { data, error } = await query;
-      if (error)
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error("Subscriber export query error:", error.message);
+        return NextResponse.json({ error: "Failed to export subscribers" }, { status: 500 });
+      }
 
       subscribers = (data || []).map(
         (row: Record<string, unknown>) =>
@@ -60,8 +64,10 @@ export async function GET(req: NextRequest) {
       query = query.order("created_at", { ascending: false });
 
       const { data, error } = await query;
-      if (error)
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error("Subscriber export query error:", error.message);
+        return NextResponse.json({ error: "Failed to export subscribers" }, { status: 500 });
+      }
 
       subscribers = data || [];
     }

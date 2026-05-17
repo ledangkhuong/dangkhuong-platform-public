@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { randomBytes } from "crypto";
 
-function generateOrderCode() {
-  return "DK" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase();
+// Generate a cryptographically random order code
+// Format: DK + 12 random alphanumeric chars (e.g., "DKa3Bf9Kx2Mn")
+// This gives 62^12 ≈ 3.2 × 10^21 possible codes - practically unguessable
+function generateOrderCode(prefix: string = "DK"): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = randomBytes(12);
+  let code = prefix;
+  for (let i = 0; i < 12; i++) {
+    code += chars[bytes[i] % chars.length];
+  }
+  return code;
 }
 
 export async function POST(req: NextRequest) {

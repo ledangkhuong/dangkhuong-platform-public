@@ -10,20 +10,19 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get("category");
     const isActive = searchParams.get("is_active");
     const search = searchParams.get("search");
-
-    const adminSupabase = await createAdminClient();
 
     let query = adminSupabase
       .from("email_templates")
@@ -47,7 +46,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to fetch templates" }, { status: 500 });
     }
 
     return NextResponse.json({ templates: data });
@@ -66,12 +65,13 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
@@ -108,8 +108,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const adminSupabase = await createAdminClient();
-
     const insertData: Record<string, unknown> = {
       name: name.trim(),
       subject: subject.trim(),
@@ -126,7 +124,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to create template" }, { status: 500 });
     }
 
     return NextResponse.json({ template: data }, { status: 201 });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/community/comments?post_id=...&limit=20&offset=0
 export async function GET(req: NextRequest) {
@@ -25,14 +26,25 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: true })
     .range(offset, offset + limit - 1);
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("GET /api/community/comments error:", error.message);
+    return NextResponse.json({ error: "Không thể tải bình luận. Vui lòng thử lại." }, { status: 500 });
+  }
 
   return NextResponse.json({ comments: data });
 }
 
 // POST /api/community/comments — tạo comment mới
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  const rateLimitResult = rateLimit(`comments:${ip}`, 20, 60);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+    );
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -61,8 +73,10 @@ export async function POST(req: NextRequest) {
     .select(`*, profiles(full_name, avatar_url, level)`)
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("POST /api/community/comments error:", error.message);
+    return NextResponse.json({ error: "Không thể tạo bình luận. Vui lòng thử lại." }, { status: 500 });
+  }
 
   // Increment comments_count on the post
   const { data: currentPost } = await supabase
@@ -118,8 +132,10 @@ export async function DELETE(req: NextRequest) {
     .delete()
     .eq("id", comment_id);
 
-  if (deleteError)
-    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  if (deleteError) {
+    console.error("DELETE /api/community/comments error:", deleteError.message);
+    return NextResponse.json({ error: "Không thể xoá bình luận. Vui lòng thử lại." }, { status: 500 });
+  }
 
   // Decrement comments_count (floor at 0)
   const { data: currentPost } = await supabase

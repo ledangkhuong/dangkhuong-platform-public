@@ -37,7 +37,11 @@ export async function GET(request: NextRequest) {
   const { data: tags, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Failed to fetch tags:", error.message);
+    return NextResponse.json(
+      { error: "Failed to fetch tags" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ tags });
@@ -88,7 +92,11 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+    console.error("Failed to create tag:", insertError.message);
+    return NextResponse.json(
+      { error: "Failed to create tag" },
+      { status: 500 }
+    );
   }
 
   // Count active subscribers who have this tag
@@ -149,7 +157,11 @@ export async function DELETE(request: NextRequest) {
     .single();
 
   if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    console.error("Failed to fetch tag:", fetchError.message);
+    return NextResponse.json(
+      { error: "Failed to fetch tag" },
+      { status: 500 }
+    );
   }
 
   // Delete the tag
@@ -159,14 +171,35 @@ export async function DELETE(request: NextRequest) {
     .eq("id", id);
 
   if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    console.error("Failed to delete tag:", deleteError.message);
+    return NextResponse.json(
+      { error: "Failed to delete tag" },
+      { status: 500 }
+    );
   }
 
   // Remove the tag from all subscribers' tags arrays
   if (tag?.name) {
-    await admin.rpc("exec_sql", {
-      query: `UPDATE subscribers SET tags = array_remove(tags, '${tag.name.replace(/'/g, "''")}') WHERE tags @> ARRAY['${tag.name.replace(/'/g, "''")}']`,
-    });
+    // Fetch subscribers that have this tag (safe parameterized query)
+    const { data: subscribers } = await admin
+      .from("subscribers")
+      .select("id, tags")
+      .contains("tags", [tag.name]);
+
+    if (subscribers && subscribers.length > 0) {
+      // Update each subscriber's tags array with the tag filtered out
+      const updates = subscribers.map((subscriber) =>
+        admin
+          .from("subscribers")
+          .update({
+            tags: (subscriber.tags as string[]).filter(
+              (t: string) => t !== tag.name
+            ),
+          })
+          .eq("id", subscriber.id)
+      );
+      await Promise.all(updates);
+    }
   }
 
   return NextResponse.json({ success: true });

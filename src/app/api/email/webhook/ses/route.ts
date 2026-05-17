@@ -1,14 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 
+/**
+ * Validate that an SNS message appears to originate from AWS.
+ * Checks that SigningCertURL is an HTTPS amazonaws.com URL and
+ * that the message contains the required standard fields.
+ */
+function validateSNSMessage(body: Record<string, unknown>): boolean {
+  const signingCertUrl =
+    (body.SigningCertURL as string) ||
+    (body.SigningCertUrl as string) ||
+    "";
+
+  // SigningCertURL must be from amazonaws.com over HTTPS
+  try {
+    const url = new URL(signingCertUrl);
+    if (
+      !url.hostname.endsWith(".amazonaws.com") ||
+      url.protocol !== "https:"
+    ) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+
+  // Must have required SNS fields
+  if (!body.Type || !body.MessageId || !body.Timestamp || !body.Signature) {
+    return false;
+  }
+
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // --- Authentication: reject messages that don't look like valid SNS ---
+    if (!validateSNSMessage(body)) {
+      console.error("[SES Webhook] SNS validation failed — rejecting request");
+      return NextResponse.json(
+        { error: "Invalid SNS message" },
+        { status: 403 }
+      );
+    }
+
     // Handle SNS subscription confirmation
     if (body.Type === "SubscriptionConfirmation") {
       if (body.SubscribeURL) {
-        await fetch(body.SubscribeURL);
+        // --- SSRF protection: ensure SubscribeURL is a valid AWS endpoint ---
+        try {
+          const subscribeUrl = new URL(body.SubscribeURL as string);
+          if (
+            !subscribeUrl.hostname.endsWith(".amazonaws.com") ||
+            subscribeUrl.protocol !== "https:"
+          ) {
+            console.error(
+              "[SES Webhook] Invalid SubscribeURL:",
+              body.SubscribeURL
+            );
+            return NextResponse.json(
+              { error: "Invalid SubscribeURL" },
+              { status: 400 }
+            );
+          }
+        } catch {
+          console.error(
+            "[SES Webhook] Malformed SubscribeURL:",
+            body.SubscribeURL
+          );
+          return NextResponse.json(
+            { error: "Invalid SubscribeURL" },
+            { status: 400 }
+          );
+        }
+        await fetch(body.SubscribeURL as string);
       }
       return NextResponse.json({ confirmed: true });
     }

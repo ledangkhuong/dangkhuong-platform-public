@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 // DELETE /api/admin/orders — delete one or multiple orders
 export async function DELETE(req: NextRequest) {
@@ -33,6 +34,8 @@ export async function DELETE(req: NextRequest) {
   const adminClient = await createAdminClient();
   const results = { deleted: 0, errors: [] as string[] };
 
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
   for (const oid of order_ids) {
     const { error: delErr } = await adminClient
       .from("orders")
@@ -40,9 +43,18 @@ export async function DELETE(req: NextRequest) {
       .eq("id", oid);
 
     if (delErr) {
-      results.errors.push(`${oid}: ${delErr.message}`);
+      console.error(`[Admin Orders DELETE] Delete failed for ${oid}:`, delErr.message);
+      results.errors.push(`${oid}: Xoá đơn hàng thất bại`);
     } else {
       results.deleted++;
+
+      await logAudit({
+        admin_id: user.id,
+        action: "order.delete",
+        target_type: "order",
+        target_id: oid,
+        ip_address: ip,
+      });
     }
   }
 

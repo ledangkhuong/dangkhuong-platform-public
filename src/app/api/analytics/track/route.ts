@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  // Capture IP + UA early (used for both rate limiting and analytics tracking)
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  const ua = req.headers.get("user-agent") ?? "";
+
+  const rateLimitResult = rateLimit(`analytics:${ip}`, 60, 60);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+    );
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -20,10 +33,6 @@ export async function POST(req: NextRequest) {
   if (JSON.stringify(properties || {}).length > 2000) {
     return NextResponse.json({ error: "Properties too large" }, { status: 400 });
   }
-
-  // Capture IP + UA for anonymous tracking
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const ua = req.headers.get("user-agent") ?? "";
 
   await supabase.from("analytics_events").insert({
     user_id: user?.id ?? null,

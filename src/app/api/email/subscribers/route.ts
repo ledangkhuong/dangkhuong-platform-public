@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 // GET /api/email/subscribers — list subscribers with pagination, filtering, search
 export async function GET(req: NextRequest) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -11,15 +12,15 @@ export async function GET(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const admin = await createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const admin = await createAdminClient();
 
     const searchParams = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
@@ -66,8 +67,10 @@ export async function GET(req: NextRequest) {
         .range(offset, offset + limit - 1);
 
       const { data, count, error } = await query;
-      if (error)
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) {
+        console.error("Subscriber list query error:", error.message);
+        return NextResponse.json({ error: "Failed to fetch subscribers" }, { status: 500 });
+      }
 
       const total = count || 0;
       const subscribers = (data || []).map(
@@ -100,8 +103,10 @@ export async function GET(req: NextRequest) {
       .range(offset, offset + limit - 1);
 
     const { data, count, error } = await query;
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Subscriber query error:", error.message);
+      return NextResponse.json({ error: "Failed to fetch subscribers" }, { status: 500 });
+    }
 
     const total = count || 0;
 
@@ -143,6 +148,7 @@ export async function GET(req: NextRequest) {
 // POST /api/email/subscribers — create a single subscriber
 export async function POST(req: NextRequest) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -150,12 +156,14 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const admin = await createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
@@ -173,8 +181,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const admin = await createAdminClient();
 
     // Check for duplicate
     const { data: existing } = await admin
@@ -208,8 +214,9 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (insertError) {
+      console.error("Subscriber insert error:", insertError.message);
       return NextResponse.json(
-        { error: insertError.message },
+        { error: "Failed to create subscriber" },
         { status: 500 }
       );
     }

@@ -7,6 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -14,16 +15,17 @@ export async function GET(
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const admin = await createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
-    const admin = await createAdminClient();
 
     // Fetch subscriber
     const { data: subscriber, error } = await admin
@@ -82,6 +84,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -89,19 +92,19 @@ export async function PUT(
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const admin = await createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
     const body = await req.json();
     const { full_name, phone, status, tags, metadata } = body;
-
-    const admin = await createAdminClient();
 
     // Fetch current subscriber to check status change
     const { data: existing, error: fetchError } = await admin
@@ -142,8 +145,9 @@ export async function PUT(
       .single();
 
     if (updateError) {
+      console.error("Subscriber update error:", updateError.message);
       return NextResponse.json(
-        { error: updateError.message },
+        { error: "Failed to update subscriber" },
         { status: 500 }
       );
     }
@@ -164,6 +168,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Auth check
     const supabase = await createClient();
     const {
       data: { user },
@@ -171,16 +176,17 @@ export async function DELETE(
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    // Role check
+    const admin = await createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
-    const admin = await createAdminClient();
 
     const { error } = await admin
       .from("subscribers")
@@ -188,7 +194,8 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Subscriber delete error:", error.message);
+      return NextResponse.json({ error: "Failed to delete subscriber" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 // DELETE /api/admin/courses — delete a course and all related data
 export async function DELETE(req: NextRequest) {
@@ -61,11 +62,22 @@ export async function DELETE(req: NextRequest) {
   const { error } = await admin.from("products").delete().eq("id", course_id);
 
   if (error) {
+    console.error("[Admin Courses DELETE] Delete failed:", error.message);
     return NextResponse.json(
-      { error: "Failed to delete course: " + error.message },
+      { error: "Có lỗi xảy ra khi xoá khoá học. Vui lòng thử lại." },
       { status: 500 }
     );
   }
+
+  // Audit log for successful course deletion
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  await logAudit({
+    admin_id: user.id,
+    action: "course.delete",
+    target_type: "course",
+    target_id: course_id,
+    ip_address: ip,
+  });
 
   return NextResponse.json({ success: true });
 }

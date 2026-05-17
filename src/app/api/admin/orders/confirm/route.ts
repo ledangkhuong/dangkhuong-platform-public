@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 /**
  * POST /api/admin/orders/confirm
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   if (orderErr || !order) {
     return NextResponse.json(
-      { error: `Order ${order_code} not found` },
+      { error: "Không tìm thấy đơn hàng" },
       { status: 404 }
     );
   }
@@ -142,6 +143,17 @@ export async function POST(req: NextRequest) {
       console.error("[Admin Confirm] Affiliate attribution error:", affErr);
     }
   }
+
+  // Audit log for order confirmation
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  await logAudit({
+    admin_id: user.id,
+    action: "order.confirm",
+    target_type: "order",
+    target_id: order.id,
+    details: { order_code: order.order_code, amount: order.amount },
+    ip_address: ip,
+  });
 
   return NextResponse.json({
     success: true,

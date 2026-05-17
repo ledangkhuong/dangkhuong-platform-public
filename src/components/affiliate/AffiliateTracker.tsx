@@ -35,7 +35,7 @@ export default function AffiliateTracker() {
 
     // Set first-party cookie 90 ngày
     const expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toUTCString();
-    document.cookie = `dk_ref=${refCode};path=/;expires=${expires};SameSite=Lax`;
+    document.cookie = `dk_ref=${refCode};path=/;expires=${expires};SameSite=Lax;Secure`;
   }, [searchParams]);
 
   return null;

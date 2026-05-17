@@ -7,7 +7,7 @@ interface TurnstileWidgetProps {
   onExpire?: () => void;
   onError?: () => void;
   className?: string;
-  /** Timeout in ms before auto-bypassing. Default 3000ms */
+  /** Timeout in ms before showing load error. Default 10000ms */
   timeout?: number;
 }
 
@@ -37,7 +37,7 @@ export default function TurnstileWidget({
   onExpire,
   onError,
   className = "",
-  timeout = 3000,
+  timeout = 10000,
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -56,13 +56,13 @@ export default function TurnstileWidget({
   );
 
   const handleError = useCallback(() => {
-    // On Turnstile error, auto-bypass so user can still login
+    // On Turnstile error, don't bypass - show error and let user retry
     if (!verifiedRef.current) {
-      verifiedRef.current = true;
-      onVerify("__turnstile_error__");
+      console.warn("[Turnstile] Widget encountered an error");
+      setTimedOut(true);
       onError?.();
     }
-  }, [onVerify, onError]);
+  }, [onError]);
 
   const renderWidget = useCallback(() => {
     if (
@@ -85,17 +85,17 @@ export default function TurnstileWidget({
   }, [siteKey, handleVerify, onExpire, handleError]);
 
   useEffect(() => {
-    // Timeout: if Turnstile doesn't verify within timeout, bypass it
+    // Timeout: if Turnstile doesn't load within timeout, show error
     const timer = setTimeout(() => {
       if (!verifiedRef.current) {
+        console.warn("[Turnstile] Widget load timeout");
         setTimedOut(true);
-        verifiedRef.current = true;
-        onVerify("__turnstile_timeout__");
+        // Don't set any token - keep the form disabled
       }
     }, timeout);
 
     return () => clearTimeout(timer);
-  }, [timeout, onVerify]);
+  }, [timeout]);
 
   useEffect(() => {
     // If Turnstile is already loaded, render immediately
@@ -138,8 +138,23 @@ export default function TurnstileWidget({
 
   if (!siteKey) return null;
 
-  // If timed out, hide the widget completely
-  if (timedOut) return null;
+  // If timed out or errored, show a message and let user retry
+  if (timedOut) {
+    return (
+      <div className={className}>
+        <p className="text-sm text-red-400">
+          Security check failed to load.{" "}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="underline text-red-300 hover:text-red-200"
+          >
+            Reload page to retry
+          </button>
+        </p>
+      </div>
+    );
+  }
 
   return <div ref={containerRef} className={className} />;
 }

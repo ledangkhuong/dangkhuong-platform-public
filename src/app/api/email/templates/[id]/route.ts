@@ -13,16 +13,16 @@ export async function GET(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
-    const adminSupabase = await createAdminClient();
 
     const { data, error } = await adminSupabase
       .from("email_templates")
@@ -56,12 +56,13 @@ export async function PUT(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
@@ -98,8 +99,6 @@ export async function PUT(
 
     updates.updated_at = new Date().toISOString();
 
-    const adminSupabase = await createAdminClient();
-
     const { data, error } = await adminSupabase
       .from("email_templates")
       .update(updates)
@@ -108,7 +107,7 @@ export async function PUT(
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to update template" }, { status: 500 });
     }
 
     if (!data) {
@@ -137,16 +136,16 @@ export async function DELETE(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await supabase
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    if (!["admin", "manager"].includes(profile?.role ?? ""))
+    if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
-    const adminSupabase = await createAdminClient();
 
     const { error } = await adminSupabase
       .from("email_templates")
@@ -154,7 +153,7 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to delete template" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

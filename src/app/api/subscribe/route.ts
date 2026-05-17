@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/subscribe — public newsletter subscription (no auth required)
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  const rateLimitResult = rateLimit(`subscribe:${ip}`, 5, 60);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const { email, name, phone, source, tags: customTags, turnstile_token } = body;
