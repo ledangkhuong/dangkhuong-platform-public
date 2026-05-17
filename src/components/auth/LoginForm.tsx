@@ -1,20 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PasswordInput from "@/components/auth/PasswordInput";
-import TurnstileWidget from "@/components/TurnstileWidget";
 
 export default function LoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-
-  const handleVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,6 +18,15 @@ export default function LoginForm() {
     const form = new FormData(e.currentTarget);
     const email = form.get("email") as string;
     const password = form.get("password") as string;
+
+    // Honeypot: if bot filled the hidden field, silently reject
+    const honeypot = form.get("website") as string;
+    if (honeypot) {
+      // Fake success to not tip off bots
+      await new Promise((r) => setTimeout(r, 1500));
+      setLoading(false);
+      return;
+    }
 
     if (!email || !password) {
       setError("Vui lòng nhập email và mật khẩu");
@@ -35,7 +38,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, turnstile_token: turnstileToken }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (data.success) {
@@ -72,6 +75,11 @@ export default function LoginForm() {
         <PasswordInput name="password" placeholder="••••••••" />
       </div>
 
+      {/* Honeypot — hidden from real users, bots auto-fill it */}
+      <div className="absolute -left-[9999px] -top-[9999px]" aria-hidden="true" tabIndex={-1}>
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" className="w-4 h-4 rounded" style={{ accentColor: "#D4A843" }} />
@@ -81,9 +89,6 @@ export default function LoginForm() {
           Quên mật khẩu?
         </Link>
       </div>
-
-      {/* Turnstile CAPTCHA */}
-      <TurnstileWidget onVerify={handleVerify} />
 
       <button
         type="submit"

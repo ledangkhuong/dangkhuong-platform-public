@@ -218,6 +218,64 @@ export async function sendAffiliateCommissionEmail(
   );
 }
 
+export async function sendLoginNotificationEmail(
+  to: string,
+  name: string,
+  ip: string,
+  userAgent: string,
+  loginTime: string,
+) {
+  // Parse browser/OS from user-agent (simplified)
+  let browser = "Không xác định";
+  let os = "Không xác định";
+
+  if (userAgent) {
+    if (userAgent.includes("Chrome")) browser = "Chrome";
+    else if (userAgent.includes("Firefox")) browser = "Firefox";
+    else if (userAgent.includes("Safari")) browser = "Safari";
+    else if (userAgent.includes("Edge")) browser = "Edge";
+
+    if (userAgent.includes("Windows")) os = "Windows";
+    else if (userAgent.includes("Mac")) os = "macOS";
+    else if (userAgent.includes("Linux")) os = "Linux";
+    else if (userAgent.includes("Android")) os = "Android";
+    else if (userAgent.includes("iPhone") || userAgent.includes("iPad")) os = "iOS";
+  }
+
+  return sesSendEmail(
+    to,
+    `🔐 Đăng nhập mới vào tài khoản của bạn`,
+    baseTemplate(`
+      <h1>Phát hiện đăng nhập mới 🔐</h1>
+      <p>Xin chào <span class="highlight">${name}</span>,</p>
+      <p>Tài khoản của bạn vừa được đăng nhập thành công từ một thiết bị:</p>
+      <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <span style="color:#6b7280;font-size:12px;">Thời gian</span>
+          <span style="color:#fff;font-size:13px;">${loginTime}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <span style="color:#6b7280;font-size:12px;">Trình duyệt</span>
+          <span style="color:#fff;font-size:13px;">${browser}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <span style="color:#6b7280;font-size:12px;">Hệ điều hành</span>
+          <span style="color:#fff;font-size:13px;">${os}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:#6b7280;font-size:12px;">Địa chỉ IP</span>
+          <span style="color:#9ca3af;font-family:monospace;font-size:13px;">${ip}</span>
+        </div>
+      </div>
+      <p>Nếu đây là bạn, không cần làm gì thêm.</p>
+      <p style="color:#ef4444;font-weight:600;">Nếu không phải bạn, hãy đổi mật khẩu ngay:</p>
+      <a href="https://dangkhuong.com/forgot-password" class="btn">Đổi mật khẩu →</a>
+      <div class="divider"></div>
+      <p style="margin:0;font-size:12px;color:#4b5563;">Email này được gửi tự động mỗi khi có đăng nhập mới để bảo vệ tài khoản của bạn.</p>
+    `),
+  );
+}
+
 export async function sendVerificationEmail(to: string, name: string, confirmUrl: string) {
   const html = baseTemplate(`
     <h1>Xin chào ${name}! 👋</h1>

@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { verifyTurnstile } from "@/lib/turnstile";
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/rate-limit";
+import { sendLoginNotificationEmail } from "@/lib/email/resend";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, turnstile_token } = await req.json();
+    const { email, password } = await req.json();
 
-    // Verify Turnstile CAPTCHA
-    const turnstileOk = await verifyTurnstile(turnstile_token);
-    if (!turnstileOk) {
+    // Get client IP for rate limiting
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+
+    // Check rate limit before attempting login
+    const rateCheck = checkRateLimit(ip);
+    if (!rateCheck.allowed) {
       return NextResponse.json(
-        { error: "Xác minh CAPTCHA thất bại. Vui lòng thử lại." },
-        { status: 400 }
+        {
+          error: `Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau ${Math.ceil(rateCheck.retryAfterSec / 60)} phút.`,
+        },
+        { status: 429 }
       );
     }
 
@@ -29,16 +38,28 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) {
+      // Record failed attempt for rate limiting
+      recordFailedAttempt(ip);
+
+      // Show remaining attempts warning when getting close
+      const updatedCheck = checkRateLimit(ip);
+      let errorMsg = "Email hoặc mật khẩu không đúng";
+      if (updatedCheck.remainingAttempts <= 2 && updatedCheck.remainingAttempts > 0) {
+        errorMsg += `. Còn ${updatedCheck.remainingAttempts} lần thử.`;
+      }
+
       return NextResponse.json(
-        { error: error.message },
+        { error: errorMsg },
         { status: 401 }
       );
     }
 
+    // Login successful — reset rate limit for this IP
+    resetRateLimit(ip);
+
     // Update last_login and award XP (best-effort)
-    // Use user from signInWithPassword response directly (more reliable than getUser)
+    const userId = signInData?.user?.id;
     try {
-      const userId = signInData?.user?.id;
       if (userId) {
         const admin = await createAdminClient();
         const { error: updateErr } = await admin
@@ -56,6 +77,41 @@ export async function POST(req: NextRequest) {
       }
     } catch (e) {
       console.error("last_login/XP update error:", e);
+    }
+
+    // Send login notification email (non-blocking, best-effort)
+    try {
+      if (userId) {
+        const admin = await createAdminClient();
+        const { data: profile } = await admin
+          .from("profiles")
+          .select("full_name")
+          .eq("id", userId)
+          .single();
+
+        const userAgent = req.headers.get("user-agent") || "";
+        const loginTime = new Date().toLocaleString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Asia/Ho_Chi_Minh",
+        });
+
+        // Fire-and-forget — don't await
+        sendLoginNotificationEmail(
+          email,
+          profile?.full_name || "bạn",
+          ip,
+          userAgent,
+          loginTime,
+        ).catch((err) => console.error("Login notification email error:", err));
+      }
+    } catch (e) {
+      // Non-critical — silently ignore
+      console.error("Login notification setup error:", e);
     }
 
     return NextResponse.json({ success: true });
