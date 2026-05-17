@@ -58,6 +58,9 @@ export async function generateMetadata({
       description,
       images: product.thumbnail ? [product.thumbnail] : undefined,
     },
+    alternates: {
+      canonical: `/sales/${slug}`,
+    },
   };
 }
 

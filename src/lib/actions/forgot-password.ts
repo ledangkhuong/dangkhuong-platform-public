@@ -59,9 +59,7 @@ export async function forgotPassword(formData: FormData) {
         // fallback to email prefix
       }
 
-      console.log("[Forgot Password] Sending reset email to:", email);
       const result = await sendPasswordResetEmail(email, name, resetUrl);
-      console.log("[Forgot Password] Email sent successfully");
     } else {
       console.error("[Forgot Password] No action_link in response");
     }

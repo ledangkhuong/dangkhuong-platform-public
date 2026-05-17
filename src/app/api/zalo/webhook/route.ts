@@ -52,20 +52,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    // Verify webhook signature if secret key is configured
+    // Verify webhook signature — reject if secret key is not configured
     const secretKey = process.env.ZALO_OA_SECRET_KEY;
-    if (secretKey) {
-      const timestamp = body.timestamp as string | undefined;
-      const signature = req.headers.get("X-ZEvent-Signature") || "";
-      if (timestamp && signature) {
-        const mac = crypto
-          .createHmac("sha256", secretKey)
-          .update(rawBody)
-          .digest("hex");
-        if (signature !== `mac=${mac}`) {
-          console.warn("[Zalo Webhook] Invalid signature");
-          return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-        }
+    if (!secretKey) {
+      console.error("[Zalo Webhook] ZALO_OA_SECRET_KEY not configured — rejecting request");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+    }
+
+    const timestamp = body.timestamp as string | undefined;
+    const signature = req.headers.get("X-ZEvent-Signature") || "";
+    if (timestamp && signature) {
+      const mac = crypto
+        .createHmac("sha256", secretKey)
+        .update(rawBody)
+        .digest("hex");
+      if (signature !== `mac=${mac}`) {
+        console.warn("[Zalo Webhook] Invalid signature");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
       }
     }
 
@@ -82,7 +85,8 @@ export async function POST(req: NextRequest) {
         if (!follower?.id) break;
 
         const zaloUserId = follower.id;
-        console.log("[Zalo Webhook] User followed OA:", zaloUserId, info?.name);
+        // Log without PII
+        console.log("[Zalo Webhook] User followed OA");
 
         // Try to match by phone number if available
         if (info?.phone) {

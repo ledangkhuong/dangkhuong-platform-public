@@ -22,7 +22,13 @@ export async function POST(req: NextRequest) {
   if (!profile || !["admin", "manager"].includes(profile.role))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { type, items } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  const { type, items } = body;
 
   if (!type || !items || !Array.isArray(items)) {
     return NextResponse.json(

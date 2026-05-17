@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
 import { Clock, Eye, ArrowRight, Tag, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import NewsletterForm from "@/components/blog/NewsletterForm";
+
+export const metadata: Metadata = {
+  title: "Blog — Lê Đăng Khương Academy",
+  description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",
+  alternates: { canonical: "/blog" },
+};
 
 function formatVietnameseDate(dateStr: string | null): string {
   if (!dateStr) return "";

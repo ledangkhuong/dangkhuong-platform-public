@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 
 /**
@@ -30,6 +31,16 @@ function generateOrderCode(prefix: string = "SE", length = 12): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 5 registrations per IP per 10 minutes
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = await rateLimit(`sloweng-reg:${ip}`, 5, 600);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const { full_name, email, phone, password, turnstile_token } = body;

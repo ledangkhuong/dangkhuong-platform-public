@@ -14,7 +14,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/community`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${BASE}/leaderboard`, lastModified: new Date(), changeFrequency: "daily", priority: 0.5 },
     { url: `${BASE}/events`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${BASE}/cafe`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/cafe`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/sanphamso`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/slowenglish`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/privacy-policy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/terms-of-service`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE}/login`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE}/register`, changeFrequency: "monthly", priority: 0.3 },
   ];
@@ -46,5 +50,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...blogPages, ...coursePages];
+  // ── Sales pages ────────────────────────────────────────────────
+  const salesPages: MetadataRoute.Sitemap = (courses ?? []).map((c) => ({
+    url: `${BASE}/sales/${c.slug}`,
+    lastModified: new Date(c.updated_at || c.created_at),
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...blogPages, ...coursePages, ...salesPages];
 }

@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const rl = await rateLimit(`unsub-get:${ip}`, 10, 60);
     if (!rl.allowed) {
       return NextResponse.json(
-        { error: "Too many requests" },
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
         {
           status: 429,
           headers: { "Retry-After": String(rl.retryAfterSec) },
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     if (!email) {
       return NextResponse.json(
-        { error: "email is required" },
+        { error: "Email là bắt buộc" },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
     if (error || !subscriber) {
       return NextResponse.json(
-        { error: "Subscriber not found" },
+        { error: "Không tìm thấy người đăng ký" },
         { status: 404 }
       );
     }
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     const rl = await rateLimit(`unsub-post:${ip}`, 5, 60);
     if (!rl.allowed) {
       return NextResponse.json(
-        { error: "Too many requests" },
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
         {
           status: 429,
           headers: { "Retry-After": String(rl.retryAfterSec) },
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     if (!email) {
       return NextResponse.json(
-        { error: "email is required" },
+        { error: "Email là bắt buộc" },
         { status: 400 }
       );
     }
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
 
     if (subError || !subscriber) {
       return NextResponse.json(
-        { error: "Subscriber not found" },
+        { error: "Không tìm thấy người đăng ký" },
         { status: 404 }
       );
     }

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import PageTracker from "@/components/analytics/PageTracker";
 import FacebookPixel from "@/components/analytics/FacebookPixel";
@@ -6,6 +7,13 @@ import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: `${siteConfig.owner.name} — ${siteConfig.tagline}`,
@@ -58,7 +66,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang="vi" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased min-h-screen" style={{ background: "#0a0a0a", color: "#f5f5f5" }} suppressHydrationWarning>
         {/* Skip to main content — accessibility */}
         <a

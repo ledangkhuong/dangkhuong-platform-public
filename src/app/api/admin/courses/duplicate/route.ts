@@ -23,7 +23,13 @@ export async function POST(req: NextRequest) {
   if (profile?.role !== "admin")
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { course_id } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  const { course_id } = body;
   if (!course_id)
     return NextResponse.json(
       { error: "course_id is required" },
