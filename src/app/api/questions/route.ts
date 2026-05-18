@@ -39,11 +39,44 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Có lỗi xảy ra khi tải câu hỏi. Vui lòng thử lại." }, { status: 500 });
   }
 
+  // Extract unique product_ids and lesson_ids from tags to resolve names
+  const productIds = new Set<string>();
+  const lessonIds = new Set<string>();
+  for (const post of data ?? []) {
+    const tags = (post.tags ?? []) as string[];
+    // tags format: ["_q", product_id, lesson_id?]
+    if (tags[1]) productIds.add(tags[1]);
+    if (tags[2]) lessonIds.add(tags[2]);
+  }
+
+  // Batch fetch product & lesson names
+  const productMap: Record<string, string> = {};
+  const lessonMap: Record<string, { title: string; product_id: string }> = {};
+
+  if (productIds.size > 0) {
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, name")
+      .in("id", Array.from(productIds));
+    for (const p of products ?? []) productMap[p.id] = p.name;
+  }
+
+  if (lessonIds.size > 0) {
+    const { data: lessons } = await supabase
+      .from("lessons")
+      .select("id, title, product_id")
+      .in("id", Array.from(lessonIds));
+    for (const l of lessons ?? []) lessonMap[l.id] = { title: l.title, product_id: l.product_id };
+  }
+
   // Transform to Q&A format
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const questions = (data ?? []).map((post: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const replies = (post.comments ?? []) as any[];
+    const tags = (post.tags ?? []) as string[];
+    const pId = tags[1] || null;
+    const lId = tags[2] || null;
 
     // Sort replies by created_at ascending
     replies.sort(
@@ -57,10 +90,22 @@ export async function GET(req: NextRequest) {
       created_at: post.created_at,
       user_id: post.user_id,
       profiles: Array.isArray(post.profiles) ? post.profiles[0] : post.profiles,
+      // Course & lesson context
+      product_id: pId,
+      lesson_id: lId,
+      course_name: pId ? (productMap[pId] ?? null) : null,
+      lesson_name: lId ? (lessonMap[lId]?.title ?? null) : null,
       // First reply is the "answer" from staff
       reply: replies.length > 0 ? replies[0].content : null,
       replier: replies.length > 0 ? replies[0].profiles : null,
       replied_at: replies.length > 0 ? replies[0].created_at : null,
+      // All replies for multi-reply view
+      all_replies: replies.map((r: any) => ({
+        id: r.id,
+        content: r.content,
+        created_at: r.created_at,
+        profiles: r.profiles,
+      })),
       status: replies.length > 0 ? "answered" : "pending",
       reply_count: replies.length,
     };

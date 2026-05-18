@@ -12,7 +12,16 @@ import {
   Clock,
   Filter,
   MessageSquare,
+  BookOpen,
+  PlayCircle,
 } from "lucide-react";
+
+interface Reply {
+  id: string;
+  content: string;
+  created_at: string;
+  profiles: { full_name: string | null; avatar_url: string | null } | null;
+}
 
 interface Question {
   id: string;
@@ -22,8 +31,13 @@ interface Question {
   created_at: string;
   replied_at: string | null;
   profiles: { full_name: string | null; avatar_url: string | null } | null;
-  replier: { full_name: string | null } | null;
+  replier: { full_name: string | null; avatar_url: string | null } | null;
   reply_count: number;
+  course_name: string | null;
+  lesson_name: string | null;
+  product_id: string | null;
+  lesson_id: string | null;
+  all_replies: Reply[];
 }
 
 function timeAgo(iso: string): string {
@@ -205,6 +219,24 @@ export default function AdminQuestionsPage() {
           <div className="space-y-4">
             {questions.map((q) => (
               <div key={q.id} className="card-dark p-5 space-y-3">
+                {/* Course & Lesson context */}
+                {(q.course_name || q.lesson_name) && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {q.course_name && (
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <BookOpen size={10} />
+                        {q.course_name}
+                      </span>
+                    )}
+                    {q.lesson_name && (
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        <PlayCircle size={10} />
+                        {q.lesson_name}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
@@ -268,34 +300,37 @@ export default function AdminQuestionsPage() {
                   {q.content}
                 </p>
 
-                {/* Reply */}
-                {q.reply ? (
-                  <div
-                    className="ml-11 rounded-lg p-3"
-                    style={{
-                      background: "rgba(212,168,67,0.06)",
-                      border: "1px solid rgba(212,168,67,0.15)",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <CheckCircle2
-                        size={12}
-                        className="text-[#D4A843]"
-                      />
-                      <span className="text-[10px] font-medium text-[#D4A843]">
-                        {q.replier?.full_name ?? "Staff"}
-                      </span>
-                      {q.replied_at && (
-                        <span className="text-[10px] text-gray-600">
-                          • {timeAgo(q.replied_at)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-300 whitespace-pre-line">
-                      {q.reply}
-                    </p>
+                {/* All Replies */}
+                {q.all_replies && q.all_replies.length > 0 && (
+                  <div className="ml-11 space-y-2">
+                    {q.all_replies.map((r) => (
+                      <div
+                        key={r.id}
+                        className="rounded-lg p-3"
+                        style={{
+                          background: "rgba(212,168,67,0.06)",
+                          border: "1px solid rgba(212,168,67,0.15)",
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <CheckCircle2 size={12} className="text-[#D4A843]" />
+                          <span className="text-[10px] font-medium text-[#D4A843]">
+                            {r.profiles?.full_name ?? "Staff"}
+                          </span>
+                          <span className="text-[10px] text-gray-600">
+                            • {timeAgo(r.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-300 whitespace-pre-line">
+                          {r.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ) : replyingId === q.id ? (
+                )}
+
+                {/* Reply form */}
+                {replyingId === q.id ? (
                   <div className="ml-11 space-y-2">
                     <textarea
                       value={replyContent}
