@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+// Routes where the cookie banner should never appear (long-form sales pages)
+const HIDE_ON_PATHS = ["/hocchuaxongtiendave"];
 
 export interface CookiePreferences {
   essential: true;
@@ -95,16 +99,22 @@ function Toggle({
 }
 
 export default function CookieConsent() {
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
 
+  const hidden = HIDE_ON_PATHS.some((p) => pathname?.startsWith(p));
+
   useEffect(() => {
+    if (hidden) return;
     if (!hasConsentDecision()) {
       setShow(true);
     }
-  }, []);
+  }, [hidden]);
+
+  if (hidden) return null;
 
   /** Persist preferences and dispatch change events. */
   const savePreferences = (prefs: CookiePreferences) => {
