@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   const { data: order, error: orderErr } = await admin
     .from("orders")
     .select("*, products(*)")
-    .eq("order_code", order_code.toUpperCase())
+    .eq("order_code", order_code.trim())
     .single();
 
   if (orderErr || !order) {

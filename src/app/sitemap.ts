@@ -6,10 +6,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createAdminClient();
 
-  // Fetch all courses
+  // Fetch only published courses (admin client bypasses RLS)
   const { data: courses } = await supabase
     .from("products")
-    .select("slug, updated_at");
+    .select("slug, updated_at")
+    .eq("status", "published");
 
   // Fetch all published blog posts
   const { data: blogPosts } = await supabase

@@ -78,16 +78,23 @@ export async function POST(req: NextRequest) {
 
     // Extract all possible order codes to try
     // IMPORTANT: Preserve original case — order codes are case-sensitive (nanoid)
+    // Formats encountered:
+    //   Old: transfer_content = "DK{DKxxx}" (double DK) → content = "DKDKa3Bf9Kx2Mn"
+    //   New: transfer_content = "{DKxxx}" (single)      → content = "DKa3Bf9Kx2Mn"
+    //   SP:  transfer_content = "DK{SPxxx}"             → content = "DKSPTSXecPUjukw2"
     const rawCode = (code || "").trim();
-    const contentMatch = (content || "").match(/DK([A-Za-z0-9]+)/i);
+    const fullContent = (content || "").trim();
+    const contentMatch = fullContent.match(/DK([A-Za-z0-9]+)/i);
     const contentCode = contentMatch?.[1] || "";
 
     // Build list of candidates to try (deduplicated)
     const candidates = [...new Set([
       rawCode,                                    // SePay code field as-is
       rawCode.replace(/^DK/i, ""),                // Strip DK prefix (case-insensitive)
-      contentCode,                                // Regex extract from content (after DK)
-      contentCode.replace(/^DK/i, ""),            // Strip another DK if double-prefixed
+      contentCode,                                // Regex extract from content (after first DK)
+      contentCode.replace(/^DK/i, ""),            // Strip another DK if double-prefixed (old format)
+      fullContent,                                // Full content as-is (new format: content IS the code)
+      fullContent.replace(/^DK/i, ""),            // Full content minus DK prefix
     ])].filter(Boolean);
 
     console.log("[Sepay] Order code candidates:", candidates, "| content:", content, "| code:", code);

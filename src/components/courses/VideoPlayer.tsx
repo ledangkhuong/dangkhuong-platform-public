@@ -264,7 +264,8 @@ export default function VideoPlayer({
           }
 
           // Save watch_sec every 10 seconds (fire-and-forget)
-          if (lessonId && productId) {
+          // Skip if auto-complete just fired to avoid concurrent upsert race condition
+          if (lessonId && productId && !autoCompletedRef.current) {
             const now = Date.now();
             if (now - lastSaveTimeRef.current >= 10_000) {
               lastSaveTimeRef.current = now;
