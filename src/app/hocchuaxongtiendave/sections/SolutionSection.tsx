@@ -52,7 +52,7 @@ const PROFIT_SCENARIOS = [
 export default function SolutionSection() {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#0A1020" }}
     >
       {/* Local CSS for animations */}
@@ -62,8 +62,8 @@ export default function SolutionSection() {
           100% { background-position: 200% 50%; }
         }
         @keyframes card-glow {
-          0%, 100% { box-shadow: 0 0 0 1px rgba(229,182,99,0.55), 0 0 32px rgba(229,182,99,0.18); }
-          50% { box-shadow: 0 0 0 1px rgba(244,217,168,0.85), 0 0 48px rgba(229,182,99,0.32); }
+          0%, 100% { box-shadow: 0 0 0 2px rgba(229,182,99,0.45), 0 0 32px rgba(229,182,99,0.18); }
+          50% { box-shadow: 0 0 0 2px rgba(244,217,168,0.75), 0 0 48px rgba(229,182,99,0.32); }
         }
         @keyframes chev-bounce {
           0%, 100% { transform: translateY(0); }
@@ -85,7 +85,7 @@ export default function SolutionSection() {
                       border-color 320ms ease;
         }
         .product-card:hover {
-          transform: translateY(-6px);
+          transform: translateY(-4px);
           border-color: rgba(229,182,99,0.55) !important;
           box-shadow: 0 18px 40px -18px rgba(0,0,0,0.6),
                       0 0 0 1px rgba(229,182,99,0.35),
@@ -101,9 +101,9 @@ export default function SolutionSection() {
 
       <div className="mx-auto max-w-6xl">
         {/* Tag */}
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold"
             style={{
               borderColor: "rgba(229,182,99,0.3)",
               background: "rgba(229,182,99,0.06)",
@@ -115,13 +115,16 @@ export default function SolutionSection() {
         </div>
 
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Học Chưa Xong - <span style={{ color: "#E5B663" }}>Tiền Đã Về</span>
         </h2>
 
-        <p className="mx-auto max-w-3xl text-center text-base sm:text-lg leading-[1.75] mb-12" style={{ color: "rgba(241,245,251,0.65)" }}>
+        <p
+          className="mx-auto max-w-3xl text-center text-[14px] sm:text-base leading-[1.7] mb-10"
+          style={{ color: "rgba(241,245,251,0.65)" }}
+        >
           Chương trình đào tạo <strong className="text-white">duy nhất tại Việt Nam</strong> giúp bạn tự xây
           toàn bộ hệ thống bán SẢN PHẨM SỐ bằng AI Agent — trong 7 đến 30 ngày.
         </p>
@@ -134,18 +137,21 @@ export default function SolutionSection() {
             border: "1px solid rgba(229,182,99,0.2)",
           }}
         >
-          <p className="text-[14px] sm:text-[15px] leading-[1.75]" style={{ color: "rgba(241,245,251,0.78)" }}>
+          <p
+            className="text-[14px] sm:text-[15px] leading-[1.7]"
+            style={{ color: "rgba(241,245,251,0.78)" }}
+          >
             Bán bất kỳ sản phẩm số nào — TẤT CẢ trên một hệ thống duy nhất do{" "}
             <strong className="text-white">BẠN sở hữu 100%</strong>. Không cần biết code. Không cần thuê dev. Không cần đốt tiền nền tảng.
           </p>
         </div>
 
         {/* === Process diagram === */}
-        <div className="mb-14">
-          <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-white">
+        <div className="mb-12">
+          <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-white tracking-[-0.005em]">
             🧭 Lộ trình 4 bước
           </h3>
-          <p className="text-center text-sm mb-8" style={{ color: "rgba(241,245,251,0.55)" }}>
+          <p className="text-center text-[13px] sm:text-sm mb-6" style={{ color: "rgba(241,245,251,0.55)" }}>
             Từ con số 0 đến cỗ máy tự động bán hàng
           </p>
 
@@ -156,7 +162,7 @@ export default function SolutionSection() {
               border: "1px solid rgba(229,182,99,0.18)",
             }}
           >
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-0">
               {PROCESS_STEPS.map((step, idx) => {
                 const Icon = step.icon;
                 return (
@@ -165,7 +171,7 @@ export default function SolutionSection() {
                     <div className="flex flex-col items-center text-center flex-1 sm:flex-none">
                       <div className="relative">
                         <div
-                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
+                          className="w-14 h-14 sm:w-14 sm:h-14 rounded-full flex items-center justify-center"
                           style={{
                             background:
                               "radial-gradient(circle at 30% 30%, #F4D9A8 0%, #E5B663 55%, #C9A86B 100%)",
@@ -176,7 +182,7 @@ export default function SolutionSection() {
                           <Icon size={22} style={{ color: "#0A1020" }} strokeWidth={2.5} />
                         </div>
                         <div
-                          className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold"
+                          className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold tabular-nums"
                           style={{
                             background: "#0A1020",
                             color: "#E5B663",
@@ -186,7 +192,10 @@ export default function SolutionSection() {
                           {step.n}
                         </div>
                       </div>
-                      <div className="mt-3 text-[13px] sm:text-sm font-semibold whitespace-nowrap" style={{ color: "#F1F5FB" }}>
+                      <div
+                        className="mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.16em] font-semibold whitespace-nowrap"
+                        style={{ color: "#F1F5FB" }}
+                      >
                         {step.label}
                       </div>
                     </div>
@@ -194,10 +203,10 @@ export default function SolutionSection() {
                     {/* Connector line — hidden after last step */}
                     {idx < PROCESS_STEPS.length - 1 && (
                       <>
-                        {/* Horizontal line on sm+ */}
-                        <div className="hidden sm:block flex-1 mx-2 h-[2px] rounded-full process-line" />
+                        {/* Horizontal line on sm+ — tightened margin */}
+                        <div className="hidden sm:block flex-1 mx-1.5 h-[2px] rounded-full process-line" />
                         {/* Vertical chev on mobile */}
-                        <div className="sm:hidden w-full flex justify-center my-1">
+                        <div className="sm:hidden w-full flex justify-center my-0.5">
                           <ChevronDown size={18} style={{ color: "#E5B663" }} />
                         </div>
                       </>
@@ -210,11 +219,11 @@ export default function SolutionSection() {
         </div>
 
         {/* === Product types === */}
-        <div className="mb-14">
-          <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-white">
+        <div className="mb-12">
+          <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-white tracking-[-0.005em]">
             💎 Hệ thống này bán được những gì?
           </h3>
-          <p className="text-center text-sm mb-8" style={{ color: "rgba(241,245,251,0.55)" }}>
+          <p className="text-center text-[13px] sm:text-sm mb-6" style={{ color: "rgba(241,245,251,0.55)" }}>
             Một hệ thống — bán được TẤT CẢ
           </p>
 
@@ -224,17 +233,17 @@ export default function SolutionSection() {
                 return (
                   <div
                     key={p.type}
-                    className="product-card featured-card relative rounded-2xl p-6 sm:col-span-2 lg:row-span-2 lg:col-span-2 flex flex-col justify-between"
+                    className="product-card featured-card relative rounded-2xl p-5 sm:col-span-2 lg:row-span-2 lg:col-span-2 flex flex-col justify-between"
                     style={{
                       background:
                         "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(229,182,99,0.14) 0%, transparent 70%), linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
-                      border: "1px solid rgba(229,182,99,0.55)",
+                      border: "2px solid rgba(229,182,99,0.45)",
                       minHeight: "220px",
                     }}
                   >
                     {/* Ribbon */}
                     <div
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide whitespace-nowrap"
+                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] uppercase tracking-[0.18em] font-bold whitespace-nowrap"
                       style={{
                         background: "linear-gradient(90deg, #E5B663 0%, #F4D9A8 50%, #E5B663 100%)",
                         color: "#0A1020",
@@ -247,9 +256,14 @@ export default function SolutionSection() {
                     <div>
                       <div className="flex items-center gap-3 mb-3 mt-2">
                         <span className="text-4xl sm:text-5xl">{p.icon}</span>
-                        <h4 className="text-xl sm:text-2xl font-extrabold text-white">{p.type}</h4>
+                        <h4 className="text-xl sm:text-2xl font-extrabold text-white tracking-[-0.01em]">
+                          {p.type}
+                        </h4>
                       </div>
-                      <p className="text-[14px] sm:text-[15px] mb-4" style={{ color: "rgba(241,245,251,0.72)" }}>
+                      <p
+                        className="text-[12.5px] sm:text-[13px] leading-[1.55] mb-4"
+                        style={{ color: "rgba(241,245,251,0.72)" }}
+                      >
                         {p.example}
                       </p>
 
@@ -269,7 +283,7 @@ export default function SolutionSection() {
                     </div>
 
                     <div
-                      className="inline-block self-start text-sm font-bold px-3 py-1.5 rounded-md"
+                      className="inline-flex items-center self-start text-[11px] sm:text-[12px] font-semibold tabular-nums px-3 py-1.5 rounded-md h-7"
                       style={{
                         background: "rgba(229,182,99,0.15)",
                         color: "#F4D9A8",
@@ -284,7 +298,7 @@ export default function SolutionSection() {
               return (
                 <div
                   key={p.type}
-                  className="product-card rounded-2xl p-5"
+                  className="product-card rounded-2xl p-5 flex flex-col"
                   style={{
                     background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
                     border: "1px solid rgba(229,182,99,0.12)",
@@ -292,13 +306,18 @@ export default function SolutionSection() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-2xl">{p.icon}</span>
-                    <h4 className="text-base font-bold text-white">{p.type}</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-white tracking-[-0.005em]">
+                      {p.type}
+                    </h4>
                   </div>
-                  <p className="text-[13px] mb-3" style={{ color: "rgba(241,245,251,0.6)" }}>
+                  <p
+                    className="text-[12.5px] sm:text-[13px] leading-[1.55] mb-3 flex-1"
+                    style={{ color: "rgba(241,245,251,0.6)" }}
+                  >
                     {p.example}
                   </p>
                   <div
-                    className="inline-block text-xs font-semibold px-2.5 py-1 rounded-md"
+                    className="inline-flex items-center self-start text-[11px] sm:text-[12px] font-semibold tabular-nums px-2.5 py-1 rounded-md h-7"
                     style={{
                       background: "rgba(229,182,99,0.1)",
                       color: "#E5B663",
@@ -324,23 +343,26 @@ export default function SolutionSection() {
         >
           <div className="flex items-center gap-2 mb-6 justify-center sm:justify-start">
             <Target size={20} style={{ color: "#E5B663" }} />
-            <h3 className="text-lg sm:text-xl font-bold text-white">
+            <h3 className="text-lg sm:text-xl font-bold text-white tracking-[-0.005em]">
               Trong chương trình này, bạn sẽ học được:
             </h3>
           </div>
 
-          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {BENEFITS.map((b, i) => (
               <li
                 key={i}
-                className="flex items-start gap-3.5 rounded-xl p-4"
+                className="flex items-start gap-3 rounded-xl p-4"
                 style={{
                   background: "rgba(229,182,99,0.04)",
                   border: "1px solid rgba(229,182,99,0.08)",
                 }}
               >
                 <Sparkles className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: "#E5B663" }} />
-                <span className="text-[14px] sm:text-[15px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.85)" }}>
+                <span
+                  className="text-[14px] sm:text-[14.5px] leading-[1.7]"
+                  style={{ color: "rgba(241,245,251,0.85)" }}
+                >
                   {b}
                 </span>
               </li>
@@ -350,7 +372,7 @@ export default function SolutionSection() {
 
         {/* === Profit calculator === */}
         <div
-          className="mt-10 rounded-2xl p-6 sm:p-8"
+          className="mt-12 rounded-2xl p-6 sm:p-8"
           style={{
             background:
               "radial-gradient(ellipse 100% 70% at 50% 0%, rgba(229,182,99,0.12) 0%, transparent 70%), linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
@@ -359,11 +381,11 @@ export default function SolutionSection() {
         >
           <div className="flex items-center gap-2 mb-2 justify-center">
             <Calculator size={20} style={{ color: "#E5B663" }} />
-            <h3 className="text-lg sm:text-xl font-bold text-white text-center">
+            <h3 className="text-lg sm:text-xl font-bold text-white text-center tracking-[-0.005em]">
               Tổng hợp lợi nhuận tiềm năng
             </h3>
           </div>
-          <p className="text-center text-sm mb-6" style={{ color: "rgba(241,245,251,0.6)" }}>
+          <p className="text-center text-[13px] sm:text-sm mb-6" style={{ color: "rgba(241,245,251,0.6)" }}>
             3 kịch bản — cùng một hệ thống bạn xây
           </p>
 
@@ -371,23 +393,31 @@ export default function SolutionSection() {
             {PROFIT_SCENARIOS.map((s) => (
               <div
                 key={s.product}
-                className="rounded-xl p-5 text-center"
+                className="rounded-xl p-5 text-center flex flex-col items-center justify-between min-h-[180px]"
                 style={{
-                  background: "linear-gradient(180deg, rgba(229,182,99,0.10) 0%, rgba(229,182,99,0.03) 100%)",
+                  background:
+                    "linear-gradient(180deg, rgba(229,182,99,0.10) 0%, rgba(229,182,99,0.03) 100%)",
                   border: "1px solid rgba(229,182,99,0.3)",
                 }}
               >
                 <div className="text-3xl mb-2">{s.emoji}</div>
-                <div className="text-[13px] font-semibold mb-1" style={{ color: "rgba(241,245,251,0.7)" }}>
+                <div
+                  className="text-[13px] font-semibold mb-1"
+                  style={{ color: "rgba(241,245,251,0.7)" }}
+                >
                   {s.product}
                 </div>
-                <div className="text-[12px] mb-3" style={{ color: "rgba(241,245,251,0.55)" }}>
+                <div
+                  className="text-[12px] tabular-nums mb-3"
+                  style={{ color: "rgba(241,245,251,0.55)" }}
+                >
                   {s.math}
                 </div>
                 <div
-                  className="text-2xl sm:text-[28px] font-extrabold"
+                  className="text-xl sm:text-2xl font-extrabold tabular-nums"
                   style={{
-                    background: "linear-gradient(90deg, #F4D9A8 0%, #E5B663 50%, #C9A86B 100%)",
+                    background:
+                      "linear-gradient(90deg, #F4D9A8 0%, #E5B663 50%, #C9A86B 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -401,8 +431,11 @@ export default function SolutionSection() {
         </div>
 
         {/* === CTA bridge === */}
-        <div className="mt-12 flex flex-col items-center text-center">
-          <p className="text-[15px] sm:text-base font-medium" style={{ color: "rgba(241,245,251,0.85)" }}>
+        <div className="mt-8 flex flex-col items-center text-center">
+          <p
+            className="text-[13px] sm:text-sm font-medium leading-[1.7]"
+            style={{ color: "rgba(241,245,251,0.85)" }}
+          >
             Vậy chương trình này dạy gì? Cuộn xuống xem{" "}
             <span style={{ color: "#E5B663", fontWeight: 700 }}>50 bài học chi tiết</span> →
           </p>

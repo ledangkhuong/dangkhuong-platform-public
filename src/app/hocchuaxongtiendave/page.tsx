@@ -16,10 +16,10 @@ export const metadata: Metadata = {
     url: "https://dangkhuong.com/hocchuaxongtiendave",
     images: [
       {
-        url: "https://dangkhuong.com/images/about/portrait.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Học Chưa Xong - Tiền Đã Về — Thầy Lê Đăng Khương",
+        url: "https://dangkhuong.com/images/hocchuaxongtiendave/banner.jpeg",
+        width: 1024,
+        height: 576,
+        alt: "Học Chưa Xong - Tiền Đã Về — Tạo sản phẩm số bán chạy nhất trong ngách của bạn · Trainer Lê Đăng Khương",
       },
     ],
   },

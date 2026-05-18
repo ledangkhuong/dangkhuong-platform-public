@@ -157,13 +157,13 @@ const MODULES = [
 export default function ModulesSection() {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#050913" }}
     >
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
             style={{
               borderColor: "rgba(229,182,99,0.3)",
               background: "rgba(229,182,99,0.06)",
@@ -175,20 +175,20 @@ export default function ModulesSection() {
         </div>
 
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
+          className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold leading-[1.15]"
           style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
         >
           Toàn Bộ Lộ Trình{" "}
           <span style={{ color: "#E5B663" }}>50 Bài Học</span>
         </h2>
         <p
-          className="mb-14 text-center text-base sm:text-lg"
+          className="mb-10 sm:mb-12 text-center text-[14px] sm:text-base leading-[1.7]"
           style={{ color: "rgba(241,245,251,0.65)" }}
         >
           25-30 giờ video chi tiết · Dẫn dắt qua 4 MODULE từ A đến Z
         </p>
 
-        <div className="space-y-8 sm:space-y-10">
+        <div className="space-y-6 sm:space-y-8">
           {MODULES.map((mod) => {
             const Icon = mod.icon;
             return (
@@ -202,7 +202,7 @@ export default function ModulesSection() {
               >
                 {/* Header */}
                 <div
-                  className="p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5"
+                  className="p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5"
                   style={{
                     background: "linear-gradient(135deg, rgba(229,182,99,0.1) 0%, transparent 100%)",
                     borderBottom: "1px solid rgba(229,182,99,0.12)",
@@ -210,21 +210,27 @@ export default function ModulesSection() {
                 >
                   <div className="flex items-center gap-4 flex-shrink-0">
                     <div
-                      className="flex h-14 w-14 items-center justify-center rounded-2xl"
+                      className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl flex-shrink-0"
                       style={{ background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)" }}
                     >
-                      <Icon size={26} style={{ color: "#0A1020" }} />
+                      <Icon className="h-6 w-6 sm:h-[26px] sm:w-[26px]" style={{ color: "#0A1020" }} />
                     </div>
-                    <div className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em]" style={{ color: "#E5B663" }}>
+                    <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "#E5B663" }}>
                       Module {mod.number}
                     </div>
                   </div>
 
-                  <div className="flex-1">
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 leading-tight">
+                  <div className="flex-1 min-w-0">
+                    <h3
+                      className="text-lg sm:text-xl md:text-2xl font-bold mb-1.5 leading-[1.25]"
+                      style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+                    >
                       {mod.title}
                     </h3>
-                    <p className="text-[12px] sm:text-[13px] uppercase tracking-[0.12em]" style={{ color: "rgba(241,245,251,0.55)" }}>
+                    <p
+                      className="text-[11px] sm:text-[12px] uppercase tracking-[0.12em]"
+                      style={{ color: "rgba(241,245,251,0.55)" }}
+                    >
                       {mod.meta}
                     </p>
                   </div>
@@ -236,44 +242,44 @@ export default function ModulesSection() {
                       border: "1px solid rgba(229,182,99,0.2)",
                     }}
                   >
-                    <div className="text-[10px] uppercase tracking-[0.18em] mb-1" style={{ color: "rgba(229,182,99,0.7)" }}>
+                    <div className="text-[10px] uppercase tracking-[0.18em] mb-1 font-semibold" style={{ color: "rgba(229,182,99,0.7)" }}>
                       Giá trị
                     </div>
-                    <div className="text-lg font-extrabold" style={{ color: "#E5B663" }}>
+                    <div className="text-base sm:text-lg font-extrabold tabular-nums" style={{ color: "#E5B663" }}>
                       {mod.value}
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6 sm:p-8">
+                <div className="p-5 sm:p-7">
                   {/* Result */}
                   <div
-                    className="rounded-xl p-4 sm:p-5 mb-6"
+                    className="rounded-xl p-4 sm:p-5 mb-5"
                     style={{
                       background: "rgba(52,211,153,0.05)",
                       border: "1px solid rgba(52,211,153,0.2)",
                     }}
                   >
-                    <div className="text-[11px] uppercase tracking-[0.18em] mb-1.5 font-semibold" style={{ color: "#34D399" }}>
+                    <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] mb-1.5 font-semibold" style={{ color: "#34D399" }}>
                       Kết quả sau Module
                     </div>
-                    <p className="text-[14px] sm:text-[15px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.85)" }}>
+                    <p className="text-[13.5px] sm:text-[14.5px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.85)" }}>
                       {mod.result}
                     </p>
                   </div>
 
                   {/* Lessons */}
                   {mod.lessons && (
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
                       {mod.lessons.map((lesson) => (
                         <li key={lesson} className="flex items-start gap-2.5">
                           <span
-                            className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                            className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
                             style={{ background: "rgba(229,182,99,0.15)", border: "1px solid rgba(229,182,99,0.3)" }}
                           >
                             <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#E5B663" }} />
                           </span>
-                          <span className="text-[14px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.78)" }}>
+                          <span className="text-[13.5px] sm:text-[14px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.78)" }}>
                             {lesson}
                           </span>
                         </li>
@@ -283,22 +289,25 @@ export default function ModulesSection() {
 
                   {/* Sections (for module 3 & 4) */}
                   {mod.sections && (
-                    <div className="space-y-5">
+                    <div className="space-y-4">
                       {mod.sections.map((sec) => (
                         <div key={sec.title}>
-                          <h4 className="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.12em] mb-3" style={{ color: "#E5B663" }}>
+                          <h4
+                            className="text-[12px] sm:text-[13px] font-bold uppercase tracking-[0.12em] mb-2.5"
+                            style={{ color: "#E5B663" }}
+                          >
                             {sec.title}
                           </h4>
                           <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
                             {sec.items.map((it) => (
                               <li key={it} className="flex items-start gap-2.5">
                                 <span
-                                  className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
-                                  style={{ background: "rgba(229,182,99,0.12)" }}
+                                  className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                                  style={{ background: "rgba(229,182,99,0.12)", border: "1px solid rgba(229,182,99,0.25)" }}
                                 >
                                   <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#E5B663" }} />
                                 </span>
-                                <span className="text-[13.5px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.74)" }}>
+                                <span className="text-[13.5px] sm:text-[14px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.74)" }}>
                                   {it}
                                 </span>
                               </li>
@@ -309,22 +318,31 @@ export default function ModulesSection() {
                     </div>
                   )}
 
-                  {/* Value note */}
+                  {/* Value note — mobile bottom row */}
                   <div
-                    className="mt-6 lg:hidden flex items-center justify-between rounded-xl px-4 py-3"
+                    className="mt-5 lg:hidden flex items-center justify-between gap-3 rounded-xl px-4 py-3"
                     style={{
                       background: "rgba(229,182,99,0.06)",
-                      border: "1px solid rgba(229,182,99,0.18)",
+                      border: "1px solid rgba(229,182,99,0.2)",
                     }}
                   >
-                    <span className="text-[12px] sm:text-[13px]" style={{ color: "rgba(241,245,251,0.7)" }}>
+                    <span
+                      className="text-[12.5px] sm:text-[13px] italic"
+                      style={{ color: "rgba(241,245,251,0.7)" }}
+                    >
                       💎 {mod.note}
                     </span>
-                    <span className="text-base font-extrabold" style={{ color: "#E5B663" }}>
+                    <span
+                      className="text-base sm:text-lg font-extrabold tabular-nums flex-shrink-0"
+                      style={{ color: "#E5B663" }}
+                    >
                       {mod.value}
                     </span>
                   </div>
-                  <p className="mt-4 hidden lg:block text-[13px] italic" style={{ color: "rgba(241,245,251,0.55)" }}>
+                  <p
+                    className="mt-4 hidden lg:block text-[12.5px] sm:text-[13px] italic"
+                    style={{ color: "rgba(241,245,251,0.55)" }}
+                  >
                     💎 {mod.note}
                   </p>
                 </div>
@@ -335,27 +353,28 @@ export default function ModulesSection() {
 
         {/* Total */}
         <div
-          className="mt-10 sm:mt-12 rounded-2xl p-6 sm:p-8 text-center"
+          className="mt-10 rounded-2xl p-6 sm:p-8 text-center"
           style={{
-            background: "linear-gradient(135deg, rgba(229,182,99,0.15) 0%, rgba(229,182,99,0.04) 100%)",
+            background: "linear-gradient(135deg, rgba(229,182,99,0.18) 0%, rgba(229,182,99,0.04) 100%)",
             border: "1px solid rgba(229,182,99,0.4)",
           }}
         >
-          <div className="text-[11px] uppercase tracking-[0.2em] mb-2" style={{ color: "#E5B663" }}>
+          <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] mb-2 font-semibold" style={{ color: "#E5B663" }}>
             Tổng giá trị 4 Module
           </div>
           <div
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-2"
+            className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-2 tabular-nums"
             style={{
               background: "linear-gradient(135deg, #E5B663 0%, #F4D9A8 50%, #C9A86B 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
+              letterSpacing: "-0.02em",
             }}
           >
             62.000.000đ
           </div>
-          <p className="text-sm sm:text-base" style={{ color: "rgba(241,245,251,0.65)" }}>
+          <p className="text-[13.5px] sm:text-[14.5px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.65)" }}>
             50 bài học · 28 giờ video · 4 module hoàn chỉnh
           </p>
         </div>

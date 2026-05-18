@@ -60,11 +60,14 @@ const BONUSES = [
 const TOTAL_BONUS_VALUE = "16.479.000đ";
 
 /* ---------- Mockup previews (pure CSS / inline) ---------- */
+/* All previews are wrapped in a fixed-height shell so the 6 cards line up. */
+
+const PREVIEW_SHELL_CLASS = "h-[120px] sm:h-[124px] overflow-hidden";
 
 function PromptPreview() {
   return (
     <div
-      className="rounded-lg p-3 font-mono text-[11px] leading-[1.55] space-y-1 border"
+      className="h-full rounded-lg p-3 font-mono text-[11px] leading-[1.55] space-y-1 border"
       style={{
         background: "#070C1A",
         borderColor: "rgba(229,182,99,0.18)",
@@ -99,7 +102,7 @@ function PromptPreview() {
 function CodeEditorPreview() {
   return (
     <div
-      className="rounded-lg overflow-hidden border text-[10px] font-mono"
+      className="h-full rounded-lg overflow-hidden border text-[10px] font-mono flex flex-col"
       style={{
         background: "#070C1A",
         borderColor: "rgba(229,182,99,0.18)",
@@ -117,7 +120,7 @@ function CodeEditorPreview() {
         </span>
         <span style={{ color: "rgba(241,245,251,0.4)" }}>main</span>
       </div>
-      <div className="flex">
+      <div className="flex flex-1 min-h-0">
         <div
           className="w-[42%] p-2 space-y-1 border-r"
           style={{ borderColor: "rgba(229,182,99,0.1)", color: "rgba(241,245,251,0.7)" }}
@@ -157,13 +160,13 @@ function CodeEditorPreview() {
 function LmsPreview() {
   return (
     <div
-      className="rounded-lg overflow-hidden border"
+      className="h-full rounded-lg overflow-hidden border"
       style={{
         background: "#070C1A",
         borderColor: "rgba(229,182,99,0.18)",
       }}
     >
-      <div className="flex h-[92px]">
+      <div className="flex h-full">
         {/* Sidebar */}
         <div
           className="w-[34%] p-2 space-y-1.5 border-r"
@@ -225,7 +228,7 @@ function CanvaPreview() {
   ];
   return (
     <div
-      className="rounded-lg p-2.5 grid grid-cols-2 gap-2 border"
+      className="h-full rounded-lg p-2.5 grid grid-cols-2 gap-2 border"
       style={{
         background: "#070C1A",
         borderColor: "rgba(229,182,99,0.18)",
@@ -234,7 +237,7 @@ function CanvaPreview() {
       {tiles.map((bg, i) => (
         <div
           key={i}
-          className="h-9 rounded-md relative overflow-hidden"
+          className="rounded-md relative overflow-hidden"
           style={{ background: bg }}
         >
           <div
@@ -253,7 +256,7 @@ function CanvaPreview() {
 function EmailPreview() {
   return (
     <div
-      className="rounded-lg p-3 border space-y-2"
+      className="h-full rounded-lg p-3 border space-y-2"
       style={{
         background: "#070C1A",
         borderColor: "rgba(229,182,99,0.18)",
@@ -293,7 +296,7 @@ function EmailPreview() {
   );
 }
 
-function GroupAvatarsPreview() {
+function ZaloPreview() {
   const avatars = [
     { i: "NK", bg: "linear-gradient(135deg,#E5B663,#C9A86B)" },
     { i: "TH", bg: "linear-gradient(135deg,#7DD3FC,#3B82F6)" },
@@ -302,7 +305,7 @@ function GroupAvatarsPreview() {
   ];
   return (
     <div
-      className="rounded-lg p-3 border flex items-center justify-between"
+      className="h-full rounded-lg p-3 border flex items-center justify-between"
       style={{
         background: "#070C1A",
         borderColor: "rgba(229,182,99,0.18)",
@@ -360,13 +363,13 @@ const PREVIEWS = [
   { node: <LmsPreview />, Icon: LayoutDashboard },
   { node: <CanvaPreview />, Icon: Palette },
   { node: <EmailPreview />, Icon: Mail },
-  { node: <GroupAvatarsPreview />, Icon: Users },
+  { node: <ZaloPreview />, Icon: Users },
 ];
 
 export default function BonusSection({ onScrollToRegister }: BonusSectionProps) {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{
         background:
           "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(229,182,99,0.08) 0%, transparent 70%), #0A1020",
@@ -397,9 +400,9 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
       `}</style>
 
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold"
             style={{
               borderColor: "rgba(229,182,99,0.4)",
               background: "rgba(229,182,99,0.08)",
@@ -411,8 +414,8 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
         </div>
 
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           CHƯA HẾT! Đăng Ký Hôm Nay
           <br className="hidden sm:block" />
@@ -422,7 +425,7 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
         </h2>
 
         <p
-          className="mb-14 text-center text-base sm:text-lg max-w-3xl mx-auto"
+          className="mb-12 text-center text-[14px] sm:text-base leading-[1.7] max-w-3xl mx-auto"
           style={{ color: "rgba(241,245,251,0.65)" }}
         >
           Mỗi bonus đều có thể bán riêng ra ngoài — nhưng tôi tặng hết cho bạn.
@@ -435,21 +438,21 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
             return (
               <div
                 key={bonus.title}
-                className="group relative rounded-2xl p-6 sm:p-7 transition-all duration-300 hover:translate-y-[-3px] overflow-hidden"
+                className="group relative rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:translate-y-[-3px] overflow-hidden flex flex-col"
                 style={{
                   background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
                   border: "1px solid rgba(229,182,99,0.2)",
                 }}
               >
-                {/* Diagonal "free gift" stamp on top-left corner */}
+                {/* Faint "free gift" stamp — top-left, doesn't compete with ribbon */}
                 <div
-                  className="pointer-events-none absolute -left-[46px] top-[18px] rotate-[-35deg] px-12 py-1 text-[8.5px] font-bold uppercase tracking-[0.18em]"
+                  className="pointer-events-none absolute -left-[52px] top-[14px] rotate-[-35deg] px-12 py-[3px] text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(229,182,99,0.22), rgba(229,182,99,0.08))",
-                    color: "rgba(244,217,168,0.85)",
-                    border: "1px dashed rgba(229,182,99,0.4)",
-                    opacity: 0.85,
+                      "linear-gradient(135deg, rgba(229,182,99,0.14), rgba(229,182,99,0.04))",
+                    color: "rgba(244,217,168,0.65)",
+                    border: "1px dashed rgba(229,182,99,0.28)",
+                    opacity: 0.6,
                   }}
                 >
                   Tặng kèm 100% miễn phí
@@ -457,7 +460,7 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
 
                 {/* Bonus # ribbon */}
                 <div
-                  className="absolute top-0 right-5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] rounded-b-md z-10"
+                  className="absolute top-0 right-5 px-3 py-1 text-[10px] uppercase tracking-[0.15em] font-bold rounded-b-md z-10"
                   style={{
                     background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
                     color: "#0A1020",
@@ -481,14 +484,19 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
                   </span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-bold mb-3 text-white leading-snug">
+                <h3
+                  className="text-[15px] sm:text-base font-bold tracking-[-0.005em] leading-[1.3] mb-3 text-white"
+                >
                   {bonus.title}
                 </h3>
 
-                {/* Preview mockup */}
-                <div className="mb-4">{preview.node}</div>
+                {/* Preview mockup — uniform height across all 6 cards */}
+                <div className={`mb-4 ${PREVIEW_SHELL_CLASS}`}>{preview.node}</div>
 
-                <p className="text-[14px] leading-[1.7] mb-5" style={{ color: "rgba(241,245,251,0.7)" }}>
+                <p
+                  className="text-[13.5px] sm:text-[14px] leading-[1.65] mb-5 flex-1"
+                  style={{ color: "rgba(241,245,251,0.7)" }}
+                >
                   {bonus.body}
                 </p>
 
@@ -497,12 +505,15 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
                   style={{ borderColor: "rgba(229,182,99,0.15)" }}
                 >
                   <span
-                    className="text-[11px] uppercase tracking-[0.15em]"
+                    className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em]"
                     style={{ color: "rgba(241,245,251,0.5)" }}
                   >
                     Giá trị
                   </span>
-                  <span className="text-lg font-extrabold" style={{ color: "#E5B663" }}>
+                  <span
+                    className="text-base sm:text-lg font-extrabold tabular-nums"
+                    style={{ color: "#E5B663" }}
+                  >
                     {bonus.value}
                   </span>
                 </div>
@@ -520,11 +531,14 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
             border: "1px solid rgba(229,182,99,0.45)",
           }}
         >
-          <div className="text-[11px] uppercase tracking-[0.2em] mb-3" style={{ color: "#E5B663" }}>
-            🧮 Tổng giá trị 6 Bonus
+          <div
+            className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] mb-3"
+            style={{ color: "#E5B663" }}
+          >
+            Tổng giá trị 6 Bonus
           </div>
           <div
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4"
+            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tabular-nums tracking-[-0.02em] mb-4"
             style={{
               background: "linear-gradient(135deg, #E5B663 0%, #F4D9A8 50%, #C9A86B 100%)",
               WebkitBackgroundClip: "text",
@@ -534,7 +548,10 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
           >
             {TOTAL_BONUS_VALUE}
           </div>
-          <p className="text-sm sm:text-base mb-6" style={{ color: "rgba(241,245,251,0.7)" }}>
+          <p
+            className="text-[14px] sm:text-base leading-[1.7] mb-6"
+            style={{ color: "rgba(241,245,251,0.7)" }}
+          >
             Tặng kèm 100% khi bạn đăng ký Early Bird hôm nay
           </p>
 
@@ -542,7 +559,7 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
             onClick={onScrollToRegister}
             className="group inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm sm:text-base font-bold tracking-wide transition-all hover:scale-[1.03] cursor-pointer"
             style={{
-              background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
+              background: "linear-gradient(135deg, #E5B663 0%, #F4D9A8 50%, #C9A86B 100%)",
               color: "#0A1020",
               boxShadow: "0 0 30px rgba(229,182,99,0.4)",
             }}

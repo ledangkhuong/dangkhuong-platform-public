@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import {
   XCircle,
-  AlertTriangle,
   CheckCircle2,
   TrendingDown,
   AlertOctagon,
@@ -72,7 +71,7 @@ export default function PainSection() {
 
   return (
     <section
-      className="pain-section relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="pain-section relative overflow-hidden pt-10 pb-14 sm:pt-14 sm:pb-20 md:pt-16 md:pb-24 px-4 sm:px-6"
       style={{ backgroundColor: "#0A1020" }}
     >
       <style jsx>{`
@@ -224,29 +223,15 @@ export default function PainSection() {
       <div className="pain-orb pain-orb-3" aria-hidden />
 
       <div className="relative mx-auto max-w-6xl">
-        {/* Tag */}
-        <div className="text-center mb-4">
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
-            style={{
-              borderColor: "rgba(239,68,68,0.3)",
-              background: "rgba(239,68,68,0.06)",
-              color: "#F87171",
-            }}
-          >
-            <AlertTriangle size={12} /> Khoét Nỗi Đau
-          </span>
-        </div>
-
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-5xl"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-4 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Nếu Bạn Đang Bán Sản Phẩm Số Online
         </h2>
         <p
-          className="mb-8 sm:mb-10 text-center text-base sm:text-lg max-w-3xl mx-auto"
-          style={{ color: "rgba(241,245,251,0.6)" }}
+          className="mb-8 text-center text-[14px] sm:text-base leading-[1.7] max-w-3xl mx-auto"
+          style={{ color: "rgba(241,245,251,0.55)" }}
         >
           (Ebook, Khóa học, Template, Phần mềm...) — Có phải bạn đang đối mặt{" "}
           <span style={{ color: "#E5B663" }} className="font-semibold">
@@ -256,10 +241,10 @@ export default function PainSection() {
         </p>
 
         {/* Live tally counter */}
-        <div className="mb-8 sm:mb-12 flex justify-center">
+        <div className="mb-10 flex justify-center">
           <div
             key={count}
-            className="pain-tally-pop inline-flex items-center gap-3 rounded-full px-5 py-2.5 text-sm sm:text-base"
+            className="pain-tally-pop inline-flex items-center gap-3 rounded-full px-5 py-2.5 text-sm sm:text-base font-semibold tabular-nums"
             style={{
               background:
                 count > 0
@@ -277,7 +262,7 @@ export default function PainSection() {
               size={18}
               style={{ color: count > 0 ? "#E5B663" : "rgba(241,245,251,0.4)" }}
             />
-            <span className="font-semibold">
+            <span className="tabular-nums">
               <span style={{ fontSize: "1.15em", fontWeight: 800 }}>
                 {count}
               </span>
@@ -286,7 +271,7 @@ export default function PainSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
           {PAIN_POINTS.map((pain, index) => {
             const isSelected = !!selected[index];
             const StatIcon =
@@ -297,7 +282,7 @@ export default function PainSection() {
                 type="button"
                 onClick={() => toggle(index)}
                 aria-pressed={isSelected}
-                className={`group text-left flex flex-col gap-3 rounded-2xl p-6 sm:p-7 transition-all duration-300 hover:translate-y-[-2px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B663]/60 ${
+                className={`group text-left flex flex-col gap-3 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:translate-y-[-2px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B663]/60 ${
                   index === PAIN_POINTS.length - 1
                     ? "md:col-span-2 md:max-w-2xl md:mx-auto md:w-full"
                     : ""
@@ -306,12 +291,21 @@ export default function PainSection() {
                   background: isSelected
                     ? "linear-gradient(180deg, rgba(229,182,99,0.08) 0%, #0E1730 100%)"
                     : "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
-                  border: isSelected
-                    ? "1px solid rgba(229,182,99,0.45)"
-                    : "1px solid rgba(239,68,68,0.15)",
-                  borderLeft: isSelected
-                    ? "3px solid #E5B663"
-                    : "3px solid #E63946",
+                  borderStyle: "solid",
+                  borderTopWidth: "1px",
+                  borderRightWidth: "1px",
+                  borderBottomWidth: "1px",
+                  borderLeftWidth: "3px",
+                  borderTopColor: isSelected
+                    ? "rgba(229,182,99,0.45)"
+                    : "rgba(239,68,68,0.15)",
+                  borderRightColor: isSelected
+                    ? "rgba(229,182,99,0.45)"
+                    : "rgba(239,68,68,0.15)",
+                  borderBottomColor: isSelected
+                    ? "rgba(229,182,99,0.45)"
+                    : "rgba(239,68,68,0.15)",
+                  borderLeftColor: isSelected ? "#E5B663" : "#E63946",
                   boxShadow: isSelected
                     ? "0 0 0 1px rgba(229,182,99,0.18), 0 12px 32px -16px rgba(229,182,99,0.35)"
                     : "none",
@@ -351,19 +345,26 @@ export default function PainSection() {
                         </div>
                       )}
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold mb-2.5 text-white">
+                    <h3
+                      className="text-base sm:text-lg font-bold tracking-[-0.005em] mb-2.5"
+                      style={{ color: "#F1F5FB" }}
+                    >
                       {pain.title}
                     </h3>
 
                     {/* Stat chip */}
                     <div className="mb-3">
                       <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold"
+                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold tracking-[0.02em]"
                         style={{
-                          background:
-                            "linear-gradient(180deg, rgba(229,182,99,0.14) 0%, rgba(201,168,107,0.06) 100%)",
-                          border: "1px solid rgba(229,182,99,0.35)",
-                          color: "#E5B663",
+                          background: isSelected
+                            ? "linear-gradient(180deg, rgba(229,182,99,0.14) 0%, rgba(201,168,107,0.06) 100%)"
+                            : "linear-gradient(180deg, rgba(248,113,113,0.12) 0%, rgba(230,57,70,0.05) 100%)",
+                          border: isSelected
+                            ? "1px solid rgba(229,182,99,0.35)"
+                            : "1px solid rgba(239,68,68,0.30)",
+                          color: isSelected ? "#E5B663" : "#F87171",
+                          transition: "all 300ms ease",
                         }}
                       >
                         <StatIcon size={12} strokeWidth={2.25} />
@@ -372,7 +373,7 @@ export default function PainSection() {
                     </div>
 
                     <p
-                      className="text-[14px] sm:text-[15px] leading-[1.75]"
+                      className="text-[14px] sm:text-[14.5px] leading-[1.7]"
                       style={{ color: "rgba(241,245,251,0.72)" }}
                     >
                       {pain.body}
@@ -386,7 +387,7 @@ export default function PainSection() {
 
         {/* Bottom quote */}
         <div
-          className={`mx-auto mt-12 sm:mt-16 max-w-3xl rounded-2xl p-6 sm:p-8 text-center transition-all duration-500 ${
+          className={`mx-auto mt-12 max-w-3xl rounded-2xl p-6 sm:p-8 text-center transition-all duration-500 ${
             veryIntense
               ? "pain-quote-shake"
               : intense
@@ -404,37 +405,38 @@ export default function PainSection() {
           }}
         >
           <p
-            className="text-[15px] sm:text-base leading-[1.8] mb-3"
+            className="text-[15px] sm:text-base leading-[1.75] mb-2.5"
             style={{ color: "rgba(241,245,251,0.85)" }}
           >
             <span className="text-2xl mr-1">💡</span> Vấn đề thật sự không phải bạn{" "}
             <em>thiếu sản phẩm</em> hay <em>chuyên môn</em>.
           </p>
           <p
-            className="text-lg sm:text-xl font-bold"
+            className="text-lg sm:text-xl font-bold tracking-[-0.005em]"
             style={{ color: "#E5B663" }}
           >
             Vấn đề là bạn THIẾU MỘT HỆ THỐNG.
           </p>
           <p
-            className="text-[14px] sm:text-[15px] mt-3 leading-relaxed"
-            style={{ color: "rgba(241,245,251,0.6)" }}
+            className="text-[14px] sm:text-[14.5px] mt-2.5 leading-[1.7]"
+            style={{ color: "rgba(241,245,251,0.55)" }}
           >
             Một hệ thống tự động hóa — bán được MỌI loại sản phẩm số — sở hữu
             100% — và TỰ TAY BẠN XÂY ĐƯỢC.
           </p>
 
           {/* CTA */}
-          <div className="mt-6 sm:mt-7">
+          <div className="mt-5">
             <button
               type="button"
               onClick={handleCTA}
-              className="inline-flex items-center gap-2 rounded-full px-5 sm:px-6 py-3 text-sm sm:text-base font-bold transition-all duration-300 hover:translate-y-[-1px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B663]/60"
+              className="inline-flex items-center gap-2 rounded-full px-5 sm:px-7 py-3 sm:py-3.5 text-sm sm:text-[15px] font-bold tracking-wide transition-all duration-300 hover:translate-y-[-1px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E5B663]/60"
               style={{
-                background: "linear-gradient(180deg, #E5B663 0%, #C9A86B 100%)",
+                background:
+                  "linear-gradient(180deg, #F4D9A8 0%, #E5B663 55%, #C9A86B 100%)",
                 color: "#0A1020",
                 boxShadow:
-                  "0 10px 28px -10px rgba(229,182,99,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
+                  "0 10px 28px -10px rgba(229,182,99,0.6), inset 0 1px 0 rgba(255,255,255,0.45)",
                 cursor: "pointer",
               }}
             >

@@ -10,7 +10,7 @@ import { randomBytes } from "crypto";
  * Body: { full_name, email, phone, password, turnstile_token }
  */
 
-const PRODUCT_SLUG = "hoc-chua-xong-tien-da-ve";
+const PRODUCT_SLUG = "hoc-chua-xong-tien-da-ve-tao-san-pham-so-ban-chay-trong-ngach-cua-ban";
 const PRODUCT_PRICE = 5000000; // 5.000.000đ — Early Bird
 
 function generateOrderCode(prefix: string = "HC", length = 12): string {

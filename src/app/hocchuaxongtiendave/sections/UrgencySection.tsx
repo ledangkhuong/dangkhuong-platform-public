@@ -104,7 +104,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
 
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#0A1020" }}
     >
       {/* Local CSS keyframes for pulse, fade, sticker wobble */}
@@ -122,8 +122,8 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
           100% { opacity: 1; transform: translateY(0); }
         }
         @keyframes urgWobble {
-          0%, 100% { transform: rotate(-8deg) scale(1); }
-          50% { transform: rotate(-6deg) scale(1.04); }
+          0%, 100% { transform: rotate(-6deg) scale(1); }
+          50% { transform: rotate(-4deg) scale(1.03); }
         }
         @keyframes urgStripPulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); border-color: rgba(230, 57, 70, 0.45); }
@@ -132,9 +132,9 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
       `}</style>
 
       <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
             style={{
               borderColor: "rgba(239,68,68,0.35)",
               background: "rgba(239,68,68,0.08)",
@@ -146,23 +146,23 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
         </div>
 
         <h2
-          className="mb-14 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-8 sm:mb-10 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Tại Sao Phải <span style={{ color: "#E5B663" }}>Quyết Định Ngay?</span>
         </h2>
 
         {/* 3 reasons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           {/* Seats counter */}
           <div
-            className="rounded-2xl p-6 sm:p-8"
+            className="rounded-2xl p-5 sm:p-7"
             style={{
               background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
               border: "1px solid rgba(229,182,99,0.25)",
             }}
           >
-            <div className="text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#E5B663" }}>
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#E5B663" }}>
               🔥 Lý do 1: Giá Early Bird
             </div>
             <h3 className="text-lg sm:text-xl font-bold text-white mb-4">
@@ -171,9 +171,9 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
 
             <div className="mb-3 flex items-center justify-between text-sm">
               <span style={{ color: "rgba(241,245,251,0.7)" }}>
-                Đã đăng ký: <strong className="text-white">{SEATS_TAKEN}/{SEATS_TOTAL}</strong>
+                Đã đăng ký: <strong className="text-white tabular-nums">{SEATS_TAKEN}/{SEATS_TOTAL}</strong>
               </span>
-              <span className="font-bold" style={{ color: "#E5B663" }}>
+              <span className="font-bold tabular-nums" style={{ color: "#E5B663" }}>
                 Còn {SEATS_LEFT} suất
               </span>
             </div>
@@ -194,7 +194,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
             {/* Avatar pile — 20 already registered */}
             <div className="mb-3">
               <div
-                className="text-[11px] uppercase tracking-[0.14em] mb-2 font-semibold"
+                className="text-[10px] uppercase tracking-[0.14em] mb-2 font-semibold"
                 style={{ color: "rgba(241,245,251,0.6)" }}
               >
                 20 người đã đăng ký
@@ -203,7 +203,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
                 {AVATARS.map((a, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-center rounded-full text-[10px] font-bold"
+                    className="flex items-center justify-center rounded-full text-[10px] sm:text-[11px] font-bold"
                     style={{
                       width: 26,
                       height: 26,
@@ -219,7 +219,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
                   </div>
                 ))}
                 <span
-                  className="ml-3 text-[12px] font-semibold"
+                  className="ml-3 text-[12px] font-semibold tabular-nums"
                   style={{ color: "rgba(241,245,251,0.7)" }}
                 >
                   + 80 chỗ trống
@@ -234,7 +234,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
 
           {/* Live activity feed (between reason 1 and reason 2) */}
           <div
-            className="rounded-2xl p-6 sm:p-8 flex flex-col justify-between"
+            className="rounded-2xl p-5 sm:p-7 flex flex-col justify-between"
             style={{
               background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
               border: "1px solid rgba(52,211,153,0.22)",
@@ -242,7 +242,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="text-[11px] uppercase tracking-[0.18em] font-semibold" style={{ color: "#34D399" }}>
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold" style={{ color: "#34D399" }}>
                   Hoạt động trực tiếp
                 </div>
                 <div className="flex items-center gap-2">
@@ -259,7 +259,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
                       style={{ background: "#34D399" }}
                     />
                   </span>
-                  <span className="text-[10px] uppercase tracking-[0.18em] font-bold" style={{ color: "#34D399" }}>
+                  <span className="text-[10px] uppercase tracking-[0.14em] font-bold" style={{ color: "#34D399" }}>
                     Live
                   </span>
                 </div>
@@ -278,7 +278,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
               >
                 <div
                   key={idx}
-                  className="w-full"
+                  className="w-full tabular-nums"
                   style={{
                     opacity: visible ? 1 : 0,
                     transition: "opacity 380ms ease",
@@ -302,7 +302,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
 
           {/* Countdown — full width on its row */}
           <div
-            className="rounded-2xl p-6 sm:p-8 md:col-span-2 relative"
+            className="rounded-2xl p-5 sm:p-7 md:col-span-2 relative"
             style={{
               background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
               border: "1px solid rgba(239,68,68,0.25)",
@@ -332,12 +332,12 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
                   }}
                 />
               </span>
-              <span className="text-[10px] uppercase tracking-[0.18em] font-bold" style={{ color: "#F87171" }}>
+              <span className="text-[10px] uppercase tracking-[0.14em] font-bold" style={{ color: "#F87171" }}>
                 LIVE · Còn lại
               </span>
             </div>
 
-            <div className="text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#F87171" }}>
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#F87171" }}>
               🔥 Lý do 2: Countdown đóng đăng ký
             </div>
             <h3 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -353,16 +353,16 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
               ].map((u) => (
                 <div
                   key={u.label}
-                  className="rounded-xl py-3 text-center"
+                  className="rounded-xl py-3 min-h-[78px] flex flex-col items-center justify-center text-center"
                   style={{
                     background: "rgba(239,68,68,0.06)",
                     border: "1px solid rgba(239,68,68,0.2)",
                   }}
                 >
-                  <div className="text-2xl sm:text-3xl font-extrabold tabular-nums" style={{ color: "#F87171" }}>
+                  <div className="text-2xl sm:text-3xl font-extrabold tabular-nums leading-none" style={{ color: "#F87171" }}>
                     {String(u.val).padStart(2, "0")}
                   </div>
-                  <div className="text-[10px] uppercase tracking-[0.15em]" style={{ color: "rgba(241,245,251,0.55)" }}>
+                  <div className="mt-1.5 text-[10px] uppercase tracking-[0.14em]" style={{ color: "rgba(241,245,251,0.55)" }}>
                     {u.label}
                   </div>
                 </div>
@@ -377,7 +377,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
 
         {/* Reason 3 — dramatic math card */}
         <div
-          className="rounded-2xl p-6 sm:p-8 mb-8 relative overflow-hidden"
+          className="rounded-2xl p-5 sm:p-7 mb-8 relative overflow-hidden"
           style={{
             background: "linear-gradient(135deg, rgba(229,182,99,0.08) 0%, rgba(229,182,99,0.02) 100%)",
             border: "1px solid rgba(229,182,99,0.25)",
@@ -389,8 +389,8 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
             style={{
               top: 18,
               right: 18,
-              width: 150,
-              height: 150,
+              width: 138,
+              height: 138,
               borderRadius: "50%",
               background: "radial-gradient(circle at 30% 30%, #F87171 0%, #E63946 70%)",
               color: "#fff",
@@ -403,12 +403,12 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
           >
             <div>
               <div className="text-[9px] uppercase tracking-[0.18em] font-bold opacity-90">Mỗi giờ mất</div>
-              <div className="text-[18px] font-extrabold">~71.000Đ</div>
+              <div className="text-[18px] font-extrabold tabular-nums">~71.000Đ</div>
               <div className="text-[9px] uppercase tracking-[0.18em] font-bold opacity-90">nếu trì hoãn</div>
             </div>
           </div>
 
-          <div className="text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold text-center" style={{ color: "#E5B663" }}>
+          <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold text-center" style={{ color: "#E5B663" }}>
             🔥 Lý do 3: Mỗi ngày trì hoãn = mỗi ngày mất tiền
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-white mb-5 text-center flex items-center justify-center gap-2">
@@ -418,42 +418,42 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             <div
-              className="rounded-xl p-5"
+              className="rounded-xl p-4 sm:p-5"
               style={{
                 background: "rgba(229,182,99,0.04)",
                 border: "1px solid rgba(229,182,99,0.12)",
               }}
             >
-              <div className="text-[11px] uppercase tracking-[0.12em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
+              <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
                 1 sản phẩm bán
               </div>
-              <div className="text-xl font-bold text-white">5.000.000đ / khóa</div>
+              <div className="text-xl font-bold text-white tabular-nums">5.000.000đ / khóa</div>
             </div>
             <div
-              className="rounded-xl p-5"
+              className="rounded-xl p-4 sm:p-5"
               style={{
                 background: "rgba(229,182,99,0.04)",
                 border: "1px solid rgba(229,182,99,0.12)",
               }}
             >
-              <div className="text-[11px] uppercase tracking-[0.12em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
+              <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
                 10 đơn/tháng
               </div>
-              <div className="text-xl font-bold" style={{ color: "#34D399" }}>
+              <div className="text-xl font-bold tabular-nums" style={{ color: "#34D399" }}>
                 = 50tr / tháng
               </div>
             </div>
             <div
-              className="rounded-xl p-5"
+              className="rounded-xl p-4 sm:p-5"
               style={{
                 background: "rgba(239,68,68,0.04)",
                 border: "1px solid rgba(239,68,68,0.15)",
               }}
             >
-              <div className="text-[11px] uppercase tracking-[0.12em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
+              <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
                 Mỗi ngày trì hoãn
               </div>
-              <div className="text-xl font-bold flex items-center justify-center gap-1.5" style={{ color: "#F87171" }}>
+              <div className="text-xl font-bold tabular-nums flex items-center justify-center gap-1.5" style={{ color: "#F87171" }}>
                 <TrendingDown size={18} />
                 ~1.700.000đ
               </div>

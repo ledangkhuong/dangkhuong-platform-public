@@ -24,13 +24,13 @@ const NOT_FOR_YOU = [
 export default function NotForYouSection() {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-20 md:py-24 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#050913" }}
     >
       <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
             style={{
               borderColor: "rgba(239,68,68,0.3)",
               background: "rgba(239,68,68,0.06)",
@@ -42,14 +42,14 @@ export default function NotForYouSection() {
         </div>
 
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Chương Trình Này <span style={{ color: "#F87171" }}>KHÔNG Dành Cho Ai?</span>
         </h2>
         <p
-          className="mb-12 text-center text-base sm:text-lg"
-          style={{ color: "rgba(241,245,251,0.6)" }}
+          className="mb-10 text-center text-[14px] sm:text-base leading-[1.7] max-w-2xl mx-auto"
+          style={{ color: "rgba(241,245,251,0.7)" }}
         >
           Tôi muốn rõ ràng — không phải ai cũng phù hợp:
         </p>
@@ -67,8 +67,16 @@ export default function NotForYouSection() {
             >
               <XCircle className="mt-0.5 h-6 w-6 flex-shrink-0" style={{ color: "#F87171" }} />
               <div>
-                <h3 className="text-[15px] sm:text-base font-bold mb-2 text-white">{item.title}</h3>
-                <p className="text-[13.5px] sm:text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.65)" }}>
+                <h3
+                  className="text-[15px] sm:text-base font-bold tracking-[-0.005em] mb-2 leading-tight"
+                  style={{ color: "rgba(241,245,251,0.95)" }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  className="text-[13.5px] sm:text-[14px] leading-[1.7]"
+                  style={{ color: "rgba(241,245,251,0.7)" }}
+                >
                   {item.body}
                 </p>
               </div>
@@ -83,7 +91,10 @@ export default function NotForYouSection() {
             border: "1px solid rgba(229,182,99,0.2)",
           }}
         >
-          <p className="text-[15px] sm:text-base" style={{ color: "rgba(241,245,251,0.85)" }}>
+          <p
+            className="text-[14px] sm:text-base leading-[1.7]"
+            style={{ color: "rgba(241,245,251,0.85)" }}
+          >
             👉 Nếu bạn KHÔNG thuộc nhóm trên — hãy cuộn xuống xem bạn sẽ nhận được gì.
           </p>
         </div>

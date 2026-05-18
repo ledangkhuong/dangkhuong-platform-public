@@ -59,13 +59,13 @@ export default function FAQSection() {
 
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#050913" }}
     >
       <div className="mx-auto max-w-3xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
             style={{
               borderColor: "rgba(229,182,99,0.3)",
               background: "rgba(229,182,99,0.06)",
@@ -77,13 +77,13 @@ export default function FAQSection() {
         </div>
 
         <h2
-          className="mb-14 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-8 sm:mb-10 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Bạn Còn <span style={{ color: "#E5B663" }}>Băn Khoăn?</span>
         </h2>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {FAQS.map((faq, i) => {
             const isOpen = open === i;
             return (
@@ -97,13 +97,13 @@ export default function FAQSection() {
               >
                 <button
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left cursor-pointer"
+                  className="w-full flex items-center justify-between gap-4 p-4 sm:p-5 text-left cursor-pointer"
                 >
-                  <span className="text-[15px] sm:text-base font-semibold text-white leading-snug">
+                  <span className="text-[15px] sm:text-base font-semibold text-white leading-[1.4]">
                     {faq.q}
                   </span>
                   <ChevronDown
-                    size={20}
+                    size={18}
                     className="flex-shrink-0 transition-transform"
                     style={{
                       color: "#E5B663",
@@ -112,8 +112,8 @@ export default function FAQSection() {
                   />
                 </button>
                 {isOpen && (
-                  <div className="px-5 sm:px-6 pb-5 sm:pb-6 -mt-1">
-                    <p className="text-[14px] sm:text-[15px] leading-[1.8]" style={{ color: "rgba(241,245,251,0.72)" }}>
+                  <div className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-1">
+                    <p className="text-[14px] sm:text-[14.5px] leading-[1.75]" style={{ color: "rgba(241,245,251,0.72)" }}>
                       {faq.a}
                     </p>
                   </div>

@@ -88,10 +88,10 @@ function KpiTile({
         border: "1px solid rgba(229,182,99,0.18)",
       }}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1.5">
         <span
           className="text-[10px] uppercase tracking-[0.16em] font-semibold"
-          style={{ color: "rgba(241,245,251,0.6)" }}
+          style={{ color: "rgba(241,245,251,0.55)" }}
         >
           {label}
         </span>
@@ -102,7 +102,7 @@ function KpiTile({
           {icon}
         </span>
       </div>
-      <div className="text-lg sm:text-xl font-extrabold" style={{ color: "#F1F5FB" }}>
+      <div className="text-base sm:text-lg font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>
         {value}
       </div>
       <Sparkline data={spark} color={color} />
@@ -113,7 +113,7 @@ function KpiTile({
 export default function StorySection() {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{
         background:
           "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(229,182,99,0.06) 0%, transparent 70%), #050913",
@@ -135,22 +135,22 @@ export default function StorySection() {
         </div>
 
         <h2
-          className="mb-6 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-4 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           10 Năm Trước, Tôi Đốt Gần{" "}
           <span style={{ color: "#E5B663" }}>1 Tỷ Đồng</span> Thuê Dev...
         </h2>
 
         <p
-          className="mb-12 sm:mb-16 text-center text-base sm:text-lg italic"
+          className="mb-10 text-center text-[15px] sm:text-base italic leading-[1.7]"
           style={{ color: "rgba(241,245,251,0.65)" }}
         >
           Bây giờ tôi tự làm trong 1 tuần. Đây là cách.
         </p>
 
         {/* Story body */}
-        <div className="space-y-5 text-[15px] sm:text-base leading-[1.85]" style={{ color: "rgba(241,245,251,0.78)" }}>
+        <div className="space-y-4 text-[14.5px] sm:text-[15px] leading-[1.85]" style={{ color: "rgba(241,245,251,0.78)" }}>
           <p>
             Tôi vẫn nhớ rõ ngày đó — cách đây khoảng 10 năm. Tôi có ý tưởng xây hệ thống bán khóa học online: website riêng, khu học viên, quản lý đơn hàng, thanh toán, cấp khóa tự động, chăm sóc khách hàng.
           </p>
@@ -162,25 +162,27 @@ export default function StorySection() {
           <div
             className="my-8 rounded-2xl p-6 sm:p-8"
             style={{
-              background: "linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 100%)",
-              border: "1px solid rgba(239,68,68,0.2)",
+              background: "linear-gradient(135deg, rgba(248,113,113,0.08) 0%, rgba(248,113,113,0.02) 100%)",
+              borderTop: "1px solid rgba(230,57,70,0.35)",
+              borderRight: "1px solid rgba(230,57,70,0.35)",
+              borderBottom: "1px solid rgba(230,57,70,0.35)",
               borderLeft: "4px solid #E63946",
             }}
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
               <div>
-                <div className="text-3xl sm:text-4xl font-extrabold mb-1" style={{ color: "#F87171" }}>
+                <div className="text-3xl sm:text-4xl font-extrabold tabular-nums mb-1" style={{ color: "#F87171" }}>
                   ~1 Tỷ
                 </div>
-                <div className="text-xs uppercase tracking-[0.18em]" style={{ color: "rgba(241,245,251,0.55)" }}>
+                <div className="text-[10px] uppercase tracking-[0.16em]" style={{ color: "rgba(241,245,251,0.55)" }}>
                   Tổng chi phí
                 </div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-extrabold mb-1" style={{ color: "#F87171" }}>
+                <div className="text-3xl sm:text-4xl font-extrabold tabular-nums mb-1" style={{ color: "#F87171" }}>
                   ~1 Năm
                 </div>
-                <div className="text-xs uppercase tracking-[0.18em]" style={{ color: "rgba(241,245,251,0.55)" }}>
+                <div className="text-[10px] uppercase tracking-[0.16em]" style={{ color: "rgba(241,245,251,0.55)" }}>
                   Thời gian làm
                 </div>
               </div>
@@ -188,7 +190,7 @@ export default function StorySection() {
                 <div className="text-3xl sm:text-4xl font-extrabold mb-1" style={{ color: "#F87171" }}>
                   Thất bại
                 </div>
-                <div className="text-xs uppercase tracking-[0.18em]" style={{ color: "rgba(241,245,251,0.55)" }}>
+                <div className="text-[10px] uppercase tracking-[0.16em]" style={{ color: "rgba(241,245,251,0.55)" }}>
                   Kết quả cuối
                 </div>
               </div>
@@ -196,10 +198,10 @@ export default function StorySection() {
           </div>
 
           {/* === NEW: Then vs Now timeline === */}
-          <div className="my-10 sm:my-12">
+          <div className="my-8">
             <div className="text-center mb-6">
               <span
-                className="inline-block text-[11px] uppercase tracking-[0.22em] font-semibold"
+                className="inline-block text-[10px] uppercase tracking-[0.16em] font-semibold"
                 style={{ color: "rgba(241,245,251,0.55)" }}
               >
                 So sánh trực tiếp
@@ -212,17 +214,17 @@ export default function StorySection() {
                 className="rounded-2xl p-5 sm:p-6"
                 style={{
                   background:
-                    "linear-gradient(160deg, rgba(230,57,70,0.18) 0%, rgba(230,57,70,0.04) 100%)",
+                    "linear-gradient(160deg, rgba(230,57,70,0.16) 0%, rgba(230,57,70,0.04) 100%)",
                   border: "1px solid rgba(230,57,70,0.35)",
                 }}
               >
                 <div
-                  className="text-[10px] uppercase tracking-[0.22em] font-bold mb-1"
+                  className="text-[10px] uppercase tracking-[0.16em] font-bold mb-1"
                   style={{ color: "#F87171" }}
                 >
                   2014 – 2024
                 </div>
-                <div className="text-lg sm:text-xl font-extrabold mb-4" style={{ color: "#F1F5FB" }}>
+                <div className="text-base sm:text-lg font-extrabold mb-4" style={{ color: "#F1F5FB" }}>
                   Thuê Dev
                 </div>
                 <ul className="space-y-2.5">
@@ -244,12 +246,12 @@ export default function StorySection() {
               </div>
 
               {/* Arrow (desktop) */}
-              <div className="hidden md:flex items-center justify-center">
+              <div className="hidden md:flex items-center justify-center self-center">
                 <div
                   className="flex h-12 w-12 items-center justify-center rounded-full"
                   style={{
                     background: "rgba(229,182,99,0.15)",
-                    border: "1px solid rgba(229,182,99,0.4)",
+                    border: "1px solid rgba(229,182,99,0.35)",
                     boxShadow: "0 0 24px rgba(229,182,99,0.25)",
                   }}
                 >
@@ -263,11 +265,10 @@ export default function StorySection() {
                   className="flex h-10 w-10 items-center justify-center rounded-full"
                   style={{
                     background: "rgba(229,182,99,0.15)",
-                    border: "1px solid rgba(229,182,99,0.4)",
-                    transform: "rotate(90deg)",
+                    border: "1px solid rgba(229,182,99,0.35)",
                   }}
                 >
-                  <MoveRight size={18} style={{ color: "#E5B663" }} />
+                  <MoveRight size={18} style={{ color: "#E5B663", transform: "rotate(90deg)" }} />
                 </div>
               </div>
 
@@ -276,18 +277,18 @@ export default function StorySection() {
                 className="rounded-2xl p-5 sm:p-6"
                 style={{
                   background:
-                    "linear-gradient(160deg, rgba(229,182,99,0.22) 0%, rgba(229,182,99,0.05) 100%)",
-                  border: "1px solid rgba(229,182,99,0.45)",
+                    "linear-gradient(160deg, rgba(229,182,99,0.18) 0%, rgba(229,182,99,0.04) 100%)",
+                  border: "1px solid rgba(229,182,99,0.35)",
                   boxShadow: "0 0 32px rgba(229,182,99,0.08)",
                 }}
               >
                 <div
-                  className="text-[10px] uppercase tracking-[0.22em] font-bold mb-1"
+                  className="text-[10px] uppercase tracking-[0.16em] font-bold mb-1"
                   style={{ color: "#E5B663" }}
                 >
                   2025
                 </div>
-                <div className="text-lg sm:text-xl font-extrabold mb-4" style={{ color: "#F1F5FB" }}>
+                <div className="text-base sm:text-lg font-extrabold mb-4" style={{ color: "#F1F5FB" }}>
                   Claude Code
                 </div>
                 <ul className="space-y-2.5">
@@ -315,7 +316,7 @@ export default function StorySection() {
             <em className="text-white">tôi có ý tưởng — nhưng bị KẸT bởi công nghệ</em>. Website lỗi liên tục, học viên không học được, không dám bán. Tôi thất bại ở dự án mình ấp ủ nhiều năm chỉ vì website lỗi.
           </p>
 
-          <p className="text-lg sm:text-xl font-semibold pt-4" style={{ color: "#E5B663" }}>
+          <p className="text-base sm:text-lg font-semibold pt-4" style={{ color: "#E5B663" }}>
             Nhưng rồi 2025 đến — AI Agent xuất hiện. Và mọi thứ thay đổi.
           </p>
 
@@ -328,11 +329,11 @@ export default function StorySection() {
 
           {/* === NEW: Hero stat card with clock icon === */}
           <div
-            className="my-6 rounded-2xl p-5 sm:p-7 flex items-center gap-4 sm:gap-5"
+            className="my-8 rounded-2xl p-5 sm:p-7 flex items-center gap-4 sm:gap-5"
             style={{
               background:
                 "linear-gradient(135deg, rgba(229,182,99,0.18) 0%, rgba(229,182,99,0.04) 100%)",
-              border: "1px solid rgba(229,182,99,0.4)",
+              border: "1px solid rgba(229,182,99,0.35)",
               boxShadow:
                 "0 0 40px rgba(229,182,99,0.12), inset 0 1px 0 rgba(244,217,168,0.15)",
             }}
@@ -341,21 +342,21 @@ export default function StorySection() {
               className="flex-shrink-0 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl"
               style={{
                 background: "rgba(229,182,99,0.22)",
-                border: "1px solid rgba(229,182,99,0.4)",
+                border: "1px solid rgba(229,182,99,0.35)",
               }}
             >
               <Clock size={26} style={{ color: "#F4D9A8" }} />
             </div>
             <div className="flex-1 min-w-0">
               <div
-                className="text-[10px] uppercase tracking-[0.22em] font-semibold mb-1"
+                className="text-[10px] uppercase tracking-[0.16em] font-semibold mb-1"
                 style={{ color: "#E5B663" }}
               >
                 Khoảnh khắc thay đổi
               </div>
               <div
-                className="text-lg sm:text-2xl md:text-[28px] font-extrabold leading-tight"
-                style={{ color: "#F4D9A8", letterSpacing: "-0.01em" }}
+                className="text-2xl sm:text-3xl font-extrabold tracking-[-0.01em] leading-[1.15]"
+                style={{ color: "#F4D9A8" }}
               >
                 1 TUẦN SAU TÔI CÓ HỆ THỐNG HOÀN CHỈNH
               </div>
@@ -365,7 +366,7 @@ export default function StorySection() {
 
         {/* System features */}
         <div
-          className="mt-10 rounded-2xl p-6 sm:p-8"
+          className="mt-8 rounded-2xl p-6 sm:p-8"
           style={{
             background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
             border: "1px solid rgba(229,182,99,0.18)",
@@ -379,11 +380,11 @@ export default function StorySection() {
               <li key={f} className="flex items-start gap-2.5">
                 <span
                   className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
-                  style={{ background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)" }}
+                  style={{ background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.3)" }}
                 >
                   <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#34D399" }} />
                 </span>
-                <span className="text-[14px] sm:text-[15px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.82)" }}>
+                <span className="text-[14px] sm:text-[15px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.78)" }}>
                   {f}
                 </span>
               </li>
@@ -408,7 +409,7 @@ export default function StorySection() {
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#34D399" }} />
             </div>
             <div
-              className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold"
+              className="text-[10px] uppercase tracking-[0.16em] font-semibold"
               style={{ color: "#E5B663" }}
             >
               Dashboard · Doanh Thu Tuần
@@ -449,7 +450,7 @@ export default function StorySection() {
 
           <div
             className="mt-4 text-center text-[11px] italic"
-            style={{ color: "rgba(241,245,251,0.45)" }}
+            style={{ color: "rgba(241,245,251,0.55)" }}
           >
             Ảnh chụp dashboard thật — số liệu tuần thử nghiệm
           </div>
@@ -473,30 +474,30 @@ export default function StorySection() {
             </div>
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <div className="text-[11px] uppercase tracking-[0.18em] mb-2" style={{ color: "#E5B663" }}>
+            <div className="text-[10px] uppercase tracking-[0.16em] font-semibold mb-2" style={{ color: "#E5B663" }}>
               Kết quả thực tế
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
+            <div className="text-2xl sm:text-3xl font-extrabold tabular-nums mb-2" style={{ color: "#F1F5FB" }}>
               45 TRIỆU doanh thu / 1 TUẦN
             </div>
-            <p className="text-sm sm:text-[15px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.75)" }}>
+            <p className="text-[14.5px] sm:text-[15px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.78)" }}>
               Thử nghiệm với 300 data khách hàng, chưa đẩy mạnh marketing. Hệ thống tự vận hành — tôi đi cà phê, đọc sách, đi tập, mà tiền vẫn về.
             </p>
           </div>
         </div>
 
         {/* === NEW: Tools pill row === */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <span
-            className="text-[10px] uppercase tracking-[0.2em] font-semibold mr-1"
-            style={{ color: "rgba(241,245,251,0.5)" }}
+            className="text-[10px] uppercase tracking-[0.16em] font-semibold mr-1"
+            style={{ color: "rgba(241,245,251,0.55)" }}
           >
             Built with
           </span>
           {TOOLS.map((tool) => (
             <span
               key={tool}
-              className="inline-flex items-center rounded-full px-3.5 py-1.5 text-[12px] sm:text-[13px] font-semibold"
+              className="inline-flex items-center rounded-full px-3 py-1.5 text-[12px] font-semibold tracking-[0.02em]"
               style={{
                 background: "linear-gradient(180deg, #13203F 0%, #0B1428 100%)",
                 border: "1px solid rgba(229,182,99,0.35)",
@@ -511,7 +512,7 @@ export default function StorySection() {
 
         {/* === NEW: Cost comparison mini-bar === */}
         <div
-          className="mt-10 rounded-2xl p-5 sm:p-7"
+          className="mt-8 rounded-2xl p-5 sm:p-7"
           style={{
             background: "linear-gradient(180deg, #0E1730 0%, #050913 100%)",
             border: "1px solid rgba(229,182,99,0.18)",
@@ -519,7 +520,7 @@ export default function StorySection() {
         >
           <div className="text-center mb-5">
             <div
-              className="text-[10px] uppercase tracking-[0.22em] font-semibold mb-1"
+              className="text-[10px] uppercase tracking-[0.16em] font-semibold mb-1"
               style={{ color: "#E5B663" }}
             >
               Chi phí xây hệ thống
@@ -533,10 +534,10 @@ export default function StorySection() {
             {/* THEN bar */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[12px] font-semibold uppercase tracking-[0.12em]" style={{ color: "#F87171" }}>
+                <span className="text-[13px] font-semibold uppercase tracking-[0.12em] tabular-nums" style={{ color: "#F87171" }}>
                   Khi xưa · Thuê Dev
                 </span>
-                <span className="text-sm sm:text-base font-extrabold" style={{ color: "#F87171" }}>
+                <span className="text-[13px] font-extrabold tabular-nums" style={{ color: "#F87171" }}>
                   1.000.000.000đ
                 </span>
               </div>
@@ -547,11 +548,12 @@ export default function StorySection() {
                     width: "100%",
                     background:
                       "linear-gradient(90deg, rgba(230,57,70,0.7) 0%, rgba(230,57,70,0.3) 100%)",
-                    border: "1px solid rgba(230,57,70,0.4)",
-                    borderLeft: "none",
+                    borderTop: "1px solid rgba(230,57,70,0.4)",
+                    borderRight: "1px solid rgba(230,57,70,0.4)",
+                    borderBottom: "1px solid rgba(230,57,70,0.4)",
                   }}
                 >
-                  <span className="text-[10px] uppercase tracking-[0.18em] font-bold text-white/80">
+                  <span className="text-[10px] uppercase tracking-[0.16em] font-bold tabular-nums" style={{ color: "rgba(241,245,251,0.85)" }}>
                     100%
                   </span>
                 </div>
@@ -561,10 +563,10 @@ export default function StorySection() {
             {/* NOW bar */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[12px] font-semibold uppercase tracking-[0.12em]" style={{ color: "#E5B663" }}>
+                <span className="text-[13px] font-semibold uppercase tracking-[0.12em] tabular-nums" style={{ color: "#E5B663" }}>
                   Bây giờ · Claude Code
                 </span>
-                <span className="text-sm sm:text-base font-extrabold" style={{ color: "#E5B663" }}>
+                <span className="text-[13px] font-extrabold tabular-nums" style={{ color: "#E5B663" }}>
                   ~5.000.000đ
                 </span>
               </div>
@@ -576,8 +578,9 @@ export default function StorySection() {
                     minWidth: "12px",
                     background:
                       "linear-gradient(90deg, #E5B663 0%, #F4D9A8 100%)",
-                    border: "1px solid rgba(229,182,99,0.5)",
-                    borderLeft: "none",
+                    borderTop: "1px solid rgba(229,182,99,0.5)",
+                    borderRight: "1px solid rgba(229,182,99,0.5)",
+                    borderBottom: "1px solid rgba(229,182,99,0.5)",
                     boxShadow: "0 0 16px rgba(229,182,99,0.4)",
                   }}
                 />
@@ -587,14 +590,14 @@ export default function StorySection() {
 
           <div
             className="mt-5 text-center text-[12px] sm:text-[13px] italic"
-            style={{ color: "rgba(241,245,251,0.6)" }}
+            style={{ color: "rgba(241,245,251,0.55)" }}
           >
             Rẻ hơn <span style={{ color: "#E5B663", fontWeight: 700 }}>200 lần</span> — và nhanh hơn 50 lần.
           </div>
         </div>
 
         <p
-          className="mt-10 text-center text-lg sm:text-xl font-semibold"
+          className="mt-10 text-center text-base sm:text-lg font-semibold"
           style={{ color: "rgba(241,245,251,0.9)" }}
         >
           Nếu tôi làm được — <span style={{ color: "#E5B663" }}>bạn cũng làm được.</span>

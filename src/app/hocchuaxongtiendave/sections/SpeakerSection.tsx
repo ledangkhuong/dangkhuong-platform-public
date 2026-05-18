@@ -150,7 +150,7 @@ export default function SpeakerSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#0A1020" }}
     >
       {/* Local CSS keyframes for rotating ring & live pulse */}
@@ -171,9 +171,9 @@ export default function SpeakerSection() {
       `}</style>
 
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
             style={{
               borderColor: "rgba(229,182,99,0.3)",
               background: "rgba(229,182,99,0.06)",
@@ -185,8 +185,8 @@ export default function SpeakerSection() {
         </div>
 
         <h2
-          className="mb-14 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-10 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Ai Là Người <span style={{ color: "#E5B663" }}>Hướng Dẫn Bạn?</span>
         </h2>
@@ -212,7 +212,8 @@ export default function SpeakerSection() {
               />
               {/* Soft glow */}
               <div
-                className="absolute -inset-4 rounded-2xl"
+                aria-hidden
+                className="absolute -inset-4 rounded-2xl pointer-events-none"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(229,182,99,0.3) 0%, transparent 60%)",
@@ -233,7 +234,10 @@ export default function SpeakerSection() {
                 }}
               >
                 <Star size={14} className="fill-current" style={{ color: "#0A1020" }} />
-                <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "#0A1020" }}>
+                <span
+                  className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] tabular-nums"
+                  style={{ color: "#0A1020" }}
+                >
                   151K Followers
                 </span>
               </div>
@@ -242,19 +246,28 @@ export default function SpeakerSection() {
 
           {/* Bio */}
           <div className="lg:col-span-3">
-            <div className="text-[11px] uppercase tracking-[0.2em] mb-2" style={{ color: "#E5B663" }}>
+            <div
+              className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] mb-2 font-semibold"
+              style={{ color: "#E5B663" }}
+            >
               Thầy
             </div>
-            <h3 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+            <h3
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 leading-tight tracking-[-0.01em]"
+              style={{ color: "#F1F5FB" }}
+            >
               LÊ ĐĂNG KHƯƠNG
             </h3>
-            <p className="text-[15px] sm:text-base leading-[1.75] mb-5" style={{ color: "rgba(241,245,251,0.75)" }}>
+            <p
+              className="text-[14.5px] sm:text-[15px] leading-[1.75] mb-5"
+              style={{ color: "rgba(241,245,251,0.78)" }}
+            >
               Chuyên gia hàng đầu Việt Nam về xây thương hiệu cá nhân & Đào tạo AI, xây dựng hệ thống bán hàng tự động bằng AI Agent.
             </p>
 
             {/* Mini "Hệ thống của Thầy" dashboard preview */}
             <div
-              className="rounded-2xl p-4 mb-6"
+              className="rounded-2xl p-4 sm:p-5 mb-6"
               style={{
                 background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
                 border: "1px solid rgba(229,182,99,0.2)",
@@ -280,7 +293,10 @@ export default function SpeakerSection() {
                     />
                     Live
                   </span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "rgba(241,245,251,0.55)" }}>
+                  <span
+                    className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em]"
+                    style={{ color: "rgba(241,245,251,0.55)" }}
+                  >
                     Hệ thống của Thầy
                   </span>
                 </div>
@@ -288,16 +304,46 @@ export default function SpeakerSection() {
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <div className="text-xl font-extrabold" style={{ color: "#F1F5FB" }}>310</div>
-                  <div className="text-[10px] uppercase tracking-[0.15em]" style={{ color: "rgba(241,245,251,0.55)" }}>học viên</div>
+                  <div
+                    className="text-xl font-extrabold tabular-nums tracking-[-0.02em]"
+                    style={{ color: "#F1F5FB" }}
+                  >
+                    310
+                  </div>
+                  <div
+                    className="text-[10px] uppercase tracking-[0.15em]"
+                    style={{ color: "rgba(241,245,251,0.55)" }}
+                  >
+                    học viên
+                  </div>
                 </div>
-                <div style={{ borderLeft: "1px solid rgba(229,182,99,0.15)", paddingLeft: "12px" }}>
-                  <div className="text-xl font-extrabold" style={{ color: "#7DD3FC" }}>47</div>
-                  <div className="text-[10px] uppercase tracking-[0.15em]" style={{ color: "rgba(241,245,251,0.55)" }}>đơn hôm nay</div>
+                <div style={{ borderLeft: "1px solid rgba(229,182,99,0.18)", paddingLeft: "12px" }}>
+                  <div
+                    className="text-xl font-extrabold tabular-nums tracking-[-0.02em]"
+                    style={{ color: "#7DD3FC" }}
+                  >
+                    47
+                  </div>
+                  <div
+                    className="text-[10px] uppercase tracking-[0.15em]"
+                    style={{ color: "rgba(241,245,251,0.55)" }}
+                  >
+                    đơn hôm nay
+                  </div>
                 </div>
-                <div style={{ borderLeft: "1px solid rgba(229,182,99,0.15)", paddingLeft: "12px" }}>
-                  <div className="text-xl font-extrabold" style={{ color: "#E5B663" }}>45tr</div>
-                  <div className="text-[10px] uppercase tracking-[0.15em]" style={{ color: "rgba(241,245,251,0.55)" }}>doanh thu</div>
+                <div style={{ borderLeft: "1px solid rgba(229,182,99,0.18)", paddingLeft: "12px" }}>
+                  <div
+                    className="text-xl font-extrabold tabular-nums tracking-[-0.02em]"
+                    style={{ color: "#E5B663" }}
+                  >
+                    45tr
+                  </div>
+                  <div
+                    className="text-[10px] uppercase tracking-[0.15em]"
+                    style={{ color: "rgba(241,245,251,0.55)" }}
+                  >
+                    doanh thu
+                  </div>
                 </div>
               </div>
               {/* fake activity bar */}
@@ -314,7 +360,10 @@ export default function SpeakerSection() {
                   />
                 ))}
               </div>
-              <div className="mt-2 text-[11px]" style={{ color: "rgba(241,245,251,0.55)" }}>
+              <div
+                className="mt-2 text-[10px] sm:text-[11px] uppercase tracking-[0.14em]"
+                style={{ color: "rgba(241,245,251,0.55)" }}
+              >
                 dangkhuong.com đang chạy real-time
               </div>
             </div>
@@ -322,11 +371,11 @@ export default function SpeakerSection() {
         </div>
 
         {/* Big stats grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-14">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-12">
           {STATS.map(({ Icon, target, display, label }) => (
             <div
               key={label}
-              className="relative rounded-2xl p-5 sm:p-6 overflow-hidden"
+              className="relative rounded-2xl p-4 sm:p-5 overflow-hidden flex flex-col h-full"
               style={{
                 background:
                   "linear-gradient(180deg, rgba(229,182,99,0.08) 0%, rgba(14,23,48,0.6) 100%)",
@@ -336,7 +385,7 @@ export default function SpeakerSection() {
             >
               <div
                 aria-hidden
-                className="absolute -top-6 -right-6 w-24 h-24 rounded-full"
+                className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none"
                 style={{
                   background:
                     "radial-gradient(circle, rgba(229,182,99,0.18) 0%, transparent 70%)",
@@ -344,13 +393,13 @@ export default function SpeakerSection() {
               />
               <Icon size={20} style={{ color: "#E5B663" }} className="mb-3" />
               <div
-                className="text-3xl sm:text-4xl font-extrabold leading-none mb-2"
-                style={{ color: "#F4D9A8", letterSpacing: "-0.02em" }}
+                className="text-3xl sm:text-4xl font-extrabold tabular-nums tracking-[-0.02em] leading-none mb-2"
+                style={{ color: "#F4D9A8" }}
               >
                 <CountUpNumber target={target} display={display} active={inView} />
               </div>
               <div
-                className="text-[11px] sm:text-[12px] uppercase tracking-[0.16em] font-semibold"
+                className="text-[11px] sm:text-[12px] uppercase tracking-[0.14em] font-semibold mt-auto"
                 style={{ color: "rgba(241,245,251,0.7)" }}
               >
                 {label}
@@ -367,11 +416,17 @@ export default function SpeakerSection() {
                 <li key={a} className="flex items-start gap-3">
                   <span
                     className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
-                    style={{ background: "rgba(229,182,99,0.15)", border: "1px solid rgba(229,182,99,0.3)" }}
+                    style={{
+                      background: "rgba(229,182,99,0.15)",
+                      border: "1px solid rgba(229,182,99,0.3)",
+                    }}
                   >
                     <Check className="h-3 w-3" strokeWidth={3} style={{ color: "#E5B663" }} />
                   </span>
-                  <span className="text-[14px] sm:text-[15px] leading-[1.65]" style={{ color: "rgba(241,245,251,0.82)" }}>
+                  <span
+                    className="text-[13.5px] sm:text-[14.5px] leading-[1.65]"
+                    style={{ color: "rgba(241,245,251,0.82)" }}
+                  >
                     {a}
                   </span>
                 </li>
@@ -387,10 +442,16 @@ export default function SpeakerSection() {
                 borderLeft: "4px solid #E5B663",
               }}
             >
-              <p className="text-[14px] sm:text-[15px] leading-[1.8] italic mb-3" style={{ color: "rgba(241,245,251,0.88)" }}>
-                "Tôi không phải là dev. Tôi là chuyên gia về sức khỏe và marketing. Nhưng với Claude Code, tôi xây được hệ thống mà ngày xưa cần cả đội kỹ sư. Đây là kỹ năng đáng giá nhất tôi học được trong 10 năm qua — và tôi muốn truyền lại cho bạn."
+              <p
+                className="text-[14px] sm:text-[15px] italic leading-[1.8] mb-3"
+                style={{ color: "rgba(241,245,251,0.88)" }}
+              >
+                &ldquo;Tôi không phải là dev. Tôi là chuyên gia về sức khỏe và marketing. Nhưng với Claude Code, tôi xây được hệ thống mà ngày xưa cần cả đội kỹ sư. Đây là kỹ năng đáng giá nhất tôi học được trong 10 năm qua — và tôi muốn truyền lại cho bạn.&rdquo;
               </p>
-              <footer className="text-[12px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#E5B663" }}>
+              <footer
+                className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+                style={{ color: "#E5B663" }}
+              >
                 — Thầy Lê Đăng Khương
               </footer>
             </blockquote>
@@ -398,7 +459,7 @@ export default function SpeakerSection() {
             {/* "Đã xuất hiện trên" credibility row */}
             <div className="mt-8">
               <div
-                className="text-[11px] font-semibold uppercase tracking-[0.22em] mb-3 text-center"
+                className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.22em] mb-3 text-center"
                 style={{ color: "rgba(241,245,251,0.55)" }}
               >
                 Đã xuất hiện trên
@@ -407,12 +468,12 @@ export default function SpeakerSection() {
                 {MEDIA.map((m) => (
                   <span
                     key={m}
-                    className="inline-flex items-center rounded-full px-3 py-1.5 text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase"
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold tracking-[0.18em] uppercase"
                     style={{
-                      color: "rgba(241,245,251,0.85)",
+                      color: "#F4D9A8",
                       background:
-                        "linear-gradient(180deg, rgba(229,182,99,0.08) 0%, rgba(14,23,48,0.5) 100%)",
-                      border: "1px solid rgba(229,182,99,0.28)",
+                        "linear-gradient(180deg, rgba(229,182,99,0.10) 0%, rgba(14,23,48,0.5) 100%)",
+                      border: "1px solid rgba(229,182,99,0.3)",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.2) inset",
                     }}
                   >
@@ -425,7 +486,10 @@ export default function SpeakerSection() {
         </div>
 
         {/* Why learn from Thay */}
-        <h3 className="text-center text-lg sm:text-xl font-bold mb-8 text-white">
+        <h3
+          className="text-center text-base sm:text-lg font-bold mb-8 mt-10"
+          style={{ color: "#F1F5FB" }}
+        >
           Tại sao bạn nên học từ Thầy Khương?
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
@@ -434,22 +498,23 @@ export default function SpeakerSection() {
             return (
               <div
                 key={r.title}
-                className="relative rounded-2xl p-6 overflow-hidden"
+                className="relative rounded-2xl p-5 sm:p-6 overflow-hidden"
                 style={{
                   background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
-                  border: "1px solid rgba(229,182,99,0.15)",
+                  border: "1px solid rgba(229,182,99,0.18)",
                   minHeight: "200px",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
                 }}
               >
                 {/* HUGE faded gold numeral */}
                 <div
                   aria-hidden
-                  className="absolute select-none pointer-events-none font-extrabold leading-none"
+                  className="absolute select-none pointer-events-none text-7xl sm:text-8xl font-extrabold leading-none tabular-nums"
                   style={{
-                    fontSize: "180px",
-                    top: "-30px",
-                    right: "-10px",
-                    color: "rgba(229,182,99,0.08)",
+                    top: "-12px",
+                    right: "8px",
+                    color: "#E5B663",
+                    opacity: 0.08,
                     letterSpacing: "-0.05em",
                   }}
                 >
@@ -465,8 +530,16 @@ export default function SpeakerSection() {
                   >
                     <RIcon size={18} style={{ color: "#E5B663" }} />
                   </div>
-                  <h4 className="text-base font-bold text-white mb-2">{r.title}</h4>
-                  <p className="text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.7)" }}>
+                  <h4
+                    className="text-base sm:text-lg font-bold mb-2"
+                    style={{ color: "#F1F5FB" }}
+                  >
+                    {r.title}
+                  </h4>
+                  <p
+                    className="text-[13.5px] sm:text-[14px] leading-[1.65]"
+                    style={{ color: "rgba(241,245,251,0.72)" }}
+                  >
                     {r.body}
                   </p>
                 </div>

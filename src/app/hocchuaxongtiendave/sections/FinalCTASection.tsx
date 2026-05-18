@@ -133,16 +133,16 @@ function StarRow() {
 export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionProps) {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{
         background:
           "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(229,182,99,0.1) 0%, transparent 70%), #0A1020",
       }}
     >
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
             style={{
               borderColor: "rgba(229,182,99,0.4)",
               background: "rgba(229,182,99,0.08)",
@@ -154,22 +154,22 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
         </div>
 
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-4 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Bạn Có <span style={{ color: "#E5B663" }}>2 Lựa Chọn</span> Lúc Này
         </h2>
         <p
-          className="mb-10 text-center text-base sm:text-lg"
+          className="mb-8 sm:mb-10 text-center text-base sm:text-lg"
           style={{ color: "rgba(241,245,251,0.65)" }}
         >
           Hãy chọn câu chuyện bạn muốn sống 1 năm tới:
         </p>
 
         {/* Testimonial mini-strip */}
-        <div className="mb-10">
+        <div className="mb-8 sm:mb-10">
           <div
-            className="text-center text-[11px] uppercase tracking-[0.2em] font-semibold mb-4"
+            className="text-center text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold mb-4"
             style={{ color: "rgba(229,182,99,0.85)" }}
           >
             Học viên đã chọn lựa chọn #2
@@ -239,14 +239,14 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
 
         {/* Transformation timeline */}
         <div
-          className="mb-12 rounded-2xl p-5 sm:p-7"
+          className="mb-10 rounded-2xl p-5 sm:p-7"
           style={{
             background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
             border: "1px solid rgba(229,182,99,0.2)",
           }}
         >
           <div
-            className="text-center text-[11px] uppercase tracking-[0.2em] font-semibold mb-5"
+            className="text-center text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold mb-5"
             style={{ color: "#E5B663" }}
           >
             Hành trình chuyển hoá
@@ -255,7 +255,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
           <div className="relative">
             {/* gradient connecting line — desktop only */}
             <div
-              className="hidden md:block absolute left-[8%] right-[8%] top-[26px] h-[2px] rounded-full"
+              className="hidden md:block absolute left-[10%] right-[10%] top-[26px] h-[2px] rounded-full"
               style={{
                 background:
                   "linear-gradient(90deg, #E63946 0%, #F4D9A8 35%, #34D399 70%, #E5B663 100%)",
@@ -278,13 +278,13 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                     {m.icon}
                   </div>
                   <div
-                    className="mt-3 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase"
+                    className="mt-3 text-[10px] uppercase tracking-[0.18em] font-bold"
                     style={{ color: m.dot }}
                   >
                     {m.label}
                   </div>
                   <div
-                    className="mt-1 text-[13px] sm:text-[14px] font-semibold leading-tight"
+                    className="mt-1 text-sm sm:text-[15px] font-bold leading-tight"
                     style={{ color: "#F1F5FB" }}
                   >
                     {m.title}
@@ -302,23 +302,23 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
         </div>
 
         {/* 2 choices */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-14">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 sm:mb-12">
           {/* Choice 1 - bad */}
           <div
-            className="rounded-2xl p-6 sm:p-8"
+            className="rounded-2xl p-6 sm:p-7"
             style={{
               background: "linear-gradient(180deg, rgba(239,68,68,0.06) 0%, rgba(239,68,68,0.02) 100%)",
               border: "1px solid rgba(239,68,68,0.25)",
             }}
           >
-            <div className="text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#F87171" }}>
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#F87171" }}>
               Lựa chọn #1
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-5 leading-snug">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-5 tracking-[-0.005em] leading-snug">
               Đóng trang này — tiếp tục như hiện tại
             </h3>
 
-            <ul className="space-y-3 mb-6">
+            <ul className="space-y-3 mb-6 flex flex-col gap-0">
               {CHOICE_1.map((c) => (
                 <li key={c} className="flex items-start gap-3">
                   <span
@@ -330,7 +330,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                   >
                     <X size={12} strokeWidth={3} style={{ color: "#F87171" }} />
                   </span>
-                  <span className="text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.72)" }}>
+                  <span className="text-[13.5px] sm:text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.72)" }}>
                     {c}
                   </span>
                 </li>
@@ -344,7 +344,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                 border: "1px solid rgba(239,68,68,0.15)",
               }}
             >
-              <p className="text-[13px]" style={{ color: "rgba(241,245,251,0.6)" }}>
+              <p className="text-[13px] leading-[1.65]" style={{ color: "rgba(241,245,251,0.6)" }}>
                 Sau 1 năm: <strong style={{ color: "#F87171" }}>vẫn ở chỗ cũ</strong>.
                 Sau 5 năm: <strong style={{ color: "#F87171" }}>vẫn loay hoay</strong>.
               </p>
@@ -353,7 +353,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
 
           {/* Choice 2 - good */}
           <div
-            className="relative rounded-2xl p-6 sm:p-8 overflow-hidden"
+            className="relative rounded-2xl p-6 sm:p-7 overflow-hidden"
             style={{
               background: "linear-gradient(180deg, rgba(229,182,99,0.12) 0%, rgba(229,182,99,0.03) 100%)",
               border: "2px solid rgba(229,182,99,0.45)",
@@ -370,14 +370,14 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
               Khuyên Bạn
             </span>
 
-            <div className="text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#E5B663" }}>
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold" style={{ color: "#E5B663" }}>
               Lựa chọn #2
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-5 leading-snug">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-5 tracking-[-0.005em] leading-snug">
               Đầu tư 5.000.000đ vào bản thân hôm nay
             </h3>
 
-            <ul className="space-y-3 mb-6">
+            <ul className="space-y-3 mb-6 flex flex-col gap-0">
               {CHOICE_2.map((c) => (
                 <li key={c} className="flex items-start gap-3">
                   <span
@@ -389,7 +389,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                   >
                     <Check size={12} strokeWidth={3} style={{ color: "#34D399" }} />
                   </span>
-                  <span className="text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.85)" }}>
+                  <span className="text-[13.5px] sm:text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.85)" }}>
                     {c}
                   </span>
                 </li>
@@ -403,7 +403,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                 border: "1px solid rgba(229,182,99,0.25)",
               }}
             >
-              <p className="text-[13px]" style={{ color: "rgba(241,245,251,0.85)" }}>
+              <p className="text-[13px] leading-[1.65]" style={{ color: "rgba(241,245,251,0.85)" }}>
                 Sau 7 ngày: <strong style={{ color: "#E5B663" }}>có đơn đầu tiên</strong>.
                 Sau 30 ngày: <strong style={{ color: "#E5B663" }}>hệ thống hoàn chỉnh</strong>.
                 Sau 1 năm: <strong style={{ color: "#34D399" }}>500tr/tháng có thể đạt</strong>.
@@ -413,14 +413,14 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
         </div>
 
         {/* Final CTA */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10 sm:mb-12">
           <button
             onClick={onScrollToRegister}
-            className="group inline-flex items-center gap-3 rounded-xl px-8 sm:px-12 py-5 text-base sm:text-lg font-bold tracking-wide transition-all hover:scale-[1.03] cursor-pointer"
+            className="group inline-flex items-center gap-3 rounded-xl px-8 sm:px-12 py-4 sm:py-5 text-base sm:text-lg font-bold tracking-wide transition-all hover:scale-[1.03] cursor-pointer"
             style={{
-              background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
+              background: "linear-gradient(135deg, #E5B663 0%, #F4D9A8 50%, #C9A86B 100%)",
               color: "#0A1020",
-              boxShadow: "0 0 40px rgba(229,182,99,0.45)",
+              boxShadow: "0 0 40px rgba(229,182,99,0.45), 0 10px 24px -10px rgba(229,182,99,0.55)",
             }}
           >
             <Crown size={20} />
@@ -456,10 +456,12 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
 
         {/* P.S. */}
         <div
-          className="relative max-w-3xl mx-auto rounded-2xl p-6 sm:p-8 overflow-hidden"
+          className="relative max-w-3xl mx-auto rounded-2xl p-6 sm:p-7 overflow-hidden"
           style={{
             background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
-            border: "1px solid rgba(229,182,99,0.2)",
+            borderTop: "1px solid rgba(229,182,99,0.2)",
+            borderRight: "1px solid rgba(229,182,99,0.2)",
+            borderBottom: "1px solid rgba(229,182,99,0.2)",
             borderLeft: "4px solid #E5B663",
           }}
         >
@@ -481,16 +483,16 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
           </div>
 
           <div className="relative">
-            <div className="text-[11px] uppercase tracking-[0.2em] mb-3 font-semibold" style={{ color: "#E5B663" }}>
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] mb-3 font-semibold" style={{ color: "#E5B663" }}>
               P.S. — Lời nhắn cuối từ Thầy Khương
             </div>
-            <p className="text-[14px] sm:text-[15px] leading-[1.85] mb-3" style={{ color: "rgba(241,245,251,0.8)" }}>
+            <p className="text-[14px] sm:text-[14.5px] leading-[1.85] mb-3" style={{ color: "rgba(241,245,251,0.8)" }}>
               Tôi từng đốt gần 1 tỷ đồng và 1 năm trời cho việc thuê dev — và tôi đã thất bại. Tôi muốn bạn không phải trải qua nỗi đau đó.
             </p>
-            <p className="text-[14px] sm:text-[15px] leading-[1.85] mb-3" style={{ color: "rgba(241,245,251,0.8)" }}>
+            <p className="text-[14px] sm:text-[14.5px] leading-[1.85] mb-3" style={{ color: "rgba(241,245,251,0.8)" }}>
               Chương trình này là <strong className="text-white">TẤT CẢ những gì tôi học được trong 10 năm</strong> — đóng gói lại để bạn đi nhanh hơn. Dù bạn muốn bán Ebook 99K hay Khóa học 50 triệu — hệ thống này đều dùng được.
             </p>
-            <p className="text-[14px] sm:text-[15px] leading-[1.85]" style={{ color: "rgba(241,245,251,0.8)" }}>
+            <p className="text-[14px] sm:text-[14.5px] leading-[1.85]" style={{ color: "rgba(241,245,251,0.8)" }}>
               Nếu bạn là người sẵn sàng học, sẵn sàng thực hành — tôi cam kết bạn sẽ có kết quả. Bạn{" "}
               <strong className="text-white">không có gì để mất</strong>. Nhưng có{" "}
               <strong style={{ color: "#E5B663" }}>MỌI THỨ để có được.</strong>
@@ -502,7 +504,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                   fontFamily: "'Brush Script MT', 'Segoe Script', 'Lucida Handwriting', Georgia, cursive",
                   fontStyle: "italic",
                   fontWeight: 400,
-                  fontSize: "32px",
+                  fontSize: "28px",
                   lineHeight: 1,
                   color: "#F4D9A8",
                   letterSpacing: "0.01em",
@@ -513,7 +515,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
                 Lê Đăng Khương
               </div>
               <div
-                className="mt-2 text-[11px] uppercase tracking-[0.22em] font-semibold"
+                className="mt-2 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold"
                 style={{ color: "rgba(229,182,99,0.7)" }}
               >
                 — Thầy Lê Đăng Khương

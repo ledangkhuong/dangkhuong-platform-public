@@ -261,7 +261,11 @@ function DashboardMockup({ Icon }: { Icon: LucideIcon }) {
         </div>
         <div className="space-y-1">
           {activity.map((a) => (
-            <div key={a.name} className="flex items-center justify-between text-[9.5px]">
+            <div
+              key={a.name}
+              className="flex items-center justify-between text-[9.5px] tabular-nums leading-tight"
+              style={{ fontVariantNumeric: TABULAR_NUM }}
+            >
               <div className="flex items-center gap-1.5 min-w-0">
                 <span
                   className="h-3 w-3 rounded-full flex-shrink-0 flex items-center justify-center text-[7px] font-bold"
@@ -755,13 +759,13 @@ function ProofMockup({
 export default function ProofSection() {
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-20 md:pt-24 md:pb-24 px-4 sm:px-6"
       style={{ background: "#050913" }}
     >
       <div className="mx-auto max-w-6xl">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase"
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold"
             style={{
               borderColor: "rgba(125,211,252,0.3)",
               background: "rgba(125,211,252,0.06)",
@@ -773,26 +777,26 @@ export default function ProofSection() {
         </div>
 
         <h2
-          className="mb-4 text-center text-[26px] font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-[44px]"
-          style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
+          className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
+          style={{ color: "#F1F5FB" }}
         >
           Đây Không Phải Lý Thuyết
         </h2>
         <p
-          className="mb-14 text-center text-base sm:text-lg italic"
+          className="mb-12 text-center text-[15px] sm:text-base italic leading-[1.65]"
           style={{ color: "rgba(241,245,251,0.65)" }}
         >
           Đây là hệ thống đang chạy thật ngay lúc này.
         </p>
 
         {/* Proof grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {PROOFS.map((proof) => {
             const Icon = proof.icon;
             return (
               <div
                 key={proof.title}
-                className="relative rounded-2xl p-6 sm:p-7 overflow-hidden"
+                className="relative rounded-2xl p-6 sm:p-7 overflow-hidden flex flex-col"
                 style={{
                   background:
                     "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
@@ -805,7 +809,7 @@ export default function ProofSection() {
                   style={{
                     background:
                       "linear-gradient(135deg, #0E1730 0%, #050913 100%)",
-                    border: "1px solid rgba(229,182,99,0.22)",
+                    border: "1px solid rgba(229,182,99,0.18)",
                     boxShadow:
                       "inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 28px rgba(0,0,0,0.45)",
                   }}
@@ -814,7 +818,7 @@ export default function ProofSection() {
                 </div>
 
                 <span
-                  className="inline-block text-[10px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded mb-3"
+                  className="inline-flex items-center self-start h-6 text-[10px] font-bold uppercase tracking-[0.18em] px-2.5 rounded mb-3"
                   style={{
                     background: "rgba(229,182,99,0.1)",
                     color: "#E5B663",
@@ -822,11 +826,14 @@ export default function ProofSection() {
                 >
                   {proof.pill}
                 </span>
-                <h3 className="text-base sm:text-lg font-bold text-white mb-2">
+                <h3
+                  className="text-base sm:text-lg font-bold tracking-[-0.005em] mb-2"
+                  style={{ color: "#F1F5FB" }}
+                >
                   {proof.title}
                 </h3>
                 <p
-                  className="text-[14px] sm:text-[15px] leading-[1.7]"
+                  className="text-[13.5px] sm:text-[14.5px] leading-[1.7]"
                   style={{ color: "rgba(241,245,251,0.72)" }}
                 >
                   {proof.body}
@@ -837,31 +844,49 @@ export default function ProofSection() {
         </div>
 
         {/* Comparison table */}
-        <div>
-          <h3 className="text-center text-lg sm:text-xl font-bold mb-6 text-white">
+        <div className="mt-14">
+          <h3
+            className="text-center text-lg sm:text-xl font-bold"
+            style={{ color: "#F1F5FB" }}
+          >
             So sánh chi phí
           </h3>
           <div
-            className="overflow-hidden rounded-2xl"
+            className="overflow-hidden rounded-2xl mt-6"
             style={{
               background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
               border: "1px solid rgba(229,182,99,0.18)",
             }}
           >
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left">
+              <table
+                className="w-full min-w-[560px] text-left"
+                style={{ fontVariantNumeric: TABULAR_NUM }}
+              >
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(229,182,99,0.15)" }}>
-                    <th className="px-5 py-4 text-xs sm:text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "rgba(241,245,251,0.6)" }}>
+                    <th
+                      className="px-5 py-4 sm:py-5 text-[11px] sm:text-xs uppercase tracking-[0.14em] font-bold"
+                      style={{ color: "rgba(241,245,251,0.6)" }}
+                    >
                       Phương án
                     </th>
-                    <th className="px-5 py-4 text-xs sm:text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "rgba(241,245,251,0.6)" }}>
+                    <th
+                      className="px-5 py-4 sm:py-5 text-[11px] sm:text-xs uppercase tracking-[0.14em] font-bold"
+                      style={{ color: "rgba(241,245,251,0.6)" }}
+                    >
                       Chi phí ban đầu
                     </th>
-                    <th className="px-5 py-4 text-xs sm:text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "rgba(241,245,251,0.6)" }}>
+                    <th
+                      className="px-5 py-4 sm:py-5 text-[11px] sm:text-xs uppercase tracking-[0.14em] font-bold"
+                      style={{ color: "rgba(241,245,251,0.6)" }}
+                    >
                       Hàng tháng
                     </th>
-                    <th className="px-5 py-4 text-xs sm:text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "rgba(241,245,251,0.6)" }}>
+                    <th
+                      className="px-5 py-4 sm:py-5 text-[11px] sm:text-xs uppercase tracking-[0.14em] font-bold"
+                      style={{ color: "rgba(241,245,251,0.6)" }}
+                    >
                       Sở hữu
                     </th>
                   </tr>
@@ -871,20 +896,39 @@ export default function ProofSection() {
                     <tr
                       key={row.option}
                       style={{
-                        borderBottom: idx < COMPARISON.length - 1 ? "1px solid rgba(229,182,99,0.08)" : "none",
-                        background: !row.bad ? "rgba(229,182,99,0.06)" : "transparent",
+                        borderBottom:
+                          idx < COMPARISON.length - 1
+                            ? "1px solid rgba(229,182,99,0.08)"
+                            : "none",
+                        background: !row.bad
+                          ? "rgba(229,182,99,0.06)"
+                          : "transparent",
                       }}
                     >
-                      <td className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px] font-semibold" style={{ color: !row.bad ? "#E5B663" : "rgba(241,245,251,0.8)" }}>
+                      <td
+                        className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px] tabular-nums font-semibold"
+                        style={{
+                          color: !row.bad ? "#E5B663" : "rgba(241,245,251,0.8)",
+                        }}
+                      >
                         {row.option}
                       </td>
-                      <td className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px]" style={{ color: "rgba(241,245,251,0.78)" }}>
+                      <td
+                        className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px] tabular-nums"
+                        style={{ color: "rgba(241,245,251,0.78)" }}
+                      >
                         {row.initial}
                       </td>
-                      <td className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px]" style={{ color: "rgba(241,245,251,0.78)" }}>
+                      <td
+                        className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px] tabular-nums"
+                        style={{ color: "rgba(241,245,251,0.78)" }}
+                      >
                         {row.monthly}
                       </td>
-                      <td className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px] font-semibold" style={{ color: !row.bad ? "#34D399" : "#F87171" }}>
+                      <td
+                        className="px-5 py-4 sm:py-5 text-[14px] sm:text-[15px] tabular-nums font-semibold"
+                        style={{ color: !row.bad ? "#34D399" : "#F87171" }}
+                      >
                         {row.own}
                       </td>
                     </tr>

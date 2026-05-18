@@ -17,7 +17,7 @@ interface HeroSectionProps {
 export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
   return (
     <section
-      className="hcx-hero relative overflow-hidden py-14 sm:py-24 md:py-32 px-4 sm:px-6"
+      className="hcx-hero relative overflow-hidden pt-12 pb-8 sm:pt-20 sm:pb-12 md:pt-24 md:pb-16 px-4 sm:px-6"
       style={{
         background:
           "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(229,182,99,0.08) 0%, transparent 60%), linear-gradient(180deg, #050913 0%, #0A1020 100%)",
@@ -42,14 +42,15 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
       <div className="relative mx-auto flex max-w-5xl flex-col items-center text-center">
         {/* Micro-credential row */}
-        <div className="mb-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:gap-x-7">
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:gap-x-7">
           <div
-            className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold"
+            className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold tabular-nums"
             style={{ color: "rgba(241,245,251,0.78)" }}
           >
             <Award className="h-3.5 w-3.5" style={{ color: "#E5B663" }} />
             <span>
-              <strong style={{ color: "#F1F5FB" }}>11+ năm</strong> kinh nghiệm
+              <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>11+ năm</strong>
+              <span className="font-normal"> kinh nghiệm</span>
             </span>
           </div>
           <span
@@ -62,7 +63,8 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           >
             <Users className="h-3.5 w-3.5" style={{ color: "#E5B663" }} />
             <span>
-              <strong style={{ color: "#F1F5FB" }}>151K+</strong> followers
+              <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>151K+</strong>
+              <span className="font-normal"> followers</span>
             </span>
           </div>
           <span
@@ -75,60 +77,68 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           >
             <TrendingUp className="h-3.5 w-3.5" style={{ color: "#E5B663" }} />
             <span>
-              <strong style={{ color: "#F1F5FB" }}>45tr/tuần</strong> doanh thu thử nghiệm, chưa quảng cáo
+              <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>45tr/tuần</strong>
+              <span className="font-normal"> doanh thu thử nghiệm, chưa quảng cáo</span>
             </span>
           </div>
         </div>
 
         {/* Tag line */}
         <span
-          className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] sm:text-xs font-semibold tracking-[0.18em] uppercase"
+          className="mb-6 sm:mb-8 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] sm:text-[11px] font-semibold uppercase"
           style={{
             borderColor: "rgba(229,182,99,0.35)",
             color: "#E5B663",
             background: "rgba(229,182,99,0.06)",
+            letterSpacing: "0.18em",
           }}
         >
           <Sparkles className="h-3.5 w-3.5" />
           Cho Chuyên Gia · Coach · Mentor · Marketer Việt Nam
         </span>
 
-        {/* Pre-headline brand mark */}
-        <div className="mb-5 flex items-center gap-3" style={{ color: "rgba(229,182,99,0.85)" }}>
-          <span className="h-px w-8 sm:w-12" style={{ background: "rgba(229,182,99,0.5)" }} />
-          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.3em]">
-            Long-form Sales · V2.0
-          </span>
-          <span className="h-px w-8 sm:w-12" style={{ background: "rgba(229,182,99,0.5)" }} />
-        </div>
-
-        {/* Brand title */}
-        <div className="mb-10 sm:mb-12">
+        {/* Campaign banner */}
+        <div className="mb-6 sm:mb-8 w-full max-w-3xl">
+          {/* SR-only H1 for SEO + accessibility */}
+          <h1 className="sr-only">
+            Học Chưa Xong - Tiền Đã Về — Tạo sản phẩm số bán chạy nhất trong ngách của bạn
+          </h1>
           <div
-            className="text-5xl sm:text-6xl md:text-7xl font-extrabold leading-[1.2] pb-1"
-            style={{ color: "#F1F5FB", letterSpacing: "-0.02em" }}
-          >
-            HỌC CHƯA XONG
-          </div>
-          <div
-            className="hcx-shimmer text-5xl sm:text-6xl md:text-7xl font-extrabold italic leading-[1.2] mt-3 sm:mt-4 pt-2 pb-1"
+            className="relative overflow-hidden rounded-2xl"
             style={{
-              letterSpacing: "-0.02em",
-              textShadow: "0 0 80px rgba(229,182,99,0.3)",
+              border: "1px solid rgba(229,182,99,0.35)",
+              boxShadow:
+                "0 30px 80px -20px rgba(0,0,0,0.6), 0 0 60px rgba(229,182,99,0.18)",
             }}
           >
-            TIỀN ĐÃ VỀ
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/hocchuaxongtiendave/banner.jpeg"
+              alt="Học Chưa Xong - Tiền Đã Về · Tạo sản phẩm số bán chạy nhất trong ngách của bạn · Trainer Lê Đăng Khương · KOHADA"
+              className="block w-full h-auto"
+              loading="eager"
+              fetchPriority="high"
+            />
+            {/* Subtle gold border glow on top */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-2xl"
+              style={{
+                boxShadow:
+                  "0 0 0 1px rgba(229,182,99,0.2) inset, 0 0 60px rgba(229,182,99,0.12) inset",
+              }}
+            />
           </div>
         </div>
 
         {/* H1 main */}
         <h1
-          className="mb-6 font-extrabold tracking-tight max-w-4xl"
+          className="mb-4 font-extrabold max-w-4xl"
           style={{ letterSpacing: "-0.01em" }}
         >
           <span
-            className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-[1.3]"
-            style={{ color: "#F1F5FB" }}
+            className="block text-[18px] sm:text-2xl md:text-3xl font-extrabold leading-[1.3]"
+            style={{ color: "#F1F5FB", letterSpacing: "-0.01em" }}
           >
             Tự Xây Hệ Thống Bán{" "}
             <span style={{ color: "#E5B663" }}>SẢN PHẨM SỐ Triệu Đô</span>
@@ -139,22 +149,22 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
         {/* Sub-headline */}
         <p
-          className="mx-auto mb-3 max-w-3xl text-[15px] sm:text-base md:text-lg leading-[1.8]"
-          style={{ color: "rgba(241,245,251,0.7)" }}
+          className="mx-auto mb-2 max-w-3xl text-[14px] sm:text-[15px] leading-[1.7]"
+          style={{ color: "rgba(241,245,251,0.75)" }}
         >
           Bán Tài Liệu, Ebook, Khóa Học, Phần Mềm, Template — TẤT CẢ trên một hệ thống
-          do <span className="font-semibold text-white">BẠN sở hữu 100%</span>.
+          do <span className="font-semibold" style={{ color: "#F1F5FB" }}>BẠN sở hữu 100%</span>.
         </p>
         <p
-          className="mx-auto mb-10 max-w-3xl text-[14px] sm:text-base leading-[1.8] italic"
-          style={{ color: "rgba(241,245,251,0.5)" }}
+          className="mx-auto mb-8 max-w-3xl text-[14px] sm:text-[15px] leading-[1.7] italic"
+          style={{ color: "rgba(241,245,251,0.55)" }}
         >
           Thay vì đốt tiền tỷ & 1 năm thuê dev như tôi đã từng.
         </p>
 
         {/* Social proof bar */}
         <div
-          className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 rounded-2xl px-5 py-4 max-w-3xl w-full"
+          className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 rounded-2xl px-5 py-3.5 max-w-3xl w-full"
           style={{
             background: "rgba(14,23,48,0.6)",
             border: "1px solid rgba(229,182,99,0.18)",
@@ -168,23 +178,23 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           </div>
           <span className="hidden sm:block h-4 w-px" style={{ background: "rgba(229,182,99,0.25)" }} />
           <span className="text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.75)" }}>
-            <strong className="text-white">313+</strong> chuyên gia đã tham gia
+            <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>313+</strong> chuyên gia đã tham gia
           </span>
           <span className="hidden sm:block h-4 w-px" style={{ background: "rgba(229,182,99,0.25)" }} />
           <span className="text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.75)" }}>
-            <strong className="text-white">95%</strong> có sản phẩm sau 14 ngày
+            <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>95%</strong> có sản phẩm sau 14 ngày
           </span>
         </div>
 
         {/* Featured on / As seen on trust strip */}
-        <div className="mb-10 flex w-full max-w-3xl flex-col items-center gap-3">
+        <div className="mb-8 flex w-full max-w-3xl flex-col items-center gap-2.5">
           <span
-            className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.3em]"
-            style={{ color: "rgba(241,245,251,0.45)" }}
+            className="text-[10px] sm:text-[11px] font-semibold uppercase"
+            style={{ color: "rgba(241,245,251,0.55)", letterSpacing: "0.3em" }}
           >
             As seen on
           </span>
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
             {[
               { label: "FACEBOOK", meta: "151K" },
               { label: "YOUTUBE", meta: null },
@@ -194,23 +204,25 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
             ].map((chip) => (
               <span
                 key={chip.label}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em]"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold uppercase h-7"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(19,32,63,0.85) 0%, rgba(14,23,48,0.85) 100%)",
-                  border: "1px solid rgba(229,182,99,0.22)",
+                  border: "1px solid rgba(229,182,99,0.18)",
                   color: "rgba(241,245,251,0.85)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+                  letterSpacing: "0.3em",
                 }}
               >
                 <span>{chip.label}</span>
                 {chip.meta && (
                   <span
-                    className="rounded-full px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold tracking-wider"
+                    className="rounded-full px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold tabular-nums"
                     style={{
                       background:
                         "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
                       color: "#0A1020",
+                      letterSpacing: "0.05em",
                     }}
                   >
                     {chip.meta}
@@ -225,7 +237,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
         <button
           type="button"
           onClick={onScrollToRegister}
-          className="hcx-vsl group relative mb-10 w-full max-w-3xl cursor-pointer overflow-hidden rounded-2xl"
+          className="hcx-vsl group relative mb-6 w-full max-w-3xl cursor-pointer overflow-hidden rounded-2xl"
           style={{
             aspectRatio: "16 / 9",
             background: "#0A1020",
@@ -256,11 +268,12 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
           {/* LIVE badge */}
           <span
-            className="absolute left-3 top-3 sm:left-4 sm:top-4 flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-[0.2em]"
+            className="absolute left-3 top-3 sm:left-4 sm:top-4 flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] sm:text-[11px] font-semibold uppercase"
             style={{
               background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
               color: "#0A1020",
               boxShadow: "0 4px 18px rgba(229,182,99,0.35)",
+              letterSpacing: "0.3em",
             }}
           >
             <span
@@ -275,15 +288,16 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
 
           {/* Stats pill */}
           <span
-            className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-md px-2.5 py-1 text-[10px] sm:text-[11px] font-bold tracking-wider"
+            className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-md px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold tabular-nums"
             style={{
               background: "rgba(5,9,19,0.78)",
               border: "1px solid rgba(229,182,99,0.35)",
               color: "#F1F5FB",
               backdropFilter: "blur(6px)",
+              letterSpacing: "0.05em",
             }}
           >
-            <span style={{ color: "#E5B663" }}>45.776.000đ</span> · 307 học viên
+            <span className="font-extrabold tabular-nums" style={{ color: "#E5B663" }}>45.776.000đ</span> · <span className="tabular-nums">307</span> học viên
           </span>
 
           {/* Hover overlay (only on hover) */}
@@ -292,11 +306,12 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
             aria-hidden="true"
           >
             <span
-              className="rounded-full px-4 py-2 text-xs sm:text-sm font-bold uppercase tracking-[0.18em]"
+              className="rounded-full px-4 py-2 text-[11px] sm:text-xs font-bold uppercase"
               style={{
                 background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
                 color: "#0A1020",
                 boxShadow: "0 8px 24px rgba(229,182,99,0.4)",
+                letterSpacing: "0.18em",
               }}
             >
               👉 Đăng ký để có hệ thống tương tự
@@ -308,27 +323,47 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
         <button
           type="button"
           onClick={onScrollToRegister}
-          className="group flex cursor-pointer items-center gap-3 rounded-xl px-8 sm:px-12 py-[18px] sm:py-5 text-base sm:text-lg font-bold tracking-wide transition-all duration-200 hover:scale-105"
+          className="group flex cursor-pointer items-center gap-3 rounded-xl px-8 sm:px-12 py-[16px] sm:py-[18px] text-base sm:text-lg font-bold transition-all duration-200 hover:scale-105"
           style={{
             background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
             color: "#0A1020",
             boxShadow:
               "0 0 40px rgba(229,182,99,0.4), 0 0 0 1px rgba(229,182,99,0.5)",
+            letterSpacing: "0.02em",
           }}
         >
           <Crown className="h-5 w-5" />
-          ĐĂNG KÝ EARLY BIRD — CHỈ 5.000.000Đ
+          <span className="tabular-nums">ĐĂNG KÝ EARLY BIRD — CHỈ 5.000.000Đ</span>
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
 
-        <p className="mt-5 text-xs sm:text-sm" style={{ color: "rgba(241,245,251,0.5)" }}>
-          ✅ Truy cập 6 tháng <span className="mx-2 opacity-40">|</span>
-          ✅ Bonus 16.479.000đ kèm theo
-        </p>
+        {/* Footer pills */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-[12px] sm:text-[13px] font-semibold"
+          style={{ color: "rgba(241,245,251,0.7)" }}
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 h-7"
+            style={{
+              background: "rgba(14,23,48,0.6)",
+              border: "1px solid rgba(229,182,99,0.18)",
+            }}
+          >
+            <span style={{ color: "#34D399" }}>✓</span>
+            <span className="tabular-nums">Truy cập 6 tháng</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 h-7"
+            style={{
+              background: "rgba(14,23,48,0.6)",
+              border: "1px solid rgba(229,182,99,0.18)",
+            }}
+          >
+            <span style={{ color: "#34D399" }}>✓</span>
+            <span>Bonus <span className="tabular-nums">16.479.000đ</span> kèm theo</span>
+          </span>
+        </div>
 
         <p
-          className="mt-3 text-[11px] sm:text-xs uppercase tracking-[0.2em]"
-          style={{ color: "rgba(229,182,99,0.7)" }}
+          className="mt-3 text-[10px] sm:text-[11px] font-semibold uppercase tabular-nums"
+          style={{ color: "rgba(229,182,99,0.7)", letterSpacing: "0.18em" }}
         >
           Giá gốc 20.000.000đ — Tiết kiệm 75%
         </p>
