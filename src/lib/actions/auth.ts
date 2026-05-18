@@ -3,9 +3,25 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, recordFailedAttempt, resetRateLimit, rateLimit } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export async function signUp(formData: FormData) {
+  // Rate limit: 5 requests per 60 seconds per IP (matches API route)
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimitResult = await rateLimit(`register:${ip}`, 5, 60);
+  if (!rateLimitResult.allowed) {
+    redirect("/register?error=" + encodeURIComponent("Quá nhiều yêu cầu. Vui lòng thử lại sau."));
+  }
+
+  // Verify Turnstile CAPTCHA if token is provided
+  const turnstileToken = formData.get("turnstile_token") as string | null;
+  const turnstileOk = await verifyTurnstile(turnstileToken);
+  if (!turnstileOk) {
+    redirect("/register?error=" + encodeURIComponent("Xác minh CAPTCHA thất bại. Vui lòng thử lại."));
+  }
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const full_name = formData.get("full_name") as string;
@@ -16,6 +32,8 @@ export async function signUp(formData: FormData) {
   if (!phone || !/^(0|\+84)[0-9]{9}$/.test(phone)) redirect("/register?error=" + encodeURIComponent("Số điện thoại không hợp lệ. Vui lòng nhập đúng 10 số (VD: 0912345678)"));
   if (!email?.trim()) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập email"));
   if (!password || password.length < 8) redirect("/register?error=" + encodeURIComponent("Mật khẩu phải có ít nhất 8 ký tự"));
+  if (password.length > 72) redirect("/register?error=" + encodeURIComponent("Mật khẩu không được quá 72 ký tự"));
+  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) redirect("/register?error=" + encodeURIComponent("Mật khẩu phải có chữ hoa, chữ thường và số"));
 
   const admin = await createAdminClient();
 

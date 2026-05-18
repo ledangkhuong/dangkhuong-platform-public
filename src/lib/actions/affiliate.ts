@@ -188,7 +188,7 @@ export async function processPayout(payoutId: string) {
   const admin = await createAdminClient();
 
   const { data: payout } = await admin.from("affiliate_payouts")
-    .select("*, affiliates(user_id)")
+    .select("id, affiliate_id, amount")
     .eq("id", payoutId).single();
 
   if (!payout) return;
@@ -200,13 +200,12 @@ export async function processPayout(payoutId: string) {
     processed_at: new Date().toISOString(),
   }).eq("id", payoutId);
 
-  // Update affiliate total_paid
-  await admin.from("affiliates").update({
-    total_paid: (payout.affiliates as unknown as { total_paid: number })?.total_paid
-      ? (payout.affiliates as unknown as { total_paid: number }).total_paid + payout.amount
-      : payout.amount,
-    updated_at: new Date().toISOString(),
-  }).eq("id", payout.affiliate_id);
+  // Atomically increment total_paid to avoid TOCTOU race condition
+  // when two payouts for the same affiliate are processed concurrently.
+  await admin.rpc("increment_affiliate_total_paid", {
+    p_affiliate_id: payout.affiliate_id,
+    p_paid_amount: payout.amount,
+  });
 
   // Mark related conversions as paid
   await admin.from("affiliate_conversions").update({

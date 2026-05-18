@@ -148,11 +148,29 @@ export async function POST(req: NextRequest) {
 
     // 3. Kiểm tra số tiền
     if (transferAmount < (order.amount as number)) {
-      console.warn(`[Sepay] Thiếu tiền: cần ${order.amount}, nhận ${transferAmount}`);
+      const shortfall = (order.amount as number) - transferAmount;
+      console.error(
+        `[Sepay] ❌ UNDERPAYMENT: order=${matchedCode} expected=${order.amount}đ received=${transferAmount}đ shortfall=${shortfall}đ user=${order.user_id ?? "unknown"}`,
+      );
       await supabase.from("orders").update({
         note: `Thiếu tiền: cần ${order.amount}đ, nhận ${transferAmount}đ`,
         updated_at: new Date().toISOString(),
       }).eq("id", order.id);
+      await logAudit({
+        admin_id: "system",
+        action: "order.underpaid" as any,
+        target_type: "order",
+        target_id: order.id as string,
+        details: {
+          order_code: matchedCode,
+          expected_amount: order.amount,
+          received_amount: transferAmount,
+          shortfall,
+          bank: gateway,
+          sepay_ref: referenceCode,
+          source: "sepay_webhook",
+        },
+      }).catch((err) => console.error("[SePay Webhook] Audit log error (non-critical):", err));
       return NextResponse.json({ success: true, message: "Amount mismatch" });
     }
 
@@ -243,13 +261,24 @@ export async function POST(req: NextRequest) {
           .eq("id", order.user_id);
       }
 
-      // 7. Thêm XP mua hàng
-      await supabase.from("xp_events").insert({
-        user_id: order.user_id,
-        action: "purchase",
-        xp_amount: 500,
-        meta: { order_id: order.id, product_id: order.product_id },
-      });
+      // 7. Thêm XP mua hàng (idempotent — skip if already awarded for this order)
+      const { count: existingXpCount } = await supabase
+        .from("xp_events")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", order.user_id as string)
+        .eq("action", "purchase")
+        .contains("meta", { order_id: order.id });
+
+      if (!existingXpCount || existingXpCount === 0) {
+        await supabase.from("xp_events").insert({
+          user_id: order.user_id,
+          action: "purchase",
+          xp_amount: 500,
+          meta: { order_id: order.id, product_id: order.product_id },
+        });
+      } else {
+        console.log(`[Sepay] XP already awarded for order ${order.id}, skipping`);
+      }
 
       // 8. Gửi email xác nhận mua hàng
       try {
@@ -269,7 +298,24 @@ export async function POST(req: NextRequest) {
         console.warn("[Sepay] Email confirmation failed (non-critical)");
       }
 
-      // 8b. Gửi thông báo Zalo OA
+      // 8b. Gửi email chào mừng khoá học
+      try {
+        const { sendEnrollmentWelcomeEmail } = await import("@/lib/email/transactional");
+        const { data: enrollProfile } = await supabase.from("profiles").select("full_name").eq("id", order.user_id).single();
+        const { data: enrollAuth } = await supabase.auth.admin.getUserById(order.user_id as string);
+        if (enrollAuth?.user?.email) {
+          await sendEnrollmentWelcomeEmail(
+            enrollAuth.user.email,
+            enrollProfile?.full_name || "bạn",
+            products?.name as string || products?.title as string || "Khoá học",
+            products?.slug as string || "",
+          ).catch((err) => console.error("[SePay Webhook] Enrollment email error (non-critical):", err));
+        }
+      } catch {
+        console.warn("[Sepay] Enrollment welcome email failed (non-critical)");
+      }
+
+      // 8c. Gửi thông báo Zalo OA
       try {
         const { notifyPurchaseViaZalo } = await import("@/lib/zalo-notifications");
         const { data: zaloProfile } = await supabase.from("profiles").select("full_name").eq("id", order.user_id).single();
@@ -290,7 +336,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: affiliate } = await supabase
           .from("affiliates")
-          .select("id, user_id, commission_rate, total_earned, total_conversions")
+          .select("id, user_id, commission_rate")
           .eq("ref_code", order.ref_code)
           .eq("status", "active")
           .single();
@@ -309,15 +355,11 @@ export async function POST(req: NextRequest) {
             status: "pending",
           });
 
-          // Update affiliate stats (total_earned & total_conversions)
-          await supabase
-            .from("affiliates")
-            .update({
-              total_earned: affiliate.total_earned + commissionAmount,
-              total_conversions: affiliate.total_conversions + 1,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", affiliate.id);
+          // Update affiliate stats atomically (prevents race condition with concurrent orders)
+          await supabase.rpc("increment_affiliate_stats", {
+            p_affiliate_id: affiliate.id,
+            p_earned_amount: commissionAmount,
+          });
 
           // Gửi email thông báo hoa hồng cho affiliate
           try {

@@ -42,6 +42,7 @@ interface BlogPost {
   thumbnail: string | null;
   category: string | null;
   tags: string[] | null;
+  focus_keyword: string | null;
   status: string;
   views: number;
   published_at: string | null;
@@ -91,7 +92,7 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: post } = await supabase
     .from("blog_posts")
-    .select("title, excerpt, thumbnail, tags, published_at, slug, content")
+    .select("title, excerpt, thumbnail, tags, published_at, slug, content, focus_keyword")
     .eq("slug", slug)
     .eq("status", "published")
     .single();
@@ -105,9 +106,15 @@ export async function generateMetadata({
     post.excerpt ||
     (post.content ? stripHtml(post.content).slice(0, 160) : undefined);
 
+  const keywords = [
+    ...(post.focus_keyword ? [post.focus_keyword] : []),
+    ...(post.tags ?? []),
+  ];
+
   return {
     title: `${post.title} — Lê Đăng Khương`,
     description,
+    ...(keywords.length > 0 ? { keywords } : {}),
     alternates: {
       canonical: url,
     },
@@ -193,9 +200,13 @@ function ArticleJsonLd({ post }: { post: BlogPost }) {
           },
         }
       : {}),
-    ...(post.tags && post.tags.length > 0
-      ? { keywords: post.tags.join(", ") }
-      : {}),
+    ...(() => {
+      const kw = [
+        ...(post.focus_keyword ? [post.focus_keyword] : []),
+        ...(post.tags ?? []),
+      ];
+      return kw.length > 0 ? { keywords: kw.join(", ") } : {};
+    })(),
     ...(post.category
       ? { articleSection: post.category }
       : {}),

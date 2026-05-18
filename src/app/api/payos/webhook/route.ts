@@ -190,7 +190,7 @@ export async function POST(req: NextRequest) {
         product_id: order.product_id,
         order_id: order.id,
         source: "purchase",
-      });
+      }, { onConflict: "user_id,product_id" });
 
       // 7. Upgrade tier if applicable
       const products = order.products as Record<string, unknown> | null;
@@ -234,6 +234,27 @@ export async function POST(req: NextRequest) {
         }
       } catch {
         console.warn("[PayOS] Email confirmation failed (non-critical)");
+      }
+
+      // 9b. Send enrollment welcome email
+      try {
+        const { sendEnrollmentWelcomeEmail } = await import("@/lib/email/transactional");
+        const { data: enrollProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", order.user_id)
+          .single();
+        const { data: enrollAuth } = await supabase.auth.admin.getUserById(order.user_id);
+        if (enrollAuth?.user?.email) {
+          await sendEnrollmentWelcomeEmail(
+            enrollAuth.user.email,
+            enrollProfile?.full_name || "ban",
+            (products?.name as string) || (products?.title as string) || "Khoa hoc",
+            (products?.slug as string) || "",
+          ).catch((err) => console.error("[PayOS Webhook] Enrollment email error (non-critical):", err));
+        }
+      } catch {
+        console.warn("[PayOS] Enrollment welcome email failed (non-critical)");
       }
 
       // 10. Send Zalo OA notification

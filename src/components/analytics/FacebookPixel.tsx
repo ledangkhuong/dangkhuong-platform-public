@@ -3,12 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { FB_PIXEL_ID, pageview } from "@/lib/fbpixel";
+import { hasCookieConsent } from "@/components/CookieConsent";
 
 function hasConsent(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    localStorage.getItem("dk_cookie_consent") === "accepted"
-  );
+  return typeof window !== "undefined" && hasCookieConsent("marketing");
 }
 
 export default function FacebookPixel() {
@@ -21,8 +19,8 @@ export default function FacebookPixel() {
 
     // Listen for consent changes from other tabs
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === "dk_cookie_consent") {
-        setConsentGiven(e.newValue === "accepted");
+      if (e.key === "dk_cookie_preferences" || e.key === "dk_cookie_consent") {
+        setConsentGiven(hasConsent());
       }
     };
 

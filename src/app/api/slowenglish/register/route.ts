@@ -160,7 +160,20 @@ export async function POST(req: NextRequest) {
     const amount = product.sale_price || product.price;
 
     // Read affiliate ref_code from cookie
-    const refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
+    let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
+
+    // Prevent self-referral
+    if (refCode) {
+      const { data: affiliate } = await admin
+        .from("affiliates")
+        .select("user_id")
+        .eq("ref_code", refCode)
+        .eq("status", "active")
+        .single();
+      if (affiliate?.user_id === userId) {
+        refCode = null; // Don't allow self-referral
+      }
+    }
 
     const { data: order, error: orderError } = await admin
       .from("orders")

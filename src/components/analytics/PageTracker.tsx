@@ -2,17 +2,15 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { hasCookieConsent } from "@/components/CookieConsent";
 
 export default function PageTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // GDPR/PDPA: Do not track without explicit cookie consent
-    if (typeof window !== "undefined") {
-      const consent = localStorage.getItem("dk_cookie_consent");
-      if (consent !== "accepted") return;
-    }
+    // GDPR/PDPA: Do not track without explicit cookie consent (analytics category)
+    if (typeof window !== "undefined" && !hasCookieConsent("analytics")) return;
 
     const utmParams: Record<string, string> = {};
     ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach((k) => {

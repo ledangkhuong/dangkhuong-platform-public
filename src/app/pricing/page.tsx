@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Chọn gói học phù hợp tại Lê Đăng Khương Academy — từ miễn phí đến Premium với tư vấn 1-1 và tài liệu độc quyền. Làm chủ Video AI & Thương Hiệu Cá Nhân.",
   alternates: {
-    canonical: "/pricing",
+    canonical: "https://dangkhuong.com/pricing",
   },
   openGraph: {
     title: "Bảng Giá Khoá Học | Lê Đăng Khương Academy",

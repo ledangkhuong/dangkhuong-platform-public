@@ -43,14 +43,31 @@ export async function POST(req: NextRequest) {
 
   const admin = await createAdminClient();
 
-  // Find order
-  const { data: order, error: orderErr } = await admin
+  // Find order (exact match first, then case-insensitive fallback)
+  const trimmedCode = order_code.trim();
+  let order: Record<string, unknown> | null = null;
+
+  const { data: exactMatch } = await admin
     .from("orders")
     .select("*, products(*)")
-    .eq("order_code", order_code.trim())
+    .eq("order_code", trimmedCode)
     .single();
 
-  if (orderErr || !order) {
+  if (exactMatch) {
+    order = exactMatch;
+  } else {
+    // Fallback: case-insensitive match (ilike)
+    const { data: ilikeMatch } = await admin
+      .from("orders")
+      .select("*, products(*)")
+      .ilike("order_code", trimmedCode)
+      .single();
+    if (ilikeMatch) {
+      order = ilikeMatch;
+    }
+  }
+
+  if (!order) {
     return NextResponse.json(
       { error: "Không tìm thấy đơn hàng" },
       { status: 404 }
@@ -97,13 +114,36 @@ export async function POST(req: NextRequest) {
     });
     enrolled = !enrollErr;
 
-    // Add XP
-    await admin.from("xp_events").insert({
-      user_id: order.user_id,
-      action: "purchase",
-      xp_amount: 500,
-      meta: { order_id: order.id, product_id: order.product_id },
-    });
+    // Upgrade tier if product requires it (e.g. Quyền Đồng Hành)
+    const products = order.products as Record<string, unknown> | null;
+    if (products?.tier_required === "vip") {
+      await admin.from("profiles")
+        .update({ tier: "vip" })
+        .eq("id", order.user_id);
+    } else if (products?.tier_required === "member") {
+      await admin.from("profiles")
+        .update({ tier: "member" })
+        .eq("id", order.user_id);
+    }
+
+    // Add XP (idempotent — skip if already awarded for this order)
+    const { count: existingXpCount } = await admin
+      .from("xp_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", order.user_id as string)
+      .eq("action", "purchase")
+      .contains("meta", { order_id: order.id });
+
+    if (!existingXpCount || existingXpCount === 0) {
+      await admin.from("xp_events").insert({
+        user_id: order.user_id,
+        action: "purchase",
+        xp_amount: 500,
+        meta: { order_id: order.id, product_id: order.product_id },
+      });
+    } else {
+      console.log(`[Admin Confirm] XP already awarded for order ${order.id}, skipping`);
+    }
 
     // Send emails (purchase confirmation + enrollment welcome)
     try {
@@ -114,7 +154,7 @@ export async function POST(req: NextRequest) {
         .eq("id", order.user_id)
         .single();
       const { data: authUser } = await admin.auth.admin.getUserById(
-        order.user_id
+        order.user_id as string
       );
       const email = authUser?.user?.email;
       const name = profile?.full_name || "bạn";
@@ -124,9 +164,9 @@ export async function POST(req: NextRequest) {
         await sendPurchaseConfirmation(
           email,
           name,
-          order.products?.name || "Sản phẩm",
-          order.amount,
-          order.order_code
+          products?.name as string || "Sản phẩm",
+          order.amount as number,
+          order.order_code as string
         ).catch(() => {});
 
         // Enrollment welcome email
@@ -134,13 +174,28 @@ export async function POST(req: NextRequest) {
           await sendEnrollmentWelcomeEmail(
             email,
             name,
-            order.products?.name || order.products?.title || "Khoá học",
-            order.products?.slug || "",
+            products?.name as string || products?.title as string || "Khoá học",
+            products?.slug as string || "",
           ).catch(() => {});
         }
       }
     } catch {
       // Email failure should not break enrollment
+    }
+
+    // Send Zalo OA notification
+    try {
+      const { notifyPurchaseViaZalo } = await import("@/lib/zalo-notifications");
+      const { data: zaloProfile } = await admin.from("profiles").select("full_name").eq("id", order.user_id).single();
+      await notifyPurchaseViaZalo(
+        order.user_id as string,
+        zaloProfile?.full_name || "bạn",
+        (order.products as Record<string, unknown>)?.name as string || "Sản phẩm",
+        order.amount as number,
+        order.order_code as string,
+      );
+    } catch {
+      console.warn("[Admin Confirm] Zalo notification failed (non-critical)");
     }
   }
 
@@ -149,13 +204,13 @@ export async function POST(req: NextRequest) {
     try {
       const { data: affiliate } = await admin
         .from("affiliates")
-        .select("id, user_id, commission_rate, total_earned, total_conversions")
+        .select("id, user_id, commission_rate")
         .eq("ref_code", order.ref_code)
         .eq("status", "active")
         .single();
 
       if (affiliate && affiliate.user_id !== order.user_id) {
-        const commissionAmount = Math.round(order.amount * (affiliate.commission_rate / 100));
+        const commissionAmount = Math.round((order.amount as number) * (affiliate.commission_rate / 100));
         await admin.from("affiliate_conversions").insert({
           affiliate_id: affiliate.id,
           order_id: order.id,
@@ -167,15 +222,28 @@ export async function POST(req: NextRequest) {
           status: "pending",
         });
 
-        // Update affiliate stats (total_earned & total_conversions)
-        await admin
-          .from("affiliates")
-          .update({
-            total_earned: affiliate.total_earned + commissionAmount,
-            total_conversions: affiliate.total_conversions + 1,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", affiliate.id);
+        // Update affiliate stats atomically (prevents race condition with concurrent orders)
+        await admin.rpc("increment_affiliate_stats", {
+          p_affiliate_id: affiliate.id,
+          p_earned_amount: commissionAmount,
+        });
+
+        // Send affiliate commission email
+        try {
+          const { sendAffiliateCommissionEmail } = await import("@/lib/email/transactional");
+          const { data: affProfile } = await admin.from("profiles").select("full_name").eq("id", affiliate.user_id).single();
+          const { data: affAuth } = await admin.auth.admin.getUserById(affiliate.user_id);
+          if (affAuth?.user?.email) {
+            await sendAffiliateCommissionEmail(
+              affAuth.user.email,
+              affProfile?.full_name || "bạn",
+              (order.products as Record<string, unknown>)?.name as string || "Sản phẩm",
+              commissionAmount,
+            ).catch((err: unknown) => console.error("[Admin Confirm] Affiliate email error:", err));
+          }
+        } catch {
+          // Non-critical
+        }
 
         console.log(`[Admin Confirm] Affiliate ${order.ref_code}: +${commissionAmount}đ commission`);
       }
@@ -190,7 +258,7 @@ export async function POST(req: NextRequest) {
     admin_id: user.id,
     action: "order.confirm",
     target_type: "order",
-    target_id: order.id,
+    target_id: order.id as string,
     details: { order_code: order.order_code, amount: order.amount },
     ip_address: ip,
   });

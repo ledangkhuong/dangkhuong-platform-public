@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { hasCookieConsent } from "@/components/CookieConsent";
 
 /**
  * AffiliateTracker — Gắn vào root layout, tracking ref code trên MỌI trang.
@@ -16,9 +17,8 @@ export default function AffiliateTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // GDPR/PDPA: Do not set tracking cookies or fire tracking calls without consent
-    const consent = typeof window !== "undefined" ? localStorage.getItem("dk_cookie_consent") : null;
-    if (consent !== "accepted") return;
+    // GDPR/PDPA: Do not set tracking cookies or fire tracking calls without marketing consent
+    if (typeof window !== "undefined" && !hasCookieConsent("marketing")) return;
 
     const ref = searchParams.get("ref");
     if (!ref || ref.length < 4 || ref.length > 20) return;

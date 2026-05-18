@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Điều khoản sử dụng nền tảng học tập trực tuyến Lê Đăng Khương Academy — dangkhuong.com. Tuân thủ Nghị định 52/2013/NĐ-CP về thương mại điện tử.",
   alternates: {
-    canonical: "/terms",
+    canonical: "https://dangkhuong.com/terms",
   },
   openGraph: {
     title: "Điều Khoản Sử Dụng — Lê Đăng Khương Academy",

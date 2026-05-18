@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Chính sách bảo mật và bảo vệ dữ liệu cá nhân của nền tảng Lê Đăng Khương Academy, tuân thủ Luật An ninh mạng 2018 và Nghị định 13/2023/NĐ-CP.",
   alternates: {
-    canonical: "/privacy",
+    canonical: "https://dangkhuong.com/privacy",
   },
   openGraph: {
     title: `Chính Sách Bảo Mật — ${siteConfig.name}`,

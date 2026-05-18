@@ -4,6 +4,16 @@
   "devCommand": "next dev",
   "installCommand": "npm install",
   "regions": ["sin1"],
+  "crons": [
+    {
+      "path": "/api/cron/abandoned-cart",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/expire-subscriptions",
+      "schedule": "0 2 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

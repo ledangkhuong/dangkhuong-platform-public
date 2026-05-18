@@ -50,6 +50,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Thiếu product_id" }, { status: 400 });
     }
 
+    // Validate product_id is a valid UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(product_id)) {
+      return NextResponse.json({ error: "product_id không hợp lệ" }, { status: 400 });
+    }
+
+    // Validate customer_name if provided
+    if (customer_name && (typeof customer_name !== "string" || customer_name.length > 200)) {
+      return NextResponse.json({ error: "Tên khách hàng không hợp lệ (tối đa 200 ký tự)" }, { status: 400 });
+    }
+
+    // Validate customer_email if provided
+    if (customer_email) {
+      if (typeof customer_email !== "string" || customer_email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) {
+        return NextResponse.json({ error: "Email không hợp lệ" }, { status: 400 });
+      }
+    }
+
+    // Validate customer_phone if provided
+    if (customer_phone) {
+      if (typeof customer_phone !== "string" || customer_phone.length > 20 || !/^[\d+\s]+$/.test(customer_phone)) {
+        return NextResponse.json({ error: "Số điện thoại không hợp lệ (chỉ chấp nhận số, dấu + và khoảng trắng, tối đa 20 ký tự)" }, { status: 400 });
+      }
+    }
+
     // Lấy thông tin sản phẩm (dùng admin client để tránh RLS issues)
     const admin = await createAdminClient();
 

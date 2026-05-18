@@ -50,6 +50,23 @@ type Chapter = {
   lessons: Lesson[];
 };
 
+/* ─── Tier hierarchy ─── */
+
+const TIER_LEVELS: Record<string, number> = { free: 0, member: 1, vip: 2 };
+
+function tierLevel(tier: string | null | undefined): number {
+  return TIER_LEVELS[(tier ?? "free").toLowerCase()] ?? 0;
+}
+
+/** Returns true when the user's tier is at least the required tier. */
+function meetsRequiredTier(
+  userTier: string | null | undefined,
+  requiredTier: string | null | undefined
+): boolean {
+  if (!requiredTier || requiredTier === "free") return true; // no restriction
+  return tierLevel(userTier) >= tierLevel(requiredTier);
+}
+
 function formatDuration(sec: number) {
   if (!sec) return "";
   const m = Math.floor(sec / 60);
@@ -240,7 +257,7 @@ export default async function CourseDetailPage({
           lessons: ch.lessons.map((l) => ({
             id: l.id,
             title: l.title,
-            youtube_id: l.youtube_id,
+            youtube_id: l.is_free ? l.youtube_id : null,
             duration_sec: l.duration_sec,
             is_free: l.is_free,
             sort_order: l.sort_order,
@@ -262,22 +279,82 @@ export default async function CourseDetailPage({
     .eq("product_id", product.id)
     .maybeSingle();
 
-  // Profile role
+  // Profile role + tier
   const { data: profile } = await adminDb
     .from("profiles")
-    .select("role")
+    .select("role, tier")
     .eq("id", user.id)
     .single();
 
+  const userTier: string = (profile as { role?: string; tier?: string })?.tier ?? "free";
+  const productTierRequired: string | null = product.tier_required ?? null;
+
+  // Access rule:
+  //   user has access IF (enrolled) OR (admin) OR (product is free)
+  //   OR (user.tier >= product.tier_required)
+  // Enrollment always overrides tier requirements.
+  const hasEnrollment = !!enrollment;
+  const hasTierAccess = meetsRequiredTier(userTier, productTierRequired);
   const hasAccess =
-    profile?.role === "admin" || !!enrollment || product.price === 0;
+    profile?.role === "admin" ||
+    hasEnrollment ||
+    product.price === 0 ||
+    hasTierAccess;
+
+  // Whether the user is blocked specifically because of tier (not enrollment)
+  const blockedByTier =
+    !hasAccess && !hasEnrollment && !hasTierAccess && !!productTierRequired && productTierRequired !== "free";
+
   const enrolledAt = enrollment?.created_at ?? undefined;
 
-  /* ═══ AUTHENTICATED BUT NOT ENROLLED (paid course) ═══ */
+  /* ═══ AUTHENTICATED BUT NOT ENROLLED / TIER BLOCKED ═══ */
   if (!hasAccess) {
+    const tierLabels: Record<string, string> = {
+      member: "Member",
+      vip: "VIP",
+    };
     return (
       <div>
         <TopBar title={product.title} subtitle="Khoá học" />
+
+        {/* Tier upgrade banner — shown when tier is the blocking reason */}
+        {blockedByTier && (
+          <div className="max-w-2xl mx-auto px-4 pt-6">
+            <div
+              className="rounded-xl p-6 text-center"
+              style={{
+                background: "rgba(212,168,67,0.08)",
+                border: "1px solid rgba(212,168,67,0.25)",
+              }}
+            >
+              <Lock size={28} className="text-[#D4A843] mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-white mb-2">
+                Khoá học dành cho {tierLabels[productTierRequired!] ?? productTierRequired}
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Khoá học này yêu cầu gói{" "}
+                <span className="font-semibold text-[#D4A843]">
+                  {tierLabels[productTierRequired!] ?? productTierRequired}
+                </span>{" "}
+                trở lên. Gói hiện tại của bạn là{" "}
+                <span className="font-semibold text-gray-300">
+                  {tierLabels[userTier] ?? userTier ?? "Free"}
+                </span>
+                .
+              </p>
+              <a
+                href="/pricing"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium text-black transition-all hover:scale-[1.02]"
+                style={{
+                  background: "linear-gradient(135deg, #D4A843, #B8922E)",
+                }}
+              >
+                Nâng cấp ngay
+              </a>
+            </div>
+          </div>
+        )}
+
         <CoursePublicView
           product={{
             id: product.id,
@@ -295,11 +372,11 @@ export default async function CourseDetailPage({
             lessons: ch.lessons.map((l) => ({
               id: l.id,
               title: l.title,
-              youtube_id: l.youtube_id,
+              youtube_id: l.is_free ? l.youtube_id : null,
               duration_sec: l.duration_sec,
               is_free: l.is_free,
               sort_order: l.sort_order,
-              })),
+            })),
           }))}
           isAuthenticated={true}
           productId={product.id}

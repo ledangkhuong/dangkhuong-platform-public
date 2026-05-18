@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Khóa học thực chiến làm video YouTube Slow English bằng VEO 3.1. Chỉ 2 video hướng dẫn – ra video đầu tiên trong 48 giờ. Bí mật kênh 372K subs kiếm $30.000/tháng.",
   alternates: {
-    canonical: "/slowenglish",
+    canonical: "https://dangkhuong.com/slowenglish",
   },
   openGraph: {
     title: "Làm Video YouTube Slow English Bằng VEO 3.1 & CapCut",

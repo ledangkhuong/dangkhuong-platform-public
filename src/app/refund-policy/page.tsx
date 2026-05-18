@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Chính sách hoàn tiền khi mua khoá học trên nền tảng Lê Đăng Khương Academy — dangkhuong.com",
   alternates: {
-    canonical: "/refund-policy",
+    canonical: "https://dangkhuong.com/refund-policy",
   },
   openGraph: {
     title: "Chính Sách Hoàn Tiền — Lê Đăng Khương Academy",
