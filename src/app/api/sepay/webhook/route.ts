@@ -77,16 +77,17 @@ export async function POST(req: NextRequest) {
     // Order codes có thể bắt đầu bằng: SP (sanphamso), SE (slowenglish), DK (khác)
 
     // Extract all possible order codes to try
-    const rawCode = (code || "").toUpperCase().trim();
-    const contentMatch = (content || "").toUpperCase().match(/DK([A-Z0-9]+)/);
+    // IMPORTANT: Preserve original case — order codes are case-sensitive (nanoid)
+    const rawCode = (code || "").trim();
+    const contentMatch = (content || "").match(/DK([A-Za-z0-9]+)/i);
     const contentCode = contentMatch?.[1] || "";
 
     // Build list of candidates to try (deduplicated)
     const candidates = [...new Set([
-      rawCode,                          // SePay code field as-is
-      rawCode.replace(/^DK/, ""),       // Strip DK prefix from SePay code
-      contentCode,                      // Regex extract from content (after DK)
-      contentCode.replace(/^DK/, ""),   // Strip another DK if double-prefixed
+      rawCode,                                    // SePay code field as-is
+      rawCode.replace(/^DK/i, ""),                // Strip DK prefix (case-insensitive)
+      contentCode,                                // Regex extract from content (after DK)
+      contentCode.replace(/^DK/i, ""),            // Strip another DK if double-prefixed
     ])].filter(Boolean);
 
     console.log("[Sepay] Order code candidates:", candidates, "| content:", content, "| code:", code);
@@ -97,17 +98,30 @@ export async function POST(req: NextRequest) {
     }
 
     // Try each candidate until we find a matching order
+    // Use case-insensitive search (ilike) as fallback for case mismatches
     let order: Record<string, unknown> | null = null;
     let matchedCode = "";
     for (const candidate of candidates) {
-      const { data } = await supabase
+      // Try exact match first (faster, uses index)
+      const { data: exactMatch } = await supabase
         .from("orders")
         .select("*, products(*)")
         .eq("order_code", candidate)
         .single();
-      if (data) {
-        order = data;
+      if (exactMatch) {
+        order = exactMatch;
         matchedCode = candidate;
+        break;
+      }
+      // Fallback: case-insensitive match
+      const { data: ilikeMatch } = await supabase
+        .from("orders")
+        .select("*, products(*)")
+        .ilike("order_code", candidate)
+        .single();
+      if (ilikeMatch) {
+        order = ilikeMatch;
+        matchedCode = (ilikeMatch as Record<string, unknown>).order_code as string || candidate;
         break;
       }
     }

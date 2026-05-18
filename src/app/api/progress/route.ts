@@ -35,7 +35,10 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("lesson_progress")
-    .upsert({ user_id: user.id, lesson_id, product_id, completed, watch_sec, note, updated_at: new Date().toISOString() })
+    .upsert(
+      { user_id: user.id, lesson_id, product_id, completed, watch_sec, note, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,lesson_id" }
+    )
     .select().single();
 
   if (error) {
