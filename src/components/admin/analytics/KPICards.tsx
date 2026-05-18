@@ -23,7 +23,7 @@ function formatNumber(value: number): string {
 }
 
 function calcPercentChange(current: number, prev: number): string {
-  if (prev === 0) return "0.0";
+  if (prev === 0) return current > 0 ? "NEW" : "0.0";
   return ((current - prev) / prev * 100).toFixed(1);
 }
 
@@ -36,7 +36,8 @@ interface CardConfig {
 }
 
 function KPICard({ label, value, percentChange, icon, color }: CardConfig) {
-  const isPositive = parseFloat(percentChange) >= 0;
+  const isNew = percentChange === "NEW";
+  const isPositive = isNew || parseFloat(percentChange) >= 0;
 
   return (
     <div className="card-dark p-5">
@@ -47,13 +48,19 @@ function KPICard({ label, value, percentChange, icon, color }: CardConfig) {
         >
           <div style={{ color }}>{icon}</div>
         </div>
-        <span
-          className={`text-xs font-medium flex items-center gap-1 ${
-            isPositive ? "text-green-400" : "text-red-400"
-          }`}
-        >
-          {isPositive ? "↑" : "↓"} {Math.abs(parseFloat(percentChange))}%
-        </span>
+        {isNew ? (
+          <span className="text-xs font-medium flex items-center gap-1 text-[#D4A843]">
+            ★ Mới
+          </span>
+        ) : (
+          <span
+            className={`text-xs font-medium flex items-center gap-1 ${
+              isPositive ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {isPositive ? "↑" : "↓"} {Math.abs(parseFloat(percentChange))}%
+          </span>
+        )}
       </div>
       <p className="text-gray-400 text-sm mb-1">{label}</p>
       <p className="text-white text-xl font-bold">{value}</p>
@@ -61,8 +68,8 @@ function KPICard({ label, value, percentChange, icon, color }: CardConfig) {
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
-            width: `${Math.min(Math.abs(parseFloat(percentChange)), 100)}%`,
-            backgroundColor: isPositive ? "#22c55e" : "#ef4444",
+            width: isNew ? "100%" : `${Math.min(Math.abs(parseFloat(percentChange)), 100)}%`,
+            backgroundColor: isNew ? "#D4A843" : isPositive ? "#22c55e" : "#ef4444",
           }}
         />
       </div>
