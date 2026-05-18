@@ -57,8 +57,9 @@ export async function POST(req: NextRequest) {
       });
 
       // --- Update streak ---
+      const adminClient = await createAdminClient();
       try {
-        const { data: streakProfile } = await supabase
+        const { data: streakProfile } = await adminClient
           .from("profiles")
           .select("streak, last_active_date")
           .eq("id", user.id)
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
           }
 
           if (lastActive !== today) {
-            await supabase
+            await adminClient
               .from("profiles")
               .update({ streak: newStreak, last_active_date: today })
               .eq("id", user.id);
@@ -97,7 +98,6 @@ export async function POST(req: NextRequest) {
 
       // --- Achievement notifications (level-up & streak milestones) ---
       try {
-        const adminClient = await createAdminClient();
 
         // Fetch current profile to get XP (already incremented by DB trigger) and streak
         const { data: profile } = await supabase
