@@ -249,7 +249,7 @@ export default function SlowEnglishLanding() {
                 Họ và tên <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   name="full_name"
                   type="text"
@@ -269,7 +269,7 @@ export default function SlowEnglishLanding() {
                 Email <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   name="email"
                   type="email"
@@ -289,7 +289,7 @@ export default function SlowEnglishLanding() {
                 Số điện thoại
               </label>
               <div className="relative">
-                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   name="phone"
                   type="tel"
@@ -306,10 +306,10 @@ export default function SlowEnglishLanding() {
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
                 Mật khẩu <span className="text-red-400">*</span>{" "}
-                <span className="text-gray-600">(tối thiểu 6 ký tự)</span>
+                <span className="text-gray-500">(tối thiểu 6 ký tự)</span>
               </label>
               <div className="relative">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -355,7 +355,7 @@ export default function SlowEnglishLanding() {
                   : "Đăng Ký Gói Standard — 499.000đ"}
             </button>
 
-            <p className="text-[11px] text-gray-600 text-center leading-relaxed pt-2">
+            <p className="text-[11px] text-gray-500 text-center leading-relaxed pt-2">
               Bằng việc đăng ký, bạn đồng ý với điều khoản sử dụng của Lê Đăng
               Khương Academy.
             </p>

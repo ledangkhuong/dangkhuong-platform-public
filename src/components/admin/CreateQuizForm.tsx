@@ -353,7 +353,7 @@ export default function CreateQuizForm({ lessons }: CreateQuizFormProps) {
                 <div className="flex items-start gap-2">
                   <GripVertical
                     size={16}
-                    className="text-gray-600 mt-2.5 flex-shrink-0"
+                    className="text-gray-500 mt-2.5 flex-shrink-0"
                   />
                   <div className="flex-1 space-y-3">
                     {/* Question header */}
@@ -378,7 +378,7 @@ export default function CreateQuizForm({ lessons }: CreateQuizFormProps) {
                         <button
                           type="button"
                           onClick={() => removeQuestion(qIndex)}
-                          className="ml-auto text-gray-600 hover:text-red-400 transition-colors"
+                          className="ml-auto text-gray-500 hover:text-red-400 transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -443,7 +443,7 @@ export default function CreateQuizForm({ lessons }: CreateQuizFormProps) {
                                 onClick={() =>
                                   removeOption(qIndex, oIndex)
                                 }
-                                className="text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
+                                className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0"
                               >
                                 <Trash2 size={12} />
                               </button>

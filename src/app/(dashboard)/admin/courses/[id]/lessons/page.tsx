@@ -1305,7 +1305,7 @@ function LessonFormComponent({
               className="input-dark w-full px-3 py-2 rounded-lg text-sm"
               placeholder="Paste link YouTube hoặc ID (vd: dQw4w9WgXcQ)"
             />
-            <p className="text-[10px] text-gray-600 mt-1">
+            <p className="text-[10px] text-gray-500 mt-1">
               Upload video lên YouTube ở chế độ{" "}
               <strong className="text-[#f59e0b]">Unlisted</strong> (Không công
               khai) rồi paste link vào đây.
@@ -1381,7 +1381,7 @@ function LessonFormComponent({
             min={0}
             placeholder="0"
           />
-          <p className="text-[10px] text-gray-600 mt-1">
+          <p className="text-[10px] text-gray-500 mt-1">
             0 = mở ngay khi ghi danh. Ví dụ: 7 = mở sau 7 ngày kể từ khi học viên ghi danh.
           </p>
         </div>
@@ -1521,7 +1521,7 @@ function LessonAttachmentsSection({
       )}
 
       {attachments.length === 0 ? (
-        <p className="text-gray-600 text-xs italic">
+        <p className="text-gray-500 text-xs italic">
           {"Chưa có tài liệu nào. Hỗ trợ: PDF, DOCX, XLSX, PPTX, ZIP (tối đa 10MB)."}
         </p>
       ) : (

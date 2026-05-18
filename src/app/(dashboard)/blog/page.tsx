@@ -112,7 +112,7 @@ export default async function BlogPage() {
         {allPosts.length === 0 && (
           <div className="card-dark p-12 text-center">
             <div className="flex justify-center mb-4">
-              <FileText size={48} className="text-gray-600" />
+              <FileText size={48} className="text-gray-500" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
               Chưa có bài viết nào
@@ -199,7 +199,7 @@ export default async function BlogPage() {
               </div>
               {featured.tags && featured.tags.length > 0 && (
                 <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-                  <Tag size={10} className="text-gray-600" />
+                  <Tag size={10} className="text-gray-500" />
                   {featured.tags.slice(0, 4).map((tag) => (
                     <span
                       key={tag}
@@ -262,7 +262,7 @@ export default async function BlogPage() {
                       {post.excerpt}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 text-[11px] text-gray-600">
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
                     <span className="flex items-center gap-1">
                       <Clock size={10} />
                       {estimateReadTime(post.content)}
@@ -278,7 +278,7 @@ export default async function BlogPage() {
                       {post.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="text-[10px] text-gray-600 px-1.5 py-0.5 rounded-full"
+                          className="text-[10px] text-gray-500 px-1.5 py-0.5 rounded-full"
                           style={{ background: "#1a1a1a" }}
                         >
                           #{tag}

@@ -172,7 +172,7 @@ function MonthCalendar({
       {/* Day labels */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DAY_LABELS.map((label) => (
-          <div key={label} className="text-center text-[10px] text-gray-600 font-medium py-1">
+          <div key={label} className="text-center text-[10px] text-gray-500 font-medium py-1">
             {label}
           </div>
         ))}
@@ -724,7 +724,7 @@ export default function EventsPage() {
 
             {selectedDayEvents.length === 0 ? (
               <div className="card-dark p-8 text-center">
-                <Calendar size={32} className="text-gray-600 mx-auto mb-3" />
+                <Calendar size={32} className="text-gray-500 mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">
                   Không có sự kiện nào trong ngày này.
                 </p>
@@ -753,7 +753,7 @@ export default function EventsPage() {
             </div>
           ) : upcomingEvents.length === 0 ? (
             <div className="card-dark p-8 text-center">
-              <Calendar size={32} className="text-gray-600 mx-auto mb-3" />
+              <Calendar size={32} className="text-gray-500 mx-auto mb-3" />
               <p className="text-gray-500 text-sm">
                 Chưa có sự kiện nào sắp tới trong tháng này.
               </p>

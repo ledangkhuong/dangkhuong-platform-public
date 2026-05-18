@@ -423,7 +423,7 @@ export default async function PerformancePage({
               </table>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-600">
+            <div className="flex flex-col items-center justify-center py-16 text-gray-500">
               <Users size={32} className="mb-3 opacity-50" />
               <p className="text-sm">Chưa có dữ liệu hiệu suất</p>
               <p className="text-xs text-gray-700 mt-1">
@@ -517,7 +517,7 @@ export default async function PerformancePage({
                                 }}
                                 title={`${stage.label}: ${count}`}
                               />
-                              <span className="text-[8px] text-gray-600 truncate w-full text-center">
+                              <span className="text-[8px] text-gray-500 truncate w-full text-center">
                                 {stage.label}
                               </span>
                             </div>

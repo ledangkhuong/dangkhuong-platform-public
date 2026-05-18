@@ -400,7 +400,7 @@ export default function NewBlogPostPage() {
             </span>
 
             {wordCount > 0 && (
-              <span className="text-xs text-gray-600">
+              <span className="text-xs text-gray-500">
                 {wordCount.toLocaleString("vi-VN")} từ
               </span>
             )}
@@ -540,7 +540,7 @@ export default function NewBlogPostPage() {
                   placeholder="VD: kinh doanh sản phẩm số"
                   className="input-dark text-sm"
                 />
-                <p className="text-[10px] text-gray-600 mt-1">
+                <p className="text-[10px] text-gray-500 mt-1">
                   Từ khóa mà bạn muốn bài viết xếp hạng trên Google
                 </p>
               </div>
@@ -552,7 +552,7 @@ export default function NewBlogPostPage() {
                     Slug (URL)
                   </label>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-gray-600 shrink-0">
+                    <span className="text-[10px] text-gray-500 shrink-0">
                       dangkhuong.com/blog/
                     </span>
                     <input
@@ -655,7 +655,7 @@ export default function NewBlogPostPage() {
                         </>
                       ) : (
                         <>
-                          <Upload size={18} className="text-gray-600" />
+                          <Upload size={18} className="text-gray-500" />
                           <span className="text-xs text-gray-500">Nhấn để chọn ảnh</span>
                           <span className="text-[10px] text-gray-700">JPEG, PNG, WebP, GIF</span>
                         </>
@@ -690,7 +690,7 @@ export default function NewBlogPostPage() {
                         {uploadingAuthorAvatar ? <Loader2 size={16} className="text-white animate-spin" /> : <Upload size={16} className="text-white" />}
                       </div>
                     </div>
-                    <p className="text-[9px] text-gray-600 mt-1 text-center">Ảnh tác giả</p>
+                    <p className="text-[9px] text-gray-500 mt-1 text-center">Ảnh tác giả</p>
                   </div>
                   {/* Fields */}
                   <div className="space-y-3">
@@ -769,7 +769,7 @@ export default function NewBlogPostPage() {
             Xuất bản & gửi email
           </button>
 
-          <p className="text-[10px] text-gray-600 ml-1 hidden sm:block">
+          <p className="text-[10px] text-gray-500 ml-1 hidden sm:block">
             Gửi email thông báo đến tất cả học viên
           </p>
         </div>

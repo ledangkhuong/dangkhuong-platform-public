@@ -34,7 +34,7 @@ export default function OrderSearchBar() {
       <div className="relative flex-1 md:w-80">
         <Search
           size={15}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
         />
         <input
           type="text"
@@ -60,7 +60,7 @@ export default function OrderSearchBar() {
               setValue("");
               submit("");
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-300 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
           >
             <X size={14} />
           </button>

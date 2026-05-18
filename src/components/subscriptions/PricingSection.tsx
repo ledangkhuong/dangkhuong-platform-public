@@ -221,7 +221,7 @@ export default function PricingSection({ onSubscribe }: PricingSectionProps) {
                 </div>
                 {plan.original_price &&
                   plan.original_price > plan.price && (
-                    <div className="text-xs text-gray-600 line-through mt-0.5">
+                    <div className="text-xs text-gray-500 line-through mt-0.5">
                       {formatCurrency(plan.original_price)}
                     </div>
                   )}

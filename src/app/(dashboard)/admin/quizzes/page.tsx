@@ -293,14 +293,14 @@ export default async function AdminQuizzesPage() {
                             {row.pass_rate}%
                           </span>
                         </span>
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-gray-500">
                           Cần {row.pass_score}%
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-[10px] text-gray-600">
+                      <span className="text-[10px] text-gray-500">
                         {formatDate(row.created_at)}
                       </span>
                       <DeleteQuizButton quizId={row.id} quizTitle={row.title} />

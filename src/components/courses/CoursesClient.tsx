@@ -169,7 +169,7 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                         <span className="text-sm font-bold text-[#f59e0b]">
                           {formatPrice(course.sale_price!)}
                         </span>
-                        <span className="text-xs text-gray-600 line-through">
+                        <span className="text-xs text-gray-500 line-through">
                           {formatPrice(course.price)}
                         </span>
                       </div>

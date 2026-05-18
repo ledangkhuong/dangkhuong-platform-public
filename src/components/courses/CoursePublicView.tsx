@@ -500,7 +500,7 @@ export default function CoursePublicView({
                             ) : (
                               <Lock
                                 size={14}
-                                className="text-gray-600 shrink-0"
+                                className="text-gray-500 shrink-0"
                               />
                             )}
 
@@ -556,7 +556,7 @@ export default function CoursePublicView({
 
                             {/* Duration */}
                             {lesson.duration_sec > 0 && (
-                              <span className="text-xs text-gray-600 tabular-nums shrink-0">
+                              <span className="text-xs text-gray-500 tabular-nums shrink-0">
                                 {formatDuration(lesson.duration_sec)}
                               </span>
                             )}
@@ -573,7 +573,7 @@ export default function CoursePublicView({
           {/* Empty state */}
           {sortedChapters.length === 0 && (
             <div className="card-dark p-10 text-center">
-              <BookOpen size={40} className="text-gray-600 mx-auto mb-3" />
+              <BookOpen size={40} className="text-gray-500 mx-auto mb-3" />
               <h3 className="font-bold text-white mb-1">
                 Nội dung đang được cập nhật
               </h3>

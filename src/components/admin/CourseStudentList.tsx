@@ -370,7 +370,7 @@ export default function CourseStudentList({
                       e.stopPropagation();
                       setDeleteTarget(student);
                     }}
-                    className="shrink-0 p-2 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="shrink-0 p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     title="Xoá học viên"
                   >
                     <Trash2 size={14} />
@@ -437,7 +437,7 @@ export default function CourseStudentList({
                       /* ── Progress tab ─── */
                       <div className="p-4 space-y-4 max-h-[450px] overflow-y-auto">
                         {courseStructure.length === 0 && (
-                          <p className="text-xs text-gray-600 text-center py-4">
+                          <p className="text-xs text-gray-500 text-center py-4">
                             Chưa có bài học nào.
                           </p>
                         )}
@@ -451,7 +451,7 @@ export default function CourseStudentList({
                                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                                   {chapter.title}
                                 </span>
-                                <span className="text-[10px] text-gray-600">
+                                <span className="text-[10px] text-gray-500">
                                   ({done}/{chapter.lessons.length})
                                 </span>
                               </div>
@@ -472,7 +472,7 @@ export default function CourseStudentList({
                                       ) : (
                                         <Circle
                                           size={14}
-                                          className="text-gray-600 shrink-0"
+                                          className="text-gray-500 shrink-0"
                                         />
                                       )}
                                       <span
@@ -484,7 +484,7 @@ export default function CourseStudentList({
                                       >
                                         {lesson.title}
                                       </span>
-                                      <div className="flex items-center gap-3 text-[10px] text-gray-600">
+                                      <div className="flex items-center gap-3 text-[10px] text-gray-500">
                                         {lp && lp.watchSec > 0 && (
                                           <span className="flex items-center gap-1">
                                             <Clock size={10} />
@@ -509,7 +509,7 @@ export default function CourseStudentList({
                       /* ── Q&A tab ─── */
                       <div className="p-4 space-y-3 max-h-[450px] overflow-y-auto">
                         {student.questions.length === 0 ? (
-                          <p className="text-xs text-gray-600 text-center py-4">
+                          <p className="text-xs text-gray-500 text-center py-4">
                             Chưa có câu hỏi nào.
                           </p>
                         ) : (
@@ -552,13 +552,13 @@ export default function CourseStudentList({
                                     {q.reply}
                                   </p>
                                   {q.repliedAt && (
-                                    <span className="text-[10px] text-gray-600 mt-1 block">
+                                    <span className="text-[10px] text-gray-500 mt-1 block">
                                       {formatDate(q.repliedAt)}
                                     </span>
                                   )}
                                 </div>
                               )}
-                              <div className="text-[10px] text-gray-600 mt-2 ml-5">
+                              <div className="text-[10px] text-gray-500 mt-2 ml-5">
                                 {formatDate(q.createdAt)}
                               </div>
                             </div>

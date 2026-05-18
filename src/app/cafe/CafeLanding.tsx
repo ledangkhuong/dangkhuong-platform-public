@@ -312,9 +312,9 @@ export default function CafeLanding() {
               ))}
               <span className="ml-1 text-gray-400">4.9/5</span>
             </span>
-            <span className="text-gray-600">|</span>
+            <span className="text-gray-500">|</span>
             <span className="text-gray-400">1,200+ học viên</span>
-            <span className="text-gray-600">|</span>
+            <span className="text-gray-500">|</span>
             <span className="text-gray-400">Lê Đăng Khương Academy</span>
           </div>
         </div>
@@ -489,7 +489,7 @@ export default function CafeLanding() {
               </span>
             </div>
 
-            <p className="text-sm text-gray-600 mt-6 italic leading-relaxed">
+            <p className="text-sm text-gray-500 mt-6 italic leading-relaxed">
               &ldquo;Một ly cafe có thể thay đổi cả hướng đi kinh
               doanh&rdquo;
             </p>
@@ -598,7 +598,7 @@ export default function CafeLanding() {
                     <Check size={15} className="text-[#D4A843] shrink-0" />{" "}
                     {item}
                   </span>
-                  <span className="text-sm text-gray-600 line-through shrink-0">
+                  <span className="text-sm text-gray-500 line-through shrink-0">
                     {value}
                   </span>
                 </div>
@@ -620,7 +620,7 @@ export default function CafeLanding() {
                   99K
                 </span>
               </div>
-              <p className="text-[11px] text-gray-600 mt-2 text-right">
+              <p className="text-[11px] text-gray-500 mt-2 text-right">
                 Đúng vậy — bằng giá một ly cafe.
               </p>
             </div>
@@ -751,7 +751,7 @@ export default function CafeLanding() {
               <div className="relative">
                 <User
                   size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
                 />
                 <input
                   name="full_name"
@@ -774,7 +774,7 @@ export default function CafeLanding() {
               <div className="relative">
                 <Mail
                   size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
                 />
                 <input
                   name="email"
@@ -797,7 +797,7 @@ export default function CafeLanding() {
               <div className="relative">
                 <Phone
                   size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
                 />
                 <input
                   name="phone"
@@ -815,12 +815,12 @@ export default function CafeLanding() {
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
                 Mật khẩu <span className="text-red-400">*</span>{" "}
-                <span className="text-gray-600">(tối thiểu 6 ký tự)</span>
+                <span className="text-gray-500">(tối thiểu 6 ký tự)</span>
               </label>
               <div className="relative">
                 <Lock
                   size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
                 />
                 <input
                   name="password"
@@ -861,7 +861,7 @@ export default function CafeLanding() {
               {loading ? "Đang xử lý..." : "Đăng Ký & Thanh Toán 99.000đ"}
             </button>
 
-            <p className="text-[11px] text-gray-600 text-center leading-relaxed pt-2">
+            <p className="text-[11px] text-gray-500 text-center leading-relaxed pt-2">
               Bằng việc đăng ký, bạn đồng ý với điều khoản sử dụng của Đăng
               Khương Academy.
             </p>
@@ -979,7 +979,7 @@ export default function CafeLanding() {
 
       {/* ═══ FOOTER ═══ */}
       <footer className="py-10 px-4 text-center border-t border-[#1a1a1a]">
-        <p className="text-xs text-gray-600">
+        <p className="text-xs text-gray-500">
           &copy; {new Date().getFullYear()} Lê Đăng Khương Academy. All rights
           reserved.
         </p>

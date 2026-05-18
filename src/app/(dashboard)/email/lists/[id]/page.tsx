@@ -541,7 +541,7 @@ export default function ListDetailPage() {
                           <td className="px-4 py-3 hidden md:table-cell">
                             <span className="text-gray-300 text-sm">
                               {sub.full_name || (
-                                <span className="text-gray-600">--</span>
+                                <span className="text-gray-500">--</span>
                               )}
                             </span>
                           </td>
@@ -565,7 +565,7 @@ export default function ListDetailPage() {
                           <td className="px-4 py-3">
                             <button
                               onClick={() => handleRemoveFromList(sub.id)}
-                              className="text-gray-600 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-[#2a2a2a]"
+                              className="text-gray-500 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-[#2a2a2a]"
                               title="Gỡ khỏi list"
                             >
                               <Trash2 size={15} />
@@ -662,7 +662,7 @@ export default function ListDetailPage() {
                     if (e.key === "Enter") handleAddSubscriber();
                   }}
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Subscriber phải đã tồn tại trong hệ thống.
                 </p>
               </div>

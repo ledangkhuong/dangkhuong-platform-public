@@ -379,7 +379,7 @@ export default function NewCampaignPage() {
                 placeholder={`VD: Chao mung ban den voi ${siteConfig.shortName}!`}
                 className="input-dark w-full text-sm"
               />
-              <p className="text-[11px] text-gray-600 mt-1">
+              <p className="text-[11px] text-gray-500 mt-1">
                 {subject.length} ky tu
                 {subject.length > 50 && (
                   <span className="text-[#f59e0b] ml-2">Nen giu duoi 50 ky tu</span>
@@ -638,7 +638,7 @@ export default function NewCampaignPage() {
                 </>
               )}
 
-              <p className="text-[11px] text-gray-600">{htmlContent.length} ky tu</p>
+              <p className="text-[11px] text-gray-500">{htmlContent.length} ky tu</p>
 
               {/* Plain text */}
               <details className="group">

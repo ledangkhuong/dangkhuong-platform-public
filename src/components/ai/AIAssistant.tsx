@@ -185,7 +185,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
                 <Send size={14} className="text-[#131921]" />
               </button>
             </div>
-            <div className="text-center text-[10px] text-gray-600 mt-2">Powered by Claude AI · Lê Đăng Khương Academy</div>
+            <div className="text-center text-[10px] text-gray-500 mt-2">Powered by Claude AI · Lê Đăng Khương Academy</div>
           </div>
         </div>
       )}

@@ -268,7 +268,7 @@ export default function AdminQuestionsPage() {
                         <span className="text-sm font-medium text-white">
                           {q.profiles?.full_name ?? "Thành viên"}
                         </span>
-                        <span className="text-[10px] text-gray-600">
+                        <span className="text-[10px] text-gray-500">
                           {timeAgo(q.created_at)}
                         </span>
                       </div>
@@ -342,7 +342,7 @@ export default function AdminQuestionsPage() {
                           <span className="text-[10px] font-medium text-[#D4A843]">
                             {r.profiles?.full_name ?? "Staff"}
                           </span>
-                          <span className="text-[10px] text-gray-600">
+                          <span className="text-[10px] text-gray-500">
                             • {timeAgo(r.created_at)}
                           </span>
                         </div>
@@ -386,7 +386,7 @@ export default function AdminQuestionsPage() {
                             onChange={(e) => setSendEmailWithReply(e.target.checked)}
                             className="w-3.5 h-3.5 rounded border-gray-600 bg-[#1a1a1a] text-[#D4A843] focus:ring-[#D4A843]/30"
                           />
-                          <MailCheck size={12} className={sendEmailWithReply ? "text-[#D4A843]" : "text-gray-600"} />
+                          <MailCheck size={12} className={sendEmailWithReply ? "text-[#D4A843]" : "text-gray-500"} />
                           Gửi email thông báo
                         </label>
                       )}

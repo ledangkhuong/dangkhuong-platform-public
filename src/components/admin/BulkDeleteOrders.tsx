@@ -196,7 +196,7 @@ export default function BulkDeleteOrders({ orders }: Props) {
           </label>
         ))}
         {deletableOrders.length === 0 && (
-          <div className="px-4 py-8 text-center text-sm text-gray-600">
+          <div className="px-4 py-8 text-center text-sm text-gray-500">
             Không có đơn hàng nào có thể xoá (chỉ đơn &quot;chờ thanh toán&quot; hoặc &quot;đã huỷ&quot; mới xoá được)
           </div>
         )}

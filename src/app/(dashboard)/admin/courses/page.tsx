@@ -224,7 +224,7 @@ export default async function AdminCoursesPage() {
                           border: "1px solid #2a2a2a",
                         }}
                       >
-                        <BookOpen size={22} className="text-gray-600" />
+                        <BookOpen size={22} className="text-gray-500" />
                       </div>
                     )}
                     <div className="min-w-0">
@@ -241,7 +241,7 @@ export default async function AdminCoursesPage() {
                       <p className="text-xs text-gray-500 leading-relaxed line-clamp-1 mb-1">
                         {course.description || "Chưa có mô tả"}
                       </p>
-                      <div className="flex items-center gap-3 text-[11px] text-gray-600">
+                      <div className="flex items-center gap-3 text-[11px] text-gray-500">
                         <span className="flex items-center gap-1">
                           <ExternalLink size={10} />
                           /{course.slug}

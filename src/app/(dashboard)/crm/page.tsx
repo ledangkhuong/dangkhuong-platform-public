@@ -300,7 +300,7 @@ export default async function CRMPage() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
               Chưa có dữ liệu journey
             </div>
           )}
@@ -388,14 +388,14 @@ export default async function CRMPage() {
                         title={`${dayLabel}: ${formatVND(d.revenue)} (${d.orders} đơn)`}
                       />
                       {dailyRevenue.length <= 15 && (
-                        <span className="text-[9px] text-gray-600">{dayLabel}</span>
+                        <span className="text-[9px] text-gray-500">{dayLabel}</span>
                       )}
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-32 text-gray-600 text-sm">
+              <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
                 Chưa có dữ liệu doanh thu
               </div>
             )}
@@ -482,7 +482,7 @@ export default async function CRMPage() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-12 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
               Chưa có đơn hàng nào
             </div>
           )}
@@ -536,7 +536,7 @@ export default async function CRMPage() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
               Chưa có dữ liệu sản phẩm
             </div>
           )}

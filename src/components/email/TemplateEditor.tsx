@@ -139,7 +139,7 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
                   placeholder="VD: Chao mung ban den voi Dang Khuong Academy!"
                   className="input-dark w-full text-sm"
                 />
-                <p className="text-[11px] text-gray-600 mt-1">{subject.length} ky tu</p>
+                <p className="text-[11px] text-gray-500 mt-1">{subject.length} ky tu</p>
               </div>
 
               {/* Category */}
@@ -238,7 +238,7 @@ export default function TemplateEditor({ open, onClose, onSave, initial }: Templ
                 />
               )}
 
-              <p className="text-[11px] text-gray-600">{htmlContent.length} ky tu</p>
+              <p className="text-[11px] text-gray-500">{htmlContent.length} ky tu</p>
 
               {/* Text Content */}
               <div>

@@ -391,7 +391,7 @@ export default async function CourseStudentsPage({
                     className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                       isActive
                         ? "bg-[#D4A843]/20 text-[#D4A843]"
-                        : "bg-[#252525] text-gray-600"
+                        : "bg-[#252525] text-gray-500"
                     }`}
                   >
                     {tabCounts[tab.key]}

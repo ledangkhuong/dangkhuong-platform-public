@@ -296,7 +296,7 @@ export default function EditCoursePage() {
               className="input-dark w-full"
               required
             />
-            <p className="text-[11px] text-gray-600">
+            <p className="text-[11px] text-gray-500">
               Tự động tạo từ tiêu đề. Có thể chỉnh sửa thủ công.
             </p>
           </div>
@@ -314,7 +314,7 @@ export default function EditCoursePage() {
               rows={2}
               className="input-dark w-full resize-none"
             />
-            <p className="text-[11px] text-gray-600">
+            <p className="text-[11px] text-gray-500">
               Dùng cho danh sách khoá học, chia sẻ mạng xã hội, SEO.
             </p>
           </div>
@@ -324,7 +324,7 @@ export default function EditCoursePage() {
             <label className="text-xs font-medium text-gray-400">
               Giới thiệu chi tiết khoá học
             </label>
-            <p className="text-[11px] text-gray-600 mb-2">
+            <p className="text-[11px] text-gray-500 mb-2">
               Nội dung giới thiệu đầy đủ: văn bản, hình ảnh, link, danh sách... Hiển thị trên trang giới thiệu khoá học.
             </p>
             <RichTextEditor

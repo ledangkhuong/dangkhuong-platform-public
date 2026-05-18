@@ -169,11 +169,11 @@ export default function BulkDeleteUsers({ users }: Props) {
               className="accent-red-500 w-4 h-4 rounded"
             />
             <span className="text-sm text-white">{u.full_name || "Chưa đặt tên"}</span>
-            <span className="text-[11px] text-gray-600 truncate">{u.id.slice(0, 8)}...</span>
+            <span className="text-[11px] text-gray-500 truncate">{u.id.slice(0, 8)}...</span>
           </label>
         ))}
         {deletableUsers.length === 0 && (
-          <div className="px-4 py-8 text-center text-sm text-gray-600">
+          <div className="px-4 py-8 text-center text-sm text-gray-500">
             Không có tài khoản nào có thể xoá (admin/quản lý được bảo vệ)
           </div>
         )}

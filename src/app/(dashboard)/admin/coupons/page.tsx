@@ -168,7 +168,7 @@ export default async function AdminCouponsPage() {
               Lỗi khi tải danh sách: {error.message}
             </div>
           ) : rows.length === 0 ? (
-            <div className="p-12 text-center text-gray-600 text-sm">
+            <div className="p-12 text-center text-gray-500 text-sm">
               Chưa có mã giảm giá nào. Nhấn &ldquo;Tạo mã giảm giá&rdquo; để bắt đầu.
             </div>
           ) : (
@@ -248,7 +248,7 @@ export default async function AdminCouponsPage() {
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           <span className="text-gray-300">
                             {coupon.used_count}
-                            <span className="text-gray-600">
+                            <span className="text-gray-500">
                               {" / "}
                               {coupon.max_uses !== null
                                 ? coupon.max_uses

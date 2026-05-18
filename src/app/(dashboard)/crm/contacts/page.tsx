@@ -1,6 +1,6 @@
 import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
-import { createContact, importContacts } from "@/lib/actions/crm";
+import { createContact, importContacts, syncContactsFromOrders } from "@/lib/actions/crm";
 import {
   Users,
   UserPlus,
@@ -16,6 +16,7 @@ import {
   Clock,
   ShoppingCart,
   DollarSign,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -106,108 +107,6 @@ export default async function CRMContactsPage({
   const journeyStageFilter = params.journey_stage || "";
 
   const admin = await createAdminClient();
-
-  // ──────────────────────────────────────────────────────────────
-  // AUTO-SYNC: Import khách hàng từ orders + profiles vào CRM
-  // Chỉ thêm những email chưa tồn tại trong crm_contacts
-  // ──────────────────────────────────────────────────────────────
-  {
-    // 1. Lấy tất cả email đã có trong crm_contacts
-    const { data: existingContacts } = await admin
-      .from("crm_contacts")
-      .select("email")
-      .not("email", "is", null);
-    const existingEmails = new Set(
-      (existingContacts ?? []).map((c) => (c.email as string).toLowerCase())
-    );
-
-    // 2. Lấy tất cả khách hàng từ bảng orders (unique by email)
-    const { data: allOrders } = await admin
-      .from("orders")
-      .select("customer_name, customer_email, customer_phone, status, amount, created_at")
-      .not("customer_email", "is", null)
-      .order("created_at", { ascending: true });
-
-    const orderCustomerMap = new Map<
-      string,
-      { name: string; email: string; phone: string | null; hasPaid: boolean; firstOrder: string }
-    >();
-    for (const o of allOrders ?? []) {
-      const email = (o.customer_email as string).toLowerCase();
-      if (!orderCustomerMap.has(email)) {
-        orderCustomerMap.set(email, {
-          name: (o.customer_name as string) || email.split("@")[0],
-          email,
-          phone: (o.customer_phone as string) || null,
-          hasPaid: o.status === "paid",
-          firstOrder: o.created_at as string,
-        });
-      } else {
-        const existing = orderCustomerMap.get(email)!;
-        if (o.status === "paid") existing.hasPaid = true;
-      }
-    }
-
-    // 3. Lấy tất cả profiles đã đăng ký (students)
-    const { data: allProfiles } = await admin
-      .from("profiles")
-      .select("id, full_name, email, phone, role, created_at")
-      .not("email", "is", null);
-
-    // 4. Merge: tạo danh sách cần insert
-    const toInsert: {
-      full_name: string;
-      email: string;
-      phone: string | null;
-      source: string;
-      status: string;
-      user_id: string | null;
-      created_at: string;
-      journey_stage: string;
-      first_seen_at: string;
-    }[] = [];
-
-    // Thêm từ orders
-    for (const [email, customer] of orderCustomerMap) {
-      if (existingEmails.has(email)) continue;
-      existingEmails.add(email); // prevent duplicate with profiles
-      toInsert.push({
-        full_name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        source: "website",
-        status: customer.hasPaid ? "won" : "new",
-        user_id: null,
-        created_at: customer.firstOrder,
-        journey_stage: customer.hasPaid ? "customer" : "lead",
-        first_seen_at: customer.firstOrder,
-      });
-    }
-
-    // Thêm từ profiles (chưa có trong orders)
-    for (const p of allProfiles ?? []) {
-      const email = (p.email as string).toLowerCase();
-      if (existingEmails.has(email)) continue;
-      if (["admin", "manager", "marketing", "sale", "support"].includes(p.role)) continue; // skip staff
-      existingEmails.add(email);
-      toInsert.push({
-        full_name: p.full_name || email.split("@")[0],
-        email,
-        phone: (p.phone as string) || null,
-        source: "website",
-        status: "new",
-        user_id: p.id,
-        created_at: p.created_at as string,
-        journey_stage: "lead",
-        first_seen_at: p.created_at as string,
-      });
-    }
-
-    // 5. Bulk insert (nếu có)
-    if (toInsert.length > 0) {
-      await admin.from("crm_contacts").insert(toInsert);
-    }
-  }
 
   // Build query
   let query = admin
@@ -311,6 +210,7 @@ export default async function CRMContactsPage({
   if (params.updated) notifications.push({ type: "success", message: "Đã cập nhật khách hàng thành công!" });
   if (params.deleted) notifications.push({ type: "success", message: "Đã xoá khách hàng thành công!" });
   if (params.imported) notifications.push({ type: "success", message: `Đã import ${params.imported} khách hàng thành công!` });
+  if (params.synced) notifications.push({ type: "success", message: `Đồng bộ thành công! Đã thêm ${params.synced} khách hàng mới.` });
   if (params.error) {
     const errMap: Record<string, string> = {
       name_required: "Tên khách hàng là bắt buộc.",
@@ -412,6 +312,21 @@ export default async function CRMContactsPage({
               </button>
             </div>
           </form>
+          {/* Sync Button */}
+          <div className="mt-3 pt-3 border-t border-[#2a2a2a] flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Đồng bộ khách hàng từ đơn hàng và tài khoản đăng ký vào CRM.
+            </p>
+            <form action={syncContactsFromOrders}>
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 border border-[#2a2a2a] text-gray-300 hover:text-white hover:border-[#D4A843] transition-colors"
+              >
+                <RefreshCw size={14} />
+                Đồng bộ
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* Add Contact Form */}
@@ -553,7 +468,7 @@ export default async function CRMContactsPage({
               <tbody>
                 {contacts.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-4 py-12 text-center text-gray-600 text-sm">
+                    <td colSpan={11} className="px-4 py-12 text-center text-gray-500 text-sm">
                       {q || statusFilter
                         ? "Không tìm thấy khách hàng phù hợp."
                         : "Chưa có khách hàng nào. Hãy thêm khách hàng đầu tiên!"}
@@ -590,7 +505,7 @@ export default async function CRMContactsPage({
                                 {contact.full_name}
                               </Link>
                               {contact.company && (
-                                <div className="text-[11px] text-gray-600 truncate flex items-center gap-1">
+                                <div className="text-[11px] text-gray-500 truncate flex items-center gap-1">
                                   <Building2 size={10} />
                                   {contact.company}
                                 </div>
@@ -603,7 +518,7 @@ export default async function CRMContactsPage({
                         <td className="px-4 py-3 whitespace-nowrap">
                           {contact.email ? (
                             <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                              <Mail size={12} className="text-gray-600" />
+                              <Mail size={12} className="text-gray-500" />
                               <span className="truncate max-w-[160px]">{contact.email}</span>
                             </div>
                           ) : (
@@ -615,7 +530,7 @@ export default async function CRMContactsPage({
                         <td className="px-4 py-3 whitespace-nowrap">
                           {contact.phone ? (
                             <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                              <Phone size={12} className="text-gray-600" />
+                              <Phone size={12} className="text-gray-500" />
                               {contact.phone}
                             </div>
                           ) : (
@@ -665,7 +580,7 @@ export default async function CRMContactsPage({
                           {contact.assigned_profile?.full_name ? (
                             <span className="text-xs text-gray-300">{contact.assigned_profile.full_name}</span>
                           ) : (
-                            <span className="text-xs text-gray-600">Chưa phân</span>
+                            <span className="text-xs text-gray-500">Chưa phân</span>
                           )}
                         </td>
 
@@ -674,7 +589,7 @@ export default async function CRMContactsPage({
                           {contact.email && orderSummaryMap[contact.email] ? (
                             <div className="space-y-0.5">
                               <div className="flex items-center gap-1.5 text-xs">
-                                <ShoppingCart size={12} className="text-gray-600" />
+                                <ShoppingCart size={12} className="text-gray-500" />
                                 <span>
                                   {orderSummaryMap[contact.email].paidCount > 0 && (
                                     <span className="text-amber-400 font-medium">
@@ -683,7 +598,7 @@ export default async function CRMContactsPage({
                                   )}
                                   {orderSummaryMap[contact.email].paidCount > 0 &&
                                     orderSummaryMap[contact.email].pendingCount > 0 && (
-                                    <span className="text-gray-600"> / </span>
+                                    <span className="text-gray-500"> / </span>
                                   )}
                                   {orderSummaryMap[contact.email].pendingCount > 0 && (
                                     <span className="text-yellow-400 font-medium">
@@ -736,7 +651,7 @@ export default async function CRMContactsPage({
                         {/* Created at */}
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                            <Clock size={12} className="text-gray-600" />
+                            <Clock size={12} className="text-gray-500" />
                             {formatShortDate(contact.created_at)}
                           </div>
                         </td>

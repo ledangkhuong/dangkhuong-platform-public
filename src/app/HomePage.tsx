@@ -820,7 +820,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
+          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
             <p>&copy; {new Date().getFullYear()} Lê Đăng Khương | dangkhuong.com | Powered by Kohada</p>
             <div className="flex gap-4">
               <a href="/privacy-policy" className="hover:text-white transition-colors">Chính sách bảo mật</a>
@@ -934,7 +934,7 @@ export default function HomePage() {
                         pattern="^(0|\+84)[0-9]{9}$"
                         title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
                         className="input-dark w-full" placeholder="0912345678" />
-                      <p className="text-[10px] text-gray-600 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
+                      <p className="text-[10px] text-gray-500 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>

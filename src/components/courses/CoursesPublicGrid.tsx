@@ -142,7 +142,7 @@ export default function CoursesPublicGrid({
                           <span className="text-sm font-bold text-[#D4A843]">
                             {formatPrice(course.sale_price!)}
                           </span>
-                          <span className="text-xs text-gray-600 line-through">
+                          <span className="text-xs text-gray-500 line-through">
                             {formatPrice(course.price)}
                           </span>
                         </div>

@@ -322,7 +322,7 @@ export default function AuditLogTable() {
                         >
                           {relativeTime(log.created_at)}
                         </div>
-                        <div className="text-gray-600 text-[10px] mt-0.5">
+                        <div className="text-gray-500 text-[10px] mt-0.5">
                           {formatDateTime(log.created_at)}
                         </div>
                       </td>
@@ -333,7 +333,7 @@ export default function AuditLogTable() {
                           {log.admin_name}
                         </div>
                         {log.ip_address && (
-                          <div className="text-gray-600 text-[10px] mt-0.5 font-mono">
+                          <div className="text-gray-500 text-[10px] mt-0.5 font-mono">
                             {log.ip_address}
                           </div>
                         )}
@@ -353,7 +353,7 @@ export default function AuditLogTable() {
                         <div className="text-gray-300 text-xs">
                           {log.target_type}
                         </div>
-                        <div className="text-gray-600 text-[10px] mt-0.5 font-mono truncate max-w-[200px]">
+                        <div className="text-gray-500 text-[10px] mt-0.5 font-mono truncate max-w-[200px]">
                           {log.target_id}
                         </div>
                       </td>

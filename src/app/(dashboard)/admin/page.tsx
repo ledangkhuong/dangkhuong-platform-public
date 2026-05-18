@@ -292,7 +292,7 @@ export default async function AdminPage() {
                     <div className="text-sm font-semibold text-white">
                       {o.amount.toLocaleString("vi-VN")}đ
                     </div>
-                    <div className="text-xs text-gray-600">{timeAgo(o.created_at)}</div>
+                    <div className="text-xs text-gray-500">{timeAgo(o.created_at)}</div>
                   </div>
                 </div>
               ))}

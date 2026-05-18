@@ -257,7 +257,7 @@ export default async function AdminSubscriptionsPage() {
           </div>
 
           {plansWithCounts.length === 0 ? (
-            <div className="p-12 text-center text-gray-600 text-sm">
+            <div className="p-12 text-center text-gray-500 text-sm">
               Chưa có gói đăng ký nào. Tạo gói đầu tiên ở trên.
             </div>
           ) : (
@@ -300,7 +300,7 @@ export default async function AdminSubscriptionsPage() {
                         <div className="font-medium text-white text-sm">
                           {plan.name}
                         </div>
-                        <div className="text-xs text-gray-600 mt-0.5">
+                        <div className="text-xs text-gray-500 mt-0.5">
                           {plan.slug}
                         </div>
                       </td>
@@ -308,7 +308,7 @@ export default async function AdminSubscriptionsPage() {
                       {/* Billing period */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <Calendar size={13} className="text-gray-600" />
+                          <Calendar size={13} className="text-gray-500" />
                           <span className="text-gray-300 text-sm">
                             {BILLING_LABELS[plan.billing_period] ??
                               plan.billing_period}
@@ -323,7 +323,7 @@ export default async function AdminSubscriptionsPage() {
                         </span>
                         {plan.original_price &&
                           plan.original_price > plan.price && (
-                            <span className="text-xs text-gray-600 line-through ml-2">
+                            <span className="text-xs text-gray-500 line-through ml-2">
                               {formatCurrency(plan.original_price)}
                             </span>
                           )}
@@ -337,7 +337,7 @@ export default async function AdminSubscriptionsPage() {
                       {/* Subscribers */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <Users size={13} className="text-gray-600" />
+                          <Users size={13} className="text-gray-500" />
                           <span className="text-gray-300 text-sm">
                             {plan.active_subscribers ?? 0}
                           </span>

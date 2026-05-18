@@ -364,7 +364,7 @@ export default function EditBlogPostPage() {
             </span>
 
             {wordCount > 0 && (
-              <span className="text-xs text-gray-600">{wordCount.toLocaleString("vi-VN")} từ</span>
+              <span className="text-xs text-gray-500">{wordCount.toLocaleString("vi-VN")} từ</span>
             )}
 
             <button
@@ -477,7 +477,7 @@ export default function EditBlogPostPage() {
                   <Target size={11} /> Từ khóa chính (Focus keyword)
                 </label>
                 <input value={focusKeyword} onChange={(e) => setFocusKeyword(e.target.value)} placeholder="VD: kinh doanh sản phẩm số" className="input-dark text-sm" />
-                <p className="text-[10px] text-gray-600 mt-1">Từ khóa mà bạn muốn bài viết xếp hạng trên Google</p>
+                <p className="text-[10px] text-gray-500 mt-1">Từ khóa mà bạn muốn bài viết xếp hạng trên Google</p>
               </div>
 
               {/* Slug + Category */}
@@ -485,7 +485,7 @@ export default function EditBlogPostPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-400 mb-1.5">Slug (URL)</label>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-gray-600 shrink-0">dangkhuong.com/blog/</span>
+                    <span className="text-[10px] text-gray-500 shrink-0">dangkhuong.com/blog/</span>
                     <input value={slug} onChange={(e) => setSlug(e.target.value)} className="input-dark flex-1 text-sm" />
                   </div>
                 </div>
@@ -537,7 +537,7 @@ export default function EditBlogPostPage() {
                       {uploadingThumb ? (
                         <><Loader2 size={18} className="text-gray-500 animate-spin" /><span className="text-xs text-gray-500">Đang tải lên...</span></>
                       ) : (
-                        <><Upload size={18} className="text-gray-600" /><span className="text-xs text-gray-500">Nhấn để chọn ảnh</span><span className="text-[10px] text-gray-700">JPEG, PNG, WebP, GIF</span></>
+                        <><Upload size={18} className="text-gray-500" /><span className="text-xs text-gray-500">Nhấn để chọn ảnh</span><span className="text-[10px] text-gray-700">JPEG, PNG, WebP, GIF</span></>
                       )}
                     </button>
                   )}
@@ -565,7 +565,7 @@ export default function EditBlogPostPage() {
                         {uploadingAuthorAvatar ? <Loader2 size={16} className="text-white animate-spin" /> : <Upload size={16} className="text-white" />}
                       </div>
                     </div>
-                    <p className="text-[9px] text-gray-600 mt-1 text-center">Ảnh tác giả</p>
+                    <p className="text-[9px] text-gray-500 mt-1 text-center">Ảnh tác giả</p>
                   </div>
                   <div className="space-y-3">
                     <div>

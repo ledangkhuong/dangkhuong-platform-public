@@ -293,7 +293,7 @@ export default async function AttributionPage({
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
               Chưa có dữ liệu UTM tracking
             </div>
           )}
@@ -398,7 +398,7 @@ export default async function AttributionPage({
               </table>
             </div>
           ) : (
-            <div className="flex items-center justify-center py-12 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
               Chưa có dữ liệu nguồn khách hàng
             </div>
           )}
@@ -440,7 +440,7 @@ export default async function AttributionPage({
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <ExternalLink size={12} className="text-gray-600 shrink-0" />
+                          <ExternalLink size={12} className="text-gray-500 shrink-0" />
                           <span className="text-white font-medium">{row.utm_campaign}</span>
                         </div>
                       </td>
@@ -499,7 +499,7 @@ export default async function AttributionPage({
               </table>
             </div>
           ) : (
-            <div className="flex items-center justify-center py-12 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
               Chưa có dữ liệu campaign
             </div>
           )}
@@ -576,14 +576,14 @@ export default async function AttributionPage({
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8 text-gray-600 text-sm">
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
               Chưa có dữ liệu
             </div>
           )}
         </div>
 
         {/* Footer note */}
-        <div className="text-center text-xs text-gray-600 py-4">
+        <div className="text-center text-xs text-gray-500 py-4">
           Dữ liệu attribution dựa trên UTM parameters thu thập từ crm_contacts.
           Chỉ hiển thị contacts có utm_source.
         </div>

@@ -136,7 +136,7 @@ export default function CompleteProfilePage() {
                   autoFocus
                 />
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
+              <p className="text-[10px] text-gray-500 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
             </div>
 
             <button
@@ -155,7 +155,7 @@ export default function CompleteProfilePage() {
             </button>
           </form>
 
-          <p className="text-center text-[11px] text-gray-600 mt-4">
+          <p className="text-center text-[11px] text-gray-500 mt-4">
             Số điện thoại giúp chúng tôi hỗ trợ bạn tốt hơn và bảo mật tài khoản.
           </p>
         </div>

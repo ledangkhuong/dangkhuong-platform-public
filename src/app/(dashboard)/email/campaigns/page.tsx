@@ -192,13 +192,13 @@ export default function CampaignsPage() {
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                 placeholder="Tim kiem campaign..."
-                className="bg-transparent border-none outline-none text-white text-sm placeholder:text-gray-600 w-40 sm:w-56"
+                className="bg-transparent border-none outline-none text-white text-sm placeholder:text-gray-500 w-40 sm:w-56"
               />
             </div>
 
             {/* Status filter */}
             <div className="flex items-center gap-1">
-              <Filter size={13} className="text-gray-600 mr-1" />
+              <Filter size={13} className="text-gray-500 mr-1" />
               {STATUS_FILTERS.map((f) => (
                 <button
                   key={f.value}
@@ -297,7 +297,7 @@ export default function CampaignsPage() {
                             {c.subject}
                           </p>
                         )}
-                        <p className="text-[11px] text-gray-600">
+                        <p className="text-[11px] text-gray-500">
                           <Clock size={10} className="inline mr-1" />
                           {getDatePrefix(c)}: {getDateLabel(c)}
                         </p>

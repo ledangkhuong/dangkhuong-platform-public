@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { CRM_JOURNEY_STAGES } from "@/lib/crm-constants";
 
-const ALLOWED_STAGES = [
-  "visitor",
-  "lead",
-  "marketing_qualified",
-  "sales_qualified",
-  "opportunity",
-  "customer",
-  "advocate",
-  "churned",
-];
+const ALLOWED_STAGES: readonly string[] = CRM_JOURNEY_STAGES;
 
 // POST /api/crm/contacts/[id]/journey — Update journey stage
 export async function POST(
@@ -80,7 +72,7 @@ export async function POST(
   await adminClient.from("crm_activities").insert({
     contact_id: id,
     type: "journey_change",
-    description: `Journey stage changed from "${currentContact.journey_stage}" to "${stage}"`,
+    content: `Journey stage changed from "${currentContact.journey_stage}" to "${stage}"`,
     created_by: user.id,
     is_system: true,
   });

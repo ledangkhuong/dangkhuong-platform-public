@@ -235,7 +235,7 @@ export default function NotificationDropdown() {
                     <p className="text-xs text-gray-400 mt-0.5 leading-snug line-clamp-2">
                       {notif.message}
                     </p>
-                    <p className="text-[10px] text-gray-600 mt-1">
+                    <p className="text-[10px] text-gray-500 mt-1">
                       {relativeTime(notif.created_at)}
                     </p>
                   </div>

@@ -246,14 +246,17 @@ const TABS: {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 20;
+
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; q?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const activeTab = (params.tab as TabKey) || "all";
   const searchQuery = params.q || "";
+  const currentPage = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
   // Auth check
   const authClient = await createClient();
@@ -366,6 +369,24 @@ export default async function AdminUsersPage({
     );
   }
 
+  // Pagination: slice filtered results for display
+  const totalFiltered = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedUsers = filteredUsers.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  // Build pagination URL helper
+  function buildPageUrl(page: number) {
+    const parts: string[] = [];
+    if (activeTab !== "all") parts.push(`tab=${activeTab}`);
+    if (searchQuery) parts.push(`q=${encodeURIComponent(searchQuery)}`);
+    if (page > 1) parts.push(`page=${page}`);
+    return `/admin/users${parts.length > 0 ? `?${parts.join("&")}` : ""}`;
+  }
+
   // Staff sub-counts (for staff tab)
   const staffRoleCounts = activeTab === "staff"
     ? {
@@ -474,7 +495,7 @@ export default async function AdminUsersPage({
               userIds={filteredUsers.map((u) => u.id)}
               count={filteredUsers.length}
             />
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-gray-500">
               Tiêu chí: chưa đăng nhập, XP = 0, không có đơn hàng, không phải nhân viên
             </p>
           </div>
@@ -494,7 +515,7 @@ export default async function AdminUsersPage({
               </div>
               <div className="text-2xl font-bold text-white">{filteredUsers.length}</div>
               <div className="text-xs font-semibold text-gray-300">Khách đã mua</div>
-              <div className="text-[11px] text-gray-600">có ít nhất 1 đơn thanh toán</div>
+              <div className="text-[11px] text-gray-500">có ít nhất 1 đơn thanh toán</div>
             </div>
 
             <div className="stat-card flex flex-col gap-2">
@@ -515,7 +536,7 @@ export default async function AdminUsersPage({
                 )}
               </div>
               <div className="text-xs font-semibold text-gray-300">Tổng doanh thu</div>
-              <div className="text-[11px] text-gray-600">từ khách đã thanh toán</div>
+              <div className="text-[11px] text-gray-500">từ khách đã thanh toán</div>
             </div>
 
             <div className="stat-card flex flex-col gap-2">
@@ -534,7 +555,7 @@ export default async function AdminUsersPage({
                 }, 0)}
               </div>
               <div className="text-xs font-semibold text-gray-300">Tổng đơn hàng</div>
-              <div className="text-[11px] text-gray-600">đã thanh toán thành công</div>
+              <div className="text-[11px] text-gray-500">đã thanh toán thành công</div>
             </div>
 
             <div className="stat-card flex flex-col gap-2">
@@ -559,7 +580,7 @@ export default async function AdminUsersPage({
                   : "0đ"}
               </div>
               <div className="text-xs font-semibold text-gray-300">Trung bình / khách</div>
-              <div className="text-[11px] text-gray-600">doanh thu bình quân</div>
+              <div className="text-[11px] text-gray-500">doanh thu bình quân</div>
             </div>
           </div>
         ) : (
@@ -577,7 +598,7 @@ export default async function AdminUsersPage({
               <div className="text-xs font-semibold text-gray-300">
                 {tabConfig.label}
               </div>
-              <div className="text-[11px] text-gray-600">
+              <div className="text-[11px] text-gray-500">
                 {searchQuery ? "kết quả tìm kiếm" : "hiển thị"}
               </div>
             </div>
@@ -595,7 +616,7 @@ export default async function AdminUsersPage({
                 {filteredUsers.reduce((sum, u) => sum + (u.xp ?? 0), 0).toLocaleString("vi-VN")}
               </div>
               <div className="text-xs font-semibold text-gray-300">Tổng XP</div>
-              <div className="text-[11px] text-gray-600">của nhóm này</div>
+              <div className="text-[11px] text-gray-500">của nhóm này</div>
             </div>
 
             <div className="stat-card flex flex-col gap-2">
@@ -611,7 +632,7 @@ export default async function AdminUsersPage({
                 {filteredUsers.filter((u) => (u.streak ?? 0) > 0).length}
               </div>
               <div className="text-xs font-semibold text-gray-300">Đang streak</div>
-              <div className="text-[11px] text-gray-600">hoạt động liên tục</div>
+              <div className="text-[11px] text-gray-500">hoạt động liên tục</div>
             </div>
 
             <div className="stat-card flex flex-col gap-2">
@@ -630,7 +651,7 @@ export default async function AdminUsersPage({
                 }).length}
               </div>
               <div className="text-xs font-semibold text-gray-300">Online 7 ngày</div>
-              <div className="text-[11px] text-gray-600">hoạt động gần đây</div>
+              <div className="text-[11px] text-gray-500">hoạt động gần đây</div>
             </div>
           </div>
         )}
@@ -661,8 +682,11 @@ export default async function AdminUsersPage({
             style={{ borderBottom: "1px solid #2a2a2a" }}
           >
             <span className="text-xs text-gray-500">
-              <span className="text-white font-semibold">{filteredUsers.length}</span> người dùng
+              <span className="text-white font-semibold">{totalFiltered}</span> người dùng
               {searchQuery && " (đã lọc)"}
+              {totalPages > 1 && (
+                <> &middot; Trang {safePage}/{totalPages}</>
+              )}
             </span>
           </div>
 
@@ -686,11 +710,11 @@ export default async function AdminUsersPage({
               </thead>
 
               <tbody>
-                {filteredUsers.length === 0 ? (
+                {paginatedUsers.length === 0 ? (
                   <tr>
                     <td
                       colSpan={7}
-                      className="px-4 py-12 text-center text-gray-600 text-sm"
+                      className="px-4 py-12 text-center text-gray-500 text-sm"
                     >
                       {searchQuery
                         ? "Không tìm thấy người dùng phù hợp."
@@ -698,7 +722,7 @@ export default async function AdminUsersPage({
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((profile, idx) => {
+                  paginatedUsers.map((profile, idx) => {
                     const userOrderInfo = orderMap.get((profile.email ?? "").toLowerCase());
                     return (
                     <tr
@@ -706,7 +730,7 @@ export default async function AdminUsersPage({
                       className="group transition-colors hover:bg-white/[0.02]"
                       style={{
                         borderBottom:
-                          idx < filteredUsers.length - 1
+                          idx < paginatedUsers.length - 1
                             ? "1px solid #2a2a2a"
                             : "none",
                       }}
@@ -839,7 +863,7 @@ export default async function AdminUsersPage({
                             <div className="font-semibold text-white">
                               {(profile.xp ?? 0).toLocaleString("vi-VN")} XP
                             </div>
-                            <div className="text-[11px] text-gray-600">
+                            <div className="text-[11px] text-gray-500">
                               Lv.{profile.level ?? 1}
                             </div>
                           </td>
@@ -873,7 +897,7 @@ export default async function AdminUsersPage({
                           {/* Last login */}
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                              <Clock size={12} className="text-gray-600" />
+                              <Clock size={12} className="text-gray-500" />
                               {formatRelativeDate(profile.last_login)}
                             </div>
                           </td>
@@ -898,6 +922,52 @@ export default async function AdminUsersPage({
               </tbody>
             </table>
           </div>
+
+          {/* ── Pagination ─────────────────────────────────────── */}
+          {totalPages > 1 && (
+            <div
+              className="flex items-center justify-center gap-4 px-4 py-3"
+              style={{ borderTop: "1px solid #2a2a2a" }}
+            >
+              {safePage > 1 ? (
+                <Link
+                  href={buildPageUrl(safePage - 1)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  ← Trước
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  ← Trước
+                </span>
+              )}
+
+              <span className="text-sm text-gray-400">
+                Trang <span className="text-white font-semibold">{safePage}</span> / {totalPages}
+              </span>
+
+              {safePage < totalPages ? (
+                <Link
+                  href={buildPageUrl(safePage + 1)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  Tiếp →
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  Tiếp →
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

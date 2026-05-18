@@ -54,7 +54,7 @@ export default function DripLock({
           </p>
 
           {/* Subtle tip */}
-          <p className="text-xs text-gray-600 mt-2">
+          <p className="text-xs text-gray-500 mt-2">
             Nội dung sẽ tự động mở khoá theo lịch trình của khoá học.
           </p>
         </div>

@@ -535,7 +535,7 @@ export default function ImportSubscribersModal({
                                       className="px-3 py-1.5 text-gray-300 whitespace-nowrap"
                                     >
                                       {cell || (
-                                        <span className="text-gray-600">
+                                        <span className="text-gray-500">
                                           --
                                         </span>
                                       )}
@@ -554,7 +554,7 @@ export default function ImportSubscribersModal({
                   <div>
                     <label className="block text-sm text-gray-400 mb-1.5">
                       Thêm vào danh sách{" "}
-                      <span className="text-gray-600 text-xs">(tuỳ chọn)</span>
+                      <span className="text-gray-500 text-xs">(tuỳ chọn)</span>
                     </label>
                     <select
                       className="input-dark text-sm"

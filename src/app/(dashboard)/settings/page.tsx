@@ -724,7 +724,7 @@ export default function SettingsPage({
                   </div>
                   <ChevronRight
                     size={14}
-                    className={active === tab.id ? "text-[#D4A843]" : "text-gray-600 group-hover:text-gray-400"}
+                    className={active === tab.id ? "text-[#D4A843]" : "text-gray-500 group-hover:text-gray-400"}
                   />
                 </button>
               ))}

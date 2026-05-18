@@ -137,7 +137,7 @@ export default function NotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <div className="card-dark p-10 text-center">
-          <Bell size={40} className="mx-auto mb-3 text-gray-600" />
+          <Bell size={40} className="mx-auto mb-3 text-gray-500" />
           <h3 className="font-bold text-white mb-1">Chưa có thông báo</h3>
           <p className="text-sm text-gray-400">
             Các thông báo mới sẽ xuất hiện ở đây.
@@ -180,7 +180,7 @@ export default function NotificationsPage() {
                   <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
                     {n.message}
                   </p>
-                  <span className="text-[10px] text-gray-600 mt-1 block">
+                  <span className="text-[10px] text-gray-500 mt-1 block">
                     {timeAgo(n.created_at)}
                   </span>
                 </div>

@@ -135,7 +135,7 @@ export default function TestEmailModal({
               }}
               autoFocus
             />
-            <p className="text-[11px] text-gray-600 mt-1.5">
+            <p className="text-[11px] text-gray-500 mt-1.5">
               Subject se duoc them prefix [TEST] de phan biet
             </p>
           </div>

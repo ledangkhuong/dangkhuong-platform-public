@@ -156,7 +156,7 @@ export default function LessonQA({
               </div>
             )}
             <div className="flex items-center justify-between">
-              <p className="text-[10px] text-gray-600">
+              <p className="text-[10px] text-gray-500">
                 Giảng viên sẽ trả lời trong thời gian sớm nhất
               </p>
               <button
@@ -180,7 +180,7 @@ export default function LessonQA({
               <Loader2 size={18} className="animate-spin" />
             </div>
           ) : questions.length === 0 ? (
-            <p className="text-xs text-gray-600 text-center py-4">
+            <p className="text-xs text-gray-500 text-center py-4">
               Chưa có câu hỏi nào. Hãy đặt câu hỏi đầu tiên!
             </p>
           ) : (
@@ -219,7 +219,7 @@ export default function LessonQA({
                         <span className="text-xs font-medium text-white">
                           {q.profiles?.full_name ?? "Thành viên"}
                         </span>
-                        <span className="text-[10px] text-gray-600">
+                        <span className="text-[10px] text-gray-500">
                           {timeAgo(q.created_at)}
                         </span>
                       </div>
@@ -247,7 +247,7 @@ export default function LessonQA({
                           {q.replier?.full_name ?? "Giảng viên"}
                         </span>
                         {q.replied_at && (
-                          <span className="text-[10px] text-gray-600">
+                          <span className="text-[10px] text-gray-500">
                             • {timeAgo(q.replied_at)}
                           </span>
                         )}
@@ -257,7 +257,7 @@ export default function LessonQA({
                       </p>
                     </div>
                   ) : (
-                    <div className="ml-8 flex items-center gap-1.5 text-[10px] text-gray-600">
+                    <div className="ml-8 flex items-center gap-1.5 text-[10px] text-gray-500">
                       <Clock size={10} />
                       Đang chờ phản hồi
                     </div>

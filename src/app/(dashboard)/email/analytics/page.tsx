@@ -465,7 +465,7 @@ export default function AnalyticsPage() {
                         className="flex-1 text-center"
                       >
                         {i % labelInterval === 0 && (
-                          <span className="text-[9px] text-gray-600">
+                          <span className="text-[9px] text-gray-500">
                             {formatShortDate(d.date)}
                           </span>
                         )}
@@ -600,7 +600,7 @@ export default function AnalyticsPage() {
                       .map((d) => (
                         <span
                           key={d.date}
-                          className="text-[9px] text-gray-600"
+                          className="text-[9px] text-gray-500"
                         >
                           {formatShortDate(d.date)}
                         </span>
@@ -765,10 +765,10 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between mt-2">
                   {dailyStats.length > 0 && (
                     <>
-                      <span className="text-[9px] text-gray-600">
+                      <span className="text-[9px] text-gray-500">
                         {formatShortDate(dailyStats[0].date)}
                       </span>
-                      <span className="text-[9px] text-gray-600">
+                      <span className="text-[9px] text-gray-500">
                         {formatShortDate(
                           dailyStats[dailyStats.length - 1].date
                         )}

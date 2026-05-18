@@ -151,7 +151,7 @@ export default function ResourcesPage() {
               <h3 className="text-base font-semibold text-white">
                 {category.name}
               </h3>
-              <span className="text-xs text-gray-600">
+              <span className="text-xs text-gray-500">
                 {category.resources.length} tài nguyên
               </span>
             </div>

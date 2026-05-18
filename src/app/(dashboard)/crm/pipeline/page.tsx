@@ -425,7 +425,7 @@ export default async function PipelinePage({
                   ))
                 ) : (
                   <div
-                    className="rounded-lg p-4 text-center text-xs text-gray-600 border border-dashed border-[#2a2a2a]"
+                    className="rounded-lg p-4 text-center text-xs text-gray-500 border border-dashed border-[#2a2a2a]"
                   >
                     Chưa có deal
                   </div>

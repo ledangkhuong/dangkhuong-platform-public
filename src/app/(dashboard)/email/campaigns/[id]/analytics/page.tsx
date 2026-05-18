@@ -322,7 +322,7 @@ export default function CampaignAnalyticsPage() {
                   </div>
                   <div className="text-[11px] text-gray-500">{s.label}</div>
                   {"sub" in s && s.sub && (
-                    <div className="text-[10px] text-gray-600 mt-0.5">
+                    <div className="text-[10px] text-gray-500 mt-0.5">
                       {s.sub}
                     </div>
                   )}
@@ -488,10 +488,10 @@ export default function CampaignAnalyticsPage() {
                     <div className="flex justify-between mt-1 px-5">
                       {timeline.length > 0 && (
                         <>
-                          <span className="text-[9px] text-gray-600">
+                          <span className="text-[9px] text-gray-500">
                             {formatShortDate(timeline[0].date)}
                           </span>
-                          <span className="text-[9px] text-gray-600">
+                          <span className="text-[9px] text-gray-500">
                             {formatShortDate(
                               timeline[timeline.length - 1].date
                             )}

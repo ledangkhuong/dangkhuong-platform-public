@@ -82,8 +82,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Không thể tạo bài viết. Vui lòng thử lại." }, { status: 500 });
   }
 
-  // Thêm XP
-  await supabase.from("xp_events").insert({ user_id: user.id, action: "post_created", xp_amount: 50 });
+  // Thêm XP (daily cap: 5 post-XP events)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const { count: postXpToday } = await supabase
+    .from("xp_events")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("action", "post_created")
+    .gte("created_at", todayStart.toISOString());
+
+  if ((postXpToday ?? 0) < 5) {
+    await supabase.from("xp_events").insert({ user_id: user.id, action: "post_created", xp_amount: 50 });
+  }
 
   return NextResponse.json({ post: data });
 }

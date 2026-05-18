@@ -6,7 +6,7 @@
  */
 
 import { SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { getSESClient } from "./ses-client";
+import { getSESClient } from "./ses";
 import type {
   SendEmailParams,
   EmailCampaign,

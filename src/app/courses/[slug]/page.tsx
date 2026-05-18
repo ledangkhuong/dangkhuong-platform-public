@@ -432,7 +432,7 @@ export default async function CourseDetailPage({
                   {chapter.title}
                 </span>
               </div>
-              <span className="text-[10px] text-gray-600">
+              <span className="text-[10px] text-gray-500">
                 {chapterCompleted}/{chapterLessons.length}
               </span>
             </div>
@@ -457,7 +457,7 @@ export default async function CourseDetailPage({
                     ${isActive && !locked ? "bg-[#D4A843]/10" : isAccessible ? "hover:bg-white/3" : ""}`}
                 >
                   {locked ? (
-                    <Lock size={14} className="text-gray-600 shrink-0" />
+                    <Lock size={14} className="text-gray-500 shrink-0" />
                   ) : isDone ? (
                     <CheckCircle
                       size={14}
@@ -466,14 +466,14 @@ export default async function CourseDetailPage({
                   ) : (
                     <PlayCircle
                       size={14}
-                      className={`shrink-0 ${isActive ? "text-[#D4A843]" : "text-gray-600"}`}
+                      className={`shrink-0 ${isActive ? "text-[#D4A843]" : "text-gray-500"}`}
                     />
                   )}
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-xs leading-snug ${
                         locked
-                          ? "text-gray-600"
+                          ? "text-gray-500"
                           : isActive
                             ? "text-[#D4A843] font-medium"
                             : isDone
@@ -484,7 +484,7 @@ export default async function CourseDetailPage({
                       {lesson.title}
                     </p>
                     {lesson.duration_sec > 0 && (
-                      <span className="text-[10px] text-gray-600">
+                      <span className="text-[10px] text-gray-500">
                         {formatDuration(lesson.duration_sec)}
                       </span>
                     )}
@@ -622,7 +622,7 @@ export default async function CourseDetailPage({
                     {currentLesson.title}
                   </p>
                   {currentChapter && (
-                    <p className="text-gray-600 text-xs text-center">
+                    <p className="text-gray-500 text-xs text-center">
                       {currentChapter.title}
                       {currentLesson.duration_sec
                         ? ` • ${formatDuration(currentLesson.duration_sec)}`
@@ -705,7 +705,7 @@ export default async function CourseDetailPage({
                       <p className="text-sm text-gray-300 truncate group-hover:text-[#D4A843] transition-colors">
                         {att.name}
                       </p>
-                      <p className="text-[10px] text-gray-600">{formatFileSize(att.size)}</p>
+                      <p className="text-[10px] text-gray-500">{formatFileSize(att.size)}</p>
                     </div>
                     <Download size={14} className="text-gray-500 group-hover:text-[#D4A843] shrink-0 transition-colors" />
                   </a>

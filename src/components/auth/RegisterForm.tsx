@@ -96,7 +96,7 @@ export default function RegisterForm() {
           className="input-dark w-full"
           required
         />
-        <p className="text-[10px] text-gray-600 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
+        <p className="text-[10px] text-gray-500 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
       </div>
 
       {/* Email */}

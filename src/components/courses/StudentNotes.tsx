@@ -327,7 +327,7 @@ export default function StudentNotes({
               <Loader2 size={18} className="animate-spin" />
             </div>
           ) : notes.length === 0 ? (
-            <p className="text-xs text-gray-600 text-center py-4">
+            <p className="text-xs text-gray-500 text-center py-4">
               Chưa có ghi chú nào. Thêm ghi chú đầu tiên!
             </p>
           ) : (
@@ -400,7 +400,7 @@ export default function StudentNotes({
                             className={`p-1 rounded transition-colors ${
                               note.is_bookmark
                                 ? "text-yellow-400"
-                                : "text-gray-600 hover:text-yellow-400"
+                                : "text-gray-500 hover:text-yellow-400"
                             }`}
                             title={
                               note.is_bookmark
@@ -420,21 +420,21 @@ export default function StudentNotes({
                               setEditingId(note.id);
                               setEditContent(note.content);
                             }}
-                            className="p-1 rounded text-gray-600 hover:text-gray-300 transition-colors"
+                            className="p-1 rounded text-gray-500 hover:text-gray-300 transition-colors"
                             title="Sửa ghi chú"
                           >
                             <PenLine size={12} />
                           </button>
                           <button
                             onClick={() => handleDelete(note.id)}
-                            className="p-1 rounded text-gray-600 hover:text-red-400 transition-colors"
+                            className="p-1 rounded text-gray-500 hover:text-red-400 transition-colors"
                             title="Xóa ghi chú"
                           >
                             <Trash2 size={12} />
                           </button>
                         </div>
                       </div>
-                      <div className="text-[10px] text-gray-600">
+                      <div className="text-[10px] text-gray-500">
                         {timeAgo(note.created_at)}
                       </div>
                     </>

@@ -16,7 +16,10 @@ import {
   CreditCard,
   Calendar,
 } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
+
+const PAGE_SIZE = 20;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -113,12 +116,13 @@ function StatusIcon({ status }: { status: OrderStatus }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 interface PageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
   const query = (resolvedParams.q ?? "").trim();
+  const currentPage = Math.max(1, parseInt(resolvedParams.page ?? "1", 10) || 1);
 
   // Auth check
   const authClient = await createClient();
@@ -141,45 +145,66 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   // Fetch orders with product title (bypass RLS)
   const supabase = await createAdminClient();
 
+  // ── Compute stats and pagination count in parallel ──
+  let paginationCountQuery = supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true });
+  if (query) {
+    const q = `%${query}%`;
+    paginationCountQuery = paginationCountQuery.or(
+      `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
+    );
+  }
+
+  const [
+    { count: totalCount },
+    { count: paidCount },
+    { count: pendingCount },
+    { data: revenueData },
+    { count: filteredCount },
+  ] = await Promise.all([
+    supabase.from("orders").select("*", { count: "exact", head: true }),
+    supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "paid"),
+    supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("orders").select("amount").eq("status", "paid"),
+    paginationCountQuery,
+  ]);
+
+  const totalRevenue = (revenueData ?? []).reduce(
+    (sum: number, o: { amount: number }) => sum + o.amount,
+    0
+  );
+  const totalFilteredOrders = filteredCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredOrders / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+
+  // Fetch paginated orders
   let dbQuery = supabase
     .from("orders")
     .select("*, products(title)")
     .order("created_at", { ascending: false });
 
-  // Apply search filter
   if (query) {
     const q = `%${query}%`;
     dbQuery = dbQuery.or(
       `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
     );
-  } else {
-    dbQuery = dbQuery.limit(50);
   }
+
+  const from = (safePage - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  dbQuery = dbQuery.range(from, to);
 
   const { data: orders, error } = await dbQuery;
 
   const rows: OrderRow[] = (orders ?? []) as unknown as OrderRow[];
 
-  // ── Compute stats (always from all orders, not just filtered) ──
-  const { count: totalCount } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true });
-  const { count: paidCount } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "paid");
-  const { count: pendingCount } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "pending");
-  const { data: revenueData } = await supabase
-    .from("orders")
-    .select("amount")
-    .eq("status", "paid");
-  const totalRevenue = (revenueData ?? []).reduce(
-    (sum: number, o: { amount: number }) => sum + o.amount,
-    0
-  );
+  function buildPageUrl(page: number) {
+    const parts: string[] = [];
+    if (query) parts.push(`q=${encodeURIComponent(query)}`);
+    if (page > 1) parts.push(`page=${page}`);
+    return `/admin/orders${parts.length > 0 ? `?${parts.join("&")}` : ""}`;
+  }
 
   const totalOrders = totalCount ?? 0;
   const paidOrders = paidCount ?? 0;
@@ -281,16 +306,18 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               {query ? (
                 <>
                   Tìm thấy{" "}
-                  <span className="text-white font-medium">{rows.length}</span>{" "}
+                  <span className="text-white font-medium">{totalFilteredOrders}</span>{" "}
                   kết quả cho &ldquo;
                   <span className="text-[#D4A843]">{query}</span>&rdquo;
                 </>
               ) : (
                 <>
-                  Hiển thị{" "}
-                  <span className="text-white font-medium">{rows.length}</span>{" "}
-                  đơn hàng gần nhất
+                  <span className="text-white font-medium">{totalFilteredOrders}</span>{" "}
+                  đơn hàng
                 </>
+              )}
+              {totalPages > 1 && (
+                <> &middot; Trang {safePage}/{totalPages}</>
               )}
             </span>
             {pendingOrders > 0 && !query && (
@@ -312,7 +339,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               Lỗi khi tải đơn hàng: {error.message}
             </div>
           ) : rows.length === 0 ? (
-            <div className="p-12 text-center text-gray-600 text-sm">
+            <div className="p-12 text-center text-gray-500 text-sm">
               {query
                 ? "Không tìm thấy đơn hàng nào khớp với từ khoá."
                 : "Chưa có đơn hàng nào."}
@@ -366,12 +393,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                           {order.customer_name ?? "—"}
                         </div>
                         {order.customer_email && (
-                          <div className="text-xs text-gray-600 mt-0.5">
+                          <div className="text-xs text-gray-500 mt-0.5">
                             {order.customer_email}
                           </div>
                         )}
                         {order.customer_phone && (
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-500">
                             {order.customer_phone}
                           </div>
                         )}
@@ -399,7 +426,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       {/* Thanh toán */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <CreditCard size={13} className="text-gray-600" />
+                          <CreditCard size={13} className="text-gray-500" />
                           <span className="text-xs text-gray-400 capitalize">
                             {order.payment_method ?? "—"}
                           </span>
@@ -457,6 +484,52 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* ── Pagination ── */}
+          {totalPages > 1 && (
+            <div
+              className="flex items-center justify-center gap-4 px-4 py-3"
+              style={{ borderTop: "1px solid #2a2a2a" }}
+            >
+              {safePage > 1 ? (
+                <Link
+                  href={buildPageUrl(safePage - 1)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  ← Trước
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  ← Trước
+                </span>
+              )}
+
+              <span className="text-sm text-gray-400">
+                Trang <span className="text-white font-semibold">{safePage}</span> / {totalPages}
+              </span>
+
+              {safePage < totalPages ? (
+                <Link
+                  href={buildPageUrl(safePage + 1)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  Tiếp →
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  Tiếp →
+                </span>
+              )}
             </div>
           )}
         </div>

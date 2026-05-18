@@ -470,7 +470,7 @@ export default function EditCampaignPage() {
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1.5">Subject line *</label>
               <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="input-dark w-full text-sm" />
-              <p className="text-[11px] text-gray-600 mt-1">{subject.length} ky tu</p>
+              <p className="text-[11px] text-gray-500 mt-1">{subject.length} ky tu</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -595,7 +595,7 @@ export default function EditCampaignPage() {
               <textarea ref={htmlRef} value={htmlContent} onChange={(e) => setHtmlContent(e.target.value)}
                 rows={16} className="input-dark w-full text-sm resize-none"
                 style={{ fontFamily: "'Fira Code', 'Cascadia Code', monospace", lineHeight: 1.6 }} />
-              <p className="text-[11px] text-gray-600">{htmlContent.length} ky tu</p>
+              <p className="text-[11px] text-gray-500">{htmlContent.length} ky tu</p>
               <details className="group">
                 <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-300 flex items-center gap-1.5">
                   <FileText size={12} /> Phien ban plain text (tuy chon)

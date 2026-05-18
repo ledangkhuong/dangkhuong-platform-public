@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { CRM_JOURNEY_STAGES } from "@/lib/crm-constants";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -621,17 +622,7 @@ export async function updateJourneyStage(formData: FormData) {
     redirect("/crm/contacts?error=missing_fields");
   }
 
-  const allowedStages = [
-    "visitor",
-    "lead",
-    "contacted",
-    "qualified",
-    "negotiation",
-    "customer",
-    "advocate",
-  ];
-
-  if (!allowedStages.includes(journeyStage)) {
+  if (!(CRM_JOURNEY_STAGES as readonly string[]).includes(journeyStage)) {
     redirect(`/crm/contacts/${contactId}?error=invalid_stage`);
   }
 
@@ -664,4 +655,121 @@ export async function updateJourneyStage(formData: FormData) {
   });
 
   redirect(`/crm/contacts/${contactId}?journey_updated=1`);
+}
+
+// ─── Sync Actions ──────────────────────────────────────────────────────────
+
+/** Đồng bộ khách hàng từ orders + profiles vào CRM (thủ công) */
+export async function syncContactsFromOrders() {
+  await requireStaff();
+  const admin = await createAdminClient();
+
+  // 1. Lấy tất cả email đã có trong crm_contacts
+  const { data: existingContacts } = await admin
+    .from("crm_contacts")
+    .select("email")
+    .not("email", "is", null);
+  const existingEmails = new Set(
+    (existingContacts ?? []).map((c) => (c.email as string).toLowerCase())
+  );
+
+  // 2. Lấy tất cả khách hàng từ bảng orders (unique by email)
+  const { data: allOrders } = await admin
+    .from("orders")
+    .select(
+      "customer_name, customer_email, customer_phone, status, amount, created_at"
+    )
+    .not("customer_email", "is", null)
+    .order("created_at", { ascending: true });
+
+  const orderCustomerMap = new Map<
+    string,
+    {
+      name: string;
+      email: string;
+      phone: string | null;
+      hasPaid: boolean;
+      firstOrder: string;
+    }
+  >();
+  for (const o of allOrders ?? []) {
+    const email = (o.customer_email as string).toLowerCase();
+    if (!orderCustomerMap.has(email)) {
+      orderCustomerMap.set(email, {
+        name: (o.customer_name as string) || email.split("@")[0],
+        email,
+        phone: (o.customer_phone as string) || null,
+        hasPaid: o.status === "paid",
+        firstOrder: o.created_at as string,
+      });
+    } else {
+      const existing = orderCustomerMap.get(email)!;
+      if (o.status === "paid") existing.hasPaid = true;
+    }
+  }
+
+  // 3. Lấy tất cả profiles đã đăng ký (students)
+  const { data: allProfiles } = await admin
+    .from("profiles")
+    .select("id, full_name, email, phone, role, created_at")
+    .not("email", "is", null);
+
+  // 4. Merge: tạo danh sách cần insert
+  const toInsert: {
+    full_name: string;
+    email: string;
+    phone: string | null;
+    source: string;
+    status: string;
+    user_id: string | null;
+    created_at: string;
+    journey_stage: string;
+    first_seen_at: string;
+  }[] = [];
+
+  // Thêm từ orders
+  for (const [email, customer] of orderCustomerMap) {
+    if (existingEmails.has(email)) continue;
+    existingEmails.add(email);
+    toInsert.push({
+      full_name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      source: "website",
+      status: customer.hasPaid ? "won" : "new",
+      user_id: null,
+      created_at: customer.firstOrder,
+      journey_stage: customer.hasPaid ? "customer" : "lead",
+      first_seen_at: customer.firstOrder,
+    });
+  }
+
+  // Thêm từ profiles (chưa có trong orders)
+  for (const p of allProfiles ?? []) {
+    const email = (p.email as string).toLowerCase();
+    if (existingEmails.has(email)) continue;
+    if (
+      ["admin", "manager", "marketing", "sale", "support"].includes(p.role)
+    )
+      continue;
+    existingEmails.add(email);
+    toInsert.push({
+      full_name: p.full_name || email.split("@")[0],
+      email,
+      phone: (p.phone as string) || null,
+      source: "website",
+      status: "new",
+      user_id: p.id,
+      created_at: p.created_at as string,
+      journey_stage: "lead",
+      first_seen_at: p.created_at as string,
+    });
+  }
+
+  // 5. Bulk insert (nếu có)
+  if (toInsert.length > 0) {
+    await admin.from("crm_contacts").insert(toInsert);
+  }
+
+  redirect(`/crm/contacts?synced=${toInsert.length}`);
 }

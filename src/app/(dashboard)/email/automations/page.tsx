@@ -297,7 +297,7 @@ export default function AutomationsPage() {
                           {a.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-1.5 text-[11px] text-gray-600">
+                      <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
                         <TriggerIcon size={11} />
                         <span>{trigger.label}</span>
                       </div>
@@ -410,7 +410,7 @@ export default function AutomationsPage() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="VD: Welcome Series"
-                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder:text-gray-600 bg-[#0d0d0d] border border-[#2a2a2a] outline-none focus:border-[#D4A843] transition-colors"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder:text-gray-500 bg-[#0d0d0d] border border-[#2a2a2a] outline-none focus:border-[#D4A843] transition-colors"
                 />
               </div>
 
@@ -424,7 +424,7 @@ export default function AutomationsPage() {
                   onChange={(e) => setNewDescription(e.target.value)}
                   placeholder="Mô tả ngắn gọn về automation này..."
                   rows={3}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder:text-gray-600 bg-[#0d0d0d] border border-[#2a2a2a] outline-none focus:border-[#D4A843] transition-colors resize-none"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder:text-gray-500 bg-[#0d0d0d] border border-[#2a2a2a] outline-none focus:border-[#D4A843] transition-colors resize-none"
                 />
               </div>
 

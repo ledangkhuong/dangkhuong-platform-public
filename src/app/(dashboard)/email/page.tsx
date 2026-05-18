@@ -166,12 +166,12 @@ export default async function EmailPage() {
                           <td className="px-4 py-3 text-right">
                             {denom > 0 ? (
                               <span className="text-[#D4A843] font-medium">{openRate}%</span>
-                            ) : <span className="text-gray-600">{"—"}</span>}
+                            ) : <span className="text-gray-500">{"—"}</span>}
                           </td>
                           <td className="px-4 py-3 text-right">
                             {denom > 0 ? (
                               <span className="text-[#3b82f6] font-medium">{clickRate}%</span>
-                            ) : <span className="text-gray-600">{"—"}</span>}
+                            ) : <span className="text-gray-500">{"—"}</span>}
                           </td>
                           <td className="px-4 py-3 text-right">
                             <span className="text-xs font-medium px-2 py-1 rounded-full"
@@ -205,7 +205,7 @@ export default async function EmailPage() {
 
               {total === 0 ? (
                 <div className="text-center py-4">
-                  <Users size={20} className="text-gray-600 mx-auto mb-2" />
+                  <Users size={20} className="text-gray-500 mx-auto mb-2" />
                   <p className="text-gray-500 text-xs">Chưa có subscriber nào</p>
                 </div>
               ) : (

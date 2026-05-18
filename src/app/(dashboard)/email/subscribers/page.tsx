@@ -628,7 +628,7 @@ export default function SubscribersPage() {
                           <td className="px-4 py-3 hidden md:table-cell">
                             <span className="text-gray-300 text-sm">
                               {sub.full_name || (
-                                <span className="text-gray-600">--</span>
+                                <span className="text-gray-500">--</span>
                               )}
                             </span>
                           </td>
@@ -647,7 +647,7 @@ export default function SubscribersPage() {
                           <td className="px-4 py-3 hidden lg:table-cell">
                             <span className="text-gray-400 text-sm">
                               {sub.source || (
-                                <span className="text-gray-600">--</span>
+                                <span className="text-gray-500">--</span>
                               )}
                             </span>
                           </td>

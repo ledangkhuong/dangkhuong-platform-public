@@ -114,7 +114,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
             onClick={() => setSearchOpen(true)}>
             <Search size={14} />
             <span>Tìm kiếm...</span>
-            <kbd className="ml-auto text-[10px] text-gray-600 bg-[#2a2a2a] px-1.5 py-0.5 rounded">⌘K</kbd>
+            <kbd className="ml-auto text-[10px] text-gray-500 bg-[#2a2a2a] px-1.5 py-0.5 rounded">⌘K</kbd>
           </div>
 
           {/* Mobile search button */}

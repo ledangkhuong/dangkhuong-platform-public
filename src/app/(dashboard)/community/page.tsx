@@ -372,7 +372,7 @@ export default function CommunityPage() {
                 value={postText}
                 onChange={e => setPostText(e.target.value)}
                 placeholder="Chia sẻ học hỏi, thắc mắc hay thành tích của bạn..."
-                className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-xl p-3 text-sm text-white placeholder:text-gray-600 resize-none focus:outline-none focus:border-[#D4A843] transition-colors"
+                className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-xl p-3 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:border-[#D4A843] transition-colors"
                 rows={3}
               />
             </div>
@@ -594,7 +594,7 @@ export default function CommunityPage() {
                     {!commentsLoading[post.id] && (
                       <div className="max-h-[280px] overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-[#2a2a2a] scrollbar-track-transparent">
                         {(commentsMap[post.id] || []).length === 0 ? (
-                          <p className="text-xs text-gray-600 text-center py-3">Chưa có bình luận nào</p>
+                          <p className="text-xs text-gray-500 text-center py-3">Chưa có bình luận nào</p>
                         ) : (
                           (commentsMap[post.id] || []).map(comment => {
                             const cName = comment.profiles?.full_name ?? "Thành viên";
@@ -621,7 +621,7 @@ export default function CommunityPage() {
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs font-medium text-white">{cName}</span>
-                                    <span className="text-[10px] text-gray-600">{formatCreatedAt(comment.created_at)}</span>
+                                    <span className="text-[10px] text-gray-500">{formatCreatedAt(comment.created_at)}</span>
                                   </div>
                                   <p className="text-xs text-gray-300 leading-relaxed mt-0.5 break-words">{comment.content}</p>
                                 </div>
@@ -640,7 +640,7 @@ export default function CommunityPage() {
                         onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
                         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(post.id); } }}
                         placeholder="Viết bình luận..."
-                        className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-[#D4A843] transition-colors"
+                        className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#D4A843] transition-colors"
                       />
                       <button
                         onClick={() => handleCommentSubmit(post.id)}
@@ -648,7 +648,7 @@ export default function CommunityPage() {
                         className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
                           (commentText[post.id] || "").trim() && !commentPosting[post.id]
                             ? "bg-[#D4A843] text-black hover:bg-[#c49a3a]"
-                            : "bg-[#2a2a2a] text-gray-600 cursor-not-allowed"
+                            : "bg-[#2a2a2a] text-gray-500 cursor-not-allowed"
                         }`}
                       >
                         {commentPosting[post.id] ? "..." : "Gửi"}
@@ -676,7 +676,7 @@ export default function CommunityPage() {
                 <div className="progress-bar">
                   <div className="progress-fill" style={{ width: `${Math.min(100, Math.round(((myProfile.xp - (myProfile.level - 1) * 200) / 200) * 100))}%` }} />
                 </div>
-                <div className="text-xs text-gray-600 mt-1">{Math.max(0, myProfile.level * 200 - myProfile.xp)} XP để lên Level {myProfile.level + 1}</div>
+                <div className="text-xs text-gray-500 mt-1">{Math.max(0, myProfile.level * 200 - myProfile.xp)} XP để lên Level {myProfile.level + 1}</div>
               </>
             ) : (
               <div className="space-y-2 animate-pulse">
@@ -691,7 +691,7 @@ export default function CommunityPage() {
           <div className="card-dark p-4">
             <div className="flex items-center gap-2 mb-3">
               <Trophy size={15} className="text-[#f59e0b]" />
-              <span className="text-sm font-semibold text-white">Top tuần này</span>
+              <span className="text-sm font-semibold text-white">Top thành viên</span>
             </div>
             <div className="space-y-2">
               {leaderboard.length === 0 ? (
@@ -748,7 +748,7 @@ export default function CommunityPage() {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-600">{Math.min((myProfile?.streak ?? 0), 5)}/5 ngày hoàn thành</p>
+            <p className="text-[10px] text-gray-500">{Math.min((myProfile?.streak ?? 0), 5)}/5 ngày hoàn thành</p>
           </div>
         </aside>
       </div>

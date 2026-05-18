@@ -494,7 +494,7 @@ export default function SalesPageTemplate({
               className="rounded-xl p-10 text-center"
               style={{ background: "#151515", border: "1px solid #2a2a2a" }}
             >
-              <BookOpen size={40} className="text-gray-600 mx-auto mb-3" />
+              <BookOpen size={40} className="text-gray-500 mx-auto mb-3" />
               <h3 className="font-bold text-white mb-1">
                 Nội dung đang được cập nhật
               </h3>
@@ -577,7 +577,7 @@ export default function SalesPageTemplate({
                             ) : (
                               <Lock
                                 size={14}
-                                className="text-gray-600 shrink-0"
+                                className="text-gray-500 shrink-0"
                               />
                             )}
 
@@ -614,7 +614,7 @@ export default function SalesPageTemplate({
                             ) : null}
 
                             {lesson.duration_sec > 0 && (
-                              <span className="text-xs text-gray-600 tabular-nums shrink-0">
+                              <span className="text-xs text-gray-500 tabular-nums shrink-0">
                                 {formatDuration(lesson.duration_sec)}
                               </span>
                             )}

@@ -263,7 +263,7 @@ export default function ListsPage() {
                           openMenuId === list.id ? null : list.id
                         );
                       }}
-                      className="text-gray-600 hover:text-white transition-colors p-1 rounded-md hover:bg-[#2a2a2a]"
+                      className="text-gray-500 hover:text-white transition-colors p-1 rounded-md hover:bg-[#2a2a2a]"
                     >
                       <MoreHorizontal size={16} />
                     </button>
@@ -325,7 +325,7 @@ export default function ListsPage() {
                       subscribers
                     </span>
                   </div>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs text-gray-500">
                     {formatDate(list.created_at)}
                   </span>
                 </div>

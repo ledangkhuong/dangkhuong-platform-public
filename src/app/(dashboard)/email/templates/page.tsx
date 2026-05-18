@@ -187,7 +187,7 @@ export default function TemplatesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tim kiem template..."
-                className="bg-transparent border-none outline-none text-white text-sm placeholder:text-gray-600 w-40 sm:w-48"
+                className="bg-transparent border-none outline-none text-white text-sm placeholder:text-gray-500 w-40 sm:w-48"
               />
             </div>
 
@@ -281,7 +281,7 @@ export default function TemplatesPage() {
                       >
                         {cat.label}
                       </span>
-                      <span className="text-[11px] text-gray-600 flex items-center gap-1">
+                      <span className="text-[11px] text-gray-500 flex items-center gap-1">
                         <Clock size={10} />
                         {formatDate(t.updated_at || t.created_at)}
                       </span>

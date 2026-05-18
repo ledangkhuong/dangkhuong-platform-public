@@ -489,7 +489,7 @@ export default async function AssignmentsPage() {
               </button>
             </form>
           ) : (
-            <p className="text-sm text-gray-600">Tất cả lead đã được phân công.</p>
+            <p className="text-sm text-gray-500">Tất cả lead đã được phân công.</p>
           )}
         </div>
 
@@ -536,7 +536,7 @@ export default async function AssignmentsPage() {
                           → {rule.assigned_profile.full_name}
                         </span>
                       )}
-                      <span className="text-xs text-gray-600">({rule.method})</span>
+                      <span className="text-xs text-gray-500">({rule.method})</span>
                     </div>
                   </div>
                   <form action={toggleRuleActive}>
@@ -553,7 +553,7 @@ export default async function AssignmentsPage() {
               ))}
             </div>
           ) : (
-            <div className="p-6 text-center text-gray-600 text-sm">
+            <div className="p-6 text-center text-gray-500 text-sm">
               Chưa có quy tắc nào
             </div>
           )}
@@ -571,7 +571,7 @@ export default async function AssignmentsPage() {
                   type="text"
                   name="rule_name"
                   placeholder="VD: Lead từ Facebook Ads"
-                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#D4A843]"
+                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#D4A843]"
                   required
                 />
               </div>
@@ -605,7 +605,7 @@ export default async function AssignmentsPage() {
                   type="text"
                   name="condition_utm_source"
                   placeholder="VD: facebook"
-                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#D4A843]"
+                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#D4A843]"
                 />
               </div>
               <div>
@@ -614,7 +614,7 @@ export default async function AssignmentsPage() {
                   type="text"
                   name="condition_utm_campaign"
                   placeholder="VD: summer_sale"
-                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#D4A843]"
+                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#D4A843]"
                 />
               </div>
               <div>
@@ -708,7 +708,7 @@ export default async function AssignmentsPage() {
               </table>
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-600 text-sm">
+            <div className="p-8 text-center text-gray-500 text-sm">
               Chưa có nhân viên sale nào
             </div>
           )}
@@ -742,7 +742,7 @@ export default async function AssignmentsPage() {
                         {contact.email || "Không có email"} {contact.source && `• ${contact.source}`}
                       </p>
                     </div>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-gray-500">
                       {formatDate(contact.created_at)}
                     </span>
                   </label>
@@ -771,7 +771,7 @@ export default async function AssignmentsPage() {
               </div>
             </form>
           ) : (
-            <div className="p-8 text-center text-gray-600 text-sm">
+            <div className="p-8 text-center text-gray-500 text-sm">
               Không có lead nào chưa được phân công
             </div>
           )}
@@ -826,7 +826,7 @@ export default async function AssignmentsPage() {
               </table>
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-600 text-sm">
+            <div className="p-8 text-center text-gray-500 text-sm">
               Chưa có lịch sử phân công
             </div>
           )}

@@ -139,7 +139,7 @@ export default function BulkEnrollForm({
             className="input-dark w-full px-3 py-2.5 rounded-lg text-sm resize-y font-mono"
             rows={5}
           />
-          <p className="text-[10px] text-gray-600 mt-1 flex items-center gap-1">
+          <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
             <Info size={10} />
             Hỗ trợ phân cách bằng xuống dòng, dấu phẩy, hoặc chấm phẩy. Copy từ Excel cũng được.
           </p>
@@ -150,7 +150,7 @@ export default function BulkEnrollForm({
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-gray-400 font-medium">
               Chọn khoá học{" "}
-              <span className="text-gray-600">(có thể chọn nhiều)</span>
+              <span className="text-gray-500">(có thể chọn nhiều)</span>
             </label>
             <button
               type="button"

@@ -8,7 +8,11 @@ import CookieConsent from "@/components/CookieConsent";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
 import WebsiteJsonLd from "@/components/seo/WebsiteJsonLd";
 import { siteConfig, getBaseUrl } from "@/lib/site-config";
+import { validateEnv } from "@/lib/env-check";
 import "./globals.css";
+
+// Validate environment variables once at server startup
+validateEnv();
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],

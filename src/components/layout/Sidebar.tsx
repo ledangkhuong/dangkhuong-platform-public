@@ -227,7 +227,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {/* Settings */}
         <div className={isStaff ? "mt-2" : "mt-6"}>
           {!isStaff && !isCompact && (
-            <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
+            <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
               Quản lý
             </div>
           )}
@@ -294,7 +294,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
       {/* Legal links */}
       {!isCompact && (
-        <div className="mx-3 mb-2 flex gap-2 text-[10px] text-gray-600">
+        <div className="mx-3 mb-2 flex gap-2 text-[10px] text-gray-500">
           <Link href="/privacy-policy" className="hover:text-gray-400 transition-colors">Bảo mật</Link>
           <span>&middot;</span>
           <Link href="/terms-of-service" className="hover:text-gray-400 transition-colors">Điều khoản</Link>

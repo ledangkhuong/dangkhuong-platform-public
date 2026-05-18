@@ -123,7 +123,7 @@ export default function BankTransferButtons({
           <Smartphone size={18} />
           Chuyển khoản ngay
         </button>
-        <p className="text-[11px] text-gray-600 text-center mt-2">
+        <p className="text-[11px] text-gray-500 text-center mt-2">
           Bấm để mở app ngân hàng & tự động copy nội dung CK
         </p>
       </div>
@@ -160,7 +160,7 @@ export default function BankTransferButtons({
               </h4>
               <button
                 onClick={() => { setShowModal(false); setShowBankList(false); setShowCopiedToast(false); }}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                className="text-gray-400 hover:text-gray-500 transition-colors p-1"
               >
                 <X size={20} />
               </button>

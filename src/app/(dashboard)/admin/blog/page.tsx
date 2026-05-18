@@ -157,7 +157,7 @@ export default async function AdminBlogPage() {
               </div>
               <div className="text-2xl font-bold text-white">{s.value}</div>
               <div className="text-xs font-semibold text-gray-300">{s.label}</div>
-              <div className="text-[11px] text-gray-600">{s.sub}</div>
+              <div className="text-[11px] text-gray-500">{s.sub}</div>
             </div>
           ))}
         </div>
@@ -190,7 +190,7 @@ export default async function AdminBlogPage() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-4 py-16 text-center text-gray-600 text-sm"
+                      className="px-4 py-16 text-center text-gray-500 text-sm"
                     >
                       <div className="flex flex-col items-center gap-3">
                         <FileText size={32} className="text-gray-700" />
@@ -219,7 +219,7 @@ export default async function AdminBlogPage() {
                           <div className="font-medium text-white truncate group-hover/title:text-[#D4A843] transition-colors">
                             {post.title}
                           </div>
-                          <div className="text-[11px] text-gray-600 truncate mt-0.5 max-w-[300px]">
+                          <div className="text-[11px] text-gray-500 truncate mt-0.5 max-w-[300px]">
                             /blog/{post.slug}
                           </div>
                         </Link>
@@ -247,7 +247,7 @@ export default async function AdminBlogPage() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         {post.category ? (
                           <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                            <Layers size={12} className="text-gray-600" />
+                            <Layers size={12} className="text-gray-500" />
                             {post.category}
                           </span>
                         ) : (
@@ -258,7 +258,7 @@ export default async function AdminBlogPage() {
                       {/* Views */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-white">
-                          <Eye size={13} className="text-gray-600" />
+                          <Eye size={13} className="text-gray-500" />
                           {formatViews(post.views ?? 0)}
                         </span>
                       </td>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { grantCourseAccess, revokeCourseAccess } from "@/lib/actions/enrollment";
 import BulkEnrollForm from "@/components/admin/BulkEnrollForm";
+import Link from "next/link";
 import {
   BookOpen,
   UserPlus,
@@ -13,6 +14,8 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
+
+const PAGE_SIZE = 20;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -101,9 +104,11 @@ export default async function AdminEnrollmentsPage({
     granted?: string;
     revoked?: string;
     skipped?: string;
+    page?: string;
   }>;
 }) {
-  const { error, granted, revoked, skipped } = await searchParams;
+  const { error, granted, revoked, skipped, page: pageParam } = await searchParams;
+  const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 
   // Auth check
   const authClient = await createClient();
@@ -128,14 +133,28 @@ export default async function AdminEnrollmentsPage({
     .select("id, title, price, status")
     .order("title");
 
-  // Fetch recent enrollments with joins
+  // Count total enrollments for pagination
+  const { count: enrollmentCount } = await supabase
+    .from("enrollments")
+    .select("*", { count: "exact", head: true });
+  const totalEnrollments = enrollmentCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalEnrollments / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+
+  // Fetch enrollments with joins (paginated)
+  const from = (safePage - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select("id, user_id, product_id, source, created_at, profiles(full_name), products(title)")
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(from, to);
 
   const rows: EnrollmentRow[] = (enrollments ?? []) as unknown as EnrollmentRow[];
+
+  function buildPageUrl(page: number) {
+    return `/admin/enrollments${page > 1 ? `?page=${page}` : ""}`;
+  }
 
   // Error messages
   const errorMessages: Record<string, string> = {
@@ -223,7 +242,7 @@ export default async function AdminEnrollmentsPage({
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-2 font-medium">
-                Chọn khoá học <span className="text-gray-600">(có thể chọn nhiều)</span>
+                Chọn khoá học <span className="text-gray-500">(có thể chọn nhiều)</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(products ?? []).map((p) => (
@@ -278,14 +297,15 @@ export default async function AdminEnrollmentsPage({
             style={{ borderBottom: "1px solid #2a2a2a" }}
           >
             <span className="text-xs text-gray-500">
-              Hiển thị{" "}
-              <span className="text-white font-medium">{rows.length}</span> enrollment
-              gần nhất
+              <span className="text-white font-medium">{totalEnrollments}</span> enrollment
+              {totalPages > 1 && (
+                <> &middot; Trang {safePage}/{totalPages}</>
+              )}
             </span>
           </div>
 
           {rows.length === 0 ? (
-            <div className="p-12 text-center text-gray-600 text-sm">
+            <div className="p-12 text-center text-gray-500 text-sm">
               Chưa có enrollment nào.
             </div>
           ) : (
@@ -359,6 +379,52 @@ export default async function AdminEnrollmentsPage({
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* ── Pagination ── */}
+          {totalPages > 1 && (
+            <div
+              className="flex items-center justify-center gap-4 px-4 py-3"
+              style={{ borderTop: "1px solid #2a2a2a" }}
+            >
+              {safePage > 1 ? (
+                <Link
+                  href={buildPageUrl(safePage - 1)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  ← Trước
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  ← Trước
+                </span>
+              )}
+
+              <span className="text-sm text-gray-400">
+                Trang <span className="text-white font-semibold">{safePage}</span> / {totalPages}
+              </span>
+
+              {safePage < totalPages ? (
+                <Link
+                  href={buildPageUrl(safePage + 1)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  Tiếp →
+                </Link>
+              ) : (
+                <span
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                >
+                  Tiếp →
+                </span>
+              )}
             </div>
           )}
         </div>

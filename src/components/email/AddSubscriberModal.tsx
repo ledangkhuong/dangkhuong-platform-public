@@ -170,7 +170,7 @@ export default function AddSubscriberModal({
 
           <div>
             <label className="block text-sm text-gray-400 mb-1.5">
-              Tags <span className="text-gray-600 text-xs">(phân cách bằng dấu phẩy)</span>
+              Tags <span className="text-gray-500 text-xs">(phân cách bằng dấu phẩy)</span>
             </label>
             <input
               type="text"

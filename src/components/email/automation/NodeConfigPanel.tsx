@@ -188,7 +188,7 @@ function WaitConfig({ data, onChange }: { data: any; onChange: (d: any) => void 
           />
         </div>
       </div>
-      <p className="text-[10px] text-gray-600">Subscriber sẽ chờ khoảng thời gian này trước khi tiếp tục flow</p>
+      <p className="text-[10px] text-gray-500">Subscriber sẽ chờ khoảng thời gian này trước khi tiếp tục flow</p>
     </div>
   );
 }

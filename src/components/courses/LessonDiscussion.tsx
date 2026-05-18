@@ -138,7 +138,7 @@ function ReplyItem({ reply }: { reply: Discussion }) {
               {getLevelBadge(reply.profiles.level)}
             </span>
           )}
-          <span className="text-[10px] text-gray-600">
+          <span className="text-[10px] text-gray-500">
             {timeAgo(reply.created_at)}
           </span>
         </div>
@@ -249,7 +249,7 @@ function DiscussionThread({
                   {getLevelBadge(discussion.profiles.level)}
                 </span>
               )}
-            <span className="text-[10px] text-gray-600">
+            <span className="text-[10px] text-gray-500">
               {timeAgo(discussion.created_at)}
             </span>
             {discussion.is_pinned && (
@@ -336,7 +336,7 @@ function DiscussionThread({
               <Loader2 size={16} className="animate-spin text-gray-500" />
             </div>
           ) : replies.length === 0 ? (
-            <p className="text-xs text-gray-600 py-2">
+            <p className="text-xs text-gray-500 py-2">
               Chưa có phản hồi nào.
             </p>
           ) : (
@@ -455,7 +455,7 @@ export default function LessonDiscussion({ lessonId }: LessonDiscussionProps) {
               </div>
             )}
             <div className="flex items-center justify-between">
-              <p className="text-[10px] text-gray-600">
+              <p className="text-[10px] text-gray-500">
                 {content.length > 0 && `${content.length}/5000`}
               </p>
               <button

@@ -235,7 +235,7 @@ function DetailRow({
         </span>
         <button
           onClick={onCopy}
-          className="p-1 rounded hover:bg-white/5 text-gray-600 hover:text-gray-300 transition-colors"
+          className="p-1 rounded hover:bg-white/5 text-gray-500 hover:text-gray-300 transition-colors"
           title="Copy"
         >
           {copied ? (

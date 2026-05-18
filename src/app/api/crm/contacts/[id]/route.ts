@@ -172,7 +172,7 @@ export async function PATCH(
     await adminClient.from("crm_activities").insert({
       contact_id: id,
       type: "status_change",
-      description: `Status changed from "${currentContact.status}" to "${body.status}"`,
+      content: `Status changed from "${currentContact.status}" to "${body.status}"`,
       created_by: user.id,
       is_system: false,
     });
@@ -183,7 +183,7 @@ export async function PATCH(
     await adminClient.from("crm_activities").insert({
       contact_id: id,
       type: "journey_change",
-      description: `Journey stage changed from "${currentContact.journey_stage}" to "${body.journey_stage}"`,
+      content: `Journey stage changed from "${currentContact.journey_stage}" to "${body.journey_stage}"`,
       created_by: user.id,
       is_system: false,
     });

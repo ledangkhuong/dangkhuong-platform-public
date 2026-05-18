@@ -130,7 +130,7 @@ function ResultRow({ item, selected, onSelect }: ResultRowProps) {
           <span className="block text-xs text-gray-500 truncate mt-0.5">{item.subtitle}</span>
         )}
       </span>
-      <ArrowRight size={14} className="flex-shrink-0 text-gray-600" />
+      <ArrowRight size={14} className="flex-shrink-0 text-gray-500" />
     </button>
   );
 }
@@ -295,13 +295,13 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
             {query && (
               <button
                 onMouseDown={() => setQuery("")}
-                className="flex-shrink-0 text-gray-600 hover:text-gray-400 transition-colors"
+                className="flex-shrink-0 text-gray-500 hover:text-gray-400 transition-colors"
               >
                 <X size={16} />
               </button>
             )}
             <kbd
-              className="flex-shrink-0 text-[10px] text-gray-600 px-1.5 py-0.5 rounded"
+              className="flex-shrink-0 text-[10px] text-gray-500 px-1.5 py-0.5 rounded"
               style={{ background: "#2a2a2a" }}
             >
               Esc để đóng
@@ -339,7 +339,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
                         selectedIndex === i ? "2px solid #D4A843" : "2px solid transparent",
                     }}
                   >
-                    <Clock size={14} className="flex-shrink-0 text-gray-600" />
+                    <Clock size={14} className="flex-shrink-0 text-gray-500" />
                     <span className="text-sm text-gray-300">{term}</span>
                   </button>
                 ))}
@@ -348,7 +348,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
 
             {/* Empty state for recent */}
             {!loading && showRecent && recentSearches.length === 0 && (
-              <div className="py-10 text-center text-gray-600 text-sm">
+              <div className="py-10 text-center text-gray-500 text-sm">
                 Nhập ít nhất 2 ký tự để tìm kiếm
               </div>
             )}
@@ -385,7 +385,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
 
             {/* No results */}
             {!loading && !showRecent && flatResults.length === 0 && (
-              <div className="py-10 text-center text-gray-600 text-sm">
+              <div className="py-10 text-center text-gray-500 text-sm">
                 Không tìm thấy kết quả cho&nbsp;
                 <span className="text-gray-400">&ldquo;{query}&rdquo;</span>
               </div>
@@ -394,7 +394,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
 
           {/* Footer hint */}
           <div
-            className="flex items-center gap-4 px-4 py-2.5 text-[11px] text-gray-600"
+            className="flex items-center gap-4 px-4 py-2.5 text-[11px] text-gray-500"
             style={{ borderTop: "1px solid #222" }}
           >
             <span>

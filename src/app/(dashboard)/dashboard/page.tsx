@@ -146,7 +146,7 @@ export default async function DashboardPage() {
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${xpProgress}%` }} />
             </div>
-            <p className="text-xs text-gray-600 mt-1.5">
+            <p className="text-xs text-gray-500 mt-1.5">
               Cần thêm {Math.max(0, xpForNextLevel - xp)} XP để lên Level {level + 1}
             </p>
           </div>
@@ -267,7 +267,7 @@ export default async function DashboardPage() {
                         <span className="text-gray-400"> đã đăng: </span>
                         <span className="text-gray-300">{preview}</span>
                       </p>
-                      <p className="text-xs text-gray-600 mt-0.5">{ago}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{ago}</p>
                     </div>
                   </div>
                 );

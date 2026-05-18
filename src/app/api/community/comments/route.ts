@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/notifications";
 import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/community/comments?post_id=...&limit=20&offset=0
@@ -86,13 +87,54 @@ export async function POST(req: NextRequest) {
   // Atomically increment comments_count on the post
   await supabase.rpc("increment_comments_count", { post_id });
 
-  // Award XP
-  await supabase.from("xp_events").insert({
-    user_id: user.id,
-    action: "comment_created",
-    xp_amount: 20,
-    meta: { post_id, comment_id: data.id },
-  });
+  // Award XP (daily cap: 10 comment-XP events)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const { count: commentXpToday } = await supabase
+    .from("xp_events")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("action", "comment_created")
+    .gte("created_at", todayStart.toISOString());
+
+  if ((commentXpToday ?? 0) < 10) {
+    await supabase.from("xp_events").insert({
+      user_id: user.id,
+      action: "comment_created",
+      xp_amount: 20,
+      meta: { post_id, comment_id: data.id },
+    });
+  }
+
+  // Notify the post owner (skip if commenter is the post owner)
+  try {
+    const { data: post } = await supabase
+      .from("posts")
+      .select("user_id")
+      .eq("id", post_id)
+      .single();
+
+    if (post && post.user_id !== user.id) {
+      const admin = await createAdminClient();
+      const { data: commenterProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      const commenterName = commenterProfile?.full_name || "Ai đó";
+      await createNotification(
+        admin,
+        post.user_id,
+        "comment",
+        `${commenterName} đã bình luận bài viết của bạn`,
+        `${commenterName} đã bình luận bài viết của bạn`,
+        "/community",
+      );
+    }
+  } catch {
+    // Notification failure should not break comment flow
+  }
 
   return NextResponse.json({ comment: data }, { status: 201 });
 }

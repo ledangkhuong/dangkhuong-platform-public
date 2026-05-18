@@ -46,7 +46,7 @@ export default function NodeSidebar() {
 
       {nodeCategories.map((cat) => (
         <div key={cat.label}>
-          <div className="text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-2 px-1">
+          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">
             {cat.label}
           </div>
           <div className="space-y-1.5">

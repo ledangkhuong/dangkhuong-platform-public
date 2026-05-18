@@ -178,11 +178,11 @@ export default function ThumbnailUpload({ value, onChange }: ThumbnailUploadProp
             </>
           ) : (
             <>
-              <ImageIcon size={28} className="text-gray-600" />
+              <ImageIcon size={28} className="text-gray-500" />
               <span className="text-xs text-gray-400">
                 Kéo thả ảnh vào đây hoặc <span className="text-[#D4A843] font-medium">chọn file</span>
               </span>
-              <span className="text-[10px] text-gray-600">
+              <span className="text-[10px] text-gray-500">
                 JPEG, PNG, WebP, GIF — tối đa 5MB
               </span>
             </>

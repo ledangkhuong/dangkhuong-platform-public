@@ -489,5 +489,5 @@ function ComparisonCell({
       />
     );
   }
-  return <span className="text-gray-600">—</span>;
+  return <span className="text-gray-500">—</span>;
 }

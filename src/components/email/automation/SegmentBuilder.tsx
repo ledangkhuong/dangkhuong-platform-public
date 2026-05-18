@@ -164,7 +164,7 @@ export default function SegmentBuilder({ onSegmentChange, onPreview, compact }: 
 
             <button
               onClick={() => removeCondition(idx)}
-              className="p-1 rounded hover:bg-[#222] text-gray-600 hover:text-red-400"
+              className="p-1 rounded hover:bg-[#222] text-gray-500 hover:text-red-400"
             >
               <X size={12} />
             </button>

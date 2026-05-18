@@ -507,7 +507,7 @@ export default async function ContactDetailPage({
               </div>
 
               {activities.length === 0 ? (
-                <p className="text-sm text-gray-600 text-center py-8">
+                <p className="text-sm text-gray-500 text-center py-8">
                   Chưa có hoạt động nào. Hãy thêm ghi chú đầu tiên!
                 </p>
               ) : (
@@ -554,7 +554,7 @@ export default async function ContactDetailPage({
                             >
                               {typeConf.label}
                             </span>
-                            <span className="text-[11px] text-gray-600">
+                            <span className="text-[11px] text-gray-500">
                               {timeAgo(activity.created_at)}
                             </span>
                           </div>
@@ -565,7 +565,7 @@ export default async function ContactDetailPage({
                             {activity.content}
                           </p>
                           {activity.creator_profile?.full_name && !isSystem && (
-                            <p className="text-[11px] text-gray-600 mt-1">
+                            <p className="text-[11px] text-gray-500 mt-1">
                               bởi {activity.creator_profile.full_name}
                             </p>
                           )}
@@ -621,7 +621,7 @@ export default async function ContactDetailPage({
                 {/* UTM Attribution */}
                 {(contact.utm_source || contact.utm_medium || contact.utm_campaign) && (
                   <div className="pt-2 border-t border-[#2a2a2a]">
-                    <p className="text-[11px] text-gray-600 uppercase tracking-wide mb-2">UTM Attribution</p>
+                    <p className="text-[11px] text-gray-500 uppercase tracking-wide mb-2">UTM Attribution</p>
                     <div className="space-y-1.5">
                       {contact.utm_source && (
                         <div className="flex items-center gap-2 text-xs">
@@ -685,7 +685,7 @@ export default async function ContactDetailPage({
                 <span className="text-xs text-gray-500 ml-auto">{orders.length}</span>
               </div>
               {orders.length === 0 ? (
-                <p className="text-xs text-gray-600 text-center py-4">Chưa có đơn hàng</p>
+                <p className="text-xs text-gray-500 text-center py-4">Chưa có đơn hàng</p>
               ) : (
                 <div className="space-y-3">
                   {orders.map((order) => (
@@ -732,7 +732,7 @@ export default async function ContactDetailPage({
                 <span className="text-xs text-gray-500 ml-auto">{enrollments.length}</span>
               </div>
               {enrollments.length === 0 ? (
-                <p className="text-xs text-gray-600 text-center py-4">Chưa đăng ký khoá học nào</p>
+                <p className="text-xs text-gray-500 text-center py-4">Chưa đăng ký khoá học nào</p>
               ) : (
                 <div className="space-y-2">
                   {enrollments.map((enrollment) => (
@@ -751,7 +751,7 @@ export default async function ContactDetailPage({
                         <p className="text-sm text-gray-200 truncate">
                           {enrollment.products?.title || "Khoá học"}
                         </p>
-                        <p className="text-[10px] text-gray-600">{formatDate(enrollment.created_at)}</p>
+                        <p className="text-[10px] text-gray-500">{formatDate(enrollment.created_at)}</p>
                       </div>
                     </div>
                   ))}
