@@ -54,8 +54,8 @@ import {
   Loader2,
   Clock,
   Paperclip,
-  Upload,
-  FileText,
+  Link2 as LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1447,13 +1447,7 @@ function LessonFormComponent({
   );
 }
 
-// ─── Lesson Attachments Section ──────────────────────────────────────────────
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+// ─── Lesson Attachments Section (Link-based) ────────────────────────────────
 
 function LessonAttachmentsSection({
   attachments,
@@ -1462,49 +1456,22 @@ function LessonAttachmentsSection({
   attachments: LessonAttachment[];
   onAttachmentsChange: (attachments: LessonAttachment[]) => void;
 }) {
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [linkName, setLinkName] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAdd = () => {
+    const url = linkUrl.trim();
+    const name = linkName.trim() || url;
+    if (!url) return;
 
-    // Reset the input so the same file can be selected again
-    e.target.value = "";
-
-    setUploadError(null);
-    setUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload/lesson-attachment", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setUploadError(data.error || "Upload failed");
-        return;
-      }
-
-      onAttachmentsChange([
-        ...attachments,
-        {
-          url: data.url,
-          name: data.name,
-          size: data.size,
-          type: data.type,
-        },
-      ]);
-    } catch {
-      setUploadError("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
+    onAttachmentsChange([
+      ...attachments,
+      { url, name, size: 0, type: "link" },
+    ]);
+    setLinkName("");
+    setLinkUrl("");
+    setShowAddForm(false);
   };
 
   const handleRemove = (index: number) => {
@@ -1519,39 +1486,63 @@ function LessonAttachmentsSection({
       <div className="flex items-center justify-between">
         <label className="flex items-center gap-2 text-gray-400 text-xs font-medium">
           <Paperclip size={14} />
-          {"Tài liệu đính kèm"}
+          Tài liệu đính kèm
         </label>
-        <label
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-            uploading
-              ? "opacity-50 cursor-not-allowed text-gray-500"
-              : "text-amber-400 hover:text-amber-300 hover:bg-white/5"
-          }`}
-          style={{ border: "1px solid #2a2a2a" }}
-        >
-          {uploading ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Upload size={13} />
-          )}
-          {uploading ? "Đang tải lên..." : "Thêm tài liệu"}
-          <input
-            type="file"
-            className="hidden"
-            accept=".pdf,.docx,.xlsx,.pptx,.zip"
-            onChange={handleUpload}
-            disabled={uploading}
-          />
-        </label>
+        {!showAddForm && (
+          <button
+            type="button"
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
+            style={{ border: "1px solid #2a2a2a" }}
+          >
+            <LinkIcon size={13} />
+            Thêm link tài liệu
+          </button>
+        )}
       </div>
 
-      {uploadError && (
-        <p className="text-red-400 text-xs">{uploadError}</p>
+      {/* Add link form */}
+      {showAddForm && (
+        <div className="space-y-2 p-3 rounded-lg" style={{ backgroundColor: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+          <input
+            type="text"
+            value={linkName}
+            onChange={(e) => setLinkName(e.target.value)}
+            placeholder="Tên tài liệu (vd: Slide bài giảng)"
+            className="input-dark w-full px-3 py-2 rounded-lg text-xs"
+          />
+          <input
+            type="url"
+            value={linkUrl}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            placeholder="Link tài liệu (Google Drive, Notion, ...)"
+            className="input-dark w-full px-3 py-2 rounded-lg text-xs"
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdd(); } }}
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => { setShowAddForm(false); setLinkName(""); setLinkUrl(""); }}
+              className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1.5 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={!linkUrl.trim()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#D4A843] text-black hover:bg-[#c49a3a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus size={12} />
+              Thêm
+            </button>
+          </div>
+        </div>
       )}
 
       {attachments.length === 0 ? (
         <p className="text-gray-500 text-xs italic">
-          {"Chưa có tài liệu nào. Hỗ trợ: PDF, DOCX, XLSX, PPTX, ZIP (tối đa 10MB)."}
+          Chưa có tài liệu nào. Thêm link Google Drive, Notion, hoặc bất kỳ link nào.
         </p>
       ) : (
         <div className="space-y-2">
@@ -1562,20 +1553,28 @@ function LessonAttachmentsSection({
               style={{ backgroundColor: "#1a1a1a", border: "1px solid #2a2a2a" }}
             >
               <div className="flex items-center gap-2 min-w-0">
-                <FileText size={14} className="text-blue-400 shrink-0" />
+                <LinkIcon size={14} className="text-blue-400 shrink-0" />
                 <span className="text-white text-xs truncate">{att.name}</span>
-                <span className="text-gray-500 text-[10px] shrink-0">
-                  {formatFileSize(att.size)}
-                </span>
               </div>
-              <button
-                onClick={() => handleRemove(idx)}
-                className="text-gray-500 hover:text-red-400 p-1 shrink-0 transition-colors"
-                title="Xóa tài liệu"
-                type="button"
-              >
-                <Trash2 size={13} />
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <a
+                  href={att.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-[#D4A843] p-1 transition-colors"
+                  title="Mở link"
+                >
+                  <ExternalLink size={13} />
+                </a>
+                <button
+                  onClick={() => handleRemove(idx)}
+                  className="text-gray-500 hover:text-red-400 p-1 transition-colors"
+                  title="Xóa tài liệu"
+                  type="button"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
             </div>
           ))}
         </div>

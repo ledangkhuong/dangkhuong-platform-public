@@ -18,6 +18,8 @@ import {
   FileVideo,
   FileAudio,
   File,
+  ExternalLink,
+  Link2 as LinkIcon,
 } from "lucide-react";
 import LessonActions from "@/components/courses/LessonActions";
 import LessonQA from "@/components/courses/LessonQA";
@@ -757,26 +759,39 @@ export default async function CourseDetailPage({
                 Tài liệu đính kèm
               </h3>
               <div className="space-y-2">
-                {currentLesson.attachments.map((att, i) => (
-                  <a
-                    key={i}
-                    href={att.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group"
-                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #2a2a2a' }}
-                  >
-                    <AttachmentFileIcon type={att.type} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-300 truncate group-hover:text-[#D4A843] transition-colors">
-                        {att.name}
-                      </p>
-                      <p className="text-[10px] text-gray-500">{formatFileSize(att.size)}</p>
-                    </div>
-                    <Download size={14} className="text-gray-500 group-hover:text-[#D4A843] shrink-0 transition-colors" />
-                  </a>
-                ))}
+                {currentLesson.attachments.map((att, i) => {
+                  const isLink = att.type === "link" || att.size === 0;
+                  return (
+                    <a
+                      key={i}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      {...(!isLink ? { download: true } : {})}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group"
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #2a2a2a' }}
+                    >
+                      {isLink ? (
+                        <LinkIcon size={16} className="text-[#D4A843] shrink-0" />
+                      ) : (
+                        <AttachmentFileIcon type={att.type} />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-300 truncate group-hover:text-[#D4A843] transition-colors">
+                          {att.name}
+                        </p>
+                        {!isLink && att.size > 0 && (
+                          <p className="text-[10px] text-gray-500">{formatFileSize(att.size)}</p>
+                        )}
+                      </div>
+                      {isLink ? (
+                        <ExternalLink size={14} className="text-gray-500 group-hover:text-[#D4A843] shrink-0 transition-colors" />
+                      ) : (
+                        <Download size={14} className="text-gray-500 group-hover:text-[#D4A843] shrink-0 transition-colors" />
+                      )}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
