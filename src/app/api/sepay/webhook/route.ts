@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
 
       // 8. Gửi email xác nhận mua hàng
       try {
-        const { sendPurchaseConfirmation } = await import("@/lib/email/resend");
+        const { sendPurchaseConfirmation } = await import("@/lib/email/transactional");
         const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", order.user_id).single();
         const { data: authUser } = await supabase.auth.admin.getUserById(order.user_id as string);
         if (authUser?.user?.email) {
@@ -321,7 +321,7 @@ export async function POST(req: NextRequest) {
 
           // Gửi email thông báo hoa hồng cho affiliate
           try {
-            const { sendAffiliateCommissionEmail } = await import("@/lib/email/resend");
+            const { sendAffiliateCommissionEmail } = await import("@/lib/email/transactional");
             const { data: affProfile } = await supabase.from("profiles").select("full_name").eq("id", affiliate.user_id).single();
             const { data: affAuth } = await supabase.auth.admin.getUserById(affiliate.user_id);
             if (affAuth?.user?.email) {

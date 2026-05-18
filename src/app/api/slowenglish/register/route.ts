@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
     // 7. Send welcome email (only for new users)
     if (!isExistingUser) {
       try {
-        const { sendWelcomeEmail } = await import("@/lib/email/resend");
+        const { sendWelcomeEmail } = await import("@/lib/email/transactional");
         await sendWelcomeEmail(email.trim(), full_name.trim()).catch(() => {});
       } catch {
         // Email service not configured

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { sendQuestionReplyEmail } from "@/lib/email/resend";
+import { sendQuestionReplyEmail } from "@/lib/email/transactional";
 
 // Tag prefix to identify lesson questions vs normal community posts
 const Q_TAG = "_q";

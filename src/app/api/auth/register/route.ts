@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       } else if (linkData) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
         const confirmUrl = `${baseUrl}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
-        const { sendVerificationEmail } = await import("@/lib/email/resend");
+        const { sendVerificationEmail } = await import("@/lib/email/transactional");
         await sendVerificationEmail(email, full_name, confirmUrl);
         emailSent = true;
       }

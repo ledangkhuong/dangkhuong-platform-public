@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     // Send emails (purchase confirmation + enrollment welcome)
     try {
-      const { sendPurchaseConfirmation, sendEnrollmentWelcomeEmail } = await import("@/lib/email/resend");
+      const { sendPurchaseConfirmation, sendEnrollmentWelcomeEmail } = await import("@/lib/email/transactional");
       const { data: profile } = await admin
         .from("profiles")
         .select("full_name")

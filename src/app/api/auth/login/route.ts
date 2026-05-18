@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/rate-limit";
-import { sendLoginNotificationEmail } from "@/lib/email/resend";
+import { sendLoginNotificationEmail } from "@/lib/email/transactional";
 import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {

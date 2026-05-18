@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { sendPasswordResetEmail } from "@/lib/email/resend";
+import { sendPasswordResetEmail } from "@/lib/email/transactional";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { rateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";

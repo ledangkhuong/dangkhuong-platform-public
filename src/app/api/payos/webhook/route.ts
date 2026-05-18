@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
 
       // 9. Send purchase confirmation email
       try {
-        const { sendPurchaseConfirmation } = await import("@/lib/email/resend");
+        const { sendPurchaseConfirmation } = await import("@/lib/email/transactional");
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name")
@@ -293,7 +293,7 @@ export async function POST(req: NextRequest) {
 
           // Send affiliate commission email
           try {
-            const { sendAffiliateCommissionEmail } = await import("@/lib/email/resend");
+            const { sendAffiliateCommissionEmail } = await import("@/lib/email/transactional");
             const { data: affProfile } = await supabase
               .from("profiles")
               .select("full_name")

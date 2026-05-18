@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/server";
-import { sendPasswordResetEmail } from "@/lib/email/resend";
+import { sendPasswordResetEmail } from "@/lib/email/transactional";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 

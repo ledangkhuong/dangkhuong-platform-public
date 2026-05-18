@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         // Send welcome email
         const { data: profile } = await admin
           .from("profiles").select("full_name").eq("id", userId).single();
-        const { sendWelcomeEmail } = await import("@/lib/email/resend");
+        const { sendWelcomeEmail } = await import("@/lib/email/transactional");
         await sendWelcomeEmail(
           data.user.email || "",
           profile?.full_name || "bạn"

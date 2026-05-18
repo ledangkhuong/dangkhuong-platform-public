@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
         .eq("completed", true);
 
       if (totalLessons > 0 && (completedCount ?? 0) >= totalLessons) {
-        const { sendCourseCompletionEmail } = await import("@/lib/email/resend");
+        const { sendCourseCompletionEmail } = await import("@/lib/email/transactional");
         const { data: product } = await supabase
           .from("products")
           .select("name, title, slug")
