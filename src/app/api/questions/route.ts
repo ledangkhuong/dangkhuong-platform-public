@@ -56,9 +56,9 @@ export async function GET(req: NextRequest) {
   if (productIds.size > 0) {
     const { data: products } = await supabase
       .from("products")
-      .select("id, name")
+      .select("id, title")
       .in("id", Array.from(productIds));
-    for (const p of products ?? []) productMap[p.id] = p.name;
+    for (const p of products ?? []) productMap[p.id] = p.title;
   }
 
   if (lessonIds.size > 0) {
