@@ -3,8 +3,19 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import TopBar from "@/components/layout/TopBar";
+import ThumbnailUpload from "@/components/admin/ThumbnailUpload";
 import { createClient } from "@/lib/supabase/client";
+
+const NovelEditor = dynamic(() => import("@/components/editor/NovelEditor"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-8 text-gray-500 text-sm gap-2">
+      <span className="animate-spin">⏳</span> Đang tải editor...
+    </div>
+  ),
+});
 import {
   DndContext,
   closestCenter,
@@ -63,6 +74,7 @@ interface Lesson {
   title: string;
   description: string | null;
   youtube_id: string | null;
+  thumbnail_url: string | null;
   duration_sec: number;
   content: string | null;
   sort_order: number;
@@ -85,6 +97,7 @@ interface LessonFormData {
   title: string;
   description: string;
   youtube_id: string;
+  thumbnail_url: string;
   duration_sec: number;
   content: string;
   is_free: boolean;
@@ -101,6 +114,7 @@ const defaultLessonForm: LessonFormData = {
   title: "",
   description: "",
   youtube_id: "",
+  thumbnail_url: "",
   duration_sec: 0,
   content: "",
   is_free: false,
@@ -371,6 +385,7 @@ export default function LessonsPage() {
       title: lessonForm.title.trim(),
       description: lessonForm.description || null,
       youtube_id: lessonForm.youtube_id || null,
+      thumbnail_url: lessonForm.thumbnail_url || null,
       duration_sec: lessonForm.duration_sec || 0,
       content: lessonForm.content || null,
       is_free: lessonForm.is_free,
@@ -394,6 +409,7 @@ export default function LessonsPage() {
         title: lessonForm.title.trim(),
         description: lessonForm.description || null,
         youtube_id: lessonForm.youtube_id || null,
+        thumbnail_url: lessonForm.thumbnail_url || null,
         duration_sec: lessonForm.duration_sec || 0,
         content: lessonForm.content || null,
         is_free: lessonForm.is_free,
@@ -428,6 +444,7 @@ export default function LessonsPage() {
       title: lesson.title,
       description: lesson.description || "",
       youtube_id: lesson.youtube_id || "",
+      thumbnail_url: lesson.thumbnail_url || "",
       duration_sec: lesson.duration_sec,
       content: lesson.content || "",
       is_free: lesson.is_free,
@@ -1331,18 +1348,30 @@ function LessonFormComponent({
           </div>
         </div>
 
+        {/* Ảnh bài học — hiển thị khi không có video */}
         <div>
           <label className="block text-gray-400 text-xs mb-1">
-            Nội dung (Markdown)
+            Ảnh bài học{" "}
+            <span className="text-gray-600">(hiển thị khi không có video)</span>
           </label>
-          <textarea
-            value={lessonForm.content}
-            onChange={(e) =>
-              setLessonForm({ ...lessonForm, content: e.target.value })
+          <ThumbnailUpload
+            value={lessonForm.thumbnail_url}
+            onChange={(url) =>
+              setLessonForm({ ...lessonForm, thumbnail_url: url })
             }
-            className="input-dark w-full px-3 py-2 rounded-lg text-sm resize-y font-mono"
-            rows={5}
-            placeholder="Nội dung bài học (hỗ trợ Markdown)..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-400 text-xs mb-1">
+            Nội dung bài học
+          </label>
+          <NovelEditor
+            key={`lesson-editor-${editingLessonId || "new"}`}
+            initialHtml={lessonForm.content || ""}
+            onChange={(html) =>
+              setLessonForm({ ...lessonForm, content: html })
+            }
           />
         </div>
 

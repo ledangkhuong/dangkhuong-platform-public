@@ -25,6 +25,7 @@ import VideoPlayer from "@/components/courses/VideoPlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 import LessonQuiz from "@/components/courses/LessonQuiz";
+import RichDescription from "@/components/courses/RichDescription";
 
 // force-dynamic: this page is personalized (auth state, enrollment, progress)
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ type Lesson = {
   id: string;
   title: string;
   youtube_id: string | null;
+  thumbnail_url: string | null;
   duration_sec: number;
   content: string | null;
   sort_order: number;
@@ -163,7 +165,7 @@ export default async function CourseDetailPage({
       .select(
         `
         id, title, sort_order,
-        lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
+        lessons(id, title, youtube_id, thumbnail_url, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
       `
       )
       .eq("product_id", product.id)
@@ -178,7 +180,7 @@ export default async function CourseDetailPage({
         .select(
           `
           id, title, sort_order,
-          lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free)
+          lessons(id, title, youtube_id, thumbnail_url, duration_sec, content, sort_order, is_free)
         `
         )
         .eq("product_id", product.id)
@@ -667,11 +669,11 @@ export default async function CourseDetailPage({
         </div>
       )}
 
-      {/* Video player */}
+      {/* Video player / Thumbnail / (nothing if text-only lesson) */}
       {(hasAccess || currentLesson?.is_free) && currentLesson && !currentLessonLocked && (
         <>
-          <div className="mb-4 sm:mb-5">
-            {currentLesson.youtube_id ? (
+          {currentLesson.youtube_id ? (
+            <div className="mb-4 sm:mb-5">
               <VideoPlayer
                 youtubeId={currentLesson.youtube_id}
                 title={currentLesson.title}
@@ -679,40 +681,22 @@ export default async function CourseDetailPage({
                 productId={product.id}
                 initialCompleted={currentProgress?.completed ?? false}
               />
-            ) : (
+            </div>
+          ) : currentLesson.thumbnail_url ? (
+            <div className="mb-4 sm:mb-5">
               <div
-                className="rounded-xl overflow-hidden bg-black aspect-video relative"
+                className="rounded-xl overflow-hidden relative"
                 style={{ border: "1px solid #2a2a2a" }}
               >
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #111 0%, #1a1a1a 100%)",
-                  }}
-                >
-                  <PlayCircle
-                    size={48}
-                    className="text-[#D4A843] opacity-80 sm:w-16 sm:h-16"
-                  />
-                  <p className="text-gray-400 text-xs sm:text-sm text-center">
-                    {currentLesson.title}
-                  </p>
-                  {currentChapter && (
-                    <p className="text-gray-500 text-xs text-center">
-                      {currentChapter.title}
-                      {currentLesson.duration_sec
-                        ? ` • ${formatDuration(currentLesson.duration_sec)}`
-                        : ""}
-                    </p>
-                  )}
-                  <p className="text-gray-700 text-xs mt-2">
-                    Video chưa được cập nhật
-                  </p>
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={currentLesson.thumbnail_url}
+                  alt={currentLesson.title}
+                  className="w-full h-auto object-cover"
+                />
               </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* Lesson info */}
           <div className="mb-4 sm:mb-5">
@@ -736,26 +720,32 @@ export default async function CourseDetailPage({
 
           {/* Lesson content */}
           {currentLesson.content && (
-            <div className="card-dark p-4 sm:p-5 mb-4 sm:mb-5 prose prose-invert prose-sm max-w-none">
-              <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
-                {currentLesson.content
-                  .split(/(https?:\/\/[^\s]+)/g)
-                  .map((part, i) =>
-                    /^https?:\/\//.test(part) ? (
-                      <a
-                        key={i}
-                        href={part}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#D4A843] underline underline-offset-2 hover:text-[#B8922E] break-all transition-colors"
-                      >
-                        {part}
-                      </a>
-                    ) : (
-                      <span key={i}>{part}</span>
-                    )
-                  )}
-              </div>
+            <div className="card-dark p-4 sm:p-5 mb-4 sm:mb-5">
+              {/<[a-z][\s\S]*>/i.test(currentLesson.content) ? (
+                /* New rich HTML content from editor */
+                <RichDescription html={currentLesson.content} />
+              ) : (
+                /* Legacy plain text content — backward compatible */
+                <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
+                  {currentLesson.content
+                    .split(/(https?:\/\/[^\s]+)/g)
+                    .map((part, i) =>
+                      /^https?:\/\//.test(part) ? (
+                        <a
+                          key={i}
+                          href={part}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#D4A843] underline underline-offset-2 hover:text-[#B8922E] break-all transition-colors"
+                        >
+                          {part}
+                        </a>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )}
+                </div>
+              )}
             </div>
           )}
 
