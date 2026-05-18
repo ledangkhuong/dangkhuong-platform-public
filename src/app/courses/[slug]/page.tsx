@@ -135,16 +135,39 @@ export default async function CourseDetailPage({
   if (!product) notFound();
 
   // Fetch chapters + lessons (use admin client to bypass RLS on chapters/lessons tables)
-  const { data: chaptersRaw } = await adminDb
-    .from("chapters")
-    .select(
+  // Try with optional columns first (unlock_after_days, attachments require migrations).
+  // If the query fails (columns don't exist yet), fall back to base columns only.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let chaptersRaw: any[] | null = null;
+  {
+    const { data, error } = await adminDb
+      .from("chapters")
+      .select(
+        `
+        id, title, sort_order,
+        lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
       `
-      id, title, sort_order,
-      lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
-    `
-    )
-    .eq("product_id", product.id)
-    .order("sort_order");
+      )
+      .eq("product_id", product.id)
+      .order("sort_order");
+
+    if (!error) {
+      chaptersRaw = data;
+    } else {
+      // Fallback: query without optional columns that may not exist yet
+      const { data: base } = await adminDb
+        .from("chapters")
+        .select(
+          `
+          id, title, sort_order,
+          lessons(id, title, youtube_id, duration_sec, content, sort_order, is_free)
+        `
+        )
+        .eq("product_id", product.id)
+        .order("sort_order");
+      chaptersRaw = base;
+    }
+  }
 
   const chapters: Chapter[] = (chaptersRaw ?? []).map((ch) => ({
     id: ch.id,

@@ -123,9 +123,9 @@ export default function NotificationDropdown() {
   // Mark all as read
   function markAllRead() {
     fetch("/api/notifications", {
-      method: "POST",
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ all: true }),
     }).catch(() => {});
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
@@ -134,9 +134,9 @@ export default function NotificationDropdown() {
   // Mark single as read
   function markRead(id: string) {
     fetch("/api/notifications", {
-      method: "POST",
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notification_id: id }),
+      body: JSON.stringify({ id }),
     }).catch(() => {});
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))

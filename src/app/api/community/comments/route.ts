@@ -83,17 +83,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Không thể tạo bình luận. Vui lòng thử lại." }, { status: 500 });
   }
 
-  // Increment comments_count on the post
-  const { data: currentPost } = await supabase
-    .from("posts")
-    .select("comments_count")
-    .eq("id", post_id)
-    .single();
-
-  await supabase
-    .from("posts")
-    .update({ comments_count: (currentPost?.comments_count ?? 0) + 1 })
-    .eq("id", post_id);
+  // Atomically increment comments_count on the post
+  await supabase.rpc("increment_comments_count", { post_id });
 
   // Award XP
   await supabase.from("xp_events").insert({
@@ -142,19 +133,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Không thể xoá bình luận. Vui lòng thử lại." }, { status: 500 });
   }
 
-  // Decrement comments_count (floor at 0)
-  const { data: currentPost } = await supabase
-    .from("posts")
-    .select("comments_count")
-    .eq("id", comment.post_id)
-    .single();
-
-  await supabase
-    .from("posts")
-    .update({
-      comments_count: Math.max(0, (currentPost?.comments_count ?? 1) - 1),
-    })
-    .eq("id", comment.post_id);
+  // Atomically decrement comments_count (floor at 0 handled by RPC)
+  await supabase.rpc("decrement_comments_count", { post_id: comment.post_id });
 
   return NextResponse.json({ ok: true });
 }

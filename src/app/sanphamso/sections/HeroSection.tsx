@@ -114,6 +114,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
             alt="Lộ Trình Kiếm Tiền Từ Sản Phẩm Số 2026 — Trainer Lê Đăng Khương"
             width={1200}
             height={675}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 960px"
             className="aspect-video w-full rounded-2xl object-cover shadow-2xl"
             priority
           />

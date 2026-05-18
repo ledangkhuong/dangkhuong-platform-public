@@ -44,6 +44,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Verify webhook signature — reject immediately if header is missing
+    const signature = req.headers.get("X-ZEvent-Signature");
+    if (!signature) {
+      console.warn("[Zalo Webhook] Missing X-ZEvent-Signature header — rejecting request");
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
     const rawBody = await req.text();
     let body: Record<string, unknown>;
     try {
@@ -52,24 +59,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    // Verify webhook signature — reject if secret key is not configured
+    // Reject if secret key is not configured
     const secretKey = process.env.ZALO_OA_SECRET_KEY;
     if (!secretKey) {
       console.error("[Zalo Webhook] ZALO_OA_SECRET_KEY not configured — rejecting request");
       return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
     }
 
-    const timestamp = body.timestamp as string | undefined;
-    const signature = req.headers.get("X-ZEvent-Signature") || "";
-    if (timestamp && signature) {
-      const mac = crypto
-        .createHmac("sha256", secretKey)
-        .update(rawBody)
-        .digest("hex");
-      if (signature !== `mac=${mac}`) {
-        console.warn("[Zalo Webhook] Invalid signature");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-      }
+    const mac = crypto
+      .createHmac("sha256", secretKey)
+      .update(rawBody)
+      .digest("hex");
+    if (signature !== `mac=${mac}`) {
+      console.warn("[Zalo Webhook] Invalid signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
 
     const eventName = body.event_name as string | undefined;

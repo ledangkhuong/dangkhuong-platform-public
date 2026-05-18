@@ -3,30 +3,9 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { createNotification } from "@/lib/notifications";
 
 // --- Level / streak helpers ---
-const LEVEL_THRESHOLDS = [
-  0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 9000, 13000, 18000,
-];
-
-const LEVEL_TITLES: Record<number, string> = {
-  1: "Người Mới",
-  2: "Người Mới",
-  3: "Học Viên",
-  4: "Học Viên Tích Cực",
-  5: "Thành Viên",
-  6: "Thành Viên Nòng Cốt",
-  7: "Chuyên Gia",
-  8: "Chuyên Gia Cao Cấp",
-  9: "Mentor",
-  10: "Mentor Cao Cấp",
-  11: "Leader",
-  12: "Grand Master",
-};
-
+// Level formula must match DB trigger `update_user_xp`: floor(xp / 200) + 1
 function getLevelFromXP(xp: number): number {
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (xp >= LEVEL_THRESHOLDS[i]) return i + 1;
-  }
-  return 1;
+  return Math.max(1, Math.floor(xp / 200) + 1);
 }
 
 const STREAK_MILESTONES = [7, 14, 30, 60];
@@ -77,6 +56,45 @@ export async function POST(req: NextRequest) {
         meta: { lesson_id, product_id },
       });
 
+      // --- Update streak ---
+      try {
+        const { data: streakProfile } = await supabase
+          .from("profiles")
+          .select("streak, last_active_date")
+          .eq("id", user.id)
+          .single();
+
+        if (streakProfile) {
+          const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+          const lastActive = streakProfile.last_active_date as string | null;
+
+          let newStreak = 1;
+          if (lastActive === today) {
+            // Already counted today — keep current streak, skip update
+            newStreak = streakProfile.streak ?? 1;
+          } else if (lastActive) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+            if (lastActive === yesterdayStr) {
+              // Consecutive day — increment
+              newStreak = (streakProfile.streak ?? 0) + 1;
+            }
+            // else: gap > 1 day — reset to 1 (default)
+          }
+
+          if (lastActive !== today) {
+            await supabase
+              .from("profiles")
+              .update({ streak: newStreak, last_active_date: today })
+              .eq("id", user.id);
+          }
+        }
+      } catch {
+        // Streak failure should not break progress tracking
+      }
+
       // --- Achievement notifications (level-up & streak milestones) ---
       try {
         const adminClient = await createAdminClient();
@@ -100,7 +118,7 @@ export async function POST(req: NextRequest) {
               user.id,
               "achievement",
               `🎉 Lên cấp ${newLevel}!`,
-              `Chúc mừng bạn đã đạt cấp ${newLevel} — ${LEVEL_TITLES[newLevel] ?? ""}! Tiếp tục học để mở khoá nhiều thành tựu hơn.`,
+              `Chúc mừng bạn đã đạt cấp ${newLevel}! Tiếp tục học để mở khoá nhiều thành tựu hơn.`,
               "/leaderboard",
             );
           }

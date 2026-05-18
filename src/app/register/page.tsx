@@ -24,7 +24,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">Tạo tài khoản</h1>
           <p className="text-gray-400 mt-1 text-sm">
-            Tham gia <span className="font-bold text-white">CODE4FUNC</span> và bắt đầu hành trình học tập
+            Tham gia <span className="font-bold text-white">Đăng Khương</span> và bắt đầu hành trình học tập
           </p>
         </div>
 

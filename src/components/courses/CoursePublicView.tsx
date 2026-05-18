@@ -206,6 +206,7 @@ export default function CoursePublicView({
               src={product.thumbnail}
               alt=""
               fill
+              sizes="100vw"
               className="object-cover opacity-15"
             />
             <div
@@ -230,6 +231,7 @@ export default function CoursePublicView({
                     alt={product.title}
                     width={800}
                     height={450}
+                    sizes="100vw"
                     className="w-full aspect-video object-cover"
                   />
                 </div>
@@ -288,6 +290,7 @@ export default function CoursePublicView({
                     alt={product.title}
                     width={400}
                     height={225}
+                    sizes="400px"
                     className="w-full aspect-video object-cover"
                   />
                 </div>

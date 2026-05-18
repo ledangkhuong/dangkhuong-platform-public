@@ -41,6 +41,7 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
             alt="Lê Đăng Khương"
             width={32}
             height={32}
+            sizes="32px"
             className="w-8 h-8 rounded-lg object-cover"
           />
           <span className="text-sm font-bold text-white leading-tight hidden sm:block">
@@ -75,6 +76,7 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
                   alt=""
                   width={32}
                   height={32}
+                  sizes="32px"
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (

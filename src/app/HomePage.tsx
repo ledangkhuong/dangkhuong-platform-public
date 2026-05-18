@@ -205,7 +205,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={36} height={36} className="w-9 h-9 rounded-lg object-cover" />
+            <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={36} height={36} sizes="36px" className="w-9 h-9 rounded-lg object-cover" />
             <div>
               <div className="text-sm font-bold leading-tight">Lê Đăng Khương</div>
             </div>
@@ -300,7 +300,7 @@ export default function HomePage() {
           <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3 max-w-2xl mx-auto">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="relative rounded-xl overflow-hidden aspect-video border border-white/10 hover:border-[#FBBF24]/30 transition-colors bg-[#111]">
-                <Image src={`/images/students/channel-${i}.jpg`} alt={`Video triệu view ${i}`} width={400} height={225} className="w-full h-full object-cover" />
+                <Image src={`/images/students/channel-${i}.jpg`} alt={`Video triệu view ${i}`} width={400} height={225} sizes="(max-width: 768px) 50vw, 25vw" className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
@@ -411,12 +411,13 @@ export default function HomePage() {
                   src="/images/about/portrait.jpg"
                   alt="Lê Đăng Khương"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
                   className="object-cover"
                 />
                 <div className="hidden w-full h-full flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg, #1a1a1a, #111)" }}>
                   <div className="text-center">
-                    <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={112} height={112} className="w-28 h-28 rounded-full mx-auto mb-3 object-cover" />
+                    <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={112} height={112} sizes="112px" className="w-28 h-28 rounded-full mx-auto mb-3 object-cover" />
                     <div className="text-lg font-bold">Lê Đăng Khương</div>
                     <div className="text-sm text-[#FBBF24]">Founder Kohada</div>
                   </div>
@@ -511,6 +512,7 @@ export default function HomePage() {
                       src={c.thumbnail}
                       alt={c.title}
                       fill
+                      sizes="(max-width: 640px) 100vw, 50vw"
                       className="object-cover"
                     />
                     {c.price > 0 && c.sale_price !== null && c.sale_price < c.price && (
@@ -633,6 +635,7 @@ export default function HomePage() {
               alt="Bí Mật Video AI Triệu View - Khoá học miễn phí"
               width={1200}
               height={600}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 960px"
               className="w-full h-auto object-cover"
             />
           </div>
@@ -773,7 +776,7 @@ export default function HomePage() {
             {/* Col 1: About */}
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={32} height={32} className="w-8 h-8 rounded-lg object-cover" />
+                <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={32} height={32} sizes="32px" className="w-8 h-8 rounded-lg object-cover" />
                 <span className="font-bold text-sm">Lê Đăng Khương</span>
               </div>
               <ul className="space-y-2 text-sm text-gray-500">
@@ -899,7 +902,7 @@ export default function HomePage() {
                 <>
                   {/* Header */}
                   <div className="text-center mb-6">
-                    <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={56} height={56} className="w-14 h-14 rounded-2xl mb-3 object-cover inline-block" />
+                    <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={56} height={56} sizes="56px" className="w-14 h-14 rounded-2xl mb-3 object-cover inline-block" />
                     <h3 className="text-xl font-bold mb-1">Tạo tài khoản miễn phí</h3>
                     <p className="text-sm text-gray-400">
                       Đăng ký để nhận <span className="text-[#FBBF24] font-semibold">&quot;Bí Mật Video AI Triệu View&quot;</span>

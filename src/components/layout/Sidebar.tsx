@@ -135,6 +135,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               alt={siteConfig.owner.name}
               width={32}
               height={32}
+              sizes="32px"
               className="w-8 h-8 rounded-lg object-cover"
             />
             <div>
@@ -150,6 +151,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               alt={siteConfig.owner.name}
               width={32}
               height={32}
+              sizes="32px"
               className="w-8 h-8 rounded-lg object-cover mx-auto"
             />
           </Link>
@@ -310,6 +312,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                   alt=""
                   width={32}
                   height={32}
+                  sizes="32px"
                   className="w-8 h-8 rounded-full object-cover shrink-0"
                 />
               ) : (

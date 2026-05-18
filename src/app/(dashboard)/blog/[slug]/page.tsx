@@ -273,9 +273,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   if (!alreadyViewed) {
     supabase
-      .from("blog_posts")
-      .update({ views: (post.views ?? 0) + 1 })
-      .eq("id", post.id)
+      .rpc("increment_blog_views", { blog_post_id: post.id })
       .then(() => {});
 
     cookieStore.set(viewCookieName, "1", {

@@ -4,7 +4,7 @@ import CafeLanding from "./CafeLanding";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Mời Cafe 99K — Nhận 100 Mô Hình Kinh Doanh Triệu Đô | Đặng Khương",
+  title: "Mời Cafe 99K — Nhận 100 Mô Hình Kinh Doanh Triệu Đô | Đăng Khương",
   description:
     "Mỗi ly cafe 99K, tôi tặng bạn tài liệu 100 mô hình kinh doanh sản phẩm số doanh thu 1 triệu đô la trên thế giới, ứng dụng cho Việt Nam.",
   alternates: {

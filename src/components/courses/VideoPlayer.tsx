@@ -513,7 +513,8 @@ export default function VideoPlayer({
               {playing ? <Pause size={18} /> : <Play size={18} />}
             </button>
 
-            {/* Volume */}
+            {/* Volume — slider is always visible on touch devices (no hover),
+                and expands on hover for pointer/mouse devices */}
             <div className="flex items-center gap-1 group/vol">
               <button
                 onClick={toggleMute}
@@ -532,7 +533,7 @@ export default function VideoPlayer({
                 max={100}
                 value={muted ? 0 : volume}
                 onChange={(e) => changeVolume(Number(e.target.value))}
-                className="w-0 group-hover/vol:w-16 transition-all duration-200 h-1 accent-[#D4A843] cursor-pointer"
+                className="w-16 [@media(hover:hover)]:w-0 [@media(hover:hover)]:group-hover/vol:w-16 transition-all duration-200 h-1 accent-[#D4A843] cursor-pointer"
               />
             </div>
 

@@ -185,25 +185,14 @@ export async function POST(req: NextRequest) {
       metadata: { reason: reason || null },
     });
 
-    // Increment campaign unsubscribe_count
+    // Atomically increment campaign unsubscribe_count
     if (send.campaign_id) {
       const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (uuidRegex.test(send.campaign_id)) {
-        const { data: campaign } = await admin
-          .from("email_campaigns")
-          .select("unsubscribe_count")
-          .eq("id", send.campaign_id)
-          .single();
-
-        if (campaign) {
-          await admin
-            .from("email_campaigns")
-            .update({
-              unsubscribe_count: (campaign.unsubscribe_count || 0) + 1,
-            })
-            .eq("id", send.campaign_id);
-        }
+        await admin.rpc("increment_unsubscribe_count", {
+          campaign_id_param: send.campaign_id,
+        });
       }
     }
 
