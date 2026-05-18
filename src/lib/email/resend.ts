@@ -350,6 +350,41 @@ export async function sendEnrollmentWelcomeEmail(
   );
 }
 
+export async function sendQuestionReplyEmail(
+  to: string,
+  name: string,
+  questionContent: string,
+  replyContent: string,
+  staffName: string,
+  courseName?: string,
+) {
+  const courseContext = courseName
+    ? `<div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Khoá học: <span style="color:#3b82f6;">${escapeHtml(courseName)}</span></div>`
+    : "";
+
+  return sesSendEmail(
+    to,
+    `Câu hỏi của bạn đã được trả lời — ${getSiteName()}`,
+    baseTemplate(`
+      <h1>Câu hỏi của bạn đã được trả lời! 💬</h1>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
+      <p>Đội ngũ hỗ trợ đã phản hồi câu hỏi của bạn:</p>
+      <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
+        ${courseContext}
+        <div style="color:#6b7280;font-size:12px;margin-bottom:6px;">Câu hỏi của bạn</div>
+        <div style="color:#9ca3af;font-size:14px;line-height:1.6;margin-bottom:16px;border-left:3px solid #333;padding-left:12px;">${escapeHtml(questionContent).substring(0, 300)}${questionContent.length > 300 ? "..." : ""}</div>
+        <div style="height:1px;background:#333;margin:12px 0;"></div>
+        <div style="color:#D4A843;font-size:12px;margin-bottom:6px;">Phản hồi từ ${escapeHtml(staffName)}</div>
+        <div style="color:#fff;font-size:14px;line-height:1.6;">${escapeHtml(replyContent)}</div>
+      </div>
+      <p>Nếu bạn cần thêm hỗ trợ, hãy đặt câu hỏi trực tiếp trong bài học hoặc reply email này.</p>
+      <a href="${getBaseUrl()}/courses" class="btn">Tiếp tục học →</a>
+      <div class="divider"></div>
+      <p style="margin:0;font-size:13px;color:#6b7280;">— ${getSiteName()}</p>
+    `),
+  );
+}
+
 export async function sendCourseCompletionEmail(
   to: string,
   name: string,

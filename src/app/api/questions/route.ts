@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sendQuestionReplyEmail } from "@/lib/email/resend";
 
 // Tag prefix to identify lesson questions vs normal community posts
 const Q_TAG = "_q";
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     .from("posts")
     .select(
       `id, content, tags, created_at, user_id,
-       profiles!posts_user_id_fkey(full_name, avatar_url),
+       profiles!posts_user_id_fkey(full_name, avatar_url, phone),
        comments(id, content, created_at, user_id, profiles!comments_user_id_fkey(full_name, avatar_url))`
     )
     .contains("tags", tagFilter)
@@ -69,6 +70,37 @@ export async function GET(req: NextRequest) {
     for (const l of lessons ?? []) lessonMap[l.id] = { title: l.title, product_id: l.product_id };
   }
 
+  // Batch fetch user emails from auth.users (admin-only context)
+  const emailMap: Record<string, string> = {};
+  // Check if requester is admin/manager/support to show emails
+  const { data: requesterProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const isStaff = ["admin", "manager", "support"].includes(requesterProfile?.role ?? "");
+
+  if (isStaff) {
+    const userIds = (data ?? []).map((p: { user_id: string }) => p.user_id);
+    if (userIds.length > 0) {
+      try {
+        const adminSupabase = await createAdminClient();
+        const { data: authUsers } = await adminSupabase.auth.admin.listUsers({
+          perPage: 1000,
+        });
+        if (authUsers?.users) {
+          for (const u of authUsers.users) {
+            if (userIds.includes(u.id) && u.email) {
+              emailMap[u.id] = u.email;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[Questions GET] Failed to fetch user emails:", e);
+      }
+    }
+  }
+
   // Transform to Q&A format
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const questions = (data ?? []).map((post: any) => {
@@ -90,6 +122,7 @@ export async function GET(req: NextRequest) {
       created_at: post.created_at,
       user_id: post.user_id,
       profiles: Array.isArray(post.profiles) ? post.profiles[0] : post.profiles,
+      email: isStaff ? (emailMap[post.user_id] ?? null) : null,
       // Course & lesson context
       product_id: pId,
       lesson_id: lId,
@@ -184,7 +217,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id, reply } = await req.json();
+  const { id, reply, sendEmail: shouldSendEmail } = await req.json();
   if (!id)
     return NextResponse.json(
       { error: "Question id required" },
@@ -212,5 +245,65 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Có lỗi xảy ra khi trả lời câu hỏi. Vui lòng thử lại." }, { status: 500 });
   }
 
-  return NextResponse.json({ question: { id, reply: data } });
+  // Send email notification to question asker (non-blocking)
+  let emailSent = false;
+  if (shouldSendEmail) {
+    try {
+      // Fetch the question post to get user_id and content
+      const { data: questionPost } = await supabase
+        .from("posts")
+        .select("user_id, content, tags")
+        .eq("id", id)
+        .single();
+
+      if (questionPost) {
+        // Get question asker's email via admin client
+        const adminSupabase = await createAdminClient();
+        const { data: userData } = await adminSupabase.auth.admin.getUserById(questionPost.user_id);
+
+        // Get question asker's name
+        const { data: askerProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", questionPost.user_id)
+          .single();
+
+        // Get staff name
+        const { data: staffProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        // Resolve course name for context
+        const tags = (questionPost.tags ?? []) as string[];
+        let courseName = "";
+        if (tags[1]) {
+          const { data: product } = await supabase
+            .from("products")
+            .select("title")
+            .eq("id", tags[1])
+            .single();
+          if (product) courseName = product.title;
+        }
+
+        if (userData?.user?.email) {
+          await sendQuestionReplyEmail(
+            userData.user.email,
+            askerProfile?.full_name ?? "bạn",
+            questionPost.content,
+            reply.trim(),
+            staffProfile?.full_name ?? "Đội ngũ hỗ trợ",
+            courseName,
+          );
+          emailSent = true;
+        }
+      }
+    } catch (emailErr) {
+      console.error("[Questions PATCH] Email notification failed:", emailErr);
+      // Don't fail the whole request if email fails
+    }
+  }
+
+  return NextResponse.json({ question: { id, reply: data }, emailSent });
 }

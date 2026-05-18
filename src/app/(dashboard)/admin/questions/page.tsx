@@ -14,6 +14,9 @@ import {
   MessageSquare,
   BookOpen,
   PlayCircle,
+  Phone,
+  Mail,
+  MailCheck,
 } from "lucide-react";
 
 interface Reply {
@@ -30,8 +33,9 @@ interface Question {
   status: string;
   created_at: string;
   replied_at: string | null;
-  profiles: { full_name: string | null; avatar_url: string | null } | null;
+  profiles: { full_name: string | null; avatar_url: string | null; phone: string | null } | null;
   replier: { full_name: string | null; avatar_url: string | null } | null;
+  email: string | null;
   reply_count: number;
   course_name: string | null;
   lesson_name: string | null;
@@ -62,6 +66,7 @@ export default function AdminQuestionsPage() {
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [sendEmailWithReply, setSendEmailWithReply] = useState(true);
 
   // Auth check
   useEffect(() => {
@@ -121,7 +126,7 @@ export default function AdminQuestionsPage() {
         body: JSON.stringify({
           id: questionId,
           reply: replyContent.trim(),
-          status: "answered",
+          sendEmail: sendEmailWithReply,
         }),
       });
 
@@ -267,7 +272,27 @@ export default function AdminQuestionsPage() {
                           {timeAgo(q.created_at)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-500">
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-500 flex-wrap">
+                        {q.email && (
+                          <a
+                            href={`mailto:${q.email}`}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#D4A843]/30 hover:text-[#D4A843] transition-colors"
+                            title={`Email: ${q.email}`}
+                          >
+                            <Mail size={9} />
+                            {q.email}
+                          </a>
+                        )}
+                        {q.profiles?.phone && (
+                          <a
+                            href={`tel:${q.profiles.phone}`}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#2a2a2a] hover:border-green-500/30 hover:text-green-400 transition-colors"
+                            title={`Điện thoại: ${q.profiles.phone}`}
+                          >
+                            <Phone size={9} />
+                            {q.profiles.phone}
+                          </a>
+                        )}
                         {q.reply_count > 0 && (
                           <span className="px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#2a2a2a]">
                             {q.reply_count} phản hồi
@@ -340,7 +365,7 @@ export default function AdminQuestionsPage() {
                       rows={3}
                       autoFocus
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={() => handleReply(q.id)}
                         disabled={submitting || !replyContent.trim()}
@@ -353,6 +378,18 @@ export default function AdminQuestionsPage() {
                         )}
                         Gửi phản hồi
                       </button>
+                      {q.email && (
+                        <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={sendEmailWithReply}
+                            onChange={(e) => setSendEmailWithReply(e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-gray-600 bg-[#1a1a1a] text-[#D4A843] focus:ring-[#D4A843]/30"
+                          />
+                          <MailCheck size={12} className={sendEmailWithReply ? "text-[#D4A843]" : "text-gray-600"} />
+                          Gửi email thông báo
+                        </label>
+                      )}
                       <button
                         onClick={() => {
                           setReplyingId(null);
