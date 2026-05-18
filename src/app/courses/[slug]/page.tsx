@@ -27,6 +27,7 @@ import VideoPlayer from "@/components/courses/VideoPlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 import LessonQuiz from "@/components/courses/LessonQuiz";
+import LessonSubmission from "@/components/courses/LessonSubmission";
 import RichDescription from "@/components/courses/RichDescription";
 
 // force-dynamic: this page is personalized (auth state, enrollment, progress)
@@ -835,6 +836,14 @@ export default async function CourseDetailPage({
               Bài kiểm tra
             </h3>
             <LessonQuiz lessonId={currentLesson.id} />
+          </div>
+
+          {/* Student submission */}
+          <div className="mb-4 sm:mb-5">
+            <LessonSubmission
+              lessonId={currentLesson.id}
+              productId={product.id}
+            />
           </div>
 
           {/* Q&A */}
