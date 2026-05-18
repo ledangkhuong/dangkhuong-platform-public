@@ -206,13 +206,24 @@ export async function POST(req: NextRequest) {
           .eq("id", order.user_id);
       }
 
-      // 8. Add purchase XP
-      await supabase.from("xp_events").insert({
-        user_id: order.user_id,
-        action: "purchase",
-        xp_amount: 500,
-        meta: { order_id: order.id, product_id: order.product_id },
-      });
+      // 8. Add purchase XP (idempotent — skip if already awarded for this order)
+      const { count: existingXpCount } = await supabase
+        .from("xp_events")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", order.user_id)
+        .eq("action", "purchase")
+        .contains("meta", { order_id: order.id });
+
+      if (!existingXpCount || existingXpCount === 0) {
+        await supabase.from("xp_events").insert({
+          user_id: order.user_id,
+          action: "purchase",
+          xp_amount: 500,
+          meta: { order_id: order.id, product_id: order.product_id },
+        });
+      } else {
+        console.log(`[PayOS] XP already awarded for order ${order.id}, skipping`);
+      }
 
       // 9. Send purchase confirmation email
       try {
@@ -282,7 +293,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: affiliate } = await supabase
           .from("affiliates")
-          .select("id, user_id, commission_rate, total_earned, total_conversions")
+          .select("id, user_id, commission_rate")
           .eq("ref_code", order.ref_code)
           .eq("status", "active")
           .single();
@@ -302,15 +313,11 @@ export async function POST(req: NextRequest) {
             status: "pending",
           });
 
-          // Update affiliate stats (total_earned & total_conversions)
-          await supabase
-            .from("affiliates")
-            .update({
-              total_earned: affiliate.total_earned + commissionAmount,
-              total_conversions: affiliate.total_conversions + 1,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", affiliate.id);
+          // Update affiliate stats atomically (prevents race condition with concurrent orders)
+          await supabase.rpc("increment_affiliate_stats", {
+            p_affiliate_id: affiliate.id,
+            p_earned_amount: commissionAmount,
+          });
 
           // Send affiliate commission email
           try {
