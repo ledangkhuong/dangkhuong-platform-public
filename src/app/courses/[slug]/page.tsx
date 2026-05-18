@@ -112,7 +112,7 @@ export async function generateMetadata({
     title: `${product.title} — ${siteConfig.name}`,
     description: product.description ?? undefined,
     alternates: {
-      canonical: `/courses/${slug}`,
+      canonical: `${getBaseUrl()}/courses/${slug}`,
     },
     openGraph: {
       title: `${product.title} — ${siteConfig.name}`,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getBaseUrl } from "@/lib/site-config";
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,10 +7,12 @@ import { Clock, Eye, ArrowRight, Tag, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import NewsletterForm from "@/components/blog/NewsletterForm";
 
+const BASE_URL = getBaseUrl();
+
 export const metadata: Metadata = {
   title: "Blog — Lê Đăng Khương Academy",
   description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",
-  alternates: { canonical: "/blog" },
+  alternates: { canonical: `${BASE_URL}/blog` },
   openGraph: {
     title: "Blog — Lê Đăng Khương Academy",
     description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",

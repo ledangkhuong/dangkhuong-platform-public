@@ -1,15 +1,18 @@
 import { Suspense } from "react";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getBaseUrl } from "@/lib/site-config";
 import TopBar from "@/components/layout/TopBar";
 import CoursesClient from "@/components/courses/CoursesClient";
 import CoursesPublicGrid from "@/components/courses/CoursesPublicGrid";
+
+const BASE_URL = getBaseUrl();
 
 export const metadata = {
   title: "Khoá học — Lê Đăng Khương Academy",
   description:
     "Khoá học Video AI, Xây kênh triệu view, Sản phẩm số & AI Agent từ Lê Đăng Khương.",
   alternates: {
-    canonical: "/courses",
+    canonical: `${BASE_URL}/courses`,
   },
   openGraph: {
     title: "Khoá học — Lê Đăng Khương Academy",

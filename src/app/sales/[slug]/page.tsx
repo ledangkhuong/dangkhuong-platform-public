@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
 import SalesPageTemplate from "@/components/sales/SalesPageTemplate";
 import PublicHeader from "@/components/layout/PublicHeader";
 
@@ -59,7 +59,7 @@ export async function generateMetadata({
       images: product.thumbnail ? [product.thumbnail] : undefined,
     },
     alternates: {
-      canonical: `/sales/${slug}`,
+      canonical: `${getBaseUrl()}/sales/${slug}`,
     },
   };
 }
