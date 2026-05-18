@@ -221,7 +221,7 @@ export default function RefundPolicyPage() {
                       rel="noopener noreferrer"
                       className="text-[#D4A843] hover:underline"
                     >
-                      0782 276 727
+                      {siteConfig.socials.zalo.replace(/.*\//, "").replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3")}
                     </a>
                   </p>
                   <p className="text-gray-300">

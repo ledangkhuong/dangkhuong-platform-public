@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { Download, Share2, Loader2, CheckCircle, Printer, ExternalLink } from "lucide-react";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
 
 interface CertificateViewProps {
   studentName: string;
@@ -17,7 +18,7 @@ export default function CertificateView({
   courseName: rawCourseName,
   completionDate,
   certificateId,
-  instructorName: rawInstructorName = "Lê Đăng Khương",
+  instructorName: rawInstructorName = siteConfig.owner.name,
   totalLessons,
 }: CertificateViewProps) {
   // Normalize Vietnamese diacritics (NFC) for proper rendering
@@ -88,7 +89,7 @@ export default function CertificateView({
     const params = new URLSearchParams({
       startTask: "CERTIFICATION_NAME",
       name: courseName,
-      organizationName: "Lê Đăng Khương Academy",
+      organizationName: siteConfig.name,
       certUrl: window.location.href,
       certId: certificateId,
     });
@@ -204,7 +205,7 @@ export default function CertificateView({
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              Đăng Khương Academy
+              {siteConfig.shortName}
             </div>
 
             {/* Main title */}
@@ -406,7 +407,7 @@ export default function CertificateView({
               }}
             >
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(`https://dangkhuong.com/verify/${certificateId}`)}&size=80x80&color=D4A843&bgcolor=0a0a0a&format=png`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(`${getBaseUrl()}/verify/${certificateId}`)}&size=80x80&color=D4A843&bgcolor=0a0a0a&format=png`}
                 alt="QR verification code"
                 width={70}
                 height={70}
@@ -445,7 +446,7 @@ export default function CertificateView({
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              dangkhuong.com
+              {siteConfig.domain}
             </div>
           </div>
         </div>

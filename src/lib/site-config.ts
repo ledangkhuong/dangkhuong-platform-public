@@ -56,6 +56,15 @@ export const siteConfig = {
 export type SiteConfig = typeof siteConfig;
 
 /**
+ * Extracts the phone number from the Zalo URL (e.g. "https://zalo.me/0782276727" → "0782276727").
+ * Falls back to the raw URL if parsing fails.
+ */
+export function getZaloPhone(): string {
+  const match = siteConfig.socials.zalo.match(/zalo\.me\/(\d+)/);
+  return match?.[1] ?? siteConfig.socials.zalo;
+}
+
+/**
  * Returns the canonical base URL for the site.
  * Uses NEXT_PUBLIC_APP_URL env var, falling back to the configured domain.
  * Never returns a trailing slash.

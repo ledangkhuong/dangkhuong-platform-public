@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import {
   PlayCircle,
@@ -91,13 +92,13 @@ export async function generateMetadata({
 
   if (!product) return { title: "Khoá học không tồn tại" };
   return {
-    title: `${product.title} — Lê Đăng Khương Academy`,
+    title: `${product.title} — ${siteConfig.name}`,
     description: product.description ?? undefined,
     alternates: {
       canonical: `/courses/${slug}`,
     },
     openGraph: {
-      title: `${product.title} — Lê Đăng Khương Academy`,
+      title: `${product.title} — ${siteConfig.name}`,
       description: product.description ?? undefined,
       images: product.thumbnail ? [product.thumbnail] : undefined,
     },
@@ -184,6 +185,7 @@ export default async function CourseDetailPage({
     (sum, ch) => sum + ch.lessons.reduce((s, l) => s + (l.duration_sec || 0), 0),
     0
   );
+  const baseUrl = getBaseUrl();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Course",
@@ -191,10 +193,10 @@ export default async function CourseDetailPage({
     description: product.description || undefined,
     provider: {
       "@type": "Organization",
-      name: "Lê Đăng Khương Academy",
-      url: "https://dangkhuong.com",
+      name: siteConfig.name,
+      url: baseUrl,
     },
-    url: `https://dangkhuong.com/courses/${product.slug}`,
+    url: `${baseUrl}/courses/${product.slug}`,
     image: product.thumbnail || undefined,
     numberOfCredits: totalLessons,
     timeRequired: totalDuration > 0 ? `PT${Math.ceil(totalDuration / 60)}M` : undefined,
@@ -204,7 +206,7 @@ export default async function CourseDetailPage({
       price: product.sale_price ?? product.price ?? 0,
       priceCurrency: "VND",
       availability: "https://schema.org/InStock",
-      url: `https://dangkhuong.com/courses/${product.slug}`,
+      url: `${baseUrl}/courses/${product.slug}`,
     },
     hasCourseInstance: {
       "@type": "CourseInstance",

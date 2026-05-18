@@ -448,7 +448,7 @@ export default function PrivacyPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      0782 276 727
+                      {siteConfig.socials.zalo.replace(/.*\//, "").replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3")}
                     </a>
                   </p>
                 </div>

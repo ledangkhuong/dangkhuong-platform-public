@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
   User,
   Mail,
@@ -523,7 +524,7 @@ export default function SanPhamSoLanding() {
                   </p>
                   <p className="text-sm text-gray-400 leading-relaxed">
                     Vui lòng liên hệ admin qua Zalo{" "}
-                    <strong className="text-white">0862872872</strong> để nhận
+                    <strong className="text-white">{getZaloPhone()}</strong> để nhận
                     thông tin chuyển khoản và mở khoá khoá học.
                   </p>
                 </div>
@@ -540,12 +541,12 @@ export default function SanPhamSoLanding() {
                 <p className="text-xs text-gray-500">
                   Cần hỗ trợ? Liên hệ Zalo:{" "}
                   <a
-                    href="https://zalo.me/0862872872"
+                    href={siteConfig.socials.zalo}
                     className="text-[#FBBF24] hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    0862872872
+                    {getZaloPhone()}
                   </a>
                 </p>
               </div>

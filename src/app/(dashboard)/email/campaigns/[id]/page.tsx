@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
 import TemplatePreviewModal from "@/components/email/TemplatePreviewModal";
+import { siteConfig } from "@/lib/site-config";
 import {
   Mail, Send, Clock, ChevronRight, ChevronLeft, Check, X, Loader2,
   Eye, FileText, Layout, Users, Sparkles, BarChart3, Play, Edit,
@@ -106,8 +107,8 @@ export default function EditCampaignPage() {
   // Fields
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
-  const [fromName, setFromName] = useState("Dang Khuong Academy");
-  const [fromEmail] = useState("support@ledangkhuong.net");
+  const [fromName, setFromName] = useState<string>(siteConfig.name);
+  const [fromEmail] = useState<string>(`support@${siteConfig.domain}`);
   const [replyTo, setReplyTo] = useState("");
   const [listId, setListId] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
@@ -145,7 +146,7 @@ export default function EditCampaignPage() {
           setCampaign(c);
           setName(c.name ?? "");
           setSubject(c.subject ?? "");
-          setFromName(c.from_name ?? "Dang Khuong Academy");
+          setFromName(c.from_name ?? siteConfig.name);
           setReplyTo(c.reply_to ?? "");
           setListId(c.list_id ?? "");
           setHtmlContent(c.html_content ?? "");

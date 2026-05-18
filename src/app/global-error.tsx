@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { siteConfig } from "@/lib/site-config";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -210,7 +211,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           <p style={{ fontSize: "13px", color: "#6b7280" }}>
             Nếu lỗi vẫn tiếp tục, hãy liên hệ hỗ trợ qua{" "}
             <a
-              href="https://web.facebook.com/jackmadk13"
+              href={siteConfig.socials.facebook}
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: "#D4A843", textDecoration: "none" }}

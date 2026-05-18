@@ -111,7 +111,8 @@ export async function signUp(formData: FormData) {
 
   if (!linkError && linkData) {
     // Send Vietnamese confirmation email via Resend
-    const confirmUrl = `https://dangkhuong.com/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+    const confirmUrl = `${baseUrl}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
 
     const { sendVerificationEmail } = await import("@/lib/email/resend");
     await sendVerificationEmail(email, full_name, confirmUrl).catch(() => {});

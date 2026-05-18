@@ -134,7 +134,8 @@ export async function POST(req: NextRequest) {
       if (linkError) {
         console.error("[Register] generateLink error:", linkError.message);
       } else if (linkData) {
-        const confirmUrl = `https://dangkhuong.com/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+        const confirmUrl = `${baseUrl}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
         const { sendVerificationEmail } = await import("@/lib/email/resend");
         await sendVerificationEmail(email, full_name, confirmUrl);
         emailSent = true;

@@ -177,7 +177,7 @@ export async function POST(
 
         // Send via SES
         const command = new SendEmailCommand({
-          FromEmailAddress: `${campaign.from_name || "Dang Khuong Academy"} <${campaign.from_email || "support@ledangkhuong.net"}>`,
+          FromEmailAddress: `${campaign.from_name || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy"} <${campaign.from_email || process.env.EMAIL_FROM || "support@ledangkhuong.net"}>`,
           Destination: { ToAddresses: [send.email] },
           Content: {
             Simple: {

@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       const products = order?.products as unknown as Record<string, unknown> | null;
       if (products?.slug) {
         const baseUrl =
-          process.env.NEXT_PUBLIC_SITE_URL || "https://dangkhuong.com";
+          process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://dangkhuong.com";
         return NextResponse.redirect(`${baseUrl}/khoa-hoc/${products.slug}`);
       }
     } catch (err) {
@@ -46,6 +46,6 @@ export async function GET(req: NextRequest) {
 
   // Fallback: redirect to homepage
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://dangkhuong.com";
+    process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://dangkhuong.com";
   return NextResponse.redirect(`${baseUrl}/khoa-hoc`);
 }

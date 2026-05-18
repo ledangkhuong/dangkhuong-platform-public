@@ -251,7 +251,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       {/* CTA */}
       {!isCompact && !isStaff && (
         <a
-          href="https://zalo.me/0782276727"
+          href={siteConfig.socials.zalo}
           target="_blank"
           rel="noopener noreferrer"
           className="block mx-3 mb-3 p-3 rounded-xl border border-[#D4A843]/20 hover:bg-[#1a1a1a] transition-colors"

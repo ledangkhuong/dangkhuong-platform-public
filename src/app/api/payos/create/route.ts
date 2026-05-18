@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build URLs
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.headers.get("origin") || "https://dangkhuong.com";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || req.headers.get("origin") || "https://dangkhuong.com";
     const cancelUrl = `${baseUrl}/api/payos/cancel?order_id=${order.id}`;
     const returnUrl = `${baseUrl}/api/payos/success?order_id=${order.id}`;
 

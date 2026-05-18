@@ -36,9 +36,10 @@ export async function POST(req: NextRequest) {
     }
 
     const headersList = await headers();
+    const envUrl = process.env.NEXT_PUBLIC_APP_URL;
     const host = headersList.get("host") || "dangkhuong.com";
     const protocol = host.includes("localhost") ? "http" : "https";
-    const origin = `${protocol}://${host}`;
+    const origin = envUrl || `${protocol}://${host}`;
 
     const supabase = await createAdminClient();
 

@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
+// Derive Supabase hostname from env so it's not hardcoded
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : "";
+
+// CSP report URI — configurable via env, defaults to empty (disables reporting)
+const cspReportUri = process.env.CSP_REPORT_URI ?? "";
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
@@ -34,11 +41,18 @@ const nextConfig: NextConfig = {
           { key: "X-XSS-Protection", value: "1; mode=block" },
           { key: "X-DNS-Prefetch-Control", value: "on" },
           { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
-          {
-            key: "Report-To",
-            value:
-              '{"group":"csp-endpoint","max_age":10886400,"endpoints":[{"url":"https://dangkhuong.report-uri.com/r/d/csp/enforce"}]}',
-          },
+          ...(cspReportUri
+            ? [
+                {
+                  key: "Report-To",
+                  value: JSON.stringify({
+                    group: "csp-endpoint",
+                    max_age: 10886400,
+                    endpoints: [{ url: cspReportUri }],
+                  }),
+                },
+              ]
+            : []),
           {
             key: "Content-Security-Policy",
             value:
@@ -57,9 +71,8 @@ const nextConfig: NextConfig = {
               "base-uri 'self'; " +
               "form-action 'self'; " +
               "object-src 'none'; " +
-              "upgrade-insecure-requests; " +
-              "report-uri https://dangkhuong.report-uri.com/r/d/csp/enforce; " +
-              "report-to csp-endpoint",
+              "upgrade-insecure-requests" +
+              (cspReportUri ? `; report-uri ${cspReportUri}; report-to csp-endpoint` : ""),
           },
         ],
       },
@@ -67,11 +80,15 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "ezgqdriljfodsuxdxjrd.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
+      ...(supabaseHostname
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: supabaseHostname,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
       {
         protocol: "https",
         hostname: "qr.sepay.vn",

@@ -1,3 +1,5 @@
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
+
 export interface ArticleJsonLdProps {
   title: string;
   description: string;
@@ -15,8 +17,9 @@ export function ArticleJsonLd({
   image,
   datePublished,
   dateModified,
-  author = "Lê Đăng Khương",
+  author = siteConfig.owner.name,
 }: ArticleJsonLdProps) {
+  const baseUrl = getBaseUrl();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -33,15 +36,15 @@ export function ArticleJsonLd({
     author: {
       "@type": "Person",
       name: author,
-      url: "https://dangkhuong.com",
+      url: baseUrl,
     },
     publisher: {
       "@type": "Organization",
-      name: "Lê Đăng Khương Academy",
-      url: "https://dangkhuong.com",
+      name: siteConfig.name,
+      url: baseUrl,
       logo: {
         "@type": "ImageObject",
-        url: "https://dangkhuong.com/images/about/portrait.jpg",
+        url: `${baseUrl}${siteConfig.owner.avatar}`,
       },
     },
   };

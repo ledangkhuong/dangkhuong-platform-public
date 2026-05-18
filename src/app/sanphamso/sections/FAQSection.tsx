@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { getZaloPhone } from "@/lib/site-config";
 
 const FAQ_ITEMS = [
   {
@@ -32,7 +33,7 @@ const FAQ_ITEMS = [
   {
     question: "Liên hệ hỗ trợ ở đâu?",
     answer:
-      "📞 Hotline: 0862872872 | 💬 Zalo: Liên hệ trực tiếp qua Zalo",
+      `📞 Hotline: ${getZaloPhone()} | 💬 Zalo: Liên hệ trực tiếp qua Zalo`,
   },
 ];
 

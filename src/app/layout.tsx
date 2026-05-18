@@ -5,7 +5,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import FacebookPixel from "@/components/analytics/FacebookPixel";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,18 +17,18 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: `${siteConfig.owner.name} — ${siteConfig.tagline}`,
-  description: "Làm chủ Video AI VEO3.1, xây kênh triệu view và thương hiệu cá nhân cùng Lê Đăng Khương. Đã giúp 1,300+ học viên tạo 300M+ view. Nhận miễn phí Bí Mật Video AI Triệu View.",
-  keywords: "Lê Đăng Khương, Video AI, VEO3.1, thương hiệu cá nhân, kênh triệu view, AI Agent, Kohada, khóa học video AI",
+  description: siteConfig.description,
+  keywords: `${siteConfig.owner.name}, ${siteConfig.shortName}`,
   manifest: "/manifest.json",
-  metadataBase: new URL(`https://${siteConfig.domain}`),
+  metadataBase: new URL(getBaseUrl()),
   alternates: {
     types: {
       "application/rss+xml": "/feed.xml",
     },
   },
   openGraph: {
-    title: "Lê Đăng Khương — Làm Chủ Video AI, Xây Kênh Triệu View và Xây dựng thương hiệu cá nhân với AI Agent",
-    description: "Lộ trình độc quyền giúp bạn tạo video AI chuyên nghiệp, xây kênh triệu view và kiếm tiền tự động với AI Agent. Nhận miễn phí Bí Mật Video AI Triệu View.",
+    title: `${siteConfig.owner.name} — ${siteConfig.tagline}`,
+    description: siteConfig.description,
     siteName: siteConfig.name,
     locale: "vi_VN",
     type: "website",
@@ -37,14 +37,14 @@ export const metadata: Metadata = {
         url: "/images/hero/offer-banner.jpg",
         width: 1200,
         height: 630,
-        alt: "Bí Mật Video AI Triệu View - Lê Đăng Khương",
+        alt: `${siteConfig.name} - ${siteConfig.owner.name}`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lê Đăng Khương — Làm Chủ Video AI, Xây Kênh Triệu View và Xây dựng thương hiệu cá nhân với AI Agent",
-    description: "Nhận miễn phí Bí Mật Video AI Triệu View. Đã giúp 1,300+ học viên tạo 300M+ view.",
+    title: `${siteConfig.owner.name} — ${siteConfig.tagline}`,
+    description: siteConfig.description,
     images: ["/images/hero/offer-banner.jpg"],
   },
   icons: {

@@ -1,3 +1,5 @@
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
+
 export interface CourseJsonLdProps {
   name: string;
   description: string;
@@ -24,8 +26,8 @@ export function CourseJsonLd({
     ...(image ? { image } : {}),
     provider: {
       "@type": "Organization",
-      name: "Lê Đăng Khương Academy",
-      url: "https://dangkhuong.com",
+      name: siteConfig.name,
+      url: getBaseUrl(),
     },
     inLanguage: "vi",
     courseMode: "online",

@@ -305,8 +305,8 @@ export async function POST(
 
         // Send via SES
         const result = await sendEmail(sesClient, {
-          fromName: campaign.from_name || "Dang Khuong Academy",
-          fromEmail: campaign.from_email || "support@ledangkhuong.net",
+          fromName: campaign.from_name || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy",
+          fromEmail: campaign.from_email || process.env.EMAIL_FROM || "support@ledangkhuong.net",
           replyTo: campaign.reply_to || undefined,
           toEmail: send.email,
           subject: campaign.subject,

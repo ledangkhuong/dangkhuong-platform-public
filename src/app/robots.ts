@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -29,7 +31,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://dangkhuong.com/sitemap.xml",
-    host: "https://dangkhuong.com",
+    sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   };
 }

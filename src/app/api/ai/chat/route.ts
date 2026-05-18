@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { siteConfig } from "@/lib/site-config";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SYSTEM_PROMPT = `Bạn là AI Assistant của Lê Đăng Khương Academy — nền tảng học tập marketing và thương hiệu cá nhân hàng đầu Việt Nam.
+const SYSTEM_PROMPT = `Bạn là AI Assistant của ${siteConfig.name} — nền tảng học tập marketing và thương hiệu cá nhân hàng đầu Việt Nam.
 
 Vai trò của bạn:
 - Hỗ trợ học viên học tập hiệu quả hơn
@@ -18,7 +19,7 @@ Phong cách:
 - Trả lời bằng tiếng Việt
 - Ngắn gọn, đi thẳng vào vấn đề
 - Dùng ví dụ thực tế khi có thể
-- Khi không chắc, hãy thành thật và đề nghị học viên liên hệ trực tiếp với Lê Đăng Khương
+- Khi không chắc, hãy thành thật và đề nghị học viên liên hệ trực tiếp với ${siteConfig.owner.name}
 
 Giới hạn:
 - Không đưa ra lời khuyên pháp lý hoặc tài chính cụ thể

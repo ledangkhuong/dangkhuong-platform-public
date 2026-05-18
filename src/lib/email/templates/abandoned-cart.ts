@@ -18,8 +18,11 @@ export function generateAbandonedCartEmail(
   productSlug: string,
   totalAmount: number,
 ): { subject: string; html: string } {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+  const siteDomain = (() => { try { return new URL(baseUrl).hostname; } catch { return "dangkhuong.com"; } })();
+  const siteName = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
   const formattedAmount = totalAmount.toLocaleString("vi-VN") + "₫";
-  const courseUrl = `https://dangkhuong.com/courses/${encodeURIComponent(productSlug)}`;
+  const courseUrl = `${baseUrl}/courses/${encodeURIComponent(productSlug)}`;
 
   const subject = "Bạn quên chưa hoàn tất đơn hàng! 🛒";
 
@@ -72,9 +75,9 @@ export function generateAbandonedCartEmail(
       <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Lê Đăng Khương</p>
     </div>
     <div class="footer">
-      © ${new Date().getFullYear()} Lê Đăng Khương Academy · <a href="https://dangkhuong.com" style="color:#4b5563;">dangkhuong.com</a><br/>
-      Bạn nhận email này vì đã tạo đơn hàng tại dangkhuong.com<br/>
-      <a href="https://dangkhuong.com/unsubscribe" style="color:#4b5563;">Huỷ đăng ký</a>
+      © ${new Date().getFullYear()} ${siteName} · <a href="${baseUrl}" style="color:#4b5563;">${siteDomain}</a><br/>
+      Bạn nhận email này vì đã tạo đơn hàng tại ${siteDomain}<br/>
+      <a href="${baseUrl}/unsubscribe" style="color:#4b5563;">Huỷ đăng ký</a>
     </div>
   </div>
 </body>

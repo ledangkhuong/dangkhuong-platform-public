@@ -1,6 +1,7 @@
 "use client";
 
 import { Gift, AlertTriangle, ArrowRight, Phone, Mail } from "lucide-react";
+import { siteConfig, getZaloPhone } from "@/lib/site-config";
 
 /* ─── Data ───────────────────────────────────────────── */
 
@@ -246,13 +247,13 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
           {/* Contact info */}
           <div className="mb-6 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
             <a
-              href="https://zalo.me/0782276727"
+              href={siteConfig.socials.zalo}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-white"
             >
               <Phone className="h-4 w-4" style={{ color: "#FBBF24" }} />
-              Zalo: 0782276727
+              Zalo: {getZaloPhone()}
             </a>
             <a
               href="mailto:support@dangkhuong.com"

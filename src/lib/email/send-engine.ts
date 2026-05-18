@@ -27,9 +27,9 @@ function escapeHtml(str: string): string {
 
 // ─── Constants ──────────────────────────────────────────────
 
-const DEFAULT_FROM_EMAIL = "support@ledangkhuong.net";
-const DEFAULT_FROM_NAME = "Lê Đăng Khương Academy";
-const COMPANY_NAME = "Lê Đăng Khương Academy";
+const DEFAULT_FROM_EMAIL = process.env.EMAIL_FROM || "support@ledangkhuong.net";
+const DEFAULT_FROM_NAME = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
+const COMPANY_NAME = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
 
 function getAppUrl(): string {
   return (

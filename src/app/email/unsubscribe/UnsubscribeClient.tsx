@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
 
 const REASONS = [
   { value: "", label: "-- Chọn lý do (tuỳ chọn) --" },
@@ -90,7 +91,7 @@ function UnsubscribeContent() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <div style={{ marginBottom: "16px" }}>
-            <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" style={{ width: "56px", height: "56px", borderRadius: "16px", objectFit: "cover" as const, display: "inline-block" }} />
+            <img src={siteConfig.owner.avatar} alt={siteConfig.owner.name} style={{ width: "56px", height: "56px", borderRadius: "16px", objectFit: "cover" as const, display: "inline-block" }} />
           </div>
         </div>
 
@@ -152,7 +153,7 @@ function UnsubscribeContent() {
                 không nhận thêm email từ chúng tôi.
               </p>
               <a
-                href="https://dangkhuong.com"
+                href={getBaseUrl()}
                 style={{
                   display: "inline-block",
                   padding: "10px 24px",
@@ -191,7 +192,7 @@ function UnsubscribeContent() {
                 được huỷ đăng ký trước đó.
               </p>
               <a
-                href="https://dangkhuong.com"
+                href={getBaseUrl()}
                 style={{
                   display: "inline-block",
                   padding: "10px 24px",
@@ -347,7 +348,7 @@ function UnsubscribeContent() {
               {/* Home link */}
               <div style={{ textAlign: "center", marginTop: "20px" }}>
                 <a
-                  href="https://dangkhuong.com"
+                  href={getBaseUrl()}
                   style={{
                     fontSize: "14px",
                     color: "#D4A843",
@@ -370,7 +371,7 @@ function UnsubscribeContent() {
             marginTop: "24px",
           }}
         >
-          dangkhuong.com
+          {siteConfig.domain}
         </p>
       </div>
     </div>

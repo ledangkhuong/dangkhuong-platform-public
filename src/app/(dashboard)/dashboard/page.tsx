@@ -2,6 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { siteConfig } from "@/lib/site-config";
 import {
   BookOpen, FolderOpen, FileText,
   Users, ArrowRight, TrendingUp, Star, Zap
@@ -198,7 +199,7 @@ export default async function DashboardPage() {
 
         {/* Course consultation CTA */}
         <a
-          href="https://zalo.me/0782276727"
+          href={siteConfig.socials.zalo}
           target="_blank"
           rel="noopener noreferrer"
           className="card-dark p-5 border border-[#D4A843]/20 hover:bg-[#222] transition-all block"

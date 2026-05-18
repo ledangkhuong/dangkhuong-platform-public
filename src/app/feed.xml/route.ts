@@ -26,6 +26,8 @@ function toRfc822(iso: string): string {
 // ---------------------------------------------------------------------------
 
 export async function GET() {
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+  const siteName = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
   const supabase = await createAdminClient();
 
   const { data: posts } = await supabase
@@ -37,7 +39,7 @@ export async function GET() {
 
   const items = (posts ?? [])
     .map((post) => {
-      const link = `https://dangkhuong.com/blog/${post.slug}`;
+      const link = `${BASE_URL}/blog/${post.slug}`;
       const title = escapeXml(post.title ?? "");
       const description = escapeXml(post.excerpt ?? "");
       const pubDate = post.published_at ? toRfc822(post.published_at) : "";
@@ -64,12 +66,12 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Lê Đăng Khương Academy Blog</title>
-    <link>https://dangkhuong.com/blog</link>
-    <description>Blog chia sẻ kiến thức về kinh doanh, phát triển bản thân và công nghệ từ Lê Đăng Khương Academy</description>
+    <title>${escapeXml(siteName)} Blog</title>
+    <link>${BASE_URL}/blog</link>
+    <description>Blog chia sẻ kiến thức về kinh doanh, phát triển bản thân và công nghệ từ ${escapeXml(siteName)}</description>
     <language>vi</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
-    <atom:link href="https://dangkhuong.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${BASE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
 ${items}
   </channel>
 </rss>`;

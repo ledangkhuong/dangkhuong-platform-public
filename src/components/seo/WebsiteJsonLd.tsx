@@ -1,18 +1,20 @@
-const BASE_URL = "https://dangkhuong.com";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
+
+const BASE_URL = getBaseUrl();
 
 const ORGANIZATION = {
   "@type": "Organization" as const,
-  name: "Lê Đăng Khương Academy",
+  name: siteConfig.name,
   url: BASE_URL,
-  logo: `${BASE_URL}/images/about/portrait.jpg`,
+  logo: `${BASE_URL}${siteConfig.owner.avatar}`,
   founder: {
     "@type": "Person" as const,
-    name: "Lê Đăng Khương",
+    name: siteConfig.owner.name,
   },
   sameAs: [
-    "https://www.facebook.com/dangkhuong",
-    "https://www.youtube.com/@dangkhuong",
-  ],
+    siteConfig.socials.facebook,
+    siteConfig.socials.youtube,
+  ].filter(Boolean),
 };
 
 const WEBSITE = {
@@ -20,7 +22,7 @@ const WEBSITE = {
   "@graph": [
     {
       "@type": "WebSite",
-      name: "Lê Đăng Khương Academy",
+      name: siteConfig.name,
       url: BASE_URL,
       publisher: { "@id": `${BASE_URL}/#organization` },
       potentialAction: {

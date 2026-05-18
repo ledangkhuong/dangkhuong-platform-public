@@ -6,6 +6,7 @@ import TopBar from "@/components/layout/TopBar";
 import TemplatePreviewModal from "@/components/email/TemplatePreviewModal";
 import TestEmailModal from "@/components/email/TestEmailModal";
 import RichTextEditor from "@/components/email/RichTextEditor";
+import { siteConfig } from "@/lib/site-config";
 import {
   Mail, Send, Clock, ChevronRight, ChevronLeft, Check, X, Loader2,
   Eye, FileText, Layout, Users, Plus, Sparkles, FlaskConical, Code,
@@ -76,8 +77,8 @@ export default function NewCampaignPage() {
   // Step 1 - Basic info
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
-  const [fromName, setFromName] = useState("Dang Khuong Academy");
-  const [fromEmail] = useState("support@ledangkhuong.net");
+  const [fromName, setFromName] = useState<string>(siteConfig.name);
+  const [fromEmail] = useState<string>(`support@${siteConfig.domain}`);
   const [replyTo, setReplyTo] = useState("");
 
   // Step 2 - Recipients
@@ -375,7 +376,7 @@ export default function NewCampaignPage() {
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="VD: Chao mung ban den voi Dang Khuong Academy!"
+                placeholder={`VD: Chao mung ban den voi ${siteConfig.shortName}!`}
                 className="input-dark w-full text-sm"
               />
               <p className="text-[11px] text-gray-600 mt-1">
@@ -413,7 +414,7 @@ export default function NewCampaignPage() {
                 type="email"
                 value={replyTo}
                 onChange={(e) => setReplyTo(e.target.value)}
-                placeholder="VD: support@ledangkhuong.net"
+                placeholder={`VD: support@${siteConfig.domain}`}
                 className="input-dark w-full text-sm"
               />
             </div>

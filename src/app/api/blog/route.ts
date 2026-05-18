@@ -207,6 +207,8 @@ function escapeHtml(str: string): string {
 async function sendBlogNotificationEmail(admin: any, post: any) {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.EMAIL_FROM || "no-reply@dangkhuong.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+  const siteDomain = (() => { try { return new URL(baseUrl).hostname; } catch { return "dangkhuong.com"; } })();
 
   if (!apiKey || apiKey.startsWith("re_your")) return;
 
@@ -245,13 +247,13 @@ async function sendBlogNotificationEmail(admin: any, post: any) {
             <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2 style="color: #D4A843;">${safeTitle}</h2>
               ${safeExcerpt ? `<p style="color: #666;">${safeExcerpt}</p>` : ""}
-              <a href="https://dangkhuong.com/blog/${post.slug}"
+              <a href="${baseUrl}/blog/${post.slug}"
                  style="display: inline-block; padding: 12px 24px; background: #D4A843; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
                 Đọc bài viết
               </a>
               <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
               <p style="font-size: 12px; color: #999;">
-                Bạn nhận email này vì đã đăng ký tài khoản tại dangkhuong.com
+                Bạn nhận email này vì đã đăng ký tài khoản tại ${siteDomain}
               </p>
             </div>
           `,

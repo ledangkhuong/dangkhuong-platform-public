@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { siteConfig, getBaseUrl } from "@/lib/site-config";
 
 // Routes yêu cầu đăng nhập
 const PROTECTED = ["/dashboard", "/courses", "/community", "/crm", "/email", "/leaderboard", "/events", "/settings", "/admin"];
@@ -22,9 +23,9 @@ const CSRF_EXEMPT_ROUTES = [
 ];
 
 const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com",
-  "https://dangkhuong.com",
-  "https://www.dangkhuong.com",
+  getBaseUrl(),
+  `https://${siteConfig.domain}`,
+  `https://www.${siteConfig.domain}`,
   ...(process.env.NODE_ENV === "development" ? ["http://localhost:3000"] : []),
 ];
 

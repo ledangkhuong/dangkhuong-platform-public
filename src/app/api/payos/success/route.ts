@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const orderId = searchParams.get("order_id");
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://dangkhuong.com";
+    process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://dangkhuong.com";
 
   if (orderId) {
     try {

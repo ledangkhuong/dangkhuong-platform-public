@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
   User,
   Mail,
@@ -523,7 +524,7 @@ export default function SlowEnglishLanding() {
                   </p>
                   <p className="text-sm text-gray-400 leading-relaxed">
                     Vui lòng liên hệ admin qua Zalo{" "}
-                    <strong className="text-white">0782276727</strong> để nhận
+                    <strong className="text-white">{getZaloPhone()}</strong> để nhận
                     thông tin chuyển khoản và mở khoá khoá học.
                   </p>
                 </div>

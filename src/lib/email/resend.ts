@@ -15,9 +15,26 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#x27;');
 }
 
+// ─── Config ─────────────────────────────────────────────────────
+
+function getBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+}
+
+function getSiteDomain(): string {
+  try { return new URL(getBaseUrl()).hostname; } catch { return "dangkhuong.com"; }
+}
+
+function getSiteName(): string {
+  return process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
+}
+
 // ─── Templates ───────────────────────────────────────────────────
 
 function baseTemplate(content: string) {
+  const baseUrl = getBaseUrl();
+  const siteDomain = getSiteDomain();
+  const siteName = getSiteName();
   return `<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -48,9 +65,9 @@ function baseTemplate(content: string) {
       ${content}
     </div>
     <div class="footer">
-      © ${new Date().getFullYear()} Lê Đăng Khương Academy · <a href="https://dangkhuong.com" style="color:#4b5563;">dangkhuong.com</a><br/>
-      Bạn nhận email này vì đã đăng ký tại dangkhuong.com<br/>
-      <a href="https://dangkhuong.com/unsubscribe" style="color:#4b5563;">Huỷ đăng ký</a>
+      © ${new Date().getFullYear()} ${siteName} · <a href="${baseUrl}" style="color:#4b5563;">${siteDomain}</a><br/>
+      Bạn nhận email này vì đã đăng ký tại ${siteDomain}<br/>
+      <a href="${baseUrl}/unsubscribe" style="color:#4b5563;">Huỷ đăng ký</a>
     </div>
   </div>
 </body>
@@ -73,7 +90,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
         <li>🏆 Tích điểm XP và leo bảng xếp hạng</li>
         <li>📬 Nhận newsletter hàng tuần</li>
       </ul>
-      <a href="https://dangkhuong.com/courses" class="btn">Bắt đầu học ngay →</a>
+      <a href="${getBaseUrl()}/courses" class="btn">Bắt đầu học ngay →</a>
       <div class="divider"></div>
       <p style="margin:0;">Nếu bạn có bất kỳ câu hỏi nào, chỉ cần reply email này — tôi đọc tất cả.</p>
       <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Lê Đăng Khương</p>
@@ -104,7 +121,7 @@ export async function sendPurchaseConfirmation(
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Mã đơn hàng</div>
         <div style="color:#9ca3af;font-family:monospace;font-size:13px;">DK${escapeHtml(orderCode)}</div>
       </div>
-      <a href="https://dangkhuong.com/courses" class="btn">Vào học ngay →</a>
+      <a href="${getBaseUrl()}/courses" class="btn">Vào học ngay →</a>
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Giữ email này làm biên lai. Nếu có vấn đề gì, reply email này để được hỗ trợ trong 24h.</p>
     `),
@@ -126,7 +143,7 @@ export async function sendWeeklyNewsletter(
       ${body}
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">— Lê Đăng Khương<br/>
-      <a href="https://dangkhuong.com" style="color:#D4A843;">dangkhuong.com</a></p>
+      <a href="${getBaseUrl()}" style="color:#D4A843;">${getSiteDomain()}</a></p>
     `),
   );
 }
@@ -222,7 +239,7 @@ export async function sendAffiliateCommissionEmail(
         <div style="color:#D4A843;font-weight:700;font-size:26px;">${escapeHtml(formatted)}</div>
       </div>
       <p>Khoản hoa hồng đang chờ duyệt. Bạn có thể theo dõi chi tiết tại trang Affiliate.</p>
-      <a href="https://dangkhuong.com/dashboard/affiliate" class="btn">Xem Affiliate Dashboard →</a>
+      <a href="${getBaseUrl()}/dashboard/affiliate" class="btn">Xem Affiliate Dashboard →</a>
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Tiếp tục chia sẻ link giới thiệu để nhận thêm hoa hồng!</p>
     `),
@@ -280,7 +297,7 @@ export async function sendLoginNotificationEmail(
       </div>
       <p>Nếu đây là bạn, không cần làm gì thêm.</p>
       <p style="color:#ef4444;font-weight:600;">Nếu không phải bạn, hãy đổi mật khẩu ngay:</p>
-      <a href="https://dangkhuong.com/forgot-password" class="btn">Đổi mật khẩu →</a>
+      <a href="${getBaseUrl()}/forgot-password" class="btn">Đổi mật khẩu →</a>
       <div class="divider"></div>
       <p style="margin:0;font-size:12px;color:#4b5563;">Email này được gửi tự động mỗi khi có đăng nhập mới để bảo vệ tài khoản của bạn.</p>
     `),
@@ -314,7 +331,7 @@ export async function sendEnrollmentWelcomeEmail(
   courseName: string,
   courseSlug: string,
 ) {
-  const courseUrl = `https://dangkhuong.com/courses/${courseSlug}`;
+  const courseUrl = `${getBaseUrl()}/courses/${courseSlug}`;
   return sesSendEmail(
     to,
     `Chào mừng bạn đến với khoá học ${escapeHtml(courseName)}! 🎓`,
@@ -339,7 +356,7 @@ export async function sendCourseCompletionEmail(
   courseName: string,
   courseSlug: string,
 ) {
-  const certificateUrl = `https://dangkhuong.com/certificate/${courseSlug}`;
+  const certificateUrl = `${getBaseUrl()}/certificate/${courseSlug}`;
   return sesSendEmail(
     to,
     `Chúc mừng! Bạn đã hoàn thành khoá học ${escapeHtml(courseName)} 🏆`,
@@ -357,7 +374,7 @@ export async function sendCourseCompletionEmail(
         <a href="${escapeHtml(certificateUrl)}" style="display:inline-block;padding:14px 32px;background:#FFD814;color:#0a0a0a;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Xem chứng chỉ →</a>
       </div>
       <div class="divider"></div>
-      <p style="margin:0;font-size:13px;color:#6b7280;">Tiếp tục hành trình học tập — khám phá thêm các khoá học khác tại <a href="https://dangkhuong.com/courses" style="color:#D4A843;">dangkhuong.com/courses</a></p>
+      <p style="margin:0;font-size:13px;color:#6b7280;">Tiếp tục hành trình học tập — khám phá thêm các khoá học khác tại <a href="${getBaseUrl()}/courses" style="color:#D4A843;">${getSiteDomain()}/courses</a></p>
     `),
   );
 }
