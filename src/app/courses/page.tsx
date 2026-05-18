@@ -11,6 +11,23 @@ export const metadata = {
   alternates: {
     canonical: "/courses",
   },
+  openGraph: {
+    title: "Khoá học — Lê Đăng Khương Academy",
+    description:
+      "Khoá học Video AI, Xây kênh triệu view, Sản phẩm số & AI Agent từ Lê Đăng Khương.",
+    url: "/courses",
+    siteName: "Lê Đăng Khương Academy",
+    locale: "vi_VN",
+    type: "website",
+    images: [
+      {
+        url: "/images/hero/offer-banner.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Khoá học — Lê Đăng Khương Academy",
+      },
+    ],
+  },
 };
 
 export default async function CoursesPage() {

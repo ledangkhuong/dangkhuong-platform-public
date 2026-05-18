@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
           ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown",
           orderCode: data.orderCode,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[PayOS Webhook] Non-critical error:", err));
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
@@ -230,7 +230,7 @@ export async function POST(req: NextRequest) {
             (products?.name as string) || "San pham",
             order.amount,
             order.order_code
-          ).catch(() => {});
+          ).catch((err) => console.error("[PayOS Webhook] Non-critical error:", err));
         }
       } catch {
         console.warn("[PayOS] Email confirmation failed (non-critical)");
@@ -298,7 +298,7 @@ export async function POST(req: NextRequest) {
                 affProfile?.full_name || "ban",
                 (order.products as Record<string, unknown>)?.name as string || "San pham",
                 commissionAmount
-              ).catch(() => {});
+              ).catch((err) => console.error("[PayOS Webhook] Non-critical error:", err));
             }
           } catch {
             // Non-critical

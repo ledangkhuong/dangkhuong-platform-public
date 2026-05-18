@@ -106,6 +106,19 @@ export async function requestPayout() {
   }
 
   const admin = await createAdminClient();
+
+  // Check for existing pending payout to prevent double-request
+  const { data: pendingPayout } = await admin
+    .from("affiliate_payouts")
+    .select("id")
+    .eq("affiliate_id", affiliate.id)
+    .eq("status", "pending")
+    .single();
+
+  if (pendingPayout) {
+    redirect("/dashboard/affiliate?error=pending_payout");
+  }
+
   await admin.from("affiliate_payouts").insert({
     affiliate_id: affiliate.id,
     amount: available,

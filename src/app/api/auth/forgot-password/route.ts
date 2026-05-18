@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         // fallback to email prefix
       }
 
-      await sendPasswordResetEmail(email, name, resetUrl).catch(() => {});
+      await sendPasswordResetEmail(email, name, resetUrl).catch((err) => console.error("[Auth] Password reset email failed:", err));
     }
 
     // Always return success to prevent email enumeration

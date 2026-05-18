@@ -10,6 +10,22 @@ export const metadata: Metadata = {
   title: "Blog — Lê Đăng Khương Academy",
   description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",
   alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "Blog — Lê Đăng Khương Academy",
+    description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",
+    url: "/blog",
+    siteName: "Lê Đăng Khương Academy",
+    locale: "vi_VN",
+    type: "website",
+    images: [
+      {
+        url: "/images/hero/offer-banner.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Blog — Lê Đăng Khương Academy",
+      },
+    ],
+  },
 };
 
 function formatVietnameseDate(dateStr: string | null): string {

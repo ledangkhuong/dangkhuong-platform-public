@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { PlayCircle, Lock, CheckCircle, ChevronDown, BookOpen } from "lucide-react";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 
@@ -77,10 +78,11 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
               {/* Thumbnail */}
               <div className="relative aspect-video bg-[#1a1a1a] overflow-hidden">
                 {course.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={course.thumbnail}
                     alt={course.title}
+                    width={400}
+                    height={225}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (

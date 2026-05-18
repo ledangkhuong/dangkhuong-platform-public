@@ -5,6 +5,8 @@ import PageTracker from "@/components/analytics/PageTracker";
 import FacebookPixel from "@/components/analytics/FacebookPixel";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
+import ErrorBoundary from "@/components/providers/ErrorBoundary";
+import WebsiteJsonLd from "@/components/seo/WebsiteJsonLd";
 import { siteConfig, getBaseUrl } from "@/lib/site-config";
 import "./globals.css";
 
@@ -80,8 +82,11 @@ export default function RootLayout({
           <FacebookPixel />
           <AffiliateTracker />
         </Suspense>
-        <main id="main-content">{children}</main>
+        <ErrorBoundary>
+          <main id="main-content">{children}</main>
+        </ErrorBoundary>
         <CookieConsent />
+        <WebsiteJsonLd />
       </body>
     </html>
   );

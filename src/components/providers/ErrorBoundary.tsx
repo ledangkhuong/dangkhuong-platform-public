@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
-import { IS_SENTRY_ENABLED } from "@/lib/monitoring/sentry";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -27,15 +26,7 @@ export class ErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("[ErrorBoundary]", error, errorInfo);
-
-    if (IS_SENTRY_ENABLED) {
-      // @ts-expect-error -- @sentry/nextjs may not be installed yet
-      import("@sentry/nextjs").then((Sentry: { captureException: (e: Error, o?: unknown) => void }) => {
-        Sentry.captureException(error, {
-          extra: { componentStack: errorInfo.componentStack },
-        });
-      }).catch(() => {});
-    }
+    // Note: When @sentry/nextjs is installed, add Sentry.captureException here
   }
 
   handleRetry = (): void => {

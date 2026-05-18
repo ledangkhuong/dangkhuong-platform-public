@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
@@ -21,9 +22,14 @@ export async function POST(req: NextRequest) {
     // ── Auth guard: only internal webhooks or admins can call this ──
     const internalSecret = process.env.INTERNAL_WEBHOOK_SECRET;
     const authHeader = req.headers.get("authorization") || "";
-    const isInternalCall =
-      internalSecret &&
-      authHeader === `Bearer ${internalSecret}`;
+    let isInternalCall = false;
+    if (internalSecret) {
+      const expected = Buffer.from(`Bearer ${internalSecret}`, "utf-8");
+      const received = Buffer.from(authHeader, "utf-8");
+      isInternalCall =
+        expected.length === received.length &&
+        timingSafeEqual(expected, received);
+    }
 
     if (!isInternalCall) {
       // Fall back to admin auth check

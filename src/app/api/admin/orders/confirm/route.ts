@@ -28,7 +28,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { order_code } = await req.json();
+  let order_code;
+  try {
+    ({ order_code } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
   if (!order_code) {
     return NextResponse.json(
       { error: "order_code is required" },

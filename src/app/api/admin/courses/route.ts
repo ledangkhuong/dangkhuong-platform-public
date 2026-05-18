@@ -22,7 +22,12 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { course_id } = await req.json();
+  let course_id;
+  try {
+    ({ course_id } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   if (!course_id || typeof course_id !== "string") {
     return NextResponse.json(

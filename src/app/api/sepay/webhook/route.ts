@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         target_type: "webhook",
         target_id: "sepay",
         details: { ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown" },
-      }).catch(() => {});
+      }).catch((err) => console.error("[SePay Webhook] Non-critical error:", err));
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
             products?.name as string || "Sản phẩm",
             order.amount as number,
             order.order_code as string,
-          ).catch(() => {});
+          ).catch((err) => console.error("[SePay Webhook] Non-critical error:", err));
         }
       } catch {
         console.warn("[Sepay] Email confirmation failed (non-critical)");
@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
                 affProfile?.full_name || "bạn",
                 (order.products as Record<string, unknown>)?.name as string || "Sản phẩm",
                 commissionAmount,
-              ).catch(() => {});
+              ).catch((err) => console.error("[SePay Webhook] Non-critical error:", err));
             }
           } catch {
             // Non-critical

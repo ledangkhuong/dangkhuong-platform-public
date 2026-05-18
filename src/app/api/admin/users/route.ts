@@ -25,7 +25,12 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { user_id, role, tier } = await req.json();
+  let user_id, role, tier;
+  try {
+    ({ user_id, role, tier } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   if (!user_id) {
     return NextResponse.json({ error: "user_id is required" }, { status: 400 });
@@ -136,7 +141,12 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Chỉ Admin mới có quyền xoá tài khoản" }, { status: 403 });
   }
 
-  const { user_ids } = await req.json();
+  let user_ids;
+  try {
+    ({ user_ids } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
     return NextResponse.json({ error: "user_ids[] is required" }, { status: 400 });

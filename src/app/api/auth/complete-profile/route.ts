@@ -10,7 +10,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { phone } = await req.json();
+  let phone;
+  try {
+    ({ phone } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   // Validate Vietnamese phone
   const cleaned = phone?.replace(/\s+/g, "");
