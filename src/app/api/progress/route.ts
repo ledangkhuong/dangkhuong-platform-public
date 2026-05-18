@@ -18,22 +18,35 @@ export async function POST(req: NextRequest) {
 
   const { lesson_id, product_id, completed, watch_sec, note } = await req.json();
 
-  // Verify enrollment before allowing progress update
-  const { data: enrollment } = await supabase
+  const adminClient = await createAdminClient();
+
+  // Verify enrollment before allowing progress update (use admin client to bypass RLS)
+  const { data: enrollment } = await adminClient
     .from("enrollments")
     .select("id")
     .eq("user_id", user.id)
     .eq("product_id", product_id)
-    .single();
+    .maybeSingle();
 
+  // Allow admin/staff roles to track progress even without enrollment
+  let isStaff = false;
   if (!enrollment) {
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    isStaff = ["admin", "manager", "marketing", "sale", "support"].includes(profile?.role ?? "");
+  }
+
+  if (!enrollment && !isStaff) {
     return NextResponse.json(
       { error: "Bạn chưa đăng ký khoá học này" },
       { status: 403 }
     );
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from("lesson_progress")
     .upsert(
       { user_id: user.id, lesson_id, product_id, completed, watch_sec, note, updated_at: new Date().toISOString() },
@@ -48,19 +61,18 @@ export async function POST(req: NextRequest) {
 
   // Thêm XP khi hoàn thành bài học lần đầu
   if (completed) {
-    const { count } = await supabase.from("xp_events")
+    const { count } = await adminClient.from("xp_events")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id).eq("action", "lesson_complete")
       .eq("meta->lesson_id", lesson_id);
 
     if (count === 0) {
-      await supabase.from("xp_events").insert({
+      await adminClient.from("xp_events").insert({
         user_id: user.id, action: "lesson_complete", xp_amount: 30,
         meta: { lesson_id, product_id },
       });
 
       // --- Update streak ---
-      const adminClient = await createAdminClient();
       try {
         const { data: streakProfile } = await adminClient
           .from("profiles")
@@ -103,7 +115,7 @@ export async function POST(req: NextRequest) {
       try {
 
         // Fetch current profile to get XP (already incremented by DB trigger) and streak
-        const { data: profile } = await supabase
+        const { data: profile } = await adminClient
           .from("profiles")
           .select("xp, streak")
           .eq("id", user.id)
@@ -146,7 +158,7 @@ export async function POST(req: NextRequest) {
     // Check if ALL lessons in the course are now completed → send completion email
     try {
       // Count total lessons for this product (via chapters)
-      const { data: chapters } = await supabase
+      const { data: chapters } = await adminClient
         .from("chapters")
         .select("lessons(id)")
         .eq("product_id", product_id);
@@ -157,7 +169,7 @@ export async function POST(req: NextRequest) {
       );
 
       // Count completed lesson_progress for this user + product
-      const { count: completedCount } = await supabase
+      const { count: completedCount } = await adminClient
         .from("lesson_progress")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
@@ -166,12 +178,12 @@ export async function POST(req: NextRequest) {
 
       if (totalLessons > 0 && (completedCount ?? 0) >= totalLessons) {
         const { sendCourseCompletionEmail } = await import("@/lib/email/transactional");
-        const { data: product } = await supabase
+        const { data: product } = await adminClient
           .from("products")
           .select("name, title, slug")
           .eq("id", product_id)
           .single();
-        const { data: profile } = await supabase
+        const { data: profile } = await adminClient
           .from("profiles")
           .select("full_name")
           .eq("id", user.id)
@@ -200,12 +212,12 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const adminDb = await createAdminClient();
   const { searchParams } = new URL(req.url);
   const product_id = searchParams.get("product_id");
-
   const lesson_id = searchParams.get("lesson_id");
 
-  const query = supabase.from("lesson_progress")
+  const query = adminDb.from("lesson_progress")
     .select("*").eq("user_id", user.id);
   if (product_id) query.eq("product_id", product_id);
   if (lesson_id) query.eq("lesson_id", lesson_id);
