@@ -79,15 +79,21 @@ export default function TurnstileWidget({
       return;
 
     renderedRef.current = true;
-    widgetIdRef.current = window.turnstile.render(containerRef.current, {
+    // Turnstile API: don't pass size="invisible" (deprecated). For invisible
+    // behavior, use appearance="execute" / "interaction-only" — Cloudflare
+    // handles sizing automatically. Only set size when widget is "always" visible.
+    const renderOptions: Parameters<NonNullable<typeof window.turnstile>["render"]>[1] = {
       sitekey: siteKey,
       callback: handleVerify,
       "expired-callback": onExpire,
       "error-callback": handleError,
       theme: "dark",
-      size: appearance === "always" ? "normal" : "invisible",
       appearance,
-    });
+    };
+    if (appearance === "always") {
+      renderOptions.size = "normal";
+    }
+    widgetIdRef.current = window.turnstile.render(containerRef.current, renderOptions);
   }, [siteKey, handleVerify, onExpire, handleError]);
 
   useEffect(() => {

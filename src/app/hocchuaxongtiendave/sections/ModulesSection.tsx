@@ -215,8 +215,8 @@ export default function ModulesSection() {
                     >
                       <Icon className="h-6 w-6 sm:h-[26px] sm:w-[26px]" style={{ color: "#0A1020" }} />
                     </div>
-                    <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "#E5B663" }}>
-                      Module {mod.number}
+                    <div className="text-base sm:text-lg md:text-xl font-extrabold uppercase tracking-[0.14em]" style={{ color: "#E5B663" }}>
+                      Module <span className="tabular-nums">{mod.number}</span>
                     </div>
                   </div>
 

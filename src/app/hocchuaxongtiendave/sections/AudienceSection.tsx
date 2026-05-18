@@ -211,7 +211,9 @@ export default function AudienceSection() {
           className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
           style={{ color: "#F1F5FB" }}
         >
-          Chương Trình Này <span style={{ color: "#E5B663" }}>Dành Cho Ai?</span>
+          Chương Trình Này
+          <br />
+          <span style={{ color: "#E5B663" }} className="whitespace-nowrap">Dành Cho Ai?</span>
         </h2>
         <p
           className="mb-8 text-center text-[14px] sm:text-base leading-[1.7] max-w-2xl mx-auto"

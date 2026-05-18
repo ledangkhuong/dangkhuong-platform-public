@@ -118,7 +118,10 @@ export default function SolutionSection() {
           className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]"
           style={{ color: "#F1F5FB" }}
         >
-          Học Chưa Xong - <span style={{ color: "#E5B663" }}>Tiền Đã Về</span>
+          Học Chưa Xong
+          <br className="sm:hidden" />
+          <span className="hidden sm:inline"> - </span>
+          <span style={{ color: "#E5B663" }} className="whitespace-nowrap">Tiền Đã Về</span>
         </h2>
 
         <p
@@ -162,13 +165,16 @@ export default function SolutionSection() {
               border: "1px solid rgba(229,182,99,0.18)",
             }}
           >
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-0">
+            <div className="flex flex-col sm:flex-row items-center sm:items-stretch sm:justify-between gap-2 sm:gap-0">
               {PROCESS_STEPS.map((step, idx) => {
                 const Icon = step.icon;
                 return (
-                  <div key={step.n} className="flex items-center sm:flex-1">
+                  <div
+                    key={step.n}
+                    className="flex flex-col items-center w-full sm:w-auto sm:flex-1 sm:flex-row sm:items-center"
+                  >
                     {/* Step node */}
-                    <div className="flex flex-col items-center text-center flex-1 sm:flex-none">
+                    <div className="flex flex-col items-center text-center sm:flex-none">
                       <div className="relative">
                         <div
                           className="w-14 h-14 sm:w-14 sm:h-14 rounded-full flex items-center justify-center"
@@ -193,20 +199,20 @@ export default function SolutionSection() {
                         </div>
                       </div>
                       <div
-                        className="mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.16em] font-semibold whitespace-nowrap"
+                        className="mt-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.16em] font-semibold whitespace-nowrap"
                         style={{ color: "#F1F5FB" }}
                       >
                         {step.label}
                       </div>
                     </div>
 
-                    {/* Connector line — hidden after last step */}
+                    {/* Connector — hidden after last step */}
                     {idx < PROCESS_STEPS.length - 1 && (
                       <>
-                        {/* Horizontal line on sm+ — tightened margin */}
+                        {/* Horizontal line on sm+ */}
                         <div className="hidden sm:block flex-1 mx-1.5 h-[2px] rounded-full process-line" />
-                        {/* Vertical chev on mobile */}
-                        <div className="sm:hidden w-full flex justify-center my-0.5">
+                        {/* Vertical chev on mobile — centered below the step */}
+                        <div className="sm:hidden flex justify-center mt-2 mb-1">
                           <ChevronDown size={18} style={{ color: "#E5B663" }} />
                         </div>
                       </>
