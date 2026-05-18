@@ -180,7 +180,7 @@ export default function NotificationsPage() {
                   <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
                     {n.message}
                   </p>
-                  <span className="text-[10px] text-gray-500 mt-1 block">
+                  <span className="text-[10px] text-gray-400 mt-1 block">
                     {timeAgo(n.created_at)}
                   </span>
                 </div>

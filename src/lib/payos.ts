@@ -175,28 +175,35 @@ export async function createPaymentLink(
     ...(params.items ? { items: params.items } : {}),
   };
 
-  const response = await fetch(`${PAYOS_BASE_URL}/v2/payment-requests`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-client-id": clientId,
-      "x-api-key": apiKey,
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${PAYOS_BASE_URL}/v2/payment-requests`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-client-id": clientId,
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("[PayOS] API error:", response.status, errorText);
-    throw new Error(`PayOS API error: ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[PayOS] API error:", response.status, errorText);
+      throw new Error(`PayOS API error: ${response.status}`);
+    }
+
+    const result: PayOSPaymentLinkResponse = await response.json();
+
+    if (result.code !== "00") {
+      console.error("[PayOS] Payment link creation failed:", result);
+      throw new Error(`PayOS error: ${result.desc || result.code}`);
+    }
+
+    return result;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const result: PayOSPaymentLinkResponse = await response.json();
-
-  if (result.code !== "00") {
-    console.error("[PayOS] Payment link creation failed:", result);
-    throw new Error(`PayOS error: ${result.desc || result.code}`);
-  }
-
-  return result;
 }

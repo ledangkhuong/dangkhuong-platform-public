@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import SanPhamSoLanding from "./SanPhamSoLanding";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Lộ Trình Kiếm Tiền Từ Sản Phẩm Số 2026 | Lê Đăng Khương",
   description:

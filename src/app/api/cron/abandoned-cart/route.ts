@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/ses";
 import { generateAbandonedCartEmail } from "@/lib/email/templates/abandoned-cart";
@@ -14,10 +15,14 @@ import { generateAbandonedCartEmail } from "@/lib/email/templates/abandoned-cart
  */
 export async function GET(req: NextRequest) {
   // ── Auth ────────────────────────────────────────────────────
-  if (
-    req.headers.get("authorization") !==
-    `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
+  const expected = Buffer.from(expectedAuth, "utf-8");
+  const received = Buffer.from(authHeader, "utf-8");
+  const isAuthorized =
+    expected.length === received.length &&
+    timingSafeEqual(expected, received);
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

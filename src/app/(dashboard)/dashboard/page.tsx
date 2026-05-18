@@ -129,7 +129,7 @@ export default async function DashboardPage() {
           <div className="card-dark p-5">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <div className="text-xs text-gray-500 mb-0.5">Cấp độ của bạn</div>
+                <div className="text-xs text-gray-400 mb-0.5">Cấp độ của bạn</div>
                 <div className="text-2xl font-bold text-white">Level {level}</div>
               </div>
               <div
@@ -139,14 +139,14 @@ export default async function DashboardPage() {
                 {tierLabel(tier)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+            <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
               <span>{xp} XP</span>
               <span>{xpForNextLevel} XP</span>
             </div>
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${xpProgress}%` }} />
             </div>
-            <p className="text-xs text-gray-500 mt-1.5">
+            <p className="text-xs text-gray-400 mt-1.5">
               Cần thêm {Math.max(0, xpForNextLevel - xp)} XP để lên Level {level + 1}
             </p>
           </div>
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
           {platformStats.map((s, i) => (
             <div key={i} className="card-dark p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-gray-500 font-medium">{s.label}</span>
+                <span className="text-xs text-gray-400 font-medium">{s.label}</span>
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: s.color + "20" }}
@@ -191,7 +191,7 @@ export default async function DashboardPage() {
                 <div className="text-sm font-semibold text-white group-hover:text-white leading-tight mb-1">
                   {card.label}
                 </div>
-                <div className="text-xs text-gray-500 leading-snug">{card.desc}</div>
+                <div className="text-xs text-gray-400 leading-snug">{card.desc}</div>
               </Link>
             ))}
           </div>
@@ -267,7 +267,7 @@ export default async function DashboardPage() {
                         <span className="text-gray-400"> đã đăng: </span>
                         <span className="text-gray-300">{preview}</span>
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">{ago}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{ago}</p>
                     </div>
                   </div>
                 );

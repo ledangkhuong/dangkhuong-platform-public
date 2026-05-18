@@ -101,7 +101,7 @@ RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   UPDATE affiliates SET
     total_conversions = (SELECT count(*) FROM affiliate_conversions WHERE affiliate_id = NEW.affiliate_id AND status != 'rejected'),
-    total_earned = (SELECT coalesce(sum(commission_amount),0) FROM affiliate_conversions WHERE affiliate_id = NEW.affiliate_id AND status IN ('approved','paid')),
+    total_earned = (SELECT coalesce(sum(commission_amount),0) FROM affiliate_conversions WHERE affiliate_id = NEW.affiliate_id AND status IN ('pending','approved','paid')),
     updated_at = now()
   WHERE id = NEW.affiliate_id;
   RETURN NEW;

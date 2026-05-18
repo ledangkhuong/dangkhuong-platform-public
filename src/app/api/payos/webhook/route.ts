@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: affiliate } = await supabase
           .from("affiliates")
-          .select("id, user_id, commission_rate")
+          .select("id, user_id, commission_rate, total_earned, total_conversions")
           .eq("ref_code", order.ref_code)
           .eq("status", "active")
           .single();
@@ -280,6 +280,16 @@ export async function POST(req: NextRequest) {
             commission_amount: commissionAmount,
             status: "pending",
           });
+
+          // Update affiliate stats (total_earned & total_conversions)
+          await supabase
+            .from("affiliates")
+            .update({
+              total_earned: affiliate.total_earned + commissionAmount,
+              total_conversions: affiliate.total_conversions + 1,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", affiliate.id);
 
           // Send affiliate commission email
           try {

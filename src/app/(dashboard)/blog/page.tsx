@@ -59,7 +59,13 @@ interface BlogPost {
   created_at: string;
 }
 
-export default async function BlogPage() {
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category: activeCategory } = await searchParams;
+
   const supabase = await createClient();
   const { data: posts } = await supabase
     .from("blog_posts")
@@ -74,8 +80,13 @@ export default async function BlogPage() {
     ...Array.from(new Set(allPosts.map((p) => p.category).filter(Boolean))),
   ] as string[];
 
-  const featured = allPosts.length > 0 ? allPosts[0] : null;
-  const rest = allPosts.slice(1);
+  // Filter posts by category when a category search param is present
+  const filteredPosts = activeCategory
+    ? allPosts.filter((p) => p.category === activeCategory)
+    : allPosts;
+
+  const featured = filteredPosts.length > 0 ? filteredPosts[0] : null;
+  const rest = filteredPosts.slice(1);
 
   return (
     <div>
@@ -88,38 +99,60 @@ export default async function BlogPage() {
         {/* Categories */}
         {categories.length > 1 && (
           <div className="flex gap-2 flex-wrap">
-            {categories.map((cat, i) => (
-              <span
-                key={cat}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-                  i === 0
-                    ? "bg-[#D4A843] text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-                style={
-                  i !== 0
-                    ? { background: "#1a1a1a", border: "1px solid #2a2a2a" }
-                    : {}
-                }
-              >
-                {cat}
-              </span>
-            ))}
+            {categories.map((cat) => {
+              const isAll = cat === "Tất cả";
+              const isActive = isAll
+                ? !activeCategory
+                : activeCategory === cat;
+              const href = isAll
+                ? "/blog"
+                : `/blog?category=${encodeURIComponent(cat)}`;
+
+              return (
+                <Link
+                  key={cat}
+                  href={href}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-[#D4A843] text-white"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                  style={
+                    !isActive
+                      ? { background: "#1a1a1a", border: "1px solid #2a2a2a" }
+                      : {}
+                  }
+                >
+                  {cat}
+                </Link>
+              );
+            })}
           </div>
         )}
 
         {/* Empty State */}
-        {allPosts.length === 0 && (
+        {filteredPosts.length === 0 && (
           <div className="card-dark p-12 text-center">
             <div className="flex justify-center mb-4">
               <FileText size={48} className="text-gray-500" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">
-              Chưa có bài viết nào
+              {activeCategory
+                ? `Không có bài viết nào trong mục "${activeCategory}"`
+                : "Chưa có bài viết nào"}
             </h2>
             <p className="text-gray-400 text-sm max-w-md mx-auto">
-              Các bài viết sẽ được cập nhật sớm. Hãy quay lại sau hoặc đăng ký
-              nhận thông báo qua email để không bỏ lỡ nội dung mới nhất!
+              {activeCategory ? (
+                <>
+                  Hãy chọn danh mục khác hoặc{" "}
+                  <Link href="/blog" className="text-[#D4A843] hover:underline">
+                    xem tất cả bài viết
+                  </Link>
+                  .
+                </>
+              ) : (
+                "Các bài viết sẽ được cập nhật sớm. Hãy quay lại sau hoặc đăng ký nhận thông báo qua email để không bỏ lỡ nội dung mới nhất!"
+              )}
             </p>
           </div>
         )}

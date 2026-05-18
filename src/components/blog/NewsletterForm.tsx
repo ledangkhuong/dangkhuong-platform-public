@@ -94,7 +94,7 @@ export default function NewsletterForm() {
       )}
 
       {status === "error" && message && (
-        <p className="text-red-400 text-xs mt-2">{message}</p>
+        <p role="alert" aria-live="assertive" className="text-red-400 text-xs mt-2">{message}</p>
       )}
     </div>
   );

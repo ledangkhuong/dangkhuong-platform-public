@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import CafeLanding from "./CafeLanding";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Mời Cafe 99K — Nhận 100 Mô Hình Kinh Doanh Triệu Đô | Đăng Khương",
   description:

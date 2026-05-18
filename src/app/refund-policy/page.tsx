@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/refund-policy",
   },
+  openGraph: {
+    title: "Chính Sách Hoàn Tiền — Lê Đăng Khương Academy",
+    description:
+      "Chính sách hoàn tiền khi mua khoá học trên nền tảng Lê Đăng Khương Academy",
+  },
 };
 
 const sections = [

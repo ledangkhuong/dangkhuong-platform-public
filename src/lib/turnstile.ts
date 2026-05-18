@@ -24,16 +24,21 @@ export async function verifyTurnstile(token: string | null | undefined): Promise
     return false;
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ secret, response: token }),
+      signal: controller.signal,
     });
     const data = await res.json();
     return data.success === true;
   } catch (err) {
     console.error("[Turnstile] Verification network error:", err);
     return false; // Don't allow on error
+  } finally {
+    clearTimeout(timeout);
   }
 }

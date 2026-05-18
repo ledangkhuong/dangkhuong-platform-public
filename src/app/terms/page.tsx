@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/terms",
   },
+  openGraph: {
+    title: "Điều Khoản Sử Dụng — Lê Đăng Khương Academy",
+    description:
+      "Điều khoản sử dụng nền tảng học tập trực tuyến Lê Đăng Khương Academy",
+  },
 };
 
 const sections = [

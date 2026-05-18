@@ -85,7 +85,12 @@ export async function revokeCourseAccess(formData: FormData) {
   if (!enrollmentId) redirect("/admin/enrollments");
 
   const admin = await createAdminClient();
-  await admin.from("enrollments").delete().eq("id", enrollmentId);
+  const { error } = await admin.from("enrollments").delete().eq("id", enrollmentId);
+
+  if (error) {
+    console.error("[Revoke Access]", error);
+    redirect("/admin/enrollments?error=revoke_failed");
+  }
 
   redirect("/admin/enrollments?revoked=1");
 }

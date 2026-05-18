@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import PricingContent from "./PricingContent";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Bảng Giá Khoá Học | Lê Đăng Khương Academy",
   description:

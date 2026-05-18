@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import HomePage from "./HomePage";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Lê Đăng Khương — Làm Chủ Video AI, Xây Kênh Triệu View & Thương Hiệu Cá Nhân",
   description:

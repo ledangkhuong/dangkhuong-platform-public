@@ -310,7 +310,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               {step === "success" ? "Thanh toán thành công 🎉" : "Thanh toán"}
             </h2>
             {step !== "success" && (
-              <p className="text-xs text-gray-500 mt-0.5">{product.name}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{product.name}</p>
             )}
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5">
@@ -413,7 +413,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
               )}
 
               {couponError && (
-                <div className="flex items-center gap-1.5 mt-2">
+                <div role="alert" aria-live="assertive" className="flex items-center gap-1.5 mt-2">
                   <AlertCircle size={12} className="text-red-400 shrink-0" />
                   <span className="text-xs text-red-400">{couponError}</span>
                 </div>
@@ -443,7 +443,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
 
             {errorMsg && (
               <>
-                <div className="p-3 rounded-lg flex items-center gap-2 text-sm mb-4"
+                <div role="alert" aria-live="assertive" className="p-3 rounded-lg flex items-center gap-2 text-sm mb-4"
                   style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
                   <AlertCircle size={14} className="text-red-400 shrink-0" />
                   <span className="text-red-400">{errorMsg}</span>
@@ -500,7 +500,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                           "MoMo / ZaloPay / Ngân hàng"
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
+                      <div className="text-xs text-gray-400 mt-0.5">
                         Thanh toán nhanh qua ví điện tử hoặc internet banking
                       </div>
                     </div>
@@ -532,7 +532,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                       <div className="font-semibold text-white text-sm">
                         Chuyển khoản ngân hàng
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
+                      <div className="text-xs text-gray-400 mt-0.5">
                         Quét mã QR hoặc chuyển khoản thủ công
                       </div>
                     </div>
@@ -548,6 +548,8 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
 
             {errorMsg && (
               <div
+                role="alert"
+                aria-live="assertive"
                 className="p-3 rounded-lg flex items-center gap-2 text-sm mt-4"
                 style={{
                   background: "rgba(239,68,68,0.1)",
@@ -589,7 +591,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
                 <span className={countdown < 120 ? "text-red-400 font-mono font-bold" : "text-[#f59e0b] font-mono font-bold"}>
                   {formatCountdown(countdown)}
                 </span>
-                <span className="text-gray-500 text-xs">còn lại</span>
+                <span className="text-gray-400 text-xs">còn lại</span>
               </div>
               <div className="badge-green text-[10px]">Đang chờ thanh toán</div>
             </div>

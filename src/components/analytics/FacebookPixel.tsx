@@ -1,14 +1,51 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { FB_PIXEL_ID, pageview } from "@/lib/fbpixel";
 
+function hasConsent(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    localStorage.getItem("dk_cookie_consent") === "accepted"
+  );
+}
+
 export default function FacebookPixel() {
   const pathname = usePathname();
+  const [consentGiven, setConsentGiven] = useState(false);
 
+  // Check consent on mount and listen for changes
   useEffect(() => {
-    if (!FB_PIXEL_ID) return;
+    setConsentGiven(hasConsent());
+
+    // Listen for consent changes from other tabs
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "dk_cookie_consent") {
+        setConsentGiven(e.newValue === "accepted");
+      }
+    };
+
+    // Listen for consent changes within the same tab (custom event)
+    const handleConsentChange = () => {
+      setConsentGiven(hasConsent());
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("dk_cookie_consent_change", handleConsentChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(
+        "dk_cookie_consent_change",
+        handleConsentChange,
+      );
+    };
+  }, []);
+
+  // Initialize Facebook Pixel only after consent
+  useEffect(() => {
+    if (!FB_PIXEL_ID || !consentGiven) return;
 
     // Initialize Facebook Pixel
     /* eslint-disable */
@@ -33,15 +70,15 @@ export default function FacebookPixel() {
 
     window.fbq("init", FB_PIXEL_ID);
     window.fbq("track", "PageView");
-  }, []);
+  }, [consentGiven]);
 
-  // Track page views on route changes
+  // Track page views on route changes (only if consent given)
   useEffect(() => {
-    if (!FB_PIXEL_ID) return;
+    if (!FB_PIXEL_ID || !consentGiven) return;
     pageview();
-  }, [pathname]);
+  }, [pathname, consentGiven]);
 
-  if (!FB_PIXEL_ID) return null;
+  if (!FB_PIXEL_ID || !consentGiven) return null;
 
   return (
     <noscript>

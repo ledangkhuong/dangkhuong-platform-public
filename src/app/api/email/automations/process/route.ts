@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { processAutomations } from "@/lib/email/automation-processor";
 
@@ -6,9 +7,16 @@ export async function POST(req: NextRequest) {
   const adminClient = await createAdminClient();
 
   // Check authorization: admin/manager cookie OR CRON_SECRET bearer token
-  const authHeader = req.headers.get("authorization");
+  const authHeader = req.headers.get("authorization") ?? "";
   const cronSecret = process.env.CRON_SECRET;
-  const isCron = cronSecret && authHeader === `Bearer ${cronSecret}`;
+  let isCron = false;
+  if (cronSecret) {
+    const expected = Buffer.from(`Bearer ${cronSecret}`, "utf-8");
+    const received = Buffer.from(authHeader, "utf-8");
+    isCron =
+      expected.length === received.length &&
+      timingSafeEqual(expected, received);
+  }
 
   if (!isCron) {
     const supabase = await createClient();

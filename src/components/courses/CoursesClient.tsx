@@ -129,13 +129,13 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                 </h3>
 
                 {course.description && (
-                  <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
+                  <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">
                     {course.description}
                   </p>
                 )}
 
                 {/* Meta */}
-                <div className="flex items-center gap-3 text-[11px] text-gray-500 mb-3">
+                <div className="flex items-center gap-3 text-[11px] text-gray-400 mb-3">
                   {course.chapter_count > 0 && (
                     <span className="flex items-center gap-1">
                       <ChevronDown size={11} /> {course.chapter_count} chương
@@ -163,13 +163,13 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
                     {isFree ? (
                       <span className="text-sm font-bold text-[#22c55e]">Miễn phí</span>
                     ) : isEnrolled ? (
-                      <span className="text-xs text-gray-500">Đã sở hữu</span>
+                      <span className="text-xs text-gray-400">Đã sở hữu</span>
                     ) : hasSale ? (
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-[#f59e0b]">
                           {formatPrice(course.sale_price!)}
                         </span>
-                        <span className="text-xs text-gray-500 line-through">
+                        <span className="text-xs text-gray-400 line-through">
                           {formatPrice(course.price)}
                         </span>
                       </div>

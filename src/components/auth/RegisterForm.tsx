@@ -66,6 +66,8 @@ export default function RegisterForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <div
+          role="alert"
+          aria-live="assertive"
           className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20"
           style={{ background: "rgba(239,68,68,0.08)" }}
         >

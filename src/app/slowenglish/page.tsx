@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import SlowEnglishLanding from "./SlowEnglishLanding";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Làm Video YouTube Slow English Bằng VEO 3.1 & CapCut | Lê Đăng Khương",
   description:

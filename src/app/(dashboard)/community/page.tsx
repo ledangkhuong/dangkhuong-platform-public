@@ -461,7 +461,7 @@ export default function CommunityPage() {
               </div>
             )}
             {postError && (
-              <p className="mt-2 text-xs text-red-400">{postError}</p>
+              <p role="alert" aria-live="assertive" className="mt-2 text-xs text-red-400">{postError}</p>
             )}
           </div>
 
@@ -522,7 +522,7 @@ export default function CommunityPage() {
                       <span className="text-sm font-semibold text-white">{fullName}</span>
                       {isVip && <span className="badge-gold text-[10px]">VIP</span>}
                     </div>
-                    <span className="text-xs text-gray-500">{formatCreatedAt(post.created_at)}</span>
+                    <span className="text-xs text-gray-400">{formatCreatedAt(post.created_at)}</span>
                   </div>
                 </div>
 
@@ -672,11 +672,11 @@ export default function CommunityPage() {
             {myProfile ? (
               <>
                 <div className="text-2xl font-bold text-[#D4A843] mb-1">{myProfile.xp.toLocaleString()} XP</div>
-                <div className="text-xs text-gray-500 mb-2">Level {myProfile.level} — {levelTitle(myProfile.level)}</div>
+                <div className="text-xs text-gray-400 mb-2">Level {myProfile.level} — {levelTitle(myProfile.level)}</div>
                 <div className="progress-bar">
                   <div className="progress-fill" style={{ width: `${Math.min(100, Math.round(((myProfile.xp - (myProfile.level - 1) * 200) / 200) * 100))}%` }} />
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{Math.max(0, myProfile.level * 200 - myProfile.xp)} XP để lên Level {myProfile.level + 1}</div>
+                <div className="text-xs text-gray-400 mt-1">{Math.max(0, myProfile.level * 200 - myProfile.xp)} XP để lên Level {myProfile.level + 1}</div>
               </>
             ) : (
               <div className="space-y-2 animate-pulse">
@@ -725,7 +725,7 @@ export default function CommunityPage() {
                           {isMe ? "Bạn" : user.full_name}
                         </div>
                       </div>
-                      <span className="text-[10px] text-gray-500">{user.xp.toLocaleString()} XP</span>
+                      <span className="text-[10px] text-gray-400">{user.xp.toLocaleString()} XP</span>
                     </div>
                   );
                 })
@@ -748,7 +748,7 @@ export default function CommunityPage() {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-500">{Math.min((myProfile?.streak ?? 0), 5)}/5 ngày hoàn thành</p>
+            <p className="text-[10px] text-gray-400">{Math.min((myProfile?.streak ?? 0), 5)}/5 ngày hoàn thành</p>
           </div>
         </aside>
       </div>

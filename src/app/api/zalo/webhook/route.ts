@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
-import crypto from "crypto";
+import crypto, { timingSafeEqual } from "crypto";
 
 /**
  * ZALO OA WEBHOOK
@@ -70,7 +70,12 @@ export async function POST(req: NextRequest) {
       .createHmac("sha256", secretKey)
       .update(rawBody)
       .digest("hex");
-    if (signature !== `mac=${mac}`) {
+    const expected = Buffer.from(`mac=${mac}`, "utf-8");
+    const received = Buffer.from(signature, "utf-8");
+    const isValidSig =
+      expected.length === received.length &&
+      timingSafeEqual(expected, received);
+    if (!isValidSig) {
       console.warn("[Zalo Webhook] Invalid signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }

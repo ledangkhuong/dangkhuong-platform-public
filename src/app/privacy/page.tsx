@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/privacy",
   },
+  openGraph: {
+    title: `Chính Sách Bảo Mật — ${siteConfig.name}`,
+    description:
+      "Chính sách bảo mật và bảo vệ dữ liệu cá nhân của nền tảng Lê Đăng Khương Academy",
+  },
 };
 
 const sections = [
