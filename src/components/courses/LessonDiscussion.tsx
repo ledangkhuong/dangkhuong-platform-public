@@ -12,6 +12,7 @@ import {
   Pin,
   CheckCircle2,
 } from "lucide-react";
+import UserAvatarBase from "@/components/admin/UserAvatar";
 
 /* ---------- Types ---------- */
 
@@ -88,31 +89,13 @@ function UserAvatar({
   profile: Profile | null;
   size?: number;
 }) {
-  if (profile?.avatar_url) {
-    return (
-      <Image
-        src={profile.avatar_url}
-        alt=""
-        width={size}
-        height={size}
-        className="rounded-full object-cover shrink-0"
-        style={{ width: size, height: size }}
-        unoptimized
-      />
-    );
-  }
   return (
-    <div
-      className="rounded-full flex items-center justify-center font-bold text-white shrink-0"
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.35,
-        background: "linear-gradient(135deg, #D4A843, #b8912e)",
-      }}
-    >
-      {getInitials(profile?.full_name ?? null)}
-    </div>
+    <UserAvatarBase
+      src={profile?.avatar_url}
+      initials={getInitials(profile?.full_name ?? null)}
+      size={size}
+      gradient="linear-gradient(135deg, #D4A843, #b8912e)"
+    />
   );
 }
 

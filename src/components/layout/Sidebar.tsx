@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/actions/auth";
 import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
 import { siteConfig } from "@/lib/site-config";
+import UserAvatar from "@/components/admin/UserAvatar";
 import {
   LayoutDashboard, BookOpen, Users, MessageSquare, MessageCircle,
   FileText, Mail, BarChart3, Settings, LogOut,
@@ -306,23 +307,12 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {!isCompact ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              {profile?.avatar_url ? (
-                <Image
-                  src={profile.avatar_url}
-                  alt=""
-                  width={32}
-                  height={32}
-                  sizes="32px"
-                  className="w-8 h-8 rounded-full object-cover shrink-0"
-                />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
-                >
-                  {initials}
-                </div>
-              )}
+              <UserAvatar
+                src={profile?.avatar_url}
+                initials={initials}
+                size={32}
+                gradient="linear-gradient(135deg, #D4A843, #059669)"
+              />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-white truncate">{displayName}</div>
                 <div className="text-[11px] text-gray-500 truncate">{email || "Đang tải..."}</div>

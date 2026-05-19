@@ -94,6 +94,32 @@ export default function RichDescription({ html }: { html: string }) {
         .rich-description em {
           color: #d1d5db;
         }
+        .rich-description iframe,
+        .rich-description .novel-youtube {
+          max-width: 100%;
+          border-radius: 0.75rem;
+          margin: 1.25rem 0;
+          aspect-ratio: 16 / 9;
+        }
+        .rich-description [data-youtube-video] {
+          max-width: 100%;
+          margin: 1.25rem 0;
+        }
+        .rich-description [data-youtube-video] iframe {
+          width: 100%;
+          height: auto;
+          aspect-ratio: 16 / 9;
+          border-radius: 0.75rem;
+        }
+        .rich-description mark {
+          background: rgba(212, 168, 67, 0.3);
+          color: #fff;
+          padding: 0.1rem 0.2rem;
+          border-radius: 0.15rem;
+        }
+        .rich-description u {
+          text-decoration-color: #D4A843;
+        }
       `}</style>
     </>
   );

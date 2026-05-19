@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import NextImage from "next/image";
 import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import UserAvatar from "@/components/admin/UserAvatar";
 
 interface Post {
   id: string;
@@ -359,14 +360,12 @@ export default function CommunityPage() {
           {/* Create Post */}
           <div className="card-dark p-4">
             <div className="flex gap-3 mb-3">
-              {myProfile?.avatar_url ? (
-                <NextImage src={myProfile.avatar_url} alt={myProfile.full_name} width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
-              ) : (
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}>
-                  {myProfile ? getAvatarInitials(myProfile.full_name) : "??"}
-                </div>
-              )}
+              <UserAvatar
+                src={myProfile?.avatar_url}
+                initials={myProfile ? getAvatarInitials(myProfile.full_name) : "??"}
+                size={36}
+                gradient="linear-gradient(135deg, #D4A843, #059669)"
+              />
               <textarea
                 ref={textareaRef}
                 value={postText}
@@ -509,14 +508,12 @@ export default function CommunityPage() {
                 )}
                 {/* Author */}
                 <div className="flex items-center gap-3 mb-3">
-                  {post.profiles?.avatar_url ? (
-                    <NextImage src={post.profiles.avatar_url} alt={fullName} width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{ background: isVip ? "linear-gradient(135deg, #D4A843, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}>
-                      {initials}
-                    </div>
-                  )}
+                  <UserAvatar
+                    src={post.profiles?.avatar_url}
+                    initials={initials}
+                    size={36}
+                    gradient={isVip ? "linear-gradient(135deg, #D4A843, #059669)" : "linear-gradient(135deg, #3b82f6, #1d4ed8)"}
+                  />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-white">{fullName}</span>
@@ -601,23 +598,12 @@ export default function CommunityPage() {
                             const cInitials = getAvatarInitials(cName);
                             return (
                               <div key={comment.id} className="flex gap-2">
-                                {comment.profiles?.avatar_url ? (
-                                  <NextImage
-                                    src={comment.profiles.avatar_url}
-                                    alt={cName}
-                                    width={24}
-                                    height={24}
-                                    className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5"
-                                    unoptimized
-                                  />
-                                ) : (
-                                  <div
-                                    className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0 mt-0.5"
-                                    style={{ background: "linear-gradient(135deg, #3b82f6, #1d4ed8)" }}
-                                  >
-                                    {cInitials}
-                                  </div>
-                                )}
+                                <UserAvatar
+                                  src={comment.profiles?.avatar_url}
+                                  initials={cInitials}
+                                  size={24}
+                                  className="mt-0.5"
+                                />
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs font-medium text-white">{cName}</span>
@@ -712,14 +698,12 @@ export default function CommunityPage() {
                     <div key={user.id}
                       className={`flex items-center gap-2.5 p-2 rounded-lg ${isMe ? "bg-[#D4A843]/10" : "hover:bg-white/3"} transition-colors`}>
                       <span className="text-sm">{rankBadge(rank)}</span>
-                      {user.avatar_url ? (
-                        <NextImage src={user.avatar_url} alt={user.full_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" unoptimized />
-                      ) : (
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                          style={{ background: isMe ? "linear-gradient(135deg,#D4A843,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}>
-                          {getAvatarInitials(user.full_name)}
-                        </div>
-                      )}
+                      <UserAvatar
+                        src={user.avatar_url}
+                        initials={getAvatarInitials(user.full_name)}
+                        size={28}
+                        gradient={isMe ? "linear-gradient(135deg,#D4A843,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)"}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className={`text-xs font-medium truncate ${isMe ? "text-[#D4A843]" : "text-white"}`}>
                           {isMe ? "Bạn" : user.full_name}

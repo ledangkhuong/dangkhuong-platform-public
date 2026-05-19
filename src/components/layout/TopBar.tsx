@@ -5,6 +5,7 @@ import { Search, Bell, Menu, Settings, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import NotificationDropdown from "@/components/layout/NotificationDropdown";
+import UserAvatar from "@/components/admin/UserAvatar";
 import SearchModal, { useSearchShortcut } from "@/components/layout/SearchModal";
 import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
 import { createClient } from "@/lib/supabase/client";
@@ -134,23 +135,12 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
               onClick={() => setAvatarMenuOpen(!avatarMenuOpen)}
               className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50"
             >
-              {profile?.avatar_url ? (
-                <Image
-                  src={profile.avatar_url}
-                  alt={displayName}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
-                >
-                  {initials}
-                </div>
-              )}
+              <UserAvatar
+                src={profile?.avatar_url}
+                initials={initials}
+                size={32}
+                gradient="linear-gradient(135deg, #D4A843, #059669)"
+              />
             </button>
 
             {/* Dropdown Menu */}
@@ -165,23 +155,12 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
                 {/* User Info */}
                 <div className="px-4 py-3 border-b border-[#2a2a2a]">
                   <div className="flex items-center gap-3">
-                    {profile?.avatar_url ? (
-                      <Image
-                        src={profile.avatar_url}
-                        alt=""
-                        width={36}
-                        height={36}
-                        className="w-9 h-9 rounded-full object-cover shrink-0"
-                        unoptimized
-                      />
-                    ) : (
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                        style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
-                      >
-                        {initials}
-                      </div>
-                    )}
+                    <UserAvatar
+                      src={profile?.avatar_url}
+                      initials={initials}
+                      size={36}
+                      gradient="linear-gradient(135deg, #D4A843, #059669)"
+                    />
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-white truncate">
                         {displayName}

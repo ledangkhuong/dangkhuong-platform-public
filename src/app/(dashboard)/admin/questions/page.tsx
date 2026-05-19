@@ -18,6 +18,7 @@ import {
   Mail,
   MailCheck,
 } from "lucide-react";
+import UserAvatar from "@/components/admin/UserAvatar";
 
 interface Reply {
   id: string;
@@ -245,24 +246,18 @@ export default function AdminQuestionsPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    {q.profiles?.avatar_url ? (
-                      <img src={q.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #3b82f6, #2563eb)",
-                        }}
-                      >
-                        {(q.profiles?.full_name ?? "?")
-                          .split(" ")
-                          .map((w: string) => w[0])
-                          .slice(-2)
-                          .join("")
-                          .toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar
+                      src={q.profiles?.avatar_url ?? null}
+                      initials={(q.profiles?.full_name ?? "?")
+                        .split(" ")
+                        .map((w: string) => w[0])
+                        .slice(-2)
+                        .join("")
+                        .toUpperCase()}
+                      role="student"
+                      tier="free"
+                      size={32}
+                    />
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-white">

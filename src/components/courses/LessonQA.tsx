@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import UserAvatar from "@/components/admin/UserAvatar";
 
 interface Question {
   id: string;
@@ -196,24 +197,17 @@ export default function LessonQA({
                 >
                   {/* Question */}
                   <div className="flex items-start gap-2">
-                    {q.profiles?.avatar_url ? (
-                      <Image src={q.profiles.avatar_url} alt="" width={24} height={24} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" unoptimized />
-                    ) : (
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #3b82f6, #2563eb)",
-                        }}
-                      >
-                        {(q.profiles?.full_name ?? "?")
-                          .split(" ")
-                          .map((w: string) => w[0])
-                          .slice(-2)
-                          .join("")
-                          .toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar
+                      src={q.profiles?.avatar_url}
+                      initials={(q.profiles?.full_name ?? "?")
+                        .split(" ")
+                        .map((w: string) => w[0])
+                        .slice(-2)
+                        .join("")
+                        .toUpperCase()}
+                      size={24}
+                      className="mt-0.5"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-xs font-medium text-white">

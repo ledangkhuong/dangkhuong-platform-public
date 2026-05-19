@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import UserAvatar from "@/components/admin/UserAvatar";
 
 interface PublicHeaderProps {
   user?: {
@@ -70,25 +71,12 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
           {user ? (
             <>
               {/* Avatar */}
-              {user.avatar_url ? (
-                <Image
-                  src={user.avatar_url}
-                  alt=""
-                  width={32}
-                  height={32}
-                  sizes="32px"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{
-                    background: "linear-gradient(135deg, #D4A843, #059669)",
-                  }}
-                >
-                  {initials}
-                </div>
-              )}
+              <UserAvatar
+                src={user.avatar_url}
+                initials={initials}
+                size={32}
+                gradient="linear-gradient(135deg, #D4A843, #059669)"
+              />
               <Link
                 href="/dashboard"
                 className="text-sm font-medium text-gray-300 hover:text-white transition-colors"

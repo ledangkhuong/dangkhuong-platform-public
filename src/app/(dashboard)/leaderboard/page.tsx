@@ -2,6 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Trophy, Flame, Zap } from "lucide-react";
+import UserAvatar from "@/components/admin/UserAvatar";
 
 const LEVEL_TITLES: Record<number, string> = {
   1: "Người Mới",
@@ -119,16 +120,12 @@ export default async function LeaderboardPage() {
                 return (
                   <div key={i} className="flex flex-col items-center gap-2">
                     <div className="text-2xl">{rankBadge(positions[i])}</div>
-                    {l.avatar_url ? (
-                      <Image src={l.avatar_url} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" unoptimized />
-                    ) : (
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                        style={{ background: isMe ? "linear-gradient(135deg,#D4A843,#059669)" : `linear-gradient(135deg,${colors[i]},${colors[i]}88)` }}
-                      >
-                        {initials(l.full_name ?? "?")}
-                      </div>
-                    )}
+                    <UserAvatar
+                      src={l.avatar_url}
+                      initials={initials(l.full_name ?? "?")}
+                      size={48}
+                      gradient={isMe ? "linear-gradient(135deg,#D4A843,#059669)" : `linear-gradient(135deg,${colors[i]},${colors[i]}88)`}
+                    />
                     <div className="text-xs font-medium text-white text-center">
                       {(l.full_name ?? "?").split(" ").slice(-1)[0]}
                       {isMe && <span className="ml-1 text-[#D4A843]">(bạn)</span>}
@@ -180,20 +177,12 @@ export default async function LeaderboardPage() {
                     {rank}
                   </div>
                   <div className="text-lg w-6 text-center">{rankBadge(rank)}</div>
-                  {l.avatar_url ? (
-                    <Image src={l.avatar_url} alt="" width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" unoptimized />
-                  ) : (
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{
-                        background: isMe
-                          ? "linear-gradient(135deg,#D4A843,#059669)"
-                          : "linear-gradient(135deg,#3b82f6,#1d4ed8)",
-                      }}
-                    >
-                      {initials(name)}
-                    </div>
-                  )}
+                  <UserAvatar
+                    src={l.avatar_url}
+                    initials={initials(name)}
+                    size={36}
+                    gradient={isMe ? "linear-gradient(135deg,#D4A843,#059669)" : "linear-gradient(135deg,#3b82f6,#1d4ed8)"}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-medium ${isMe ? "text-[#D4A843]" : "text-white"}`}>
