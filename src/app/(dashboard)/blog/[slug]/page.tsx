@@ -277,22 +277,32 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fire-and-forget: increment views with cookie-based dedup (24h window)
-  const cookieStore = await cookies();
-  const viewCookieName = `viewed_blog_${slug}`;
-  const alreadyViewed = cookieStore.has(viewCookieName);
+  // Fire-and-forget: increment views (best-effort, never crash the page)
+  try {
+    const cookieStore = await cookies();
+    const viewCookieName = `viewed_blog_${slug}`;
+    const alreadyViewed = cookieStore.has(viewCookieName);
 
-  if (!alreadyViewed) {
-    supabase
-      .rpc("increment_blog_views", { blog_post_id: post.id })
-      .then(() => {});
+    if (!alreadyViewed) {
+      // Increment view count — don't await, don't crash on failure
+      Promise.resolve(
+        supabase.rpc("increment_blog_views", { blog_post_id: post.id })
+      ).catch(() => {});
 
-    cookieStore.set(viewCookieName, "1", {
-      maxAge: 60 * 60 * 24, // 24 hours
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-    });
+      // cookies().set() may throw in Server Components — wrap safely
+      try {
+        cookieStore.set(viewCookieName, "1", {
+          maxAge: 60 * 60 * 24, // 24 hours
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+        });
+      } catch {
+        // Setting cookies in Server Components may not be supported — ignore
+      }
+    }
+  } catch {
+    // Non-critical — silently ignore view tracking errors
   }
 
   const publishedDate = post.published_at
