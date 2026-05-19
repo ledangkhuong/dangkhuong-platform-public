@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
@@ -17,8 +17,8 @@ import {
   EyeOff,
   ArrowRight,
   Crown,
+  Sparkles,
 } from "lucide-react";
-import TurnstileWidget from "@/components/TurnstileWidget";
 import BankTransferButtons from "@/components/BankTransferButtons";
 import HeroSection from "./sections/HeroSection";
 import PainSection from "./sections/PainSection";
@@ -86,11 +86,42 @@ export default function HocChuaXongLanding() {
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
+  // Auto-detect returning customers by email
+  const [emailCheck, setEmailCheck] = useState<{
+    status: "idle" | "checking" | "exists" | "new";
+    fullName: string | null;
+  }>({ status: "idle", fullName: null });
 
-  const handleTurnstileVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
+  // Debounced email lookup
+  useEffect(() => {
+    const email = form.email.trim();
+    if (!email || !email.includes("@") || !email.includes(".")) {
+      setEmailCheck({ status: "idle", fullName: null });
+      return;
+    }
+
+    const handle = setTimeout(async () => {
+      setEmailCheck((s) => ({ ...s, status: "checking" }));
+      try {
+        const res = await fetch("/api/hocchuaxongtiendave/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        setEmailCheck({
+          status: data.exists ? "exists" : "new",
+          fullName: data.fullName ?? null,
+        });
+      } catch {
+        setEmailCheck({ status: "new", fullName: null });
+      }
+    }, 600);
+
+    return () => clearTimeout(handle);
+  }, [form.email]);
+
+  const isReturningUser = emailCheck.status === "exists";
 
   const scrollToRegister = () => {
     registerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -101,12 +132,16 @@ export default function HocChuaXongLanding() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.full_name.trim() || !form.email.trim() || !form.password) {
+    if (!form.email.trim() || !form.password) {
+      setError("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+    if (!isReturningUser && (!form.full_name.trim() || !form.phone.trim())) {
       setError("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
     if (form.password.length < 8) {
-      setError("Mật khẩu tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số");
+      setError("Mật khẩu tối thiểu 8 ký tự");
       return;
     }
     setLoading(true);
@@ -115,7 +150,7 @@ export default function HocChuaXongLanding() {
       const res = await fetch("/api/hocchuaxongtiendave/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, turnstile_token: turnstileToken }),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (data.success) {
@@ -275,32 +310,7 @@ export default function HocChuaXongLanding() {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
-                Họ và tên <span style={{ color: "#F87171" }}>*</span>
-              </label>
-              <div className="relative">
-                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(241,245,251,0.4)" }} />
-                <input
-                  name="full_name"
-                  type="text"
-                  value={form.full_name}
-                  onChange={handleChange}
-                  placeholder="Nguyễn Văn A"
-                  className="w-full rounded-lg outline-none text-white"
-                  style={{
-                    background: "#050913",
-                    border: "1px solid rgba(229,182,99,0.15)",
-                    paddingLeft: "2.75rem",
-                    paddingRight: "1rem",
-                    paddingTop: "0.85rem",
-                    paddingBottom: "0.85rem",
-                  }}
-                  required
-                />
-              </div>
-            </div>
-
+            {/* Email FIRST so auto-detect can hide name/phone for returning users */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
                 Email <span style={{ color: "#F87171" }}>*</span>
@@ -316,46 +326,113 @@ export default function HocChuaXongLanding() {
                   className="w-full rounded-lg outline-none text-white"
                   style={{
                     background: "#050913",
-                    border: "1px solid rgba(229,182,99,0.15)",
+                    border: `1px solid ${isReturningUser ? "rgba(229,182,99,0.45)" : "rgba(229,182,99,0.15)"}`,
                     paddingLeft: "2.75rem",
-                    paddingRight: "1rem",
+                    paddingRight: "2.75rem",
                     paddingTop: "0.85rem",
                     paddingBottom: "0.85rem",
                   }}
                   required
                 />
+                {emailCheck.status === "checking" && (
+                  <Loader2
+                    size={16}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin"
+                    style={{ color: "rgba(241,245,251,0.4)" }}
+                  />
+                )}
+                {emailCheck.status === "exists" && (
+                  <CheckCircle
+                    size={16}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    style={{ color: "#34D399" }}
+                  />
+                )}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
-                Số điện thoại
-              </label>
-              <div className="relative">
-                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(241,245,251,0.4)" }} />
-                <input
-                  name="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="0901 234 567"
-                  className="w-full rounded-lg outline-none text-white"
-                  style={{
-                    background: "#050913",
-                    border: "1px solid rgba(229,182,99,0.15)",
-                    paddingLeft: "2.75rem",
-                    paddingRight: "1rem",
-                    paddingTop: "0.85rem",
-                    paddingBottom: "0.85rem",
-                  }}
-                />
+            {/* Returning user banner */}
+            {isReturningUser && (
+              <div
+                className="p-3.5 rounded-lg flex items-start gap-3 text-sm"
+                style={{
+                  background: "rgba(52,211,153,0.08)",
+                  border: "1px solid rgba(52,211,153,0.3)",
+                }}
+              >
+                <Sparkles size={16} className="shrink-0 mt-0.5" style={{ color: "#34D399" }} />
+                <div className="leading-relaxed">
+                  <div className="font-semibold" style={{ color: "#34D399" }}>
+                    Chào mừng quay lại{emailCheck.fullName ? `, ${emailCheck.fullName}` : ""}!
+                  </div>
+                  <div className="text-[13px] mt-0.5" style={{ color: "rgba(241,245,251,0.7)" }}>
+                    Email này đã có tài khoản — chỉ cần nhập đúng mật khẩu để tiếp tục.
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Name + phone — only for new users */}
+            {!isReturningUser && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
+                    Họ và tên <span style={{ color: "#F87171" }}>*</span>
+                  </label>
+                  <div className="relative">
+                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(241,245,251,0.4)" }} />
+                    <input
+                      name="full_name"
+                      type="text"
+                      value={form.full_name}
+                      onChange={handleChange}
+                      placeholder="Nguyễn Văn A"
+                      className="w-full rounded-lg outline-none text-white"
+                      style={{
+                        background: "#050913",
+                        border: "1px solid rgba(229,182,99,0.15)",
+                        paddingLeft: "2.75rem",
+                        paddingRight: "1rem",
+                        paddingTop: "0.85rem",
+                        paddingBottom: "0.85rem",
+                      }}
+                      required={!isReturningUser}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
+                    Số điện thoại <span style={{ color: "#F87171" }}>*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(241,245,251,0.4)" }} />
+                    <input
+                      name="phone"
+                      type="tel"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="0901 234 567"
+                      className="w-full rounded-lg outline-none text-white"
+                      style={{
+                        background: "#050913",
+                        border: "1px solid rgba(229,182,99,0.15)",
+                        paddingLeft: "2.75rem",
+                        paddingRight: "1rem",
+                        paddingTop: "0.85rem",
+                        paddingBottom: "0.85rem",
+                      }}
+                      required={!isReturningUser}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
                 Mật khẩu <span style={{ color: "#F87171" }}>*</span>{" "}
-                <span style={{ color: "rgba(241,245,251,0.4)" }}>(8+ ký tự, hoa, thường, số)</span>
+                <span style={{ color: "rgba(241,245,251,0.4)" }}>(tối thiểu 8 ký tự)</span>
               </label>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(241,245,251,0.4)" }} />
@@ -388,8 +465,6 @@ export default function HocChuaXongLanding() {
                 </button>
               </div>
             </div>
-
-            <TurnstileWidget onVerify={handleTurnstileVerify} className="mt-2" />
 
             <button
               type="submit"

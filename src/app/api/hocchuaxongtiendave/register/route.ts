@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { verifyTurnstile } from "@/lib/turnstile";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 
@@ -40,21 +39,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, turnstile_token } = body;
+    const { full_name, email, phone, password } = body;
 
-    const turnstileOk = await verifyTurnstile(turnstile_token);
-    if (!turnstileOk) {
-      return NextResponse.json(
-        { error: "Xác minh CAPTCHA thất bại. Vui lòng thử lại." },
-        { status: 400 }
-      );
-    }
-
-    if (!full_name?.trim())
-      return NextResponse.json(
-        { error: "Vui lòng nhập họ tên" },
-        { status: 400 }
-      );
     if (!email?.trim())
       return NextResponse.json(
         { error: "Vui lòng nhập email" },
@@ -66,26 +52,34 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (!/[A-Z]/.test(password)) {
-      return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 1 chữ hoa" },
-        { status: 400 }
-      );
-    }
-    if (!/[a-z]/.test(password)) {
-      return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 1 chữ thường" },
-        { status: 400 }
-      );
-    }
-    if (!/[0-9]/.test(password)) {
-      return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 1 số" },
-        { status: 400 }
-      );
-    }
 
+    // Hoist admin client up so we can do a pre-check before further validation
     const admin = await createAdminClient();
+
+    // Pre-check: if email already exists in our system, name/phone are not
+    // required (we'll use the stored profile data). For brand-new users we
+    // require both fields to keep clean records.
+    const { data: lookup } = await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    const matchedUser = lookup?.users?.find(
+      (u) => u.email?.toLowerCase() === email.trim().toLowerCase()
+    );
+    const userExistsBefore = !!matchedUser;
+
+    if (!userExistsBefore) {
+      if (!full_name?.trim())
+        return NextResponse.json(
+          { error: "Vui lòng nhập họ tên" },
+          { status: 400 }
+        );
+      if (!phone?.trim())
+        return NextResponse.json(
+          { error: "Vui lòng nhập số điện thoại" },
+          { status: 400 }
+        );
+    }
 
     let userId: string;
     let isExistingUser = false;
@@ -146,11 +140,33 @@ export async function POST(req: NextRequest) {
       userId = signUpData.user.id;
     }
 
-    await admin.from("profiles").upsert({
-      id: userId,
-      full_name: full_name.trim(),
-      phone: phone?.trim() || null,
-    });
+    // Protect existing profiles: never overwrite full_name/phone of a returning
+    // customer. Only write profile data when creating a brand-new user, or fill
+    // in fields that are still empty for an existing user.
+    if (isExistingUser) {
+      const { data: currentProfile } = await admin
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const patch: Record<string, string | null> = {};
+      if (!currentProfile?.full_name && full_name?.trim()) {
+        patch.full_name = full_name.trim();
+      }
+      if (!currentProfile?.phone && phone?.trim()) {
+        patch.phone = phone.trim();
+      }
+      if (Object.keys(patch).length > 0) {
+        await admin.from("profiles").update(patch).eq("id", userId);
+      }
+    } else {
+      await admin.from("profiles").upsert({
+        id: userId,
+        full_name: full_name.trim(),
+        phone: phone?.trim() || null,
+      });
+    }
 
     const { data: product } = await admin
       .from("products")
@@ -178,15 +194,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // For returning customers, the frontend hides name/phone fields (auto-detect
+    // by email). Fall back to their stored profile data so the order has the
+    // correct customer record.
+    let orderName = full_name?.trim() || "";
+    let orderPhone = phone?.trim() || null;
+    if (isExistingUser && (!orderName || !orderPhone)) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", userId)
+        .maybeSingle();
+      if (!orderName && profile?.full_name) orderName = profile.full_name;
+      if (!orderPhone && profile?.phone) orderPhone = profile.phone;
+    }
+
     const orderData: Record<string, unknown> = {
       order_code: orderCode,
       user_id: userId,
       amount,
       status: "pending",
       payment_method: "bank_transfer",
-      customer_name: full_name.trim(),
+      customer_name: orderName,
       customer_email: email.trim(),
-      customer_phone: phone?.trim() || null,
+      customer_phone: orderPhone,
       ref_code: refCode,
     };
 
