@@ -20,6 +20,7 @@ import {
 import DeleteFakeUsers from "@/components/admin/DeleteFakeUsers";
 import DeleteUserButton from "@/components/admin/DeleteUserButton";
 import BulkDeleteUsers from "@/components/admin/BulkDeleteUsers";
+import UserAvatar from "@/components/admin/UserAvatar";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -738,31 +739,12 @@ export default async function AdminUsersPage({
                       {/* Avatar + Name + Contact */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          {profile.avatar_url ? (
-                            <img
-                              src={profile.avatar_url}
-                              alt=""
-                              className="w-9 h-9 rounded-full object-cover shrink-0"
-                            />
-                          ) : (
-                            <div
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                              style={{
-                                background:
-                                  profile.role === "admin"
-                                    ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                                    : ["manager", "marketing", "sale", "support"].includes(profile.role)
-                                    ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
-                                    : profile.tier === "vip"
-                                    ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                                    : profile.tier === "member"
-                                    ? "linear-gradient(135deg, #a855f7, #7c3aed)"
-                                    : "linear-gradient(135deg, #374151, #1f2937)",
-                              }}
-                            >
-                              {getInitials(profile.full_name)}
-                            </div>
-                          )}
+                          <UserAvatar
+                            src={profile.avatar_url}
+                            initials={getInitials(profile.full_name)}
+                            role={profile.role}
+                            tier={profile.tier}
+                          />
                           <div className="min-w-0">
                             <div className="font-medium text-white truncate">
                               {profile.full_name || "Chưa đặt tên"}
