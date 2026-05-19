@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
         { error: "Vui lòng nhập email" },
         { status: 400 }
       );
-    if (!password || password.length < 8) {
+    if (!password) {
       return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 8 ký tự" },
+        { error: "Vui lòng nhập mật khẩu" },
         { status: 400 }
       );
     }
@@ -57,8 +57,9 @@ export async function POST(req: NextRequest) {
     const admin = await createAdminClient();
 
     // Pre-check: if email already exists in our system, name/phone are not
-    // required (we'll use the stored profile data). For brand-new users we
-    // require both fields to keep clean records.
+    // required (we'll use the stored profile data) and the password length
+    // requirement is skipped (existing customers may have shorter legacy
+    // passwords from earlier signup flows).
     const { data: lookup } = await admin.auth.admin.listUsers({
       page: 1,
       perPage: 1000,
@@ -69,6 +70,12 @@ export async function POST(req: NextRequest) {
     const userExistsBefore = !!matchedUser;
 
     if (!userExistsBefore) {
+      if (password.length < 8) {
+        return NextResponse.json(
+          { error: "Mật khẩu phải có ít nhất 8 ký tự" },
+          { status: 400 }
+        );
+      }
       if (!full_name?.trim())
         return NextResponse.json(
           { error: "Vui lòng nhập họ tên" },

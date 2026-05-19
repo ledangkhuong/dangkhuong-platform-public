@@ -140,7 +140,9 @@ export default function HocChuaXongLanding() {
       setError("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
-    if (form.password.length < 8) {
+    // Existing customers may have shorter legacy passwords — only enforce
+    // the 8-char minimum when creating a brand-new account.
+    if (!isReturningUser && form.password.length < 8) {
       setError("Mật khẩu tối thiểu 8 ký tự");
       return;
     }
@@ -431,8 +433,12 @@ export default function HocChuaXongLanding() {
 
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
-                Mật khẩu <span style={{ color: "#F87171" }}>*</span>{" "}
-                <span style={{ color: "rgba(241,245,251,0.4)" }}>(tối thiểu 8 ký tự)</span>
+                Mật khẩu <span style={{ color: "#F87171" }}>*</span>
+                {!isReturningUser && (
+                  <span style={{ color: "rgba(241,245,251,0.4)" }}>
+                    {" "}(tối thiểu 8 ký tự)
+                  </span>
+                )}
               </label>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(241,245,251,0.4)" }} />
@@ -451,7 +457,7 @@ export default function HocChuaXongLanding() {
                     paddingTop: "0.85rem",
                     paddingBottom: "0.85rem",
                   }}
-                  minLength={8}
+                  minLength={isReturningUser ? 1 : 8}
                   required
                 />
                 <button
