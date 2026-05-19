@@ -464,6 +464,17 @@ export default function HocChuaXongLanding() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {isReturningUser && (
+                <div className="mt-2 text-right">
+                  <Link
+                    href={`/forgot-password${form.email ? `?email=${encodeURIComponent(form.email)}` : ""}`}
+                    className="text-[12px] sm:text-[13px] hover:underline"
+                    style={{ color: "#E5B663" }}
+                  >
+                    Quên mật khẩu?
+                  </Link>
+                </div>
+              )}
             </div>
 
             <button
