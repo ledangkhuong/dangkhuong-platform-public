@@ -87,6 +87,37 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
+/** Derive a human-friendly name when the stored name is just the raw URL. */
+function friendlyAttachmentName(name: string, url: string): string {
+  // If admin set a real name (not the URL itself), use it as-is
+  if (name && name !== url && !name.startsWith("http://") && !name.startsWith("https://")) {
+    return name;
+  }
+  // Auto-generate a friendly label from the URL
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace("www.", "");
+    if (host.includes("docs.google.com")) {
+      if (u.pathname.includes("/document/")) return "Google Docs — Tài liệu";
+      if (u.pathname.includes("/spreadsheets/")) return "Google Sheets — Bảng tính";
+      if (u.pathname.includes("/presentation/")) return "Google Slides — Trình chiếu";
+      if (u.pathname.includes("/forms/")) return "Google Forms — Biểu mẫu";
+      return "Google Docs";
+    }
+    if (host.includes("drive.google.com")) return "Google Drive — Tài liệu";
+    if (host.includes("notion.so") || host.includes("notion.site")) return "Notion — Tài liệu";
+    if (host.includes("canva.com")) return "Canva — Thiết kế";
+    if (host.includes("figma.com")) return "Figma — Thiết kế";
+    if (host.includes("youtube.com") || host.includes("youtu.be")) return "YouTube — Video";
+    if (host.includes("github.com")) return "GitHub — Source code";
+    // Fallback: use domain name
+    return host;
+  } catch {
+    // If URL parsing fails, truncate the raw URL
+    return name.length > 50 ? name.slice(0, 47) + "..." : name;
+  }
+}
+
 function AttachmentFileIcon({ type }: { type: string }) {
   const iconClass = "text-gray-500 shrink-0";
   if (type.startsWith("image/")) return <FileImage size={18} className={iconClass} />;
@@ -779,8 +810,11 @@ export default async function CourseDetailPage({
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-300 truncate group-hover:text-[#D4A843] transition-colors">
-                          {att.name}
+                          {isLink ? friendlyAttachmentName(att.name, att.url) : att.name}
                         </p>
+                        {isLink && att.name !== friendlyAttachmentName(att.name, att.url) && (
+                          <p className="text-[10px] text-gray-500 truncate">{new URL(att.url).hostname.replace("www.", "")}</p>
+                        )}
                         {!isLink && att.size > 0 && (
                           <p className="text-[10px] text-gray-500">{formatFileSize(att.size)}</p>
                         )}
