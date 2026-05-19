@@ -133,7 +133,6 @@ export async function POST(req: NextRequest) {
       customer_email: customer_email || user.email,
       customer_phone: customer_phone || null,
       ref_code: refCode,
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     }).select().single();
 
     if (orderError) {
