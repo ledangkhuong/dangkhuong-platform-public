@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import UserAvatar from "@/components/admin/UserAvatar";
 import {
   Search,
   ChevronDown,
@@ -277,17 +278,11 @@ export default function CourseStudentList({
                   </div>
 
                   {/* Avatar */}
-                  {student.avatarUrl ? (
-                    <img
-                      src={student.avatarUrl}
-                      alt=""
-                      className="w-10 h-10 rounded-full object-cover shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center shrink-0 text-gray-500 text-sm font-semibold">
-                      {student.fullName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <UserAvatar
+                    src={student.avatarUrl}
+                    initials={student.fullName.charAt(0).toUpperCase()}
+                    size={40}
+                  />
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -614,17 +609,11 @@ export default function CourseStudentList({
               }}
             >
               <div className="flex items-center gap-3">
-                {deleteTarget.avatarUrl ? (
-                  <img
-                    src={deleteTarget.avatarUrl}
-                    alt=""
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-[#252525] flex items-center justify-center text-gray-500 text-xs font-semibold">
-                    {deleteTarget.fullName.charAt(0)}
-                  </div>
-                )}
+                <UserAvatar
+                  src={deleteTarget.avatarUrl}
+                  initials={deleteTarget.fullName.charAt(0).toUpperCase()}
+                  size={32}
+                />
                 <div>
                   <div className="font-medium text-white text-sm">
                     {deleteTarget.fullName}

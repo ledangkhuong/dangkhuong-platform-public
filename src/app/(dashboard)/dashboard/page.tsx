@@ -1,6 +1,7 @@
 import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
+import UserAvatar from "@/components/admin/UserAvatar";
 import { createClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/lib/site-config";
 import {
@@ -251,16 +252,12 @@ export default async function DashboardPage() {
                 })();
                 return (
                   <div key={post.id} className="flex items-center gap-3 p-4">
-                    {avatarUrl ? (
-                      <Image src={avatarUrl} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover shrink-0" unoptimized />
-                    ) : (
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                        style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
-                      >
-                        {initials || "?"}
-                      </div>
-                    )}
+                    <UserAvatar
+                      src={avatarUrl}
+                      initials={initials || "?"}
+                      size={32}
+                      gradient="linear-gradient(135deg, #D4A843, #059669)"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white">
                         <span className="font-medium">{author}</span>
