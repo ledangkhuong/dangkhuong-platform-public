@@ -4,15 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PasswordInput from "@/components/auth/PasswordInput";
-import TurnstileWidget from "@/components/TurnstileWidget";
 import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 export default function LoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -41,7 +38,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, turnstileToken }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (data.success) {
@@ -94,8 +91,6 @@ export default function LoginForm() {
           Quên mật khẩu?
         </Link>
       </div>
-
-      <TurnstileWidget onVerify={setTurnstileToken} appearance="interaction-only" />
 
       <button
         type="submit"
