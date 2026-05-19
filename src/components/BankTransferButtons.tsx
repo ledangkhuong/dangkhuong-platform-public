@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Smartphone, ChevronDown, X, Copy, Check, ClipboardCheck } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
+import { Smartphone, ChevronDown, X, Copy, Check, ClipboardCheck, QrCode, Monitor } from "lucide-react";
 
 /* ─── Bank list ──────────────────────────────────────── */
 
@@ -60,7 +60,14 @@ export default function BankTransferButtons({
   const recipientBankName = BANK_CODE_NAMES[bankCode.toUpperCase()] || bankCode;
   const formatAmount = (n: number) => n.toLocaleString("vi-VN");
 
+  const isMobile = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }, []);
+
   const deepLink = `https://dl.vietqr.io/pay?app=${selectedBank.appId}&ba=${bankAccount}@${bankCode.toLowerCase()}&am=${amount}&tn=${encodeURIComponent(transferContent)}`;
+
+  const qrImageUrl = `https://img.vietqr.io/image/${bankCode}-${bankAccount}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferContent)}`;
 
   const copyToClipboard = useCallback(async (text: string, field: string) => {
     try {
@@ -82,7 +89,7 @@ export default function BankTransferButtons({
     }
   }, []);
 
-  /* Copy all transfer info to clipboard, then open bank app */
+  /* Copy all transfer info to clipboard, then open bank app (mobile only) */
   const handleTransfer = useCallback(async () => {
     const fullInfo = `${transferContent}`;
     try {
@@ -97,16 +104,23 @@ export default function BankTransferButtons({
       document.execCommand("copy");
       document.body.removeChild(ta);
     }
-    setShowCopiedToast(true);
-    // Small delay so user sees the toast, then open bank app
-    setTimeout(() => {
-      window.location.href = deepLink;
+
+    if (isMobile) {
+      setShowCopiedToast(true);
+      // Small delay so user sees the toast, then open bank app
       setTimeout(() => {
-        setShowModal(false);
-        setShowCopiedToast(false);
-      }, 500);
-    }, 800);
-  }, [deepLink, transferContent]);
+        window.location.href = deepLink;
+        setTimeout(() => {
+          setShowModal(false);
+          setShowCopiedToast(false);
+        }, 500);
+      }, 800);
+    } else {
+      // Desktop: just show copied confirmation, don't redirect to deeplink
+      setCopied("content");
+      setTimeout(() => setCopied(null), 2000);
+    }
+  }, [deepLink, transferContent, isMobile]);
 
   return (
     <>
@@ -120,11 +134,13 @@ export default function BankTransferButtons({
             boxShadow: "0 4px 20px rgba(37,99,235,0.35)",
           }}
         >
-          <Smartphone size={18} />
+          {isMobile ? <Smartphone size={18} /> : <QrCode size={18} />}
           Chuyển khoản ngay
         </button>
         <p className="text-[11px] text-gray-500 text-center mt-2">
-          Bấm để mở app ngân hàng & tự động copy nội dung CK
+          {isMobile
+            ? "Bấm để mở app ngân hàng & tự động copy nội dung CK"
+            : "Bấm để hiện mã QR chuyển khoản"}
         </p>
       </div>
 
@@ -230,18 +246,52 @@ export default function BankTransferButtons({
               </div>
             </div>
 
+            {/* QR Code for desktop users */}
+            {!isMobile && (
+              <div className="mx-5 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Monitor size={14} className="text-blue-500" />
+                  <span className="text-xs font-semibold text-gray-700">Quét mã QR bằng app ngân hàng trên điện thoại</span>
+                </div>
+                <div className="flex justify-center p-4 rounded-xl bg-white border border-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={qrImageUrl}
+                    alt="QR chuyển khoản"
+                    width={220}
+                    height={220}
+                    className="block rounded-lg"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 text-center mt-2">
+                  Mở app ngân hàng → Quét QR → Xác nhận chuyển khoản
+                </p>
+              </div>
+            )}
+
             {/* Info note */}
             <div className="mx-5 mb-4 px-3 py-2.5 rounded-lg bg-blue-50 border border-blue-100">
               <p className="text-xs text-blue-700 leading-relaxed">
-                <strong>Lưu ý:</strong> Khi bấm &quot;Chuyển khoản&quot;, nội dung CK sẽ được tự động copy.
-                Mở app ngân hàng → dán nội dung CK vào ô ghi chú và nhập số tiền{" "}
-                <strong>{formatAmount(amount)}đ</strong>.
+                {isMobile ? (
+                  <>
+                    <strong>Lưu ý:</strong> Khi bấm &quot;Chuyển khoản&quot;, nội dung CK sẽ được tự động copy.
+                    Mở app ngân hàng → dán nội dung CK vào ô ghi chú và nhập số tiền{" "}
+                    <strong>{formatAmount(amount)}đ</strong>.
+                  </>
+                ) : (
+                  <>
+                    <strong>Lưu ý:</strong> Quét mã QR ở trên bằng app ngân hàng trên điện thoại.
+                    Hoặc bấm nút copy bên dưới để chuyển khoản thủ công với nội dung{" "}
+                    <strong>{transferContent}</strong>, số tiền <strong>{formatAmount(amount)}đ</strong>.
+                  </>
+                )}
               </p>
             </div>
 
-            {/* Bank selector + Transfer button */}
+            {/* Bank selector + Transfer button (mobile only shows bank app opener) */}
             <div className="px-5 pb-6 pt-2">
-              {/* Bank selector */}
+              {/* Bank selector — only show on mobile (desktop uses QR code) */}
+              {isMobile && (
               <div className="relative mb-4">
                 <button
                   onClick={() => setShowBankList(!showBankList)}
@@ -275,8 +325,9 @@ export default function BankTransferButtons({
                   </div>
                 )}
               </div>
+              )}
 
-              {/* Transfer button — copies content then opens bank app */}
+              {/* Transfer button — copies content then opens bank app (mobile) or just copies (desktop) */}
               <button
                 onClick={handleTransfer}
                 className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-base font-bold text-white transition-all active:scale-[0.98] cursor-pointer"
@@ -285,12 +336,23 @@ export default function BankTransferButtons({
                   boxShadow: "0 4px 16px rgba(37,99,235,0.3)",
                 }}
               >
-                <Smartphone size={18} />
-                Chuyển khoản
+                {isMobile ? (
+                  <>
+                    <Smartphone size={18} />
+                    Chuyển khoản
+                  </>
+                ) : (
+                  <>
+                    <Copy size={18} />
+                    Copy nội dung chuyển khoản
+                  </>
+                )}
               </button>
 
               <p className="text-[10px] text-gray-400 text-center mt-2">
-                Nội dung CK tự động được copy khi bấm nút
+                {isMobile
+                  ? "Nội dung CK tự động được copy khi bấm nút"
+                  : "Copy nội dung CK để chuyển khoản thủ công qua internet banking"}
               </p>
             </div>
           </div>
