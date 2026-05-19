@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
+import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
 
 /**
  * POST /api/slowenglish/register
@@ -200,7 +201,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Payment info
+    // 5. Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking)
+    {
+      const capiBase = {
+        email: email.trim(),
+        phone: phone?.trim(),
+        name: full_name.trim(),
+        ip,
+        userAgent: req.headers.get("user-agent") || undefined,
+        fbc: req.cookies.get("_fbc")?.value,
+        fbp: req.cookies.get("_fbp")?.value,
+        userId: userId,
+        sourceUrl: "https://dangkhuong.com/slowenglish",
+      };
+
+      // Lead event — user submitted the registration form
+      trackLead({
+        ...capiBase,
+        value: amount,
+        currency: "VND",
+        eventId: `lead_${order.id}`,
+      }).catch(() => {});
+
+      // InitiateCheckout — order created, payment pending
+      trackInitiateCheckout({
+        ...capiBase,
+        value: amount,
+        currency: "VND",
+        contentName: product.title,
+        eventId: `checkout_${order.id}`,
+      }).catch(() => {});
+    }
+
+    // 7. Payment info
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
     const bankCode = process.env.SEPAY_BANK_CODE;
     const hasSepay = bankAccount && bankCode && !bankAccount.includes("your-");
@@ -216,7 +249,7 @@ export async function POST(req: NextRequest) {
         : null,
     };
 
-    // 6. Award XP (only for new users)
+    // 8. Award XP (only for new users)
     if (!isExistingUser) {
       try {
         await admin.from("xp_events").insert({
@@ -230,7 +263,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 7. Send welcome email (only for new users)
+    // 9. Send welcome email (only for new users)
     if (!isExistingUser) {
       try {
         const { sendWelcomeEmail } = await import("@/lib/email/transactional");

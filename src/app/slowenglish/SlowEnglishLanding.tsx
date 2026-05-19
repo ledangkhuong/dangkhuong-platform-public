@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import BankTransferButtons from "@/components/BankTransferButtons";
+import { event as fbEvent } from "@/lib/fbpixel";
 import HeroSection from "./sections/HeroSection";
 import ProofSection from "./sections/ProofSection";
 import PainPointsSection from "./sections/PainPointsSection";
@@ -69,6 +70,15 @@ export default function SlowEnglishLanding() {
     setTurnstileToken(token);
   }, []);
 
+  // Facebook Pixel — ViewContent on page load
+  useEffect(() => {
+    fbEvent("ViewContent", {
+      content_name: "SlowEnglish Landing",
+      content_category: "course",
+      content_type: "product",
+    });
+  }, []);
+
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -103,6 +113,21 @@ export default function SlowEnglishLanding() {
         if (data.paymentInfo) setPaymentInfo(data.paymentInfo);
         if (data.productName) setProductName(data.productName);
         setShowModal(true);
+
+        // Facebook Pixel — client-side Lead + InitiateCheckout (deduplication via eventID with CAPI)
+        const amount = data.paymentInfo?.amount || 0;
+        const orderId = data.order?.id || "";
+        fbEvent("Lead", {
+          content_name: "SlowEnglish Registration",
+          value: amount,
+          currency: "VND",
+        });
+        fbEvent("InitiateCheckout", {
+          content_name: data.productName || "SlowEnglish",
+          value: amount,
+          currency: "VND",
+          content_ids: [orderId],
+        });
       } else {
         setError(data.error || "Có lỗi xảy ra, vui lòng thử lại");
       }

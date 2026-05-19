@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import crypto from "crypto";
+import { trackPurchase } from "@/lib/facebook-capi";
 
 /**
  * SEPAY WEBHOOK
@@ -382,6 +383,28 @@ export async function POST(req: NextRequest) {
       } catch (affErr) {
         console.error("[Sepay] Affiliate attribution error:", affErr);
       }
+    }
+
+    // 10. Facebook CAPI — Purchase event (server-side, non-blocking)
+    try {
+      const { data: purchaseProfile } = await supabase.from("profiles").select("full_name, phone").eq("id", order.user_id).single();
+      const { data: purchaseAuth } = await supabase.auth.admin.getUserById(order.user_id as string);
+      const products = order.products as Record<string, unknown> | null;
+
+      trackPurchase({
+        email: purchaseAuth?.user?.email || (order.customer_email as string) || "",
+        phone: purchaseProfile?.phone || (order.customer_phone as string),
+        name: purchaseProfile?.full_name || (order.customer_name as string),
+        userId: order.user_id as string,
+        value: transferAmount,
+        currency: "VND",
+        orderId: matchedCode,
+        contentName: (products?.title as string) || (products?.name as string) || "Product",
+        eventId: `purchase_${order.id}`,
+        sourceUrl: "https://dangkhuong.com/slowenglish",
+      }).catch(() => {});
+    } catch {
+      // Purchase CAPI failure should never block webhook
     }
 
     console.log(`[Sepay] ✅ Đơn ${matchedCode} thanh toán thành công: ${transferAmount}đ`);
