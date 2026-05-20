@@ -7,6 +7,30 @@ import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame,
 import { createClient } from "@/lib/supabase/client";
 import UserAvatar from "@/components/admin/UserAvatar";
 
+/** Convert URLs in text into clickable links */
+function linkifyContent(text: string): React.ReactNode[] {
+  const urlRegex = /(https?:\/\/[^\s<]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (urlRegex.test(part)) {
+      // Reset lastIndex since we re-test
+      urlRegex.lastIndex = 0;
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#D4A843] hover:underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 interface Post {
   id: string;
   user_id: string;
@@ -524,7 +548,7 @@ export default function CommunityPage() {
                 </div>
 
                 {/* Content */}
-                <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line mb-3">{post.content}</p>
+                <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line mb-3">{linkifyContent(post.content)}</p>
 
                 {/* Post Image */}
                 {post.image_url && (
@@ -609,7 +633,7 @@ export default function CommunityPage() {
                                     <span className="text-xs font-medium text-white">{cName}</span>
                                     <span className="text-[10px] text-gray-500">{formatCreatedAt(comment.created_at)}</span>
                                   </div>
-                                  <p className="text-xs text-gray-300 leading-relaxed mt-0.5 break-words">{comment.content}</p>
+                                  <p className="text-xs text-gray-300 leading-relaxed mt-0.5 break-words">{linkifyContent(comment.content)}</p>
                                 </div>
                               </div>
                             );
