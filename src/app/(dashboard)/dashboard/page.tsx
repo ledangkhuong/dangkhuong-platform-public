@@ -5,8 +5,8 @@ import UserAvatar from "@/components/admin/UserAvatar";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/lib/site-config";
 import {
-  BookOpen, FolderOpen, FileText, Bell,
-  Users, ArrowRight, TrendingUp, Star, Zap, PlayCircle
+  BookOpen, FolderOpen, Bell,
+  Users, ArrowRight, Star, Zap, PlayCircle
 } from "lucide-react";
 import LearningJourney from "@/components/profile/LearningJourney";
 
@@ -63,30 +63,10 @@ export default async function DashboardPage() {
   const activePromotions = promotionsData ?? [];
   const currentPromo = activePromotions.length > 0 ? activePromotions[0] : null;
 
-  // Fetch enrollment count + platform stats in parallel
-  const [
-    { count: enrollCount },
-    { count: totalStudents },
-    { count: completedCourses },
-    { count: postCount },
-  ] = await Promise.all([
-    user
-      ? supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id)
-      : Promise.resolve({ count: 0 }),
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    user
-      ? supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("completed", true)
-      : Promise.resolve({ count: 0 }),
-    user
-      ? supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", user.id)
-      : Promise.resolve({ count: 0 }),
-  ]);
-
-  // Calculate completion rate
-  const totalEnrolled = enrollCount ?? 0;
-  const completionRate = totalEnrolled > 0
-    ? Math.round(((completedCourses ?? 0) / totalEnrolled) * 100)
-    : 0;
+  // Fetch enrollment count
+  const { count: enrollCount } = user
+    ? await supabase.from("enrollments").select("id", { count: "exact", head: true }).eq("user_id", user.id)
+    : { count: 0 };
 
   // Fetch recent posts, enrolled courses, and lesson progress in parallel
   const [{ data: recentPosts }, { data: enrolledProducts }, { data: lessonProgressRows }] = await Promise.all([
@@ -143,12 +123,6 @@ export default async function DashboardPage() {
   const xpForCurrentLevel = (level - 1) * 200;
   const xpForNextLevel = level * 200;
   const xpProgress = Math.min(100, Math.round(((xp - xpForCurrentLevel) / 200) * 100));
-
-  const platformStats = [
-    { label: "Học viên", value: (totalStudents ?? 0).toLocaleString("vi-VN"), icon: Users, color: "#D4A843" },
-    { label: "Khoá học hoàn thành", value: `${completionRate}%`, icon: TrendingUp, color: "#3b82f6" },
-    { label: "Bài viết", value: (postCount ?? 0).toLocaleString("vi-VN"), icon: FileText, color: "#f59e0b" },
-  ];
 
   return (
     <div>
@@ -323,22 +297,62 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Platform Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {platformStats.map((s, i) => (
-              <div key={i} className="card-dark p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-gray-400 font-medium">{s.label}</span>
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center"
-                    style={{ background: s.color + "20" }}
-                  >
-                    <s.icon size={14} style={{ color: s.color }} />
-                  </div>
-                </div>
-                <div className="text-xl font-bold text-white">{s.value}</div>
+          {/* My Courses Progress */}
+          {myCourseProgress.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen size={14} className="text-[#D4A843]" />
+                  Khoá học của tôi
+                </h3>
+                <Link href="/courses" className="text-xs text-[#D4A843] hover:underline flex items-center gap-1">
+                  Xem tất cả <ArrowRight size={12} />
+                </Link>
               </div>
-            ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {myCourseProgress.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/courses/${c.slug}`}
+                    className="card-dark p-4 flex items-center gap-4 hover:bg-[#1a1a1a] transition-colors group"
+                  >
+                    <div className="w-14 h-14 rounded-lg bg-[#222] overflow-hidden shrink-0">
+                      {c.thumbnail ? (
+                        <Image src={c.thumbnail} alt={c.title} width={56} height={56} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <BookOpen size={20} className="text-gray-600" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{c.title}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex-1 h-1.5 rounded-full bg-[#2a2a2a] overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${c.progress}%`,
+                              background: c.progress === 100 ? "#22c55e" : "#D4A843",
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400 shrink-0">{c.progress}%</span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        {c.completedLessons}/{c.totalLessons} bài học
+                      </p>
+                    </div>
+                    <PlayCircle size={22} className="text-gray-500 group-hover:text-[#D4A843] shrink-0 transition-colors" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Learning Journey */}
+          <div className="card-dark p-5">
+            <LearningJourney />
           </div>
 
           {/* Quick Access */}
@@ -443,10 +457,6 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Learning Journey */}
-          <div className="card-dark p-5">
-            <LearningJourney />
-          </div>
         </div>
       </div>
     </div>
