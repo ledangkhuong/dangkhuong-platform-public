@@ -167,10 +167,10 @@ export default async function CourseDetailPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ lesson?: string }>;
+  searchParams: Promise<{ lesson?: string; preview?: string }>;
 }) {
   const { slug } = await params;
-  const { lesson: lessonId } = await searchParams;
+  const { lesson: lessonId, preview: previewParam } = await searchParams;
 
   const supabase = await createClient();
 
@@ -328,8 +328,10 @@ export default async function CourseDetailPage({
   const productTierRequired: string | null = product.tier_required ?? null;
 
   // Access rule:
-  //   user has access IF (enrolled) OR (admin) OR (product is free)
+  //   user has access IF (enrolled) OR (product is free)
   //   OR (product has tier_required set AND user.tier >= product.tier_required)
+  // Admin can PREVIEW content via ?preview=1 query param, but by default
+  // sees the public view (same as customers) so they can verify the landing page.
   // Enrollment always overrides tier requirements.
   // IMPORTANT: tier access only applies when tier_required is explicitly set.
   // If tier_required is null (default), user MUST enroll (purchase) to access.
@@ -337,8 +339,14 @@ export default async function CourseDetailPage({
   const hasTierAccess = meetsRequiredTier(userTier, productTierRequired);
   const hasTierGatedAccess =
     !!productTierRequired && productTierRequired !== "free" && hasTierAccess;
+
+  const isAdmin = profile?.role === "admin";
+
+  // Admin preview mode: admin can add ?preview=1 to access course content
+  const adminPreview = isAdmin && previewParam === "1";
+
   const hasAccess =
-    profile?.role === "admin" ||
+    adminPreview ||
     hasEnrollment ||
     product.price === 0 ||
     hasTierGatedAccess;
@@ -357,9 +365,27 @@ export default async function CourseDetailPage({
     };
     return (
       <div>
-        {/* Track interest: user viewed course but hasn't purchased */}
-        <CourseInterestTracker productId={product.id} />
+        {/* Track interest: user viewed course but hasn't purchased (skip for admin) */}
+        {!isAdmin && <CourseInterestTracker productId={product.id} />}
         <TopBar title={product.title} subtitle="Khoá học" />
+
+        {/* Admin quick-access banner */}
+        {isAdmin && (
+          <div className="max-w-2xl mx-auto px-4 pt-4">
+            <a
+              href={`/courses/${product.slug}?preview=1`}
+              className="flex items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium transition-all hover:scale-[1.01]"
+              style={{
+                background: "rgba(59,130,246,0.1)",
+                border: "1px solid rgba(59,130,246,0.25)",
+                color: "#60a5fa",
+              }}
+            >
+              <BookOpen size={16} />
+              Admin: Bấm để xem nội dung khoá học
+            </a>
+          </div>
+        )}
 
         {/* Tier upgrade banner — shown when tier is the blocking reason */}
         {blockedByTier && (
