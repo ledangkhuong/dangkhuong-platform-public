@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import crypto from "crypto";
 import { trackPurchase } from "@/lib/facebook-capi";
+import { alertPaymentFailure, alertUnderpayment } from "@/lib/admin-alerts";
 
 /**
  * SEPAY WEBHOOK
@@ -140,6 +141,14 @@ export async function POST(req: NextRequest) {
 
     if (!order) {
       console.error("[Sepay] ❌ Order not found. Tried:", candidates);
+      // Alert admins so they can manually confirm
+      alertPaymentFailure({
+        source: "SePay",
+        amount: transferAmount,
+        content: fullContent,
+        candidates,
+        gateway,
+      });
       return NextResponse.json({ success: true, message: "Order not found" });
     }
 
@@ -161,6 +170,13 @@ export async function POST(req: NextRequest) {
         note: `Thiếu tiền: cần ${order.amount}đ, nhận ${transferAmount}đ`,
         updated_at: new Date().toISOString(),
       }).eq("id", order.id);
+      // Alert admins about underpayment
+      alertUnderpayment({
+        orderCode: matchedCode,
+        expected: order.amount as number,
+        received: transferAmount,
+        customerName: (order.customer_name as string) || "Unknown",
+      });
       await logAudit({
         admin_id: "system",
         action: "order.underpaid" as any,

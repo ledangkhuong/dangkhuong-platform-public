@@ -96,6 +96,15 @@ export async function POST(req: NextRequest) {
 
     if (orderError || !order) {
       console.error(`[PayOS] Order not found for payos_order_code: ${orderCode}`);
+      // Alert admins
+      import("@/lib/admin-alerts").then(({ alertPaymentFailure }) =>
+        alertPaymentFailure({
+          source: "PayOS",
+          amount: payosAmount ?? 0,
+          content: `payos_order_code=${orderCode}`,
+          candidates: [String(orderCode)],
+        })
+      ).catch(() => {});
       return NextResponse.json({ success: true, message: "Order not found" });
     }
 
