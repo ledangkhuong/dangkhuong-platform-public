@@ -240,10 +240,33 @@ export default function CommunityPage() {
   };
 
   useEffect(() => {
-    fetch("/api/community/posts?limit=20")
-      .then(r => r.json())
-      .then(d => { setPosts(d.posts || []); setLoading(false); })
-      .catch(() => setLoading(false));
+    async function loadFeed() {
+      try {
+        const res = await fetch("/api/community/posts?limit=20");
+        const d = await res.json();
+        const loadedPosts: Post[] = d.posts || [];
+        setPosts(loadedPosts);
+
+        // Fetch which posts the current user has liked
+        if (loadedPosts.length > 0) {
+          const ids = loadedPosts.map(p => p.id);
+          const likesRes = await fetch("/api/community/likes/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ post_ids: ids }),
+          });
+          if (likesRes.ok) {
+            const likesData = await likesRes.json();
+            setLikedPosts(new Set(likesData.liked_ids || []));
+          }
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadFeed();
   }, []);
 
   useEffect(() => {
@@ -272,20 +295,43 @@ export default function CommunityPage() {
 
   const handleLike = async (postId: string) => {
     const wasLiked = likedPosts.has(postId);
+
+    // Optimistic update
     setLikedPosts(prev => {
       const next = new Set(prev);
       wasLiked ? next.delete(postId) : next.add(postId);
       return next;
     });
     setPosts(prev => prev.map(p => p.id === postId
-      ? { ...p, likes_count: p.likes_count + (wasLiked ? -1 : 1) }
+      ? { ...p, likes_count: Math.max(0, p.likes_count + (wasLiked ? -1 : 1)) }
       : p
     ));
-    await fetch("/api/community/likes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ post_id: postId }),
-    }).catch(() => {
+
+    try {
+      const res = await fetch("/api/community/likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: postId }),
+      });
+
+      if (!res.ok) throw new Error("API error");
+
+      // Sync with server count
+      const data = await res.json();
+      if (typeof data.likes_count === "number") {
+        setPosts(prev => prev.map(p => p.id === postId
+          ? { ...p, likes_count: data.likes_count }
+          : p
+        ));
+      }
+      // Sync liked state from server response
+      setLikedPosts(prev => {
+        const next = new Set(prev);
+        data.liked ? next.add(postId) : next.delete(postId);
+        return next;
+      });
+    } catch {
+      // Rollback optimistic update
       setLikedPosts(prev => {
         const next = new Set(prev);
         wasLiked ? next.add(postId) : next.delete(postId);
@@ -297,7 +343,7 @@ export default function CommunityPage() {
       ));
       setLikeError("Không thể thực hiện hành động này. Vui lòng thử lại.");
       setTimeout(() => setLikeError(null), 3000);
-    });
+    }
   };
 
   const handlePost = async () => {

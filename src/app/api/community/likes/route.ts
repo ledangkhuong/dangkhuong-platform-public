@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     // Check if already liked
     const { data: existing } = await admin
       .from("post_likes")
-      .select("id")
+      .select("user_id, post_id")
       .eq("user_id", user.id)
       .eq("post_id", post_id)
       .maybeSingle();
@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
       const { error: deleteError } = await admin
         .from("post_likes")
         .delete()
-        .eq("id", existing.id);
+        .eq("user_id", user.id)
+        .eq("post_id", post_id);
 
       if (deleteError)
         return NextResponse.json({ error: deleteError.message }, { status: 500 });
@@ -130,7 +131,7 @@ export async function GET(req: NextRequest) {
 
   const { data } = await supabase
     .from("post_likes")
-    .select("id")
+    .select("user_id")
     .eq("user_id", user.id)
     .eq("post_id", post_id)
     .maybeSingle();
