@@ -11,11 +11,18 @@ import { useMobileSidebar } from "@/components/layout/MobileSidebarContext";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/actions/auth";
 
+interface PromotionItem {
+  label: string;
+  text: string;
+  link?: string;
+}
+
 interface TopBarProps {
   title: string;
   subtitle?: string;
   onMenuClick?: () => void;
   notification?: { label: string; text: string };
+  promotions?: PromotionItem[];
 }
 
 interface UserProfile {
@@ -24,10 +31,20 @@ interface UserProfile {
   role: string;
 }
 
-export default function TopBar({ title, subtitle, onMenuClick, notification }: TopBarProps) {
+export default function TopBar({ title, subtitle, onMenuClick, notification, promotions }: TopBarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   useSearchShortcut(() => setSearchOpen(true));
   const { toggle: toggleMobileSidebar } = useMobileSidebar();
+  const [promoIndex, setPromoIndex] = useState(0);
+
+  // Auto-rotate promotions every 5s
+  useEffect(() => {
+    if (!promotions || promotions.length <= 1) return;
+    const timer = setInterval(() => {
+      setPromoIndex((prev) => (prev + 1) % promotions.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [promotions]);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [email, setEmail] = useState<string>("");
@@ -76,8 +93,38 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
 
   return (
     <header className="sticky top-0 z-30" style={{ background: "rgba(10,10,10,0.95)", backdropFilter: "blur(8px)" }}>
-      {/* Notification Bar — visible on all screens, compact on mobile */}
-      {notification && (
+      {/* Promotion Bar — dynamic rotating banners */}
+      {promotions && promotions.length > 0 && (() => {
+        const current = promotions[promoIndex % promotions.length];
+        const inner = (
+          <div className="notification-bar flex flex-wrap items-center justify-center gap-x-2 gap-y-1 py-1.5 sm:py-2 px-3 sm:px-4 text-sm">
+            <Bell size={13} className="text-[#D4A843] shrink-0" />
+            <span className="text-gray-400 text-xs">
+              Lê Đăng Khương vừa cập nhật:
+            </span>
+            <span className="badge-green shrink-0">{current.label}</span>
+            <span className="text-white text-xs font-medium">{current.text}</span>
+            {promotions.length > 1 && (
+              <div className="hidden sm:flex gap-1 ml-1">
+                {promotions.map((_, i) => (
+                  <button
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full transition-colors"
+                    style={{ background: i === promoIndex % promotions.length ? "#D4A843" : "#333" }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPromoIndex(i); }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+        return current.link ? (
+          <a href={current.link} className="block hover:opacity-90 transition-opacity">{inner}</a>
+        ) : inner;
+      })()}
+
+      {/* Legacy notification support */}
+      {!promotions?.length && notification && (
         <div className="notification-bar flex flex-wrap items-center justify-center gap-x-2 gap-y-1 py-1.5 sm:py-2 px-3 sm:px-4 text-sm">
           <Bell size={13} className="text-[#D4A843] shrink-0" />
           <span className="text-gray-400 text-xs">
@@ -85,12 +132,6 @@ export default function TopBar({ title, subtitle, onMenuClick, notification }: T
           </span>
           <span className="badge-green shrink-0">{notification.label}</span>
           <span className="text-white text-xs font-medium">{notification.text}</span>
-          <div className="hidden sm:flex gap-1 ml-1">
-            {[1,2,3,4,5].map(i => (
-              <div key={i} className="w-1.5 h-1.5 rounded-full"
-                style={{ background: i === 1 ? "#D4A843" : "#333" }} />
-            ))}
-          </div>
         </div>
       )}
 

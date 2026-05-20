@@ -2,7 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import Image from "next/image";
 import UserAvatar from "@/components/admin/UserAvatar";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/lib/site-config";
 import {
   BookOpen, FolderOpen, FileText, Bell,
@@ -51,6 +51,17 @@ export default async function DashboardPage() {
   const { data: profile } = user
     ? await supabase.from("profiles").select("full_name, xp, level, tier, streak").eq("id", user.id).single()
     : { data: null };
+
+  // Fetch active promotions for banner
+  const adminClient = await createAdminClient();
+  const { data: promotionsData } = await adminClient
+    .from("promotions")
+    .select("label, text, link")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
+  const activePromotions = promotionsData ?? [];
+  const currentPromo = activePromotions.length > 0 ? activePromotions[0] : null;
 
   // Fetch enrollment count + platform stats in parallel
   const [
@@ -144,7 +155,11 @@ export default async function DashboardPage() {
       <TopBar
         title="Tổng quan"
         subtitle={`Chào mừng bạn trở lại, ${displayName}`}
-        notification={{ label: "Khoá học mới 🔥", text: "Digital Snacks — Kiếm tiền từ sản phẩm số" }}
+        promotions={activePromotions.map((p) => ({
+          label: p.label,
+          text: p.text,
+          link: p.link ?? undefined,
+        }))}
       />
 
       <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6 sm:space-y-8">
