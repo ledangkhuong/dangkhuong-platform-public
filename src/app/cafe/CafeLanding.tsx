@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Coffee,
   Star,
@@ -185,7 +185,24 @@ export default function CafeLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">("pending");
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Poll order status every 5s when payment modal is open
+  useEffect(() => {
+    if (!showModal || !paymentInfo?.order_code || paymentStatus === "paid") return;
+    const poll = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/check-status?order_code=${paymentInfo.order_code}`);
+        const data = await res.json();
+        if (data.status === "paid") {
+          setPaymentStatus("paid");
+          clearInterval(poll);
+        }
+      } catch { /* ignore */ }
+    }, 5000);
+    return () => clearInterval(poll);
+  }, [showModal, paymentInfo?.order_code, paymentStatus]);
 
   const scrollToForm = () =>
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1059,6 +1076,33 @@ export default function CafeLanding() {
             className="relative w-full max-w-md rounded-2xl overflow-y-auto max-h-[90vh]"
             style={{ background: "#111", border: "1px solid #1f1f1f" }}
           >
+            {paymentStatus === "paid" ? (
+              <div className="p-8 text-center">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 bg-green-500/15 border-2 border-green-500/40">
+                  <CheckCircle size={40} className="text-green-500" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                  Thanh Toán Thành Công! 🎉
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed mb-6">
+                  Tài liệu đã được mở khoá. Đăng nhập để truy cập ngay!
+                </p>
+                <a
+                  href="/dashboard"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold text-white transition-all hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
+                >
+                  Vào Xem Ngay <ArrowRight size={16} />
+                </a>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="block w-full mt-4 py-2 text-sm text-gray-500 cursor-pointer"
+                >
+                  Đóng
+                </button>
+              </div>
+            ) : (
+              <>
             {/* Modal Header */}
             <div
               className="p-8 text-center"
@@ -1236,6 +1280,8 @@ export default function CafeLanding() {
                 </button>
               </div>
             </div>
+              </>
+            )}
           </div>
         </div>
       )}
