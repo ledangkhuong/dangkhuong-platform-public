@@ -37,106 +37,113 @@ export async function GET(req: NextRequest) {
 
 // POST /api/community/comments — tạo comment mới
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-  const rateLimitResult = await rateLimit(`comments:${ip}`, 20, 60);
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json(
-      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
-      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
-    );
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  let body: { post_id?: string; content?: string };
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-  }
-  const { post_id, content } = body;
-
-  if (!post_id)
-    return NextResponse.json({ error: "post_id required" }, { status: 400 });
-
-  if (!content?.trim())
-    return NextResponse.json({ error: "content required" }, { status: 400 });
-
-  if (content.trim().length > 500)
-    return NextResponse.json(
-      { error: "content must be 500 characters or fewer" },
-      { status: 400 }
-    );
-
-  const { data, error } = await supabase
-    .from("comments")
-    .insert({ user_id: user.id, post_id, content: content.trim() })
-    .select(`*, profiles(full_name, avatar_url, level)`)
-    .single();
-
-  if (error) {
-    console.error("POST /api/community/comments error:", error.message);
-    return NextResponse.json({ error: "Không thể tạo bình luận. Vui lòng thử lại." }, { status: 500 });
-  }
-
-  // Atomically increment comments_count on the post
-  await supabase.rpc("increment_comments_count", { post_id });
-
-  // Award XP (daily cap: 10 comment-XP events)
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const { count: commentXpToday } = await supabase
-    .from("xp_events")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("action", "comment_created")
-    .gte("created_at", todayStart.toISOString());
-
-  if ((commentXpToday ?? 0) < 10) {
-    await supabase.from("xp_events").insert({
-      user_id: user.id,
-      action: "comment_created",
-      xp_amount: 20,
-      meta: { post_id, comment_id: data.id },
-    });
-  }
-
-  // Notify the post owner (skip if commenter is the post owner)
-  try {
-    const { data: post } = await supabase
-      .from("posts")
-      .select("user_id")
-      .eq("id", post_id)
-      .single();
-
-    if (post && post.user_id !== user.id) {
-      const admin = await createAdminClient();
-      const { data: commenterProfile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .single();
-
-      const commenterName = commenterProfile?.full_name || "Ai đó";
-      await createNotification(
-        admin,
-        post.user_id,
-        "comment",
-        `${commenterName} đã bình luận bài viết của bạn`,
-        `${commenterName} đã bình luận bài viết của bạn`,
-        "/community",
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = await rateLimit(`comments:${ip}`, 20, 60);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
       );
     }
-  } catch {
-    // Notification failure should not break comment flow
-  }
 
-  return NextResponse.json({ comment: data }, { status: 201 });
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    let body: { post_id?: string; content?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+    const { post_id, content } = body;
+
+    if (!post_id)
+      return NextResponse.json({ error: "post_id required" }, { status: 400 });
+
+    if (!content?.trim())
+      return NextResponse.json({ error: "content required" }, { status: 400 });
+
+    if (content.trim().length > 500)
+      return NextResponse.json(
+        { error: "content must be 500 characters or fewer" },
+        { status: 400 }
+      );
+
+    // Use admin client for DB operations (auth already verified above)
+    const admin = await createAdminClient();
+
+    const { data, error } = await admin
+      .from("comments")
+      .insert({ user_id: user.id, post_id, content: content.trim() })
+      .select(`*, profiles(full_name, avatar_url, level)`)
+      .single();
+
+    if (error) {
+      console.error("POST /api/community/comments error:", error.message);
+      return NextResponse.json({ error: "Không thể tạo bình luận. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    // Atomically increment comments_count on the post
+    await admin.rpc("increment_comments_count", { post_id });
+
+    // Award XP (daily cap: 10 comment-XP events)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: commentXpToday } = await admin
+      .from("xp_events")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("action", "comment_created")
+      .gte("created_at", todayStart.toISOString());
+
+    if ((commentXpToday ?? 0) < 10) {
+      await admin.from("xp_events").insert({
+        user_id: user.id,
+        action: "comment_created",
+        xp_amount: 20,
+        meta: { post_id, comment_id: data.id },
+      });
+    }
+
+    // Notify the post owner (skip if commenter is the post owner)
+    try {
+      const { data: post } = await admin
+        .from("posts")
+        .select("user_id")
+        .eq("id", post_id)
+        .single();
+
+      if (post && post.user_id !== user.id) {
+        const { data: commenterProfile } = await admin
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        const commenterName = commenterProfile?.full_name || "Ai đó";
+        await createNotification(
+          admin,
+          post.user_id,
+          "comment",
+          `${commenterName} đã bình luận bài viết của bạn`,
+          `${commenterName} đã bình luận bài viết của bạn`,
+          "/community",
+        );
+      }
+    } catch {
+      // Notification failure should not break comment flow
+    }
+
+    return NextResponse.json({ comment: data }, { status: 201 });
+  } catch (err) {
+    console.error("POST /api/community/comments unexpected error:", err);
+    return NextResponse.json({ error: "Không thể tạo bình luận. Vui lòng thử lại." }, { status: 500 });
+  }
 }
 
 // DELETE /api/community/comments?comment_id=... — xoá comment

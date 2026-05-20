@@ -51,104 +51,110 @@ export async function GET(req: NextRequest) {
 
 // POST /api/community/posts — tạo post mới
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-  const rateLimitResult = await rateLimit(`posts:${ip}`, 10, 60);
-  if (!rateLimitResult.allowed) {
-    return NextResponse.json(
-      { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
-      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
-    );
-  }
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  let body;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-  }
-  const { content, tags, image_url, category, product_id } = body;
-  if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
-  if (content.trim().length > 5000) {
-    return NextResponse.json({ error: "Nội dung quá dài (tối đa 5000 ký tự)" }, { status: 400 });
-  }
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    const rateLimitResult = await rateLimit(`posts:${ip}`, 10, 60);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfterSec) } }
+      );
+    }
 
-  if (image_url) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    let body;
     try {
-      const urlObj = new URL(image_url);
-      if (!["http:", "https:"].includes(urlObj.protocol)) {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+    const { content, tags, image_url, category, product_id } = body;
+    if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+    if (content.trim().length > 5000) {
+      return NextResponse.json({ error: "Nội dung quá dài (tối đa 5000 ký tự)" }, { status: 400 });
+    }
+
+    if (image_url) {
+      try {
+        const urlObj = new URL(image_url);
+        if (!["http:", "https:"].includes(urlObj.protocol)) {
+          return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
+        }
+      } catch {
         return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
       }
-    } catch {
-      return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
     }
-  }
 
-  // If product_id is provided, verify enrollment or staff role
-  if (product_id) {
-    const adminClient = await createAdminClient();
+    // Use admin client for DB operations (auth already verified above)
+    const admin = await createAdminClient();
 
-    const { data: enrollment } = await adminClient
-      .from("enrollments")
-      .select("id")
+    // If product_id is provided, verify enrollment or staff role
+    if (product_id) {
+      const { data: enrollment } = await admin
+        .from("enrollments")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("product_id", product_id)
+        .maybeSingle();
+
+      let isStaff = false;
+      if (!enrollment) {
+        const { data: profile } = await admin
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        isStaff = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(
+          profile?.role ?? ""
+        );
+      }
+
+      if (!enrollment && !isStaff) {
+        return NextResponse.json(
+          { error: "Bạn chưa đăng ký khoá học này" },
+          { status: 403 }
+        );
+      }
+    }
+
+    const { data, error } = await admin
+      .from("posts")
+      .insert({
+        user_id: user.id,
+        content: content.trim(),
+        tags,
+        image_url,
+        ...(category ? { category } : {}),
+        ...(product_id ? { product_id } : {}),
+      })
+      .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
+      .single();
+
+    if (error) {
+      console.error("POST /api/community/posts error:", error.message);
+      return NextResponse.json({ error: "Không thể tạo bài viết. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    // Thêm XP (daily cap: 5 post-XP events)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: postXpToday } = await admin
+      .from("xp_events")
+      .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .eq("product_id", product_id)
-      .maybeSingle();
+      .eq("action", "post_created")
+      .gte("created_at", todayStart.toISOString());
 
-    let isStaff = false;
-    if (!enrollment) {
-      const { data: profile } = await adminClient
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      isStaff = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(
-        profile?.role ?? ""
-      );
+    if ((postXpToday ?? 0) < 5) {
+      await admin.from("xp_events").insert({ user_id: user.id, action: "post_created", xp_amount: 50 });
     }
 
-    if (!enrollment && !isStaff) {
-      return NextResponse.json(
-        { error: "Bạn chưa đăng ký khoá học này" },
-        { status: 403 }
-      );
-    }
-  }
-
-  const { data, error } = await supabase
-    .from("posts")
-    .insert({
-      user_id: user.id,
-      content: content.trim(),
-      tags,
-      image_url,
-      ...(category ? { category } : {}),
-      ...(product_id ? { product_id } : {}),
-    })
-    .select(`*, profiles(full_name, avatar_url, level, tier)`)
-    .single();
-
-  if (error) {
-    console.error("POST /api/community/posts error:", error.message);
+    return NextResponse.json({ post: data });
+  } catch (err) {
+    console.error("POST /api/community/posts unexpected error:", err);
     return NextResponse.json({ error: "Không thể tạo bài viết. Vui lòng thử lại." }, { status: 500 });
   }
-
-  // Thêm XP (daily cap: 5 post-XP events)
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const { count: postXpToday } = await supabase
-    .from("xp_events")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("action", "post_created")
-    .gte("created_at", todayStart.toISOString());
-
-  if ((postXpToday ?? 0) < 5) {
-    await supabase.from("xp_events").insert({ user_id: user.id, action: "post_created", xp_amount: 50 });
-  }
-
-  return NextResponse.json({ post: data });
 }
