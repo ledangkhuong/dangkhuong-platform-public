@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, PlayCircle, ArrowRight } from "lucide-react";
+import { BookOpen, PlayCircle, ArrowRight, Clock, Sparkles } from "lucide-react";
 
 type PublicCourse = {
   slug: string;
@@ -12,6 +12,7 @@ type PublicCourse = {
   sale_price: number | null;
   thumbnail: string | null;
   type: string;
+  status: string;
   lessonCount: number;
   chapterCount: number;
 };
@@ -29,11 +30,181 @@ function formatPrice(p: number) {
   return p.toLocaleString("vi-VN") + "đ";
 }
 
+/* ─── Course Card ───────────────────────────────────────────────────────────── */
+
+function PublicCourseCard({
+  course,
+  idx,
+  isComingSoon,
+}: {
+  course: PublicCourse;
+  idx: number;
+  isComingSoon?: boolean;
+}) {
+  const isFree = course.price === 0;
+  const hasSale = course.sale_price !== null && course.sale_price < course.price;
+  const displayPrice = hasSale ? course.sale_price! : course.price;
+  const color = PLACEHOLDER_COLORS[idx % PLACEHOLDER_COLORS.length];
+
+  const Wrapper = isComingSoon ? "div" : Link;
+  const wrapperProps = isComingSoon
+    ? { className: "card-dark overflow-hidden flex flex-col opacity-80 cursor-default" }
+    : {
+        href: `/courses/${course.slug}`,
+        className: "card-dark overflow-hidden flex flex-col hover:ring-1 hover:ring-white/10 transition-all group",
+      };
+
+  return (
+    // @ts-expect-error -- polymorphic wrapper
+    <Wrapper key={course.slug} {...wrapperProps}>
+      {/* Thumbnail */}
+      <div className="relative aspect-video bg-[#1a1a1a] overflow-hidden">
+        {course.thumbnail ? (
+          <Image
+            src={course.thumbnail}
+            alt={course.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className={`object-cover ${isComingSoon ? "grayscale-[30%]" : "group-hover:scale-105"} transition-transform duration-300`}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, ${color}15 0%, ${color}08 100%)`,
+            }}
+          >
+            <BookOpen size={48} style={{ color: color + "60" }} />
+          </div>
+        )}
+
+        {/* Badge */}
+        <div className="absolute top-3 left-3">
+          {isComingSoon ? (
+            <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-purple-600 text-white flex items-center gap-1">
+              <Clock size={11} /> Sắp ra mắt
+            </span>
+          ) : isFree ? (
+            <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#22c55e] text-white">
+              Miễn phí
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#D4A843] text-black">
+              {formatPrice(displayPrice)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-semibold text-white text-sm leading-snug mb-1.5 line-clamp-2">
+          {course.title}
+        </h3>
+
+        {course.description && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
+            {course.description}
+          </p>
+        )}
+
+        {/* Meta */}
+        <div className="flex items-center gap-3 text-[11px] text-gray-500 mb-3">
+          {course.chapterCount > 0 && (
+            <span className="flex items-center gap-1">
+              <BookOpen size={11} /> {course.chapterCount} chương
+            </span>
+          )}
+          {course.lessonCount > 0 && (
+            <span className="flex items-center gap-1">
+              <PlayCircle size={11} /> {course.lessonCount} bài học
+            </span>
+          )}
+        </div>
+
+        <div className="flex-1" />
+
+        {/* CTA */}
+        <div
+          className="flex items-center justify-between mt-auto pt-3"
+          style={{ borderTop: "1px solid #222" }}
+        >
+          <div>
+            {isComingSoon ? (
+              <span className="text-xs text-gray-500 italic">Đang chuẩn bị</span>
+            ) : isFree ? (
+              <span className="text-sm font-bold text-[#22c55e]">Miễn phí</span>
+            ) : hasSale ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-[#D4A843]">
+                  {formatPrice(course.sale_price!)}
+                </span>
+                <span className="text-xs text-gray-500 line-through">
+                  {formatPrice(course.price)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-sm font-bold text-[#D4A843]">
+                {formatPrice(course.price)}
+              </span>
+            )}
+          </div>
+
+          {isComingSoon ? (
+            <span className="text-xs py-1.5 px-3 rounded-lg bg-purple-600/20 text-purple-400 border border-purple-600/30 font-medium flex items-center gap-1">
+              <Clock size={11} /> Chờ đón
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs font-medium text-[#D4A843] group-hover:gap-2 transition-all">
+              Xem chi tiết <ArrowRight size={13} />
+            </span>
+          )}
+        </div>
+      </div>
+    </Wrapper>
+  );
+}
+
+/* ─── Section Header ────────────────────────────────────────────────────────── */
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  iconColor,
+}: {
+  icon: typeof BookOpen;
+  title: string;
+  subtitle: string;
+  iconColor: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 mb-5">
+      <div
+        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+        style={{ background: `${iconColor}15` }}
+      >
+        <Icon size={18} style={{ color: iconColor }} />
+      </div>
+      <div>
+        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <p className="text-gray-400 text-sm mt-0.5">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Main Component ────────────────────────────────────────────────────────── */
+
 export default function CoursesPublicGrid({
   courses,
 }: {
   courses: PublicCourse[];
 }) {
+  // Split into sections
+  const availableCourses = courses.filter((c) => c.status !== "coming_soon");
+  const comingSoonCourses = courses.filter((c) => c.status === "coming_soon");
+
   return (
     <div className="pt-20 pb-16 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
@@ -49,119 +220,39 @@ export default function CoursesPublicGrid({
           </p>
         </div>
 
-        {/* Course Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {courses.map((course, idx) => {
-            const isFree = course.price === 0;
-            const hasSale =
-              course.sale_price !== null && course.sale_price < course.price;
-            const displayPrice = hasSale ? course.sale_price! : course.price;
-            const color = PLACEHOLDER_COLORS[idx % PLACEHOLDER_COLORS.length];
+        {/* Available Courses */}
+        {availableCourses.length > 0 && (
+          <section className="mb-12">
+            <SectionHeader
+              icon={Sparkles}
+              title="Khoá học hiện có"
+              subtitle="Bắt đầu học ngay với những khoá học chất lượng"
+              iconColor="#D4A843"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {availableCourses.map((course, idx) => (
+                <PublicCourseCard key={course.slug} course={course} idx={idx} />
+              ))}
+            </div>
+          </section>
+        )}
 
-            return (
-              <Link
-                key={course.slug}
-                href={`/courses/${course.slug}`}
-                className="card-dark overflow-hidden flex flex-col hover:ring-1 hover:ring-white/10 transition-all group"
-              >
-                {/* Thumbnail */}
-                <div className="relative aspect-video bg-[#1a1a1a] overflow-hidden">
-                  {course.thumbnail ? (
-                    <Image
-                      src={course.thumbnail}
-                      alt={course.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{
-                        background: `linear-gradient(135deg, ${color}15 0%, ${color}08 100%)`,
-                      }}
-                    >
-                      <BookOpen size={48} style={{ color: color + "60" }} />
-                    </div>
-                  )}
-
-                  {/* Price badge */}
-                  <div className="absolute top-3 left-3">
-                    {isFree ? (
-                      <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#22c55e] text-white">
-                        Miễn phí
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 rounded-md text-[11px] font-semibold bg-[#D4A843] text-black">
-                        {formatPrice(displayPrice)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-semibold text-white text-sm leading-snug mb-1.5 line-clamp-2">
-                    {course.title}
-                  </h3>
-
-                  {course.description && (
-                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
-                      {course.description}
-                    </p>
-                  )}
-
-                  {/* Meta */}
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500 mb-3">
-                    {course.chapterCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <BookOpen size={11} /> {course.chapterCount} chương
-                      </span>
-                    )}
-                    {course.lessonCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <PlayCircle size={11} /> {course.lessonCount} bài học
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex-1" />
-
-                  {/* CTA */}
-                  <div
-                    className="flex items-center justify-between mt-auto pt-3"
-                    style={{ borderTop: "1px solid #222" }}
-                  >
-                    <div>
-                      {isFree ? (
-                        <span className="text-sm font-bold text-[#22c55e]">
-                          Miễn phí
-                        </span>
-                      ) : hasSale ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#D4A843]">
-                            {formatPrice(course.sale_price!)}
-                          </span>
-                          <span className="text-xs text-gray-500 line-through">
-                            {formatPrice(course.price)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm font-bold text-[#D4A843]">
-                          {formatPrice(course.price)}
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="flex items-center gap-1 text-xs font-medium text-[#D4A843] group-hover:gap-2 transition-all">
-                      Xem chi tiết <ArrowRight size={13} />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        {/* Coming Soon */}
+        {comingSoonCourses.length > 0 && (
+          <section className="mb-12">
+            <SectionHeader
+              icon={Clock}
+              title="Khoá học sắp ra mắt"
+              subtitle="Những khoá học đang được chuẩn bị, hãy chờ đón!"
+              iconColor="#a855f7"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {comingSoonCourses.map((course, idx) => (
+                <PublicCourseCard key={course.slug} course={course} idx={idx} isComingSoon />
+              ))}
+            </div>
+          </section>
+        )}
 
         {courses.length === 0 && (
           <div className="card-dark p-10 text-center">

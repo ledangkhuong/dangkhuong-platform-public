@@ -29,10 +29,15 @@ function formatDate(dateStr: string): string {
   });
 }
 
-type CourseStatus = "draft" | "published" | "archived";
+type CourseStatus = "draft" | "published" | "coming_soon" | "archived";
 
 const STATUS_CONFIG: Record<CourseStatus, { label: string; className: string }> = {
   published: { label: "Đã xuất bản", className: "badge-green" },
+  coming_soon: {
+    label: "Sắp ra mắt",
+    className:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-900/30 text-purple-400 border border-purple-800/40",
+  },
   draft: {
     label: "Bản nháp",
     className:

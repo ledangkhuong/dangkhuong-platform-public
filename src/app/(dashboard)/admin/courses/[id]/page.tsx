@@ -453,6 +453,7 @@ export default function EditCoursePage() {
               >
                 <option value="draft">Bản nháp</option>
                 <option value="published">Đã xuất bản</option>
+                <option value="coming_soon">Sắp ra mắt</option>
                 <option value="archived">Đã lưu trữ</option>
               </select>
             </div>

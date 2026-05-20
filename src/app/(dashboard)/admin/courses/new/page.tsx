@@ -268,6 +268,7 @@ export default function NewCoursePage() {
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
+                <option value="coming_soon">Coming Soon</option>
                 <option value="archived">Archived</option>
               </select>
             </div>

@@ -122,10 +122,9 @@ export default function NotificationDropdown() {
       );
       setUnreadCount((c) => Math.max(0, c - 1));
     }
-    if (notif.link) {
-      setOpen(false);
-      window.location.href = notif.link;
-    }
+    setOpen(false);
+    // Navigate to link if available, otherwise go to notifications page
+    window.location.href = notif.link || "/notifications";
   }
 
   const visible = notifications.slice(0, 6);

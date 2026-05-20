@@ -183,12 +183,48 @@ export default async function CourseDetailPage({
   const adminDb = await createAdminClient();
   const { data: product } = await adminDb
     .from("products")
-    .select("id, slug, title, description, description_html, price, sale_price, thumbnail, type, tier_required")
+    .select("id, slug, title, description, description_html, price, sale_price, thumbnail, type, tier_required, status")
     .eq("slug", slug)
-    .eq("status", "published")
+    .in("status", ["published", "coming_soon"])
     .single();
 
   if (!product) notFound();
+
+  // ── Coming Soon: show a teaser page ──
+  if ((product as Record<string, unknown>).status === "coming_soon") {
+    return (
+      <div>
+        <TopBar title={product.title} subtitle="Khoá học sắp ra mắt" />
+        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+          {product.thumbnail && (
+            <div className="rounded-xl overflow-hidden mb-8 mx-auto max-w-md">
+              <img
+                src={product.thumbnail}
+                alt={product.title}
+                className="w-full aspect-video object-cover grayscale-[20%]"
+              />
+            </div>
+          )}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/20 text-purple-400 border border-purple-600/30 text-sm font-medium mb-6">
+            <Clock size={16} /> Sắp ra mắt
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-3">{product.title}</h1>
+          {product.description && (
+            <p className="text-gray-400 leading-relaxed mb-6">{product.description}</p>
+          )}
+          <p className="text-sm text-gray-500">
+            Khoá học đang được chuẩn bị. Hãy quay lại sau nhé!
+          </p>
+          <a
+            href="/courses"
+            className="inline-flex items-center gap-2 mt-6 text-sm font-medium text-[#D4A843] hover:underline"
+          >
+            ← Quay lại danh sách khoá học
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   // Fetch chapters + lessons (use admin client to bypass RLS on chapters/lessons tables)
   // Try with optional columns first (unlock_after_days, attachments require migrations).

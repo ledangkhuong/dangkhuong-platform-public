@@ -45,11 +45,11 @@ export default async function CoursesPage() {
     .from("products")
     .select(
       `
-      id, slug, title, description, price, sale_price, type, tier_required, thumbnail,
+      id, slug, title, description, price, sale_price, type, tier_required, thumbnail, status,
       chapters(id, lessons(id))
     `
     )
-    .eq("status", "published")
+    .in("status", ["published", "coming_soon"])
     .order("sort_order");
 
   const allProducts = (products ?? []).map((p) => {
@@ -60,7 +60,7 @@ export default async function CoursesPage() {
       (sum, ch) => sum + (ch.lessons?.length ?? 0),
       0
     );
-    return { ...p, chapterCount, lessonCount };
+    return { ...p, chapterCount, lessonCount, status: (p as Record<string, unknown>).status as string };
   });
 
   /* ── Authenticated: full dashboard experience ── */
@@ -109,6 +109,7 @@ export default async function CoursesPage() {
         type: p.type,
         tier_required: p.tier_required,
         thumbnail: p.thumbnail,
+        status: p.status,
         enrolled: isAdmin || enrolledIds.has(p.id),
         progress,
         lesson_count: p.lessonCount,
@@ -135,6 +136,7 @@ export default async function CoursesPage() {
     sale_price: p.sale_price,
     thumbnail: p.thumbnail,
     type: p.type,
+    status: p.status,
     lessonCount: p.lessonCount,
     chapterCount: p.chapterCount,
   }));
