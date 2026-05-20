@@ -14,25 +14,17 @@ const tabs = [
   { id: "billing", label: "Thanh toán", icon: CreditCard },
 ];
 
-type UserProfile = {
-  full_name: string | null;
-  phone: string | null;
-  bio: string | null;
-  tier: string;
-  xp: number;
-  level: number;
-  email: string;
-  zalo_user_id: string | null;
-};
-
 function ProfileTab({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const { error, saved } = use(searchParams);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
   const [initials, setInitials] = useState("??");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -43,15 +35,26 @@ function ProfileTab({
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+      if (!user) {
+        setProfileLoaded(true);
+        return;
+      }
+      // Always set email from auth
+      setEmail(user.email ?? "");
+
       supabase
         .from("profiles")
         .select("full_name, phone, bio, tier, xp, level, avatar_url, zalo_user_id")
         .eq("id", user.id)
         .single()
-        .then(({ data }) => {
+        .then(({ data, error: profileError }) => {
+          if (profileError) {
+            console.error("[Settings] Profile fetch error:", profileError);
+          }
           if (data) {
-            setProfile({ ...data, email: user.email ?? "" });
+            setFullName(data.full_name ?? "");
+            setPhone(data.phone ?? "");
+            setBio(data.bio ?? "");
             setZaloLinked(!!data.zalo_user_id);
             if (data.avatar_url) setAvatarUrl(data.avatar_url);
             const name = data.full_name ?? user.email ?? "?";
@@ -207,7 +210,8 @@ function ProfileTab({
                 id="settingsFullName"
                 name="full_name"
                 type="text"
-                defaultValue={profile?.full_name ?? ""}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 placeholder="Nguyễn Văn A"
                 className="input-dark w-full text-sm"
               />
@@ -217,7 +221,7 @@ function ProfileTab({
               <input
                 id="settingsEmail"
                 type="email"
-                value={profile?.email ?? ""}
+                value={email}
                 readOnly
                 className="input-dark w-full text-sm opacity-60 cursor-not-allowed"
               />
@@ -228,7 +232,8 @@ function ProfileTab({
                 id="settingsPhone"
                 name="phone"
                 type="tel"
-                defaultValue={profile?.phone ?? ""}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder="+84 xxx xxx xxx"
                 className="input-dark w-full text-sm"
               />
@@ -239,7 +244,8 @@ function ProfileTab({
             <textarea
               id="settingsBio"
               name="bio"
-              defaultValue={profile?.bio ?? ""}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
               rows={3}
               placeholder="Giới thiệu ngắn về bạn..."
               className="input-dark w-full text-sm resize-none"
