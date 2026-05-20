@@ -743,6 +743,7 @@ export default async function CourseDetailPage({
           {currentLesson.youtube_id ? (
             <div className="mb-4 sm:mb-5">
               <VideoPlayer
+                key={currentLesson.id}
                 youtubeId={currentLesson.youtube_id}
                 title={currentLesson.title}
                 lessonId={currentLesson.id}

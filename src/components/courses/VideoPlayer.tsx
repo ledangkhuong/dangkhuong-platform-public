@@ -198,7 +198,18 @@ export default function VideoPlayer({
 
     return () => {
       cancelled = true;
+      // Stop the time-update interval immediately
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       if (playerRef.current) {
+        try {
+          // Pause first to stop audio immediately
+          playerRef.current.pauseVideo();
+        } catch {
+          /* ignore */
+        }
         try {
           playerRef.current.destroy();
         } catch {
@@ -206,7 +217,12 @@ export default function VideoPlayer({
         }
         playerRef.current = null;
       }
+      // Remove the iframe from DOM to ensure no lingering audio
+      if (playerDivRef.current) {
+        playerDivRef.current.innerHTML = "";
+      }
       setReady(false);
+      setPlaying(false);
     };
   }, [createPlayer]);
 
