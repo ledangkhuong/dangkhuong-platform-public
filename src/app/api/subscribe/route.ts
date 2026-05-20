@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { verifyTurnstile } from "@/lib/turnstile";
 import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/subscribe — public newsletter subscription (no auth required)
@@ -16,16 +15,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { email, name, phone, source, tags: customTags, turnstile_token } = body;
-
-    // Verify Turnstile CAPTCHA
-    const turnstileOk = await verifyTurnstile(turnstile_token);
-    if (!turnstileOk) {
-      return NextResponse.json(
-        { error: "Xác minh CAPTCHA thất bại. Vui lòng thử lại." },
-        { status: 400 }
-      );
-    }
+    const { email, name, phone, source, tags: customTags } = body;
 
     // Validate email
     if (!email || typeof email !== "string" || !email.trim()) {

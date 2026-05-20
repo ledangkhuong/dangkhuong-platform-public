@@ -1,17 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import TurnstileWidget from "@/components/TurnstileWidget";
+import { useState } from "react";
 
 export default function ForgotPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-
-  const handleVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,7 +26,7 @@ export default function ForgotPasswordForm() {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, turnstile_token: turnstileToken }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (data.success) {
@@ -80,9 +74,6 @@ export default function ForgotPasswordForm() {
           required
         />
       </div>
-
-      {/* Turnstile CAPTCHA */}
-      <TurnstileWidget onVerify={handleVerify} appearance="interaction-only" />
 
       <button
         type="submit"

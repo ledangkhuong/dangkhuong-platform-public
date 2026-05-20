@@ -4,7 +4,6 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit, rateLimit } from "@/lib/rate-limit";
-import { verifyTurnstile } from "@/lib/turnstile";
 
 export async function signUp(formData: FormData) {
   // Rate limit: 5 requests per 60 seconds per IP (matches API route)
@@ -13,13 +12,6 @@ export async function signUp(formData: FormData) {
   const rateLimitResult = await rateLimit(`register:${ip}`, 5, 60);
   if (!rateLimitResult.allowed) {
     redirect("/register?error=" + encodeURIComponent("Quá nhiều yêu cầu. Vui lòng thử lại sau."));
-  }
-
-  // Verify Turnstile CAPTCHA if token is provided
-  const turnstileToken = formData.get("turnstile_token") as string | null;
-  const turnstileOk = await verifyTurnstile(turnstileToken);
-  if (!turnstileOk) {
-    redirect("/register?error=" + encodeURIComponent("Xác minh CAPTCHA thất bại. Vui lòng thử lại."));
   }
 
   const email = formData.get("email") as string;

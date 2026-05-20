@@ -1,24 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/auth/PasswordInput";
-import TurnstileWidget from "@/components/TurnstileWidget";
 import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 export default function RegisterForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-
-  const handleVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
-
-  const handleExpire = useCallback(() => {
-    setTurnstileToken("");
-  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,9 +20,6 @@ export default function RegisterForm() {
     const phone = (form.get("phone") as string)?.replace(/\s+/g, "");
     const email = form.get("email") as string;
     const password = form.get("password") as string;
-
-    // CAPTCHA check
-    if (!turnstileToken) { setError("Vui lòng đợi xác minh bảo mật hoàn tất rồi thử lại."); setLoading(false); return; }
 
     // Client-side validation
     if (!full_name?.trim()) { setError("Vui lòng nhập họ và tên"); setLoading(false); return; }
@@ -49,7 +36,6 @@ export default function RegisterForm() {
           phone,
           email,
           password,
-          turnstile_token: turnstileToken,
         }),
       });
       const data = await res.json();
@@ -130,9 +116,6 @@ export default function RegisterForm() {
         </label>
         <PasswordInput id="passwordConfirm" name="password_confirm" placeholder="Nhập lại mật khẩu" minLength={8} />
       </div>
-
-      {/* Turnstile CAPTCHA */}
-      <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} appearance="always" />
 
       <p className="text-xs text-gray-500 pt-1">
         Bằng cách đăng ký, bạn đồng ý với{" "}

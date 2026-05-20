@@ -1,17 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import TurnstileWidget from "@/components/TurnstileWidget";
+import { useState } from "react";
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-
-  const handleVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +20,6 @@ export default function NewsletterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
-          turnstile_token: turnstileToken,
         }),
       });
 
@@ -87,9 +80,6 @@ export default function NewsletterForm() {
               {status === "loading" ? "Đang xử lý..." : "Đăng ký"}
             </button>
           </form>
-          <div className="mt-3 flex justify-center">
-            <TurnstileWidget onVerify={handleVerify} />
-          </div>
         </div>
       )}
 

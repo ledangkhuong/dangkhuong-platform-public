@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
@@ -17,7 +17,6 @@ import {
   EyeOff,
   ArrowRight,
 } from "lucide-react";
-import TurnstileWidget from "@/components/TurnstileWidget";
 import BankTransferButtons from "@/components/BankTransferButtons";
 import HeroSection from "./sections/HeroSection";
 import PainSection from "./sections/PainSection";
@@ -81,11 +80,6 @@ export default function SanPhamSoLanding() {
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-
-  const handleTurnstileVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
 
   const scrollToRegister = () => {
     registerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -110,7 +104,7 @@ export default function SanPhamSoLanding() {
       const res = await fetch("/api/sanphamso/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, turnstile_token: turnstileToken }),
+        body: JSON.stringify({ ...form }),
       });
       const data = await res.json();
       if (data.success) {
@@ -301,9 +295,6 @@ export default function SanPhamSoLanding() {
                 </button>
               </div>
             </div>
-
-            {/* Turnstile CAPTCHA */}
-            <TurnstileWidget onVerify={handleTurnstileVerify} className="mt-2" />
 
             <button
               type="submit"

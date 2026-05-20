@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { siteConfig } from "@/lib/site-config";
@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import PasswordInput from "@/components/auth/PasswordInput";
 import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
-import TurnstileWidget from "@/components/TurnstileWidget";
 
 /* ─── Data ───────────────────────────────────────────────────── */
 
@@ -110,9 +109,6 @@ export default function HomePage() {
   const [formError, setFormError] = useState("");
   const [countdown, setCountdown] = useState({ h: 23, m: 59, s: 59 });
   const [showLeadModal, setShowLeadModal] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const handleTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
-  const handleTurnstileExpire = useCallback(() => setTurnstileToken(""), []);
 
   // Dynamic courses from API
   type DynCourse = typeof fallbackCourses[number];
@@ -162,12 +158,6 @@ export default function HomePage() {
     setFormStatus("loading");
     setFormError("");
 
-    if (!turnstileToken) {
-      setFormError("Vui lòng đợi xác minh bảo mật hoàn tất rồi thử lại.");
-      setFormStatus("idle");
-      return;
-    }
-
     const fd = new FormData(e.currentTarget);
     const password = fd.get("popup_password") as string;
     try {
@@ -179,7 +169,6 @@ export default function HomePage() {
           email: formData.email,
           phone: formData.phone,
           password: password,
-          turnstile_token: turnstileToken,
         }),
       });
       const data = await res.json();
@@ -956,9 +945,6 @@ export default function HomePage() {
                         minLength={8} />
                       {/* Hidden input to sync password to state */}
                     </div>
-
-                    {/* Turnstile CAPTCHA */}
-                    <TurnstileWidget onVerify={handleTurnstileVerify} onExpire={handleTurnstileExpire} appearance="always" />
 
                     <p className="text-xs text-gray-500 pt-1">
                       Bằng cách đăng ký, bạn đồng ý với{" "}

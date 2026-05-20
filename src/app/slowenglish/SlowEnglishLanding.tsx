@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
@@ -18,7 +18,6 @@ import {
   EyeOff,
   ArrowRight,
 } from "lucide-react";
-import TurnstileWidget from "@/components/TurnstileWidget";
 import BankTransferButtons from "@/components/BankTransferButtons";
 import { event as fbEvent } from "@/lib/fbpixel";
 import HeroSection from "./sections/HeroSection";
@@ -64,11 +63,6 @@ export default function SlowEnglishLanding() {
   const [productName, setProductName] = useState("");
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-
-  const handleTurnstileVerify = useCallback((token: string) => {
-    setTurnstileToken(token);
-  }, []);
 
   // Facebook Pixel — ViewContent on page load
   useEffect(() => {
@@ -106,7 +100,7 @@ export default function SlowEnglishLanding() {
       const res = await fetch("/api/slowenglish/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, turnstile_token: turnstileToken }),
+        body: JSON.stringify({ ...form }),
       });
       const data = await res.json();
       if (data.success) {
@@ -385,9 +379,6 @@ export default function SlowEnglishLanding() {
                 </button>
               </div>
             </div>
-
-            {/* Turnstile CAPTCHA */}
-            <TurnstileWidget onVerify={handleTurnstileVerify} className="mt-2" />
 
             <button
               type="submit"
