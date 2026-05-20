@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import TopBar from "@/components/layout/TopBar";
-import { ArrowLeft, Save, Layers, Megaphone } from "lucide-react";
+import { ArrowLeft, Save, Layers, Megaphone, GraduationCap } from "lucide-react";
 import ThumbnailUpload from "@/components/admin/ThumbnailUpload";
 import dynamic from "next/dynamic";
 
@@ -40,6 +40,13 @@ interface CourseForm {
   tier_required: string;
   status: string;
   sort_order: number;
+  instructor_id: string | null;
+}
+
+interface InstructorOption {
+  id: string;
+  full_name: string | null;
+  email?: string;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -69,7 +76,24 @@ export default function EditCoursePage() {
     tier_required: "free",
     status: "draft",
     sort_order: 0,
+    instructor_id: null,
   });
+
+  const [instructors, setInstructors] = useState<InstructorOption[]>([]);
+
+  // ─── Fetch instructors ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    async function fetchInstructors() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("role", "instructor")
+        .order("full_name");
+      if (data) setInstructors(data);
+    }
+    fetchInstructors();
+  }, []);
 
   // ─── Fetch course data ────────────────────────────────────────────────────
 
@@ -100,6 +124,7 @@ export default function EditCoursePage() {
         tier_required: data.tier_required ?? "free",
         status: data.status ?? "draft",
         sort_order: data.sort_order ?? 0,
+        instructor_id: data.instructor_id ?? null,
       });
       setLoading(false);
     }
@@ -140,6 +165,7 @@ export default function EditCoursePage() {
       tier_required: form.tier_required,
       status: form.status,
       sort_order: Number(form.sort_order) || 0,
+      instructor_id: form.instructor_id || null,
     };
 
     if (!payload.title || !payload.slug) {
@@ -443,6 +469,35 @@ export default function EditCoursePage() {
                 className="input-dark w-full"
               />
             </div>
+          </div>
+
+          {/* Instructor */}
+          <div className="card-dark p-4 space-y-2">
+            <label className="text-xs font-medium text-gray-400 flex items-center gap-1.5">
+              <GraduationCap size={13} />
+              Giảng viên phụ trách
+            </label>
+            <select
+              name="instructor_id"
+              value={form.instructor_id ?? ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  instructor_id: e.target.value || null,
+                }))
+              }
+              className="input-dark w-full"
+            >
+              <option value="">— Chưa phân công —</option>
+              {instructors.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.full_name || inst.id.slice(0, 8)}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-gray-500">
+              Giảng viên được phân công sẽ xem và chấm bài tập của học viên trong khóa học này.
+            </p>
           </div>
 
           {/* Submit */}

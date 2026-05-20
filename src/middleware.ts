@@ -17,7 +17,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // ---------------------------------------------------------------------------
 
 /** Routes that require an authenticated Supabase session. */
-const PROTECTED_PREFIXES = ["/admin", "/dashboard"];
+const PROTECTED_PREFIXES = ["/admin", "/dashboard", "/instructor"];
 
 /** Where unauthenticated users are sent. */
 const LOGIN_PATH = "/login";

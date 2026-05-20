@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/community/posts — lấy danh sách posts (requires auth)
@@ -15,13 +15,29 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20")));
   const offset = parseInt(searchParams.get("offset") || "0");
+  const category = searchParams.get("category");
+  const product_id = searchParams.get("product_id");
 
   // Exclude lesson questions (tagged with _q) from community feed
   // Use .or() to include posts where tags is NULL OR tags does not contain _q
-  const { data, error } = await supabase
+  let query = supabase
     .from("posts")
     .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
-    .or('tags.is.null,tags.not.cs.{_q}')
+    .or('tags.is.null,tags.not.cs.{_q}');
+
+  // Filter by category if provided
+  if (category) {
+    query = query.eq("category", category);
+  }
+
+  // Filter by product_id for course discussions, or exclude course-specific posts
+  if (product_id) {
+    query = query.eq("product_id", product_id);
+  } else {
+    query = query.is("product_id", null);
+  }
+
+  const { data, error } = await query
     .order("pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
@@ -54,7 +70,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
-  const { content, tags, image_url } = body;
+  const { content, tags, image_url, category, product_id } = body;
   if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
   if (content.trim().length > 5000) {
     return NextResponse.json({ error: "Nội dung quá dài (tối đa 5000 ký tự)" }, { status: 400 });
@@ -71,9 +87,47 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // If product_id is provided, verify enrollment or staff role
+  if (product_id) {
+    const adminClient = await createAdminClient();
+
+    const { data: enrollment } = await adminClient
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("product_id", product_id)
+      .maybeSingle();
+
+    let isStaff = false;
+    if (!enrollment) {
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      isStaff = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(
+        profile?.role ?? ""
+      );
+    }
+
+    if (!enrollment && !isStaff) {
+      return NextResponse.json(
+        { error: "Bạn chưa đăng ký khoá học này" },
+        { status: 403 }
+      );
+    }
+  }
+
   const { data, error } = await supabase
     .from("posts")
-    .insert({ user_id: user.id, content: content.trim(), tags, image_url })
+    .insert({
+      user_id: user.id,
+      content: content.trim(),
+      tags,
+      image_url,
+      ...(category ? { category } : {}),
+      ...(product_id ? { product_id } : {}),
+    })
     .select(`*, profiles(full_name, avatar_url, level, tier)`)
     .single();
 

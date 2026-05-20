@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       .select("role")
       .eq("id", user.id)
       .single();
-    isStaff = ["admin", "manager", "marketing", "sale", "support"].includes(
+    isStaff = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(
       profile?.role ?? ""
     );
   }
@@ -150,7 +150,8 @@ export async function PATCH(req: NextRequest) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id, content, links, status, feedback } = await req.json();
+  const body = await req.json();
+  const { id, content, links, status, feedback } = body;
 
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -166,6 +167,7 @@ export async function PATCH(req: NextRequest) {
     .single();
 
   const isAdmin = ["admin", "manager"].includes(profile?.role ?? "");
+  const isInstructor = profile?.role === "instructor";
 
   // Fetch existing submission
   const { data: existing } = await adminClient
@@ -190,6 +192,29 @@ export async function PATCH(req: NextRequest) {
     // Admin can update status and feedback
     if (status) updateData.status = status;
     if (feedback !== undefined) updateData.feedback = feedback;
+    if (body.score !== undefined) updateData.score = body.score;
+    if (status === "reviewed" || status === "approved") {
+      updateData.reviewed_by = user.id;
+      updateData.reviewed_at = new Date().toISOString();
+    }
+  } else if (isInstructor) {
+    // Instructor can review submissions for their assigned courses
+    const { data: product } = await adminClient
+      .from("products")
+      .select("instructor_id")
+      .eq("id", existing.product_id)
+      .single();
+
+    if (product?.instructor_id !== user.id) {
+      return NextResponse.json(
+        { error: "Bạn không phải giảng viên của khóa học này." },
+        { status: 403 }
+      );
+    }
+
+    if (status) updateData.status = status;
+    if (feedback !== undefined) updateData.feedback = feedback;
+    if (body.score !== undefined) updateData.score = body.score;
     if (status === "reviewed" || status === "approved") {
       updateData.reviewed_by = user.id;
       updateData.reviewed_at = new Date().toISOString();

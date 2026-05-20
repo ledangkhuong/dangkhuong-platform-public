@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import TopBar from "@/components/layout/TopBar";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, GraduationCap } from "lucide-react";
 import ThumbnailUpload from "@/components/admin/ThumbnailUpload";
 
 function generateSlug(title: string): string {
@@ -36,6 +36,8 @@ export default function NewCoursePage() {
   const [tierRequired, setTierRequired] = useState("free");
   const [status, setStatus] = useState("draft");
   const [sortOrder, setSortOrder] = useState<number>(0);
+  const [instructorId, setInstructorId] = useState<string>("");
+  const [instructors, setInstructors] = useState<{ id: string; full_name: string | null }[]>([]);
 
   // Auth check
   useEffect(() => {
@@ -61,6 +63,14 @@ export default function NewCoursePage() {
       }
 
       setLoading(false);
+
+      // Fetch instructors
+      const { data: instrData } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("role", "instructor")
+        .order("full_name");
+      if (instrData) setInstructors(instrData);
     }
 
     checkAdmin();
@@ -98,6 +108,7 @@ export default function NewCoursePage() {
       tier_required: tierRequired,
       status,
       sort_order: sortOrder,
+      instructor_id: instructorId || null,
     });
 
     if (insertError) {
@@ -272,6 +283,26 @@ export default function NewCoursePage() {
                 className="input-dark w-full"
               />
             </div>
+          </div>
+
+          {/* Giảng viên */}
+          <div>
+            <label className="text-sm text-gray-400 mb-1.5 flex items-center gap-1.5">
+              <GraduationCap size={13} />
+              Giảng viên phụ trách
+            </label>
+            <select
+              value={instructorId}
+              onChange={(e) => setInstructorId(e.target.value)}
+              className="input-dark w-full"
+            >
+              <option value="">— Chưa phân công —</option>
+              {instructors.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.full_name || inst.id.slice(0, 8)}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Submit */}

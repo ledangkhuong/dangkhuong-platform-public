@@ -8,6 +8,7 @@ import {
   BookOpen, FolderOpen, FileText,
   Users, ArrowRight, TrendingUp, Star, Zap
 } from "lucide-react";
+import LearningJourney from "@/components/profile/LearningJourney";
 
 const quickCards = [
   { href: "/courses", icon: BookOpen, color: "#D4A843", bg: "rgba(212,168,67,0.1)", label: "Khoá học của tôi", desc: "Xem và học các khoá học" },
@@ -272,6 +273,11 @@ export default async function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* Learning Journey */}
+        <div className="card-dark p-5">
+          <LearningJourney />
+        </div>
       </div>
     </div>
   );

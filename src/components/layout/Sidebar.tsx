@@ -15,7 +15,7 @@ import {
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
-  CreditCard,
+  CreditCard, GraduationCap, Megaphone,
 } from "lucide-react";
 
 const mainNav = [
@@ -30,6 +30,12 @@ const mainNav = [
   { href: "/dashboard/affiliate", icon: Zap, label: "Affiliate" },
 ];
 
+const instructorNav = [
+  { href: "/instructor", icon: GraduationCap, label: "Giảng viên" },
+  { href: "/instructor/submissions", icon: ClipboardCheck, label: "Chấm bài" },
+  { href: "/instructor/courses", icon: BookOpen, label: "Khóa học của tôi" },
+];
+
 const adminNav = [
   { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
   { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager"] },
@@ -40,6 +46,7 @@ const adminNav = [
   { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager"] },
   { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
   { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support"] },
+  { href: "/admin/announcements", icon: Megaphone, label: "Thông báo", roles: ["admin", "manager"] },
   { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
   { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
   { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
@@ -107,14 +114,15 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
   const userRole = profile?.role ?? "student";
   const isAdmin = userRole === "admin";
+  const isInstructor = userRole === "instructor";
   const isStaff = ["admin", "manager", "marketing", "sale", "support"].includes(userRole);
 
   const roleLabels: Record<string, string> = {
     admin: "Admin", manager: "Quản lý", marketing: "Marketing",
-    sale: "Sale", support: "CSKH",
+    sale: "Sale", support: "CSKH", instructor: "Giảng viên",
   };
-  const tierLabel = isStaff ? (roleLabels[userRole] ?? "Staff") : profile?.tier === "vip" ? "VIP" : profile?.tier === "member" ? "Member" : "Free";
-  const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#D4A843";
+  const tierLabel = isStaff || isInstructor ? (roleLabels[userRole] ?? "Staff") : profile?.tier === "vip" ? "VIP" : profile?.tier === "member" ? "Member" : "Free";
+  const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : isInstructor ? "#8b5cf6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#D4A843";
 
   // isCompact: on mobile drawer we always show expanded; on desktop respect collapsed
   const renderSidebar = (isCompact: boolean, isMobile: boolean) => (
@@ -195,6 +203,33 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             );
           })}
         </div>
+
+        {/* Instructor nav */}
+        {isInstructor && (
+          <div className="mt-6">
+            {!isCompact && (
+              <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#8b5cf6]">
+                Giảng viên
+              </div>
+            )}
+            {instructorNav.map((item) => {
+              const isActive =
+                pathname === item.href ||
+                (item.href.length > 1 && pathname.startsWith(item.href) && item.href !== "/instructor");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
+                  title={isCompact ? item.label : undefined}
+                >
+                  <item.icon size={18} className="shrink-0" />
+                  {!isCompact && <span>{item.label}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {/* Staff nav */}
         {isStaff && (

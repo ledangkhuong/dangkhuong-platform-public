@@ -29,6 +29,7 @@ import CoursePublicView from "@/components/courses/CoursePublicView";
 import LessonQuiz from "@/components/courses/LessonQuiz";
 import LessonSubmission from "@/components/courses/LessonSubmission";
 import RichDescription from "@/components/courses/RichDescription";
+import CourseDiscussion from "@/components/courses/CourseDiscussion";
 
 // force-dynamic: this page is personalized (auth state, enrollment, progress)
 export const dynamic = "force-dynamic";
@@ -886,6 +887,14 @@ export default async function CourseDetailPage({
             lessonId={currentLesson.id}
             lessonTitle={currentLesson.title}
           />
+
+          {/* Course Discussion */}
+          <div className="mt-5">
+            <CourseDiscussion
+              productId={product.id}
+              productTitle={product.title}
+            />
+          </div>
         </>
       )}
     </>
