@@ -87,14 +87,18 @@ export async function POST(req: NextRequest) {
     const fullContent = (content || "").trim();
     const contentMatch = fullContent.match(/DK([A-Za-z0-9]+)/i);
     const contentCode = contentMatch?.[1] || "";
+    const contentFullMatch = contentMatch?.[0] || ""; // includes "DK" prefix
 
     // Build list of candidates to try (deduplicated)
+    // Order matters: most specific first for faster matching
     const candidates = [...new Set([
       rawCode,                                    // SePay code field as-is
       rawCode.replace(/^DK/i, ""),                // Strip DK prefix (case-insensitive)
-      contentCode,                                // Regex extract from content (after first DK)
+      contentFullMatch,                           // Full regex match WITH DK prefix (e.g. "DKsN7hvQbbCuGA")
+      contentCode,                                // Regex extract AFTER DK (e.g. "sN7hvQbbCuGA")
       contentCode.replace(/^DK/i, ""),            // Strip another DK if double-prefixed (old format)
-      fullContent,                                // Full content as-is (new format: content IS the code)
+      `DK${contentCode}`,                         // Reconstruct with DK prefix
+      fullContent,                                // Full content as-is (fallback)
       fullContent.replace(/^DK/i, ""),            // Full content minus DK prefix
     ])].filter(Boolean);
 
