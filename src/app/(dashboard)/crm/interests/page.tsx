@@ -34,6 +34,7 @@ interface CourseInterest {
     full_name: string | null;
     avatar_url: string | null;
     email: string | null;
+    phone: string | null;
     tier: string;
     level: number;
   } | null;
@@ -56,6 +57,7 @@ interface CustomerGroup {
   userId: string;
   name: string;
   email: string;
+  phone: string | null;
   avatarUrl: string | null;
   tier: string;
   level: number;
@@ -176,7 +178,7 @@ export default async function CRMInterestsPage({
     .select(
       `
       *,
-      profiles!course_interests_user_id_profiles_fkey(full_name, avatar_url, tier, level),
+      profiles!course_interests_user_id_profiles_fkey(full_name, avatar_url, tier, level, phone),
       products!course_interests_product_id_fkey(title, slug, price, sale_price, thumbnail),
       contacted_profile:profiles!course_interests_contacted_by_profiles_fkey(full_name),
       assigned_profile:profiles!course_interests_assigned_to_fkey(full_name)
@@ -240,6 +242,7 @@ export default async function CRMInterestsPage({
         userId: uid,
         name: p?.full_name || "Khách hàng",
         email: p?.email || emailMap[uid] || "—",
+        phone: p?.phone || null,
         avatarUrl: p?.avatar_url || null,
         tier: p?.tier || "free",
         level: p?.level || 1,
@@ -445,7 +448,21 @@ export default async function CRMInterestsPage({
                             Lv.{customer.level}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 truncate">{customer.email}</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span className="truncate">{customer.email}</span>
+                          {customer.phone && (
+                            <>
+                              <span className="text-gray-700">·</span>
+                              <a
+                                href={`tel:${customer.phone}`}
+                                className="flex items-center gap-0.5 text-green-500 hover:text-green-400 transition-colors flex-shrink-0"
+                              >
+                                <Phone size={10} />
+                                {customer.phone}
+                              </a>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
