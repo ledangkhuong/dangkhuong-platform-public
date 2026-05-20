@@ -25,9 +25,7 @@ export default function LessonActions({
   const [toggling, setToggling] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState(false);
-  const [countdown, setCountdown] = useState(0);
   const autoNavTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const navigatedRef = useRef(false);
 
   // Reset state when lesson changes
@@ -35,17 +33,14 @@ export default function LessonActions({
     setCompleted(initialCompleted);
     setJustCompleted(false);
     setMessage(null);
-    setCountdown(0);
     navigatedRef.current = false;
     if (autoNavTimerRef.current) clearTimeout(autoNavTimerRef.current);
-    if (countdownRef.current) clearInterval(countdownRef.current);
   }, [lessonId, initialCompleted]);
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
       if (autoNavTimerRef.current) clearTimeout(autoNavTimerRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, []);
 
@@ -53,7 +48,6 @@ export default function LessonActions({
     if (nextLessonUrl && !navigatedRef.current) {
       navigatedRef.current = true;
       if (autoNavTimerRef.current) clearTimeout(autoNavTimerRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
       router.push(nextLessonUrl);
       router.refresh();
     }
@@ -80,26 +74,13 @@ export default function LessonActions({
       setCompleted(newState);
 
       if (newState && nextLessonUrl) {
-        // Show next-lesson button + start countdown auto-navigate
+        // Show next-lesson button + auto-navigate after 1s
         setJustCompleted(true);
-        setCountdown(3);
         navigatedRef.current = false;
 
-        // Countdown ticker
-        countdownRef.current = setInterval(() => {
-          setCountdown((prev) => {
-            if (prev <= 1) {
-              if (countdownRef.current) clearInterval(countdownRef.current);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-
-        // Auto-navigate after 3s
         autoNavTimerRef.current = setTimeout(() => {
           goToNextLesson();
-        }, 3000);
+        }, 1000);
       } else if (newState) {
         setMessage("Đã đánh dấu hoàn thành!");
         setTimeout(() => setMessage(null), 2500);
@@ -155,14 +136,13 @@ export default function LessonActions({
         )}
       </div>
 
-      {/* Auto-navigate countdown */}
-      {justCompleted && nextLessonTitle && countdown > 0 && (
+      {/* Auto-navigating indicator */}
+      {justCompleted && nextLessonTitle && (
         <div className="flex items-center gap-2 text-xs text-gray-400 pl-1">
           <Loader2 size={12} className="animate-spin text-[#D4A843]" />
           <span>
-            Tự động chuyển đến{" "}
-            <span className="text-gray-300">{nextLessonTitle}</span>
-            {" "}sau {countdown}s
+            Đang chuyển đến{" "}
+            <span className="text-gray-300">{nextLessonTitle}</span>...
           </span>
         </div>
       )}

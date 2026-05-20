@@ -830,12 +830,12 @@ export default async function CourseDetailPage({
             </div>
           ) : null}
 
-          {/* Lesson info */}
+          {/* Lesson info + Mark complete (right below video) */}
           <div className="mb-4 sm:mb-5">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
               {currentLesson.title}
             </h2>
-            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 flex-wrap">
+            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 flex-wrap mb-3">
               {currentLesson.duration_sec > 0 && (
                 <span className="flex items-center gap-1">
                   <Clock size={13} />{" "}
@@ -848,6 +848,13 @@ export default async function CourseDetailPage({
                 </span>
               )}
             </div>
+            <LessonActions
+              lessonId={currentLesson.id}
+              productId={product.id}
+              initialCompleted={currentProgress?.completed ?? false}
+              nextLessonUrl={nextLessonUrl}
+              nextLessonTitle={nextLesson?.title}
+            />
           </div>
 
           {/* Lesson content */}
@@ -979,17 +986,6 @@ export default async function CourseDetailPage({
               </p>
             </div>
           )}
-
-          {/* Mark complete */}
-          <div className="mb-4 sm:mb-5">
-            <LessonActions
-              lessonId={currentLesson.id}
-              productId={product.id}
-              initialCompleted={currentProgress?.completed ?? false}
-              nextLessonUrl={nextLessonUrl}
-              nextLessonTitle={nextLesson?.title}
-            />
-          </div>
 
           {/* Quiz */}
           <div className="mb-4 sm:mb-5">

@@ -253,13 +253,13 @@ export default function VideoPlayer({
       setAutoCompleteToast(true);
       onAutoCompleted?.();
 
-      // Auto-navigate to next lesson after a short delay
+      // Auto-navigate to next lesson after 1s
       if (nextLessonUrl) {
         setTimeout(() => {
           setAutoCompleteToast(false);
           router.push(nextLessonUrl);
           router.refresh();
-        }, 2000);
+        }, 1000);
       } else {
         setTimeout(() => setAutoCompleteToast(false), 4000);
       }
