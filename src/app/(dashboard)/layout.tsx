@@ -10,19 +10,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-    const isOAuth = user.app_metadata?.provider !== "email"
-      && user.app_metadata?.providers?.some((p: string) => ["google", "facebook"].includes(p));
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("phone")
+      .eq("id", user.id)
+      .single();
 
-    if (isOAuth) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("phone")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.phone) {
-        redirect("/complete-profile");
-      }
+    if (!profile?.phone) {
+      redirect("/complete-profile");
     }
   }
 
