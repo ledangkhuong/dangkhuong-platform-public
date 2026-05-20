@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkFlaggedContent } from "@/lib/keyword-filter";
 
 // GET /api/community/posts — lấy danh sách posts (requires auth)
 export async function GET(req: NextRequest) {
@@ -19,11 +20,12 @@ export async function GET(req: NextRequest) {
   const product_id = searchParams.get("product_id");
 
   // Exclude lesson questions (tagged with _q) from community feed
-  // Use .or() to include posts where tags is NULL OR tags does not contain _q
+  // Only show visible posts (not hidden/deleted by moderation)
   let query = supabase
     .from("posts")
     .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
-    .or('tags.is.null,tags.not.cs.{_q}');
+    .or('tags.is.null,tags.not.cs.{_q}')
+    .eq("status", "visible");
 
   // Filter by category if provided
   if (category) {
@@ -91,6 +93,37 @@ export async function POST(req: NextRequest) {
     // Use admin client for DB operations (auth already verified above)
     const admin = await createAdminClient();
 
+    // New-user posting limit: accounts < 24h old → max 2 posts/day
+    const { data: userProfile } = await admin
+      .from("profiles")
+      .select("created_at, role")
+      .eq("id", user.id)
+      .single();
+
+    const accountAge = Date.now() - new Date(userProfile?.created_at ?? 0).getTime();
+    const isNewUser = accountAge < 24 * 60 * 60 * 1000;
+    const isStaffRole = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(userProfile?.role ?? "");
+
+    if (isNewUser && !isStaffRole) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const { count: postsToday } = await admin
+        .from("posts")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", todayStart.toISOString());
+
+      if ((postsToday ?? 0) >= 2) {
+        return NextResponse.json(
+          { error: "Tài khoản mới chỉ được đăng tối đa 2 bài/ngày. Vui lòng thử lại sau." },
+          { status: 429 }
+        );
+      }
+    }
+
+    // Check content for flagged keywords
+    const flagResult = checkFlaggedContent(content);
+
     // If product_id is provided, verify enrollment or staff role
     if (product_id) {
       const { data: enrollment } = await admin
@@ -129,6 +162,7 @@ export async function POST(req: NextRequest) {
         image_url,
         ...(category ? { category } : {}),
         ...(product_id ? { product_id } : {}),
+        ...(flagResult.flagged ? { flagged: true } : {}),
       })
       .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
       .single();
@@ -150,6 +184,28 @@ export async function POST(req: NextRequest) {
 
     if ((postXpToday ?? 0) < 5) {
       await admin.from("xp_events").insert({ user_id: user.id, action: "post_created", xp_amount: 50 });
+    }
+
+    // Notify admins when a post is flagged by keyword filter
+    if (flagResult.flagged) {
+      try {
+        const { data: admins } = await admin
+          .from("profiles")
+          .select("id")
+          .in("role", ["admin", "manager"]);
+        if (admins?.length) {
+          const notifications = admins.map((a) => ({
+            user_id: a.id,
+            type: "system",
+            title: "Bài viết bị gắn cờ",
+            content: `Bài viết mới chứa từ khoá nhạy cảm: ${flagResult.matchedKeywords.join(", ")}`,
+            link: "/crm/moderation",
+          }));
+          await admin.from("notifications").insert(notifications);
+        }
+      } catch {
+        // Notification failure should not break post flow
+      }
     }
 
     return NextResponse.json({ post: data });

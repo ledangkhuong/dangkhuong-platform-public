@@ -3,7 +3,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, useRef } from "react";
 import NextImage from "next/image";
-import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp, Loader2, X } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp, Loader2, X, Flag, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import UserAvatar from "@/components/admin/UserAvatar";
 
@@ -150,6 +150,12 @@ export default function CommunityPage() {
   const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({});
   const [commentText, setCommentText] = useState<Record<string, string>>({});
   const [commentPosting, setCommentPosting] = useState<Record<string, boolean>>({});
+  const [reportingPost, setReportingPost] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState<string>("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -373,6 +379,45 @@ export default function CommunityPage() {
     }
   };
 
+  const REPORT_REASONS = [
+    { value: "spam", label: "Spam / Quảng cáo" },
+    { value: "inappropriate", label: "Nội dung không phù hợp" },
+    { value: "harassment", label: "Quấy rối / Bắt nạt" },
+    { value: "misinformation", label: "Thông tin sai lệch" },
+    { value: "other", label: "Khác" },
+  ];
+
+  const handleReport = async (postId: string) => {
+    if (!reportReason || reportSubmitting) return;
+    setReportSubmitting(true);
+    setReportError(null);
+    try {
+      const res = await fetch("/api/community/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          post_id: postId,
+          reason: reportReason,
+          details: reportDetails.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReportError(data.error || "Không thể gửi báo cáo");
+      } else {
+        setReportSuccess("Báo cáo đã được gửi. Cảm ơn bạn!");
+        setTimeout(() => setReportSuccess(null), 3000);
+        setReportingPost(null);
+        setReportReason("");
+        setReportDetails("");
+      }
+    } catch {
+      setReportError("Không thể gửi báo cáo. Vui lòng thử lại.");
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
   return (
     <div>
       <TopBar title="Cộng đồng" subtitle="Kết nối, học hỏi và phát triển cùng nhau" />
@@ -495,6 +540,13 @@ export default function CommunityPage() {
             </div>
           )}
 
+          {/* Report success toast */}
+          {reportSuccess && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-900/90 border border-green-700 text-green-200 text-sm px-4 py-2.5 rounded-xl shadow-lg pointer-events-none">
+              {reportSuccess}
+            </div>
+          )}
+
           {/* Loading Skeleton */}
           {loading && (
             <div className="space-y-4">
@@ -592,7 +644,72 @@ export default function CommunityPage() {
                   <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-400 transition-colors">
                     <Share2 size={15} />
                   </button>
+                  {/* Report button — don't show for own posts */}
+                  {myProfile?.id !== post.user_id && (
+                    <button
+                      onClick={() => { setReportingPost(post.id); setReportReason(""); setReportDetails(""); setReportError(null); }}
+                      className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-orange-400 transition-colors ml-auto"
+                      title="Báo cáo bài viết"
+                    >
+                      <Flag size={14} />
+                    </button>
+                  )}
                 </div>
+
+                {/* Report Modal */}
+                {reportingPost === post.id && (
+                  <div className="mt-3 pt-3 border-t border-[#2a2a2a] bg-[#161616] rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle size={16} className="text-orange-400" />
+                      <span className="text-sm font-medium text-white">Báo cáo bài viết</span>
+                      <button onClick={() => setReportingPost(null)} className="ml-auto text-gray-500 hover:text-white">
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      {REPORT_REASONS.map(r => (
+                        <label key={r.value} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`report-${post.id}`}
+                            value={r.value}
+                            checked={reportReason === r.value}
+                            onChange={() => setReportReason(r.value)}
+                            className="accent-[#D4A843]"
+                          />
+                          <span className="text-xs text-gray-300">{r.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <textarea
+                      value={reportDetails}
+                      onChange={e => setReportDetails(e.target.value)}
+                      placeholder="Chi tiết thêm (tuỳ chọn)..."
+                      className="w-full bg-[#111] border border-[#2a2a2a] rounded-lg p-2 text-xs text-white placeholder:text-gray-500 resize-none focus:outline-none focus:border-[#D4A843] mb-3"
+                      rows={2}
+                    />
+                    {reportError && <p className="text-xs text-red-400 mb-2">{reportError}</p>}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleReport(post.id)}
+                        disabled={!reportReason || reportSubmitting}
+                        className={`text-xs font-medium px-4 py-1.5 rounded-lg transition-colors ${
+                          reportReason && !reportSubmitting
+                            ? "bg-orange-600 text-white hover:bg-orange-500"
+                            : "bg-[#2a2a2a] text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        {reportSubmitting ? "Đang gửi..." : "Gửi báo cáo"}
+                      </button>
+                      <button
+                        onClick={() => setReportingPost(null)}
+                        className="text-xs text-gray-500 hover:text-white px-3 py-1.5"
+                      >
+                        Huỷ
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Comment Section */}
                 <div

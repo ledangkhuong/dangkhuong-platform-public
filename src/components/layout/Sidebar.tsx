@@ -15,7 +15,7 @@ import {
   ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
-  CreditCard, GraduationCap, Megaphone, Eye,
+  CreditCard, GraduationCap, Megaphone, Eye, Shield,
 } from "lucide-react";
 
 const mainNav = [
@@ -54,6 +54,7 @@ const adminNav = [
   { href: "/crm/performance", icon: TrendingUp, label: "Hiệu suất Sale", roles: ["admin", "manager"] },
   { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
   { href: "/crm/interests", icon: Eye, label: "Khách quan tâm", roles: ["admin", "manager", "sale", "support"] },
+  { href: "/crm/moderation", icon: Shield, label: "Kiểm duyệt", roles: ["admin", "manager", "support"] },
   { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
   { href: "/admin/subscriptions", icon: CreditCard, label: "Quản lý Gói", roles: ["admin", "manager"] },
   { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
