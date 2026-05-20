@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6-20250217",
       max_tokens: 1024,
       system: systemPrompt,
       messages: messages.map((m: { role: string; content: string }) => ({
@@ -84,8 +84,20 @@ export async function POST(req: NextRequest) {
     }).maybeSingle();
 
     return NextResponse.json({ reply, usage: response.usage });
-  } catch (err) {
-    console.error("AI chat error:", err);
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("AI chat error:", errMsg);
+
+    // Surface specific Anthropic errors for debugging
+    if (errMsg.includes("invalid x-api-key") || errMsg.includes("authentication")) {
+      console.error("ANTHROPIC_API_KEY is invalid or expired. Please update it in Vercel Environment Variables.");
+      return NextResponse.json({ error: "AI đang bảo trì. Vui lòng thử lại sau!" }, { status: 503 });
+    }
+
+    if (errMsg.includes("rate_limit") || errMsg.includes("overloaded")) {
+      return NextResponse.json({ error: "AI đang quá tải. Vui lòng thử lại sau vài phút!" }, { status: 503 });
+    }
+
     return NextResponse.json({ error: "AI service unavailable" }, { status: 503 });
   }
 }
