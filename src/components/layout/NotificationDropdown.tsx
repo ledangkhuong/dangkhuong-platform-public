@@ -1,64 +1,34 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type NotificationType = "achievement" | "community" | "system" | "welcome";
+type NotificationType = "achievement" | "community" | "system" | "welcome" | "announcement" | "like" | "course" | string;
 
 interface Notification {
   id: string;
   type: NotificationType;
   title: string;
   message: string;
+  link?: string | null;
   read: boolean;
   created_at: string;
+  is_broadcast?: boolean;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const TYPE_ICON: Record<NotificationType, string> = {
+const TYPE_ICON: Record<string, string> = {
   achievement: "🏆",
   community: "💬",
+  like: "❤️",
   system: "⚡",
   welcome: "🎉",
+  announcement: "📢",
+  course: "📚",
 };
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "mock-1",
-    type: "welcome",
-    title: "Chào mừng!",
-    message: "Chào mừng bạn đến với nền tảng! Hãy bắt đầu hành trình học tập.",
-    read: false,
-    created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "mock-2",
-    type: "achievement",
-    title: "Thành tích mới!",
-    message: "Bạn đã hoàn thành một bài học và nhận được 30 XP.",
-    read: false,
-    created_at: new Date(Date.now() - 65 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "mock-3",
-    type: "community",
-    title: "Cộng đồng",
-    message: "Bài viết của bạn đã được đăng thành công (+50 XP).",
-    read: true,
-    created_at: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "mock-4",
-    type: "system",
-    title: "Hoạt động hệ thống",
-    message: "Bạn đã đăng nhập thành công.",
-    read: true,
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,7 +42,13 @@ function relativeTime(iso: string): string {
   if (mins < 60) return `${mins} phút trước`;
   if (hours < 24) return `${hours} tiếng trước`;
   if (days === 1) return "hôm qua";
-  return `${days} ngày trước`;
+  if (days < 30) return `${days} ngày trước`;
+  return `${Math.floor(days / 30)} tháng trước`;
+}
+
+function getIcon(type: string, isBroadcast?: boolean): string {
+  if (isBroadcast) return "📢";
+  return TYPE_ICON[type] || "⚡";
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -81,30 +57,32 @@ export default function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Fetch on mount
-  useEffect(() => {
+  // Fetch notifications
+  const fetchNotifications = useCallback(() => {
     fetch("/api/notifications")
       .then((r) => r.json())
       .then((json: { notifications?: Notification[]; unread_count?: number }) => {
-        if (Array.isArray(json.notifications) && json.notifications.length > 0) {
+        if (Array.isArray(json.notifications)) {
           setNotifications(json.notifications);
           setUnreadCount(json.unread_count ?? 0);
-        } else {
-          // Fallback mock khi chưa có dữ liệu
-          setNotifications(MOCK_NOTIFICATIONS);
-          setUnreadCount(MOCK_NOTIFICATIONS.filter((n) => !n.read).length);
         }
       })
-      .catch(() => {
-        setNotifications(MOCK_NOTIFICATIONS);
-        setUnreadCount(MOCK_NOTIFICATIONS.filter((n) => !n.read).length);
-      });
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, []);
 
-  // Click outside → đóng dropdown
+  // Fetch on mount + poll every 30s
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // Click outside → close
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -131,17 +109,23 @@ export default function NotificationDropdown() {
     setUnreadCount(0);
   }
 
-  // Mark single as read
-  function markRead(id: string) {
-    fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    }).catch(() => {});
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    setUnreadCount((c) => Math.max(0, c - 1));
+  // Mark single as read & navigate
+  function handleClick(notif: Notification) {
+    if (!notif.read) {
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: notif.id, is_broadcast: notif.is_broadcast }),
+      }).catch(() => {});
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
+    }
+    if (notif.link) {
+      setOpen(false);
+      window.location.href = notif.link;
+    }
   }
 
   const visible = notifications.slice(0, 6);
@@ -197,15 +181,19 @@ export default function NotificationDropdown() {
 
           {/* List */}
           <div className="overflow-y-auto" style={{ maxHeight: "360px" }}>
-            {visible.length === 0 ? (
+            {!loaded ? (
+              <div className="py-8 flex justify-center">
+                <div className="w-5 h-5 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : visible.length === 0 ? (
               <p className="text-xs text-gray-500 text-center py-8">
                 Chưa có thông báo nào.
               </p>
             ) : (
               visible.map((notif) => (
                 <div
-                  key={notif.id}
-                  onClick={() => !notif.read && markRead(notif.id)}
+                  key={`${notif.is_broadcast ? "b" : "p"}-${notif.id}`}
+                  onClick={() => handleClick(notif)}
                   className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors"
                   style={{
                     borderBottom: "1px solid #222",
@@ -224,12 +212,17 @@ export default function NotificationDropdown() {
                 >
                   {/* Icon */}
                   <span className="text-base leading-none mt-0.5 shrink-0">
-                    {TYPE_ICON[notif.type]}
+                    {getIcon(notif.type, notif.is_broadcast)}
                   </span>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-white leading-snug">
+                      {notif.is_broadcast && (
+                        <span className="text-[10px] text-[#D4A843] font-medium mr-1">
+                          Chung
+                        </span>
+                      )}
                       {notif.title}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5 leading-snug line-clamp-2">
