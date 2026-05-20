@@ -59,24 +59,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (!/[A-Z]/.test(password)) {
-      return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 1 chữ hoa" },
-        { status: 400 }
-      );
-    }
-    if (!/[a-z]/.test(password)) {
-      return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 1 chữ thường" },
-        { status: 400 }
-      );
-    }
-    if (!/[0-9]/.test(password)) {
-      return NextResponse.json(
-        { error: "Mật khẩu phải có ít nhất 1 số" },
-        { status: 400 }
-      );
-    }
 
     const admin = await createAdminClient();
 

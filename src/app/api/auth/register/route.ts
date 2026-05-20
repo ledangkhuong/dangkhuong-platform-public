@@ -31,15 +31,12 @@ export async function POST(req: NextRequest) {
     if (full_name.trim().length > 100) return NextResponse.json({ error: "Tên quá dài" }, { status: 400 });
     if (email.trim().length > 254) return NextResponse.json({ error: "Email quá dài" }, { status: 400 });
 
-    // Password policy
+    // Password policy — chỉ yêu cầu tối thiểu 8 ký tự
     if (!password || password.length < 8) {
       return NextResponse.json({ error: "Mật khẩu phải có ít nhất 8 ký tự" }, { status: 400 });
     }
     if (password.length > 72) {
       return NextResponse.json({ error: "Mật khẩu không được quá 72 ký tự" }, { status: 400 });
-    }
-    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
-      return NextResponse.json({ error: "Mật khẩu phải có chữ hoa, chữ thường và số" }, { status: 400 });
     }
 
     const cleanPhone = phone.replace(/\s+/g, "");

@@ -25,7 +25,6 @@ export async function signUp(formData: FormData) {
   if (!email?.trim()) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập email"));
   if (!password || password.length < 8) redirect("/register?error=" + encodeURIComponent("Mật khẩu phải có ít nhất 8 ký tự"));
   if (password.length > 72) redirect("/register?error=" + encodeURIComponent("Mật khẩu không được quá 72 ký tự"));
-  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) redirect("/register?error=" + encodeURIComponent("Mật khẩu phải có chữ hoa, chữ thường và số"));
 
   const admin = await createAdminClient();
 

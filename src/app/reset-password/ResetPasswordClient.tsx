@@ -73,15 +73,6 @@ function ResetPasswordForm() {
       return;
     }
 
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasDigit = /[0-9]/.test(password);
-    if (!hasUppercase || !hasLowercase || !hasDigit) {
-      setError("Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số");
-      setLoading(false);
-      return;
-    }
-
     const supabase = createClient();
     const { error: updateError } = await supabase.auth.updateUser({
       password,

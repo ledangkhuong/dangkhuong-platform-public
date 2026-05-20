@@ -54,15 +54,6 @@ export async function POST(req: NextRequest) {
     if (!password || password.length < 8) {
       return NextResponse.json({ error: "Mật khẩu phải có ít nhất 8 ký tự" }, { status: 400 });
     }
-    if (!/[A-Z]/.test(password)) {
-      return NextResponse.json({ error: "Mật khẩu phải có ít nhất 1 chữ hoa" }, { status: 400 });
-    }
-    if (!/[a-z]/.test(password)) {
-      return NextResponse.json({ error: "Mật khẩu phải có ít nhất 1 chữ thường" }, { status: 400 });
-    }
-    if (!/[0-9]/.test(password)) {
-      return NextResponse.json({ error: "Mật khẩu phải có ít nhất 1 số" }, { status: 400 });
-    }
     if (!pkg || !PRODUCT_SLUGS[pkg])
       return NextResponse.json({ error: "Vui lòng chọn gói học" }, { status: 400 });
 
