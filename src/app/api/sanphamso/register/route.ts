@@ -6,7 +6,7 @@ import { randomBytes } from "crypto";
 /**
  * POST /api/sanphamso/register
  * Đăng ký tài khoản + tạo đơn hàng cho landing page /sanphamso
- * Body: { full_name, email, phone, password, turnstile_token }
+ * Body: { full_name, email, phone, password }
  */
 
 const PRODUCT_SLUG = "con-duong-kiem-tien-tu-san-pham-so-2026";
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         email: email.trim(),
         password,
         email_confirm: true,
-        user_metadata: { full_name: full_name.trim() },
+        user_metadata: { full_name: full_name?.trim() || "" },
       });
 
     const emailAlreadyExists =
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     // 2. Update profile
     await admin.from("profiles").upsert({
       id: userId,
-      full_name: full_name.trim(),
+      full_name: full_name?.trim() || "",
       phone: phone?.trim() || null,
     });
 
@@ -250,7 +250,7 @@ export async function POST(req: NextRequest) {
       if (!existingSub) {
         await admin.from("subscribers").insert({
           email: email.trim(),
-          full_name: full_name.trim(),
+          full_name: full_name?.trim() || "",
           status: "active",
           source: "sanphamso_landing",
         });

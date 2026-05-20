@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
         email: email.trim(),
         password,
         email_confirm: true,
-        user_metadata: { full_name: full_name.trim() },
+        user_metadata: { full_name: full_name?.trim() || "" },
       });
 
     const emailAlreadyExists =
@@ -186,7 +186,7 @@ export async function POST(req: NextRequest) {
     } else {
       await admin.from("profiles").upsert({
         id: userId,
-        full_name: full_name.trim(),
+        full_name: full_name?.trim() || "",
         phone: phone?.trim() || null,
       });
     }
@@ -300,7 +300,7 @@ export async function POST(req: NextRequest) {
       if (!existingSub) {
         await admin.from("subscribers").insert({
           email: email.trim(),
-          full_name: full_name.trim(),
+          full_name: full_name?.trim() || "",
           status: "active",
           source: "hocchuaxongtiendave_landing",
         });
