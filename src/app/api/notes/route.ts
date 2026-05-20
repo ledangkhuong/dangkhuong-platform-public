@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api-handler";
 
 // GET /api/notes — fetch notes for a lesson
 // Query: lesson_id (required), product_id (required)
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/notes — create a new note
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
 }
 
 // PATCH /api/notes — update a note (content or bookmark toggle)
-export async function PATCH(req: NextRequest) {
+async function _PATCH(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -149,7 +150,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 // DELETE /api/notes — delete a note by id
-export async function DELETE(req: NextRequest) {
+async function _DELETE(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -182,3 +183,8 @@ export async function DELETE(req: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+
+export const GET = withErrorHandler(_GET);
+export const POST = withErrorHandler(_POST);
+export const PATCH = withErrorHandler(_PATCH);
+export const DELETE = withErrorHandler(_DELETE);

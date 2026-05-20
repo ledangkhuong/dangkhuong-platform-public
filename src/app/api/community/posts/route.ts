@@ -5,50 +5,55 @@ import { checkFlaggedContent } from "@/lib/keyword-filter";
 
 // GET /api/community/posts — lấy danh sách posts (requires auth)
 export async function GET(req: NextRequest) {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  // Auth check — community posts are for authenticated users only
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    // Auth check — community posts are for authenticated users only
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const { searchParams } = new URL(req.url);
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20")));
-  const offset = parseInt(searchParams.get("offset") || "0");
-  const category = searchParams.get("category");
-  const product_id = searchParams.get("product_id");
+    const { searchParams } = new URL(req.url);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20")));
+    const offset = parseInt(searchParams.get("offset") || "0");
+    const category = searchParams.get("category");
+    const product_id = searchParams.get("product_id");
 
-  // Exclude lesson questions (tagged with _q) from community feed
-  // Only show visible posts (not hidden/deleted by moderation)
-  let query = supabase
-    .from("posts")
-    .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
-    .or('tags.is.null,tags.not.cs.{_q}')
-    .eq("status", "visible");
+    // Exclude lesson questions (tagged with _q) from community feed
+    // Only show visible posts (not hidden/deleted by moderation)
+    let query = supabase
+      .from("posts")
+      .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url, level, tier)`)
+      .or('tags.is.null,tags.not.cs.{_q}')
+      .eq("status", "visible");
 
-  // Filter by category if provided
-  if (category) {
-    query = query.eq("category", category);
-  }
+    // Filter by category if provided
+    if (category) {
+      query = query.eq("category", category);
+    }
 
-  // Filter by product_id for course discussions, or exclude course-specific posts
-  if (product_id) {
-    query = query.eq("product_id", product_id);
-  } else {
-    query = query.is("product_id", null);
-  }
+    // Filter by product_id for course discussions, or exclude course-specific posts
+    if (product_id) {
+      query = query.eq("product_id", product_id);
+    } else {
+      query = query.is("product_id", null);
+    }
 
-  const { data, error } = await query
-    .order("pinned", { ascending: false })
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+    const { data, error } = await query
+      .order("pinned", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
-    console.error("GET /api/community/posts error:", error.message);
+    if (error) {
+      console.error("GET /api/community/posts error:", error.message);
+      return NextResponse.json({ error: "Không thể tải bài viết. Vui lòng thử lại." }, { status: 500 });
+    }
+    return NextResponse.json({ posts: data });
+  } catch (err) {
+    console.error("GET /api/community/posts error:", err);
     return NextResponse.json({ error: "Không thể tải bài viết. Vui lòng thử lại." }, { status: 500 });
   }
-  return NextResponse.json({ posts: data });
 }
 
 // POST /api/community/posts — tạo post mới
@@ -198,7 +203,7 @@ export async function POST(req: NextRequest) {
             user_id: a.id,
             type: "system",
             title: "Bài viết bị gắn cờ",
-            content: `Bài viết mới chứa từ khoá nhạy cảm: ${flagResult.matchedKeywords.join(", ")}`,
+            message: `Bài viết mới chứa từ khoá nhạy cảm: ${flagResult.matchedKeywords.join(", ")}`,
             link: "/crm/moderation",
           }));
           await admin.from("notifications").insert(notifications);

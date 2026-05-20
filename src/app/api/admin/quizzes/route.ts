@@ -6,7 +6,7 @@
  * PUT    /api/admin/quizzes          — Update quiz and/or questions
  * DELETE /api/admin/quizzes          — Delete a quiz
  *
- * All endpoints are admin-only (roles: admin, manager).
+ * All endpoints require staff role (roles: admin, manager, editor).
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -27,7 +27,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (!profile || !["admin", "manager"].includes(profile.role)) {
+  if (!profile || !["admin", "manager", "editor"].includes(profile.role)) {
     return { error: "Forbidden", status: 403 };
   }
 

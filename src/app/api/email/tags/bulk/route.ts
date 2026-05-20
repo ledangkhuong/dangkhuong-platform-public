@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       if (filter.list_id) {
         // Get subscriber IDs from list membership
         const { data: listMembers, error: listError } = await admin
-          .from("email_list_subscribers")
+          .from("subscriber_list_members")
           .select("subscriber_id")
           .eq("list_id", filter.list_id);
 

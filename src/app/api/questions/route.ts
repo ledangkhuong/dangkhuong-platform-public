@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     .select("role")
     .eq("id", user.id)
     .single();
-  const isStaff = ["admin", "manager", "support"].includes(requesterProfile?.role ?? "");
+  const isStaff = ["admin", "manager", "support", "editor"].includes(requesterProfile?.role ?? "");
 
   if (isStaff) {
     const userIds = (data ?? []).map((p: { user_id: string }) => p.user_id);
@@ -213,11 +213,18 @@ export async function PATCH(req: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  if (!["admin", "manager", "support"].includes(profile?.role ?? "")) {
+  if (!["admin", "manager", "support", "editor"].includes(profile?.role ?? "")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id, reply, sendEmail: shouldSendEmail } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { id, reply, sendEmail: shouldSendEmail } = body;
+
   if (!id)
     return NextResponse.json(
       { error: "Question id required" },
@@ -229,81 +236,86 @@ export async function PATCH(req: NextRequest) {
       { status: 400 }
     );
 
-  // Add reply as a comment on the question post
-  const { data, error } = await supabase
-    .from("comments")
-    .insert({
-      user_id: user.id,
-      post_id: id,
-      content: reply.trim(),
-    })
-    .select(`*, profiles!comments_user_id_fkey(full_name, avatar_url)`)
-    .single();
+  try {
+    // Add reply as a comment on the question post
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({
+        user_id: user.id,
+        post_id: id,
+        content: reply.trim(),
+      })
+      .select(`*, profiles!comments_user_id_fkey(full_name, avatar_url)`)
+      .single();
 
-  if (error) {
-    console.error("[Questions PATCH] Error:", error);
-    return NextResponse.json({ error: "Có lỗi xảy ra khi trả lời câu hỏi. Vui lòng thử lại." }, { status: 500 });
-  }
-
-  // Send email notification to question asker (non-blocking)
-  let emailSent = false;
-  if (shouldSendEmail) {
-    try {
-      // Fetch the question post to get user_id and content
-      const { data: questionPost } = await supabase
-        .from("posts")
-        .select("user_id, content, tags")
-        .eq("id", id)
-        .single();
-
-      if (questionPost) {
-        // Get question asker's email via admin client
-        const adminSupabase = await createAdminClient();
-        const { data: userData } = await adminSupabase.auth.admin.getUserById(questionPost.user_id);
-
-        // Get question asker's name
-        const { data: askerProfile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", questionPost.user_id)
-          .single();
-
-        // Get staff name
-        const { data: staffProfile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .single();
-
-        // Resolve course name for context
-        const tags = (questionPost.tags ?? []) as string[];
-        let courseName = "";
-        if (tags[1]) {
-          const { data: product } = await supabase
-            .from("products")
-            .select("title")
-            .eq("id", tags[1])
-            .single();
-          if (product) courseName = product.title;
-        }
-
-        if (userData?.user?.email) {
-          await sendQuestionReplyEmail(
-            userData.user.email,
-            askerProfile?.full_name ?? "bạn",
-            questionPost.content,
-            reply.trim(),
-            staffProfile?.full_name ?? "Đội ngũ hỗ trợ",
-            courseName,
-          );
-          emailSent = true;
-        }
-      }
-    } catch (emailErr) {
-      console.error("[Questions PATCH] Email notification failed:", emailErr);
-      // Don't fail the whole request if email fails
+    if (error) {
+      console.error("[Questions PATCH] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi trả lời câu hỏi. Vui lòng thử lại." }, { status: 500 });
     }
-  }
 
-  return NextResponse.json({ question: { id, reply: data }, emailSent });
+    // Send email notification to question asker (non-blocking)
+    let emailSent = false;
+    if (shouldSendEmail) {
+      try {
+        // Fetch the question post to get user_id and content
+        const { data: questionPost } = await supabase
+          .from("posts")
+          .select("user_id, content, tags")
+          .eq("id", id)
+          .single();
+
+        if (questionPost) {
+          // Get question asker's email via admin client
+          const adminSupabase = await createAdminClient();
+          const { data: userData } = await adminSupabase.auth.admin.getUserById(questionPost.user_id);
+
+          // Get question asker's name
+          const { data: askerProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", questionPost.user_id)
+            .single();
+
+          // Get staff name
+          const { data: staffProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+
+          // Resolve course name for context
+          const tags = (questionPost.tags ?? []) as string[];
+          let courseName = "";
+          if (tags[1]) {
+            const { data: product } = await supabase
+              .from("products")
+              .select("title")
+              .eq("id", tags[1])
+              .single();
+            if (product) courseName = product.title;
+          }
+
+          if (userData?.user?.email) {
+            await sendQuestionReplyEmail(
+              userData.user.email,
+              askerProfile?.full_name ?? "bạn",
+              questionPost.content,
+              reply.trim(),
+              staffProfile?.full_name ?? "Đội ngũ hỗ trợ",
+              courseName,
+            );
+            emailSent = true;
+          }
+        }
+      } catch (emailErr) {
+        console.error("[Questions PATCH] Email notification failed:", emailErr);
+        // Don't fail the whole request if email fails
+      }
+    }
+
+    return NextResponse.json({ question: { id, reply: data }, emailSent });
+  } catch (err) {
+    console.error("[Questions PATCH] Unexpected error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
+  }
 }

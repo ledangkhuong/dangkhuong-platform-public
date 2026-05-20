@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 
@@ -39,7 +40,25 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password } = body;
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      turnstile_token,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+    } = body;
+
+    // Verify Turnstile CAPTCHA
+    const turnstileOk = await verifyTurnstile(turnstile_token);
+    if (!turnstileOk) {
+      return NextResponse.json(
+        { error: "Xác minh CAPTCHA thất bại. Vui lòng thử lại." },
+        { status: 400 }
+      );
+    }
 
     if (!email?.trim())
       return NextResponse.json(
@@ -51,6 +70,17 @@ export async function POST(req: NextRequest) {
         { error: "Vui lòng nhập mật khẩu" },
         { status: 400 }
       );
+    }
+
+    // Validate phone format (Vietnamese phone numbers)
+    if (phone?.trim()) {
+      const cleanPhone = phone.trim().replace(/[\s\-().]/g, "");
+      if (!/^(\+84|84|0)(3|5|7|8|9)[0-9]{8}$/.test(cleanPhone)) {
+        return NextResponse.json(
+          { error: "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam." },
+          { status: 400 }
+        );
+      }
     }
 
     // Hoist admin client up so we can do a pre-check before further validation
@@ -226,6 +256,9 @@ export async function POST(req: NextRequest) {
       customer_email: email.trim(),
       customer_phone: orderPhone,
       ref_code: refCode,
+      utm_source: utm_source?.trim() || null,
+      utm_medium: utm_medium?.trim() || null,
+      utm_campaign: utm_campaign?.trim() || null,
     };
 
     if (product?.id) {

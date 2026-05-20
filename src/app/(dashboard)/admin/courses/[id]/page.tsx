@@ -60,6 +60,7 @@ export default function EditCoursePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -82,6 +83,33 @@ export default function EditCoursePage() {
   });
 
   const [instructors, setInstructors] = useState<InstructorOption[]>([]);
+
+  const isEditor = userRole === "editor";
+
+  // ─── Auth + role check ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    async function checkRole() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const allowedRoles = ["admin", "manager", "editor"];
+      if (!profile || !allowedRoles.includes(profile.role)) {
+        router.push("/dashboard");
+        return;
+      }
+      setUserRole(profile.role);
+    }
+    checkRole();
+  }, []);
 
   // ─── Fetch instructors ────────────────────────────────────────────────────
 
@@ -385,6 +413,7 @@ export default function EditCoursePage() {
                 onChange={handleChange}
                 min={0}
                 className="input-dark w-full"
+                disabled={isEditor}
               />
             </div>
             <div className="card-dark p-4 space-y-2">
@@ -404,6 +433,7 @@ export default function EditCoursePage() {
                 min={0}
                 placeholder="Để trống nếu không giảm giá"
                 className="input-dark w-full"
+                disabled={isEditor}
               />
             </div>
           </div>
@@ -434,6 +464,7 @@ export default function EditCoursePage() {
                 value={form.tier_required}
                 onChange={handleChange}
                 className="input-dark w-full"
+                disabled={isEditor}
               >
                 <option value="free">Miễn phí</option>
                 <option value="basic">Basic</option>
@@ -454,6 +485,7 @@ export default function EditCoursePage() {
                 value={form.status}
                 onChange={handleChange}
                 className="input-dark w-full"
+                disabled={isEditor}
               >
                 <option value="draft">Bản nháp</option>
                 <option value="published">Đã xuất bản</option>
@@ -514,6 +546,7 @@ export default function EditCoursePage() {
                 }))
               }
               className="input-dark w-full"
+              disabled={isEditor}
             >
               <option value="">— Chưa phân công —</option>
               {instructors.map((inst) => (

@@ -58,7 +58,8 @@ export default function NewCoursePage() {
         .eq("id", user.id)
         .single();
 
-      if (!profile || profile.role !== "admin") {
+      const allowedRoles = ["admin", "manager", "editor"];
+      if (!profile || !allowedRoles.includes(profile.role)) {
         router.push("/");
         return;
       }

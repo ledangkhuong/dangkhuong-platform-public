@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
@@ -20,6 +20,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import BankTransferButtons from "@/components/BankTransferButtons";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import HeroSection from "./sections/HeroSection";
 import PainSection from "./sections/PainSection";
 import StorySection from "./sections/StorySection";
@@ -86,6 +87,7 @@ export default function HocChuaXongLanding() {
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
   // Auto-detect returning customers by email
   const [emailCheck, setEmailCheck] = useState<{
     status: "idle" | "checking" | "exists" | "new";
@@ -123,6 +125,10 @@ export default function HocChuaXongLanding() {
 
   const isReturningUser = emailCheck.status === "exists";
 
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
   const scrollToRegister = () => {
     registerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
@@ -152,7 +158,7 @@ export default function HocChuaXongLanding() {
       const res = await fetch("/api/hocchuaxongtiendave/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstile_token: turnstileToken }),
       });
       const data = await res.json();
       if (data.success) {
@@ -482,6 +488,9 @@ export default function HocChuaXongLanding() {
                 </div>
               )}
             </div>
+
+            {/* Turnstile CAPTCHA */}
+            <TurnstileWidget onVerify={handleTurnstileVerify} />
 
             <button
               type="submit"

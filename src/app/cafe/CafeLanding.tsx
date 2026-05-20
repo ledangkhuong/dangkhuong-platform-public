@@ -205,8 +205,8 @@ export default function CafeLanding() {
       setError("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
-    if (form.password.length < 6) {
-      setError("Mật khẩu tối thiểu 6 ký tự");
+    if (form.password.length < 8) {
+      setError("Mật khẩu tối thiểu 8 ký tự");
       return;
     }
     setLoading(true);
@@ -725,7 +725,7 @@ export default function CafeLanding() {
           <form
             onSubmit={handleSubmit}
             className="p-6 sm:p-8 rounded-2xl space-y-3"
-            style={{ background: "#111", border: "1px solid #1f1f1f" }}
+            style={{ background: "#111", border: "1px solid rgba(212,168,67,0.12)" }}
           >
             {error && (
               <div
@@ -743,29 +743,6 @@ export default function CafeLanding() {
               </div>
             )}
 
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
-                Họ và tên <span className="text-red-400">*</span>
-              </label>
-              <div className="relative">
-                <User
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                />
-                <input
-                  name="full_name"
-                  type="text"
-                  value={form.full_name}
-                  onChange={handleChange}
-                  placeholder="Nguyễn Văn A"
-                  className="input-dark"
-                  style={{ paddingLeft: "2.75rem", paddingTop: "0.75rem", paddingBottom: "0.75rem" }}
-                  required
-                />
-              </div>
-            </div>
-
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -782,8 +759,45 @@ export default function CafeLanding() {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="email@example.com"
-                  className="input-dark"
-                  style={{ paddingLeft: "2.75rem", paddingTop: "0.75rem", paddingBottom: "0.75rem" }}
+                  className="w-full rounded-lg outline-none text-white"
+                  style={{
+                    background: "#111",
+                    border: "1px solid rgba(212,168,67,0.15)",
+                    paddingLeft: "2.75rem",
+                    paddingRight: "1rem",
+                    paddingTop: "0.85rem",
+                    paddingBottom: "0.85rem",
+                  }}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                Họ và tên <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <User
+                  size={16}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                />
+                <input
+                  name="full_name"
+                  type="text"
+                  value={form.full_name}
+                  onChange={handleChange}
+                  placeholder="Nguyễn Văn A"
+                  className="w-full rounded-lg outline-none text-white"
+                  style={{
+                    background: "#111",
+                    border: "1px solid rgba(212,168,67,0.15)",
+                    paddingLeft: "2.75rem",
+                    paddingRight: "1rem",
+                    paddingTop: "0.85rem",
+                    paddingBottom: "0.85rem",
+                  }}
                   required
                 />
               </div>
@@ -792,7 +806,7 @@ export default function CafeLanding() {
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                Số điện thoại
+                Số điện thoại <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <Phone
@@ -805,8 +819,15 @@ export default function CafeLanding() {
                   value={form.phone}
                   onChange={handleChange}
                   placeholder="0901 234 567"
-                  className="input-dark"
-                  style={{ paddingLeft: "2.75rem", paddingTop: "0.75rem", paddingBottom: "0.75rem" }}
+                  className="w-full rounded-lg outline-none text-white"
+                  style={{
+                    background: "#111",
+                    border: "1px solid rgba(212,168,67,0.15)",
+                    paddingLeft: "2.75rem",
+                    paddingRight: "1rem",
+                    paddingTop: "0.85rem",
+                    paddingBottom: "0.85rem",
+                  }}
                 />
               </div>
             </div>
@@ -815,7 +836,7 @@ export default function CafeLanding() {
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
                 Mật khẩu <span className="text-red-400">*</span>{" "}
-                <span className="text-gray-500">(tối thiểu 6 ký tự)</span>
+                <span className="text-gray-500">(tối thiểu 8 ký tự)</span>
               </label>
               <div className="relative">
                 <Lock
@@ -828,9 +849,16 @@ export default function CafeLanding() {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="input-dark"
-                  style={{ paddingLeft: "2.75rem", paddingRight: "2.75rem", paddingTop: "0.75rem", paddingBottom: "0.75rem" }}
-                  minLength={6}
+                  className="w-full rounded-lg outline-none text-white"
+                  style={{
+                    background: "#111",
+                    border: "1px solid rgba(212,168,67,0.15)",
+                    paddingLeft: "2.75rem",
+                    paddingRight: "2.75rem",
+                    paddingTop: "0.85rem",
+                    paddingBottom: "0.85rem",
+                  }}
+                  minLength={8}
                   required
                 />
                 <button
@@ -851,15 +879,26 @@ export default function CafeLanding() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-green w-full justify-center text-sm sm:text-base py-3.5 mt-4"
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-4 mt-4 text-base sm:text-lg font-bold uppercase tracking-wide transition-all hover:opacity-95 hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
+              style={{
+                background: "linear-gradient(135deg, #D4A843 0%, #B8944A 100%)",
+                color: "#0A1020",
+                boxShadow: "0 0 30px rgba(212,168,67,0.4)",
+              }}
             >
               {loading ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
               ) : (
-                <Coffee size={16} />
+                <Coffee size={18} />
               )}
-              {loading ? "Đang xử lý..." : "Đăng Ký & Thanh Toán 99.000đ"}
+              {loading ? "Đang xử lý..." : "ĐĂNG KÝ & THANH TOÁN — 99.000Đ"}
             </button>
+
+            <div className="flex items-center justify-center gap-4 pt-3 text-xs text-gray-500">
+              <span>🔒 Thanh toán an toàn</span>
+              <span>•</span>
+              <span>⚡ Cấp khóa tự động</span>
+            </div>
 
             <p className="text-[11px] text-gray-500 text-center leading-relaxed pt-2">
               Bằng việc đăng ký, bạn đồng ý với điều khoản sử dụng của Đăng

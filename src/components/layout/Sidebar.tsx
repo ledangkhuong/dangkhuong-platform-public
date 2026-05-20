@@ -40,20 +40,22 @@ const mainNav = [
 
 const instructorNav = [
   { href: "/instructor", icon: GraduationCap, label: "Giảng viên" },
-  { href: "/instructor/submissions", icon: ClipboardCheck, label: "Chấm bài" },
   { href: "/instructor/courses", icon: BookOpen, label: "Khóa học của tôi" },
+  { href: "/instructor/students", icon: Users, label: "Tiến trình học viên" },
+  { href: "/instructor/questions", icon: MessageSquare, label: "Câu hỏi học viên" },
+  { href: "/instructor/submissions", icon: ClipboardCheck, label: "Chấm bài" },
 ];
 
 const adminNav = [
   { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
-  { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager"] },
+  { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor"] },
   { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager"] },
   { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager"] },
   { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
   { href: "/admin/coupons", icon: Tag, label: "Mã giảm giá", roles: ["admin", "manager"] },
-  { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager"] },
+  { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager", "editor"] },
   { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
-  { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support"] },
+  { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support", "editor"] },
   { href: "/admin/announcements", icon: Megaphone, label: "Thông báo", roles: ["admin", "manager"] },
   { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
   { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
@@ -133,11 +135,13 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const userRole = profile?.role ?? "student";
   const isAdmin = userRole === "admin";
   const isInstructor = userRole === "instructor";
-  const isStaff = ["admin", "manager", "marketing", "sale", "support"].includes(userRole);
+  const isEditor = userRole === "editor";
+  const isStaff = ["admin", "manager", "marketing", "sale", "support", "editor"].includes(userRole);
 
   const roleLabels: Record<string, string> = {
     admin: "Admin", manager: "Quản lý", marketing: "Marketing",
     sale: "Sale", support: "CSKH", instructor: "Giảng viên",
+    editor: "Biên tập viên",
   };
   const tierLabel = isStaff || isInstructor ? (roleLabels[userRole] ?? "Staff") : profile?.tier === "vip" ? "VIP" : profile?.tier === "member" ? "Member" : "Free";
   const tierColor = isAdmin ? "#ef4444" : isStaff ? "#3b82f6" : isInstructor ? "#8b5cf6" : profile?.tier === "vip" ? "#f59e0b" : profile?.tier === "member" ? "#a855f7" : "#D4A843";

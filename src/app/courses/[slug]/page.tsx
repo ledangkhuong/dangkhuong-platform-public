@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
 import { siteConfig, getBaseUrl } from "@/lib/site-config";
@@ -183,7 +184,7 @@ export default async function CourseDetailPage({
   const adminDb = await createAdminClient();
   const { data: product } = await adminDb
     .from("products")
-    .select("id, slug, title, description, description_html, price, sale_price, thumbnail, type, tier_required, status")
+    .select("id, slug, title, description, description_html, price, sale_price, thumbnail, type, tier_required, status, instructor_id")
     .eq("slug", slug)
     .in("status", ["published", "coming_soon"])
     .single();
@@ -270,6 +271,17 @@ export default async function CourseDetailPage({
     ),
   }));
 
+  // ── Fetch instructor profile ──
+  let instructor: { id: string; full_name: string | null; avatar_url: string | null; bio: string | null } | null = null;
+  if (product.instructor_id) {
+    const { data } = await adminDb
+      .from("profiles")
+      .select("id, full_name, avatar_url, bio")
+      .eq("id", product.instructor_id)
+      .single();
+    instructor = data;
+  }
+
   // ── JSON-LD Structured Data (schema.org/Course) ──
   const totalLessons = chapters.reduce((sum, ch) => sum + ch.lessons.length, 0);
   const totalDuration = chapters.reduce(
@@ -338,6 +350,7 @@ export default async function CourseDetailPage({
           })),
         }))}
         isAuthenticated={false}
+        instructor={instructor}
       />
       </>
     );
@@ -487,6 +500,7 @@ export default async function CourseDetailPage({
           isAuthenticated={true}
           productId={product.id}
           enrolledAt={enrolledAt}
+          instructor={instructor}
         />
       </div>
     );
@@ -898,6 +912,34 @@ export default async function CourseDetailPage({
                     </a>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Instructor */}
+          {instructor && (
+            <div className="card-dark p-4 sm:p-6 mb-4 sm:mb-5">
+              <h3 className="text-lg font-bold text-white mb-4">Giảng viên</h3>
+              <div className="flex items-start gap-4">
+                {instructor.avatar_url ? (
+                  <Image
+                    src={instructor.avatar_url}
+                    alt={instructor.full_name || ""}
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-[#D4A843]/20 flex items-center justify-center text-[#D4A843] text-xl font-bold shrink-0">
+                    {(instructor.full_name || "?")[0]}
+                  </div>
+                )}
+                <div>
+                  <p className="font-semibold text-white">{instructor.full_name}</p>
+                  {instructor.bio && (
+                    <p className="text-sm text-gray-400 mt-1">{instructor.bio}</p>
+                  )}
+                </div>
               </div>
             </div>
           )}

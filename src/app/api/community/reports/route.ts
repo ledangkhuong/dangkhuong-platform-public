@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
           user_id: a.id,
           type: "system",
           title: "Báo cáo mới từ cộng đồng",
-          content: `Có nội dung bị báo cáo: ${reason}`,
+          message: `Có nội dung bị báo cáo: ${reason}`,
           link: "/crm/moderation",
         }));
         await admin.from("notifications").insert(notifications);
@@ -85,6 +85,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("POST /api/community/reports unexpected:", err);
-    return NextResponse.json({ error: "Lỗi hệ thống" }, { status: 500 });
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
 }

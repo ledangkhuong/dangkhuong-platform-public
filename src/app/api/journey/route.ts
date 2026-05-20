@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api-handler";
 
 // GET /api/journey — get learning journey events for a user
-export async function GET(req: NextRequest) {
+async function _GET(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/journey — create a custom journey event (milestone/custom)
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -100,3 +101,6 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ event: data });
 }
+
+export const GET = withErrorHandler(_GET);
+export const POST = withErrorHandler(_POST);

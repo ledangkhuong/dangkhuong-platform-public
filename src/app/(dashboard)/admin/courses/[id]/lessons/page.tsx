@@ -263,6 +263,30 @@ export default function LessonsPage() {
 
   const supabase = createClient();
 
+  // ─── Auth + role check ──────────────────────────────────────────────────────
+
+  useEffect(() => {
+    async function checkRole() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const allowedRoles = ["admin", "manager", "editor"];
+      if (!profile || !allowedRoles.includes(profile.role)) {
+        router.push("/dashboard");
+        return;
+      }
+    }
+    checkRole();
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, {

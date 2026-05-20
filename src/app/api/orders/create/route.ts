@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { product_id, customer_name, customer_email, customer_phone } = body;
+    const { product_id, customer_name, customer_email, customer_phone, coupon_code } = body;
 
     if (!product_id) {
       return NextResponse.json({ error: "Thiếu product_id" }, { status: 400 });
@@ -99,10 +99,61 @@ export async function POST(req: NextRequest) {
     }
 
     const orderCode = generateOrderCode();
-    const amount = product.sale_price || product.price;
+    const baseAmount = product.sale_price || product.price;
 
-    if (!amount || amount <= 0) {
+    if (!baseAmount || baseAmount <= 0) {
       return NextResponse.json({ error: "Sản phẩm không có giá hợp lệ" }, { status: 400 });
+    }
+
+    // ── Coupon discount ─────────────────────────────────────────
+    let amount = baseAmount;
+    let appliedCouponId: string | null = null;
+    let appliedCouponCode: string | null = null;
+    let appliedCouponUsedCount: number | null = null;
+
+    if (coupon_code && typeof coupon_code === "string") {
+      const normalizedCode = coupon_code.trim().toUpperCase();
+
+      const { data: coupon, error: couponError } = await admin
+        .from("coupons")
+        .select("*")
+        .eq("code", normalizedCode)
+        .single();
+
+      if (couponError || !coupon) {
+        return NextResponse.json({ error: "Mã giảm giá không tồn tại" }, { status: 400 });
+      }
+
+      if (!coupon.is_active) {
+        return NextResponse.json({ error: "Mã giảm giá đã bị vô hiệu hoá" }, { status: 400 });
+      }
+
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        return NextResponse.json({ error: "Mã giảm giá đã hết hạn" }, { status: 400 });
+      }
+
+      if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
+        return NextResponse.json({ error: "Mã giảm giá đã hết lượt sử dụng" }, { status: 400 });
+      }
+
+      if (baseAmount < (coupon.min_order_amount ?? 0)) {
+        return NextResponse.json({ error: "Đơn hàng không đạt giá trị tối thiểu để sử dụng mã này" }, { status: 400 });
+      }
+
+      // Calculate discount
+      let discountAmount: number;
+      if (coupon.discount_type === "percent") {
+        discountAmount = Math.round((baseAmount * coupon.discount_value) / 100);
+      } else {
+        // fixed
+        discountAmount = Math.round(Number(coupon.discount_value));
+      }
+
+      discountAmount = Math.min(discountAmount, baseAmount);
+      amount = Math.max(baseAmount - discountAmount, 0);
+      appliedCouponId = coupon.id;
+      appliedCouponCode = normalizedCode;
+      appliedCouponUsedCount = coupon.used_count ?? 0;
     }
 
     // Đọc affiliate ref_code từ cookie dk_ref
@@ -121,7 +172,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Tạo đơn hàng (kèm ref_code nếu có)
+    // Tạo đơn hàng (kèm ref_code và coupon_code nếu có)
     const { data: order, error: orderError } = await admin.from("orders").insert({
       order_code: orderCode,
       user_id: user.id,
@@ -133,6 +184,7 @@ export async function POST(req: NextRequest) {
       customer_email: customer_email || user.email,
       customer_phone: customer_phone || null,
       ref_code: refCode,
+      ...(appliedCouponCode ? { coupon_code: appliedCouponCode } : {}),
     }).select().single();
 
     if (orderError) {
@@ -140,6 +192,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         error: "Không thể tạo đơn hàng. Vui lòng thử lại."
       }, { status: 500 });
+    }
+
+    // Increment coupon used_count and record usage
+    if (appliedCouponId && appliedCouponUsedCount !== null && order) {
+      await Promise.all([
+        admin
+          .from("coupons")
+          .update({ used_count: appliedCouponUsedCount + 1 })
+          .eq("id", appliedCouponId),
+        admin
+          .from("coupon_usages")
+          .insert({
+            coupon_id: appliedCouponId,
+            user_id: user.id,
+            order_id: order.id,
+          }),
+      ]);
     }
 
     // Thông tin thanh toán

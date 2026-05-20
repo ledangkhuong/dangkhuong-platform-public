@@ -2,7 +2,7 @@
  * Admin Quiz Management Page
  *
  * SIDEBAR NOTE: Add this link to adminNav in src/components/layout/Sidebar.tsx:
- *   { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager"] },
+ *   { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager", "editor"] },
  * Import ClipboardCheck from lucide-react.
  */
 
@@ -47,7 +47,7 @@ export default async function AdminQuizzesPage() {
     .select("role")
     .eq("id", user.id)
     .single();
-  if (!profile || !["admin", "manager"].includes(profile.role)) {
+  if (!profile || !["admin", "manager", "editor"].includes(profile.role)) {
     redirect("/dashboard");
   }
 

@@ -35,6 +35,13 @@ interface Chapter {
   lessons: Lesson[];
 }
 
+interface Instructor {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+}
+
 interface CoursePublicViewProps {
   product: {
     id: string;
@@ -51,6 +58,7 @@ interface CoursePublicViewProps {
   isAuthenticated: boolean;
   productId?: string;
   enrolledAt?: string; // ISO date when user enrolled
+  instructor?: Instructor | null;
 }
 
 /* ─── Helpers ─── */
@@ -102,6 +110,7 @@ export default function CoursePublicView({
   chapters,
   isAuthenticated,
   enrolledAt,
+  instructor,
 }: CoursePublicViewProps) {
   const [activeVideo, setActiveVideo] = useState<{
     youtubeId: string;
@@ -380,6 +389,45 @@ export default function CoursePublicView({
           </div>
         </div>
       </section>
+
+      {/* ═══ INSTRUCTOR SECTION ═══ */}
+      {instructor && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+          <div className="max-w-4xl">
+            <div
+              className="rounded-xl p-5 sm:p-6"
+              style={{ background: "#151515", border: "1px solid #2a2a2a" }}
+            >
+              <h3 className="text-lg font-bold text-white mb-4">Giảng viên</h3>
+              <div className="flex items-start gap-4">
+                {instructor.avatar_url ? (
+                  <Image
+                    src={instructor.avatar_url}
+                    alt={instructor.full_name || ""}
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-[#D4A843]/20 flex items-center justify-center text-[#D4A843] text-xl font-bold shrink-0">
+                    {(instructor.full_name || "?")[0]}
+                  </div>
+                )}
+                <div>
+                  <p className="font-semibold text-white">
+                    {instructor.full_name}
+                  </p>
+                  {instructor.bio && (
+                    <p className="text-sm text-gray-400 mt-1">
+                      {instructor.bio}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══ CURRICULUM SECTION ═══ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">

@@ -55,9 +55,9 @@ export async function POST(
 
       resolvedSubscriberIds = (subscribers || []).map((s) => s.id);
     } else if (list_id) {
-      // Find all subscriber_ids from email_list_subscribers
+      // Find all subscriber_ids from subscriber_list_members
       const { data: listSubscribers, error: listError } = await admin
-        .from("email_list_subscribers")
+        .from("subscriber_list_members")
         .select("subscriber_id")
         .eq("list_id", list_id);
 

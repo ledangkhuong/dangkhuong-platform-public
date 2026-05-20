@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api-handler";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -7,7 +8,7 @@ const UUID_REGEX =
 // GET /api/lessons/[lessonId]/discussions
 // Fetch discussions for a lesson with user profiles
 // Query params: parent_id (optional) — filter by parent, omit or "null" for top-level
-export async function GET(
+async function _GET(
   req: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
@@ -88,7 +89,7 @@ export async function GET(
 // POST /api/lessons/[lessonId]/discussions
 // Create a new discussion or reply (requires auth)
 // Body: { content: string, parent_id?: string }
-export async function POST(
+async function _POST(
   req: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
@@ -177,3 +178,6 @@ export async function POST(
 
   return NextResponse.json({ discussion: data });
 }
+
+export const GET = withErrorHandler(_GET);
+export const POST = withErrorHandler(_POST);

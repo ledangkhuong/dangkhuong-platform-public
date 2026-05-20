@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api-handler";
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   // Capture IP + UA early (used for both rate limiting and analytics tracking)
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
   const ua = req.headers.get("user-agent") ?? "";
@@ -52,3 +53,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withErrorHandler(_POST);

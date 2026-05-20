@@ -51,7 +51,13 @@ export async function POST(req: NextRequest) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { lesson_id, product_id, content, links } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { lesson_id, product_id, content, links } = body;
 
   if (!lesson_id || !product_id) {
     return NextResponse.json(
@@ -88,57 +94,62 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const adminClient = await createAdminClient();
+  try {
+    const adminClient = await createAdminClient();
 
-  // Verify enrollment or staff role (matching progress API pattern)
-  const { data: enrollment } = await adminClient
-    .from("enrollments")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("product_id", product_id)
-    .maybeSingle();
+    // Verify enrollment or staff role (matching progress API pattern)
+    const { data: enrollment } = await adminClient
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("product_id", product_id)
+      .maybeSingle();
 
-  let isStaff = false;
-  if (!enrollment) {
-    const { data: profile } = await adminClient
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
+    let isStaff = false;
+    if (!enrollment) {
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      isStaff = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(
+        profile?.role ?? ""
+      );
+    }
+
+    if (!enrollment && !isStaff) {
+      return NextResponse.json(
+        { error: "Bạn chưa đăng ký khoá học này" },
+        { status: 403 }
+      );
+    }
+
+    const { data, error } = await adminClient
+      .from("lesson_submissions")
+      .insert({
+        user_id: user.id,
+        lesson_id,
+        product_id,
+        content: content?.trim() || "",
+        links: links || [],
+        status: "pending",
+      })
+      .select()
       .single();
-    isStaff = ["admin", "manager", "marketing", "sale", "support", "instructor"].includes(
-      profile?.role ?? ""
-    );
+
+    if (error) {
+      console.error("[Submissions POST] Error:", error);
+      return NextResponse.json(
+        { error: "Có lỗi xảy ra khi nộp bài." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ submission: data });
+  } catch (err) {
+    console.error("[Submissions POST] Unexpected error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  if (!enrollment && !isStaff) {
-    return NextResponse.json(
-      { error: "Bạn chưa đăng ký khoá học này" },
-      { status: 403 }
-    );
-  }
-
-  const { data, error } = await adminClient
-    .from("lesson_submissions")
-    .insert({
-      user_id: user.id,
-      lesson_id,
-      product_id,
-      content: content?.trim() || "",
-      links: links || [],
-      status: "pending",
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("[Submissions POST] Error:", error);
-    return NextResponse.json(
-      { error: "Có lỗi xảy ra khi nộp bài." },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({ submission: data });
 }
 
 // PATCH — update submission (student edit or admin review)
@@ -150,100 +161,110 @@ export async function PATCH(req: NextRequest) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
   const { id, content, links, status, feedback } = body;
 
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
 
-  const adminClient = await createAdminClient();
+  try {
+    const adminClient = await createAdminClient();
 
-  // Check user role
-  const { data: profile } = await adminClient
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  const isAdmin = ["admin", "manager"].includes(profile?.role ?? "");
-  const isInstructor = profile?.role === "instructor";
-
-  // Fetch existing submission
-  const { data: existing } = await adminClient
-    .from("lesson_submissions")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (!existing) {
-    return NextResponse.json(
-      { error: "Bài nộp không tồn tại." },
-      { status: 404 }
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateData: Record<string, any> = {
-    updated_at: new Date().toISOString(),
-  };
-
-  if (isAdmin) {
-    // Admin can update status and feedback
-    if (status) updateData.status = status;
-    if (feedback !== undefined) updateData.feedback = feedback;
-    if (body.score !== undefined) updateData.score = body.score;
-    if (status === "reviewed" || status === "approved") {
-      updateData.reviewed_by = user.id;
-      updateData.reviewed_at = new Date().toISOString();
-    }
-  } else if (isInstructor) {
-    // Instructor can review submissions for their assigned courses
-    const { data: product } = await adminClient
-      .from("products")
-      .select("instructor_id")
-      .eq("id", existing.product_id)
+    // Check user role
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
 
-    if (product?.instructor_id !== user.id) {
+    const isAdmin = ["admin", "manager", "editor"].includes(profile?.role ?? "");
+    const isInstructor = profile?.role === "instructor";
+
+    // Fetch existing submission
+    const { data: existing } = await adminClient
+      .from("lesson_submissions")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!existing) {
       return NextResponse.json(
-        { error: "Bạn không phải giảng viên của khóa học này." },
+        { error: "Bài nộp không tồn tại." },
+        { status: 404 }
+      );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isAdmin) {
+      // Admin can update status and feedback
+      if (status) updateData.status = status;
+      if (feedback !== undefined) updateData.feedback = feedback;
+      if (body.score !== undefined) updateData.score = body.score;
+      if (status === "reviewed" || status === "approved") {
+        updateData.reviewed_by = user.id;
+        updateData.reviewed_at = new Date().toISOString();
+      }
+    } else if (isInstructor) {
+      // Instructor can review submissions for their assigned courses
+      const { data: product } = await adminClient
+        .from("products")
+        .select("instructor_id")
+        .eq("id", existing.product_id)
+        .single();
+
+      if (product?.instructor_id !== user.id) {
+        return NextResponse.json(
+          { error: "Bạn không phải giảng viên của khóa học này." },
+          { status: 403 }
+        );
+      }
+
+      if (status) updateData.status = status;
+      if (feedback !== undefined) updateData.feedback = feedback;
+      if (body.score !== undefined) updateData.score = body.score;
+      if (status === "reviewed" || status === "approved") {
+        updateData.reviewed_by = user.id;
+        updateData.reviewed_at = new Date().toISOString();
+      }
+    } else if (existing.user_id === user.id && existing.status === "pending") {
+      // Student can only edit their own pending submissions
+      if (content !== undefined) updateData.content = content.trim();
+      if (links !== undefined) updateData.links = links;
+    } else {
+      return NextResponse.json(
+        { error: "Không có quyền chỉnh sửa bài nộp này." },
         { status: 403 }
       );
     }
 
-    if (status) updateData.status = status;
-    if (feedback !== undefined) updateData.feedback = feedback;
-    if (body.score !== undefined) updateData.score = body.score;
-    if (status === "reviewed" || status === "approved") {
-      updateData.reviewed_by = user.id;
-      updateData.reviewed_at = new Date().toISOString();
+    const { data, error } = await adminClient
+      .from("lesson_submissions")
+      .update(updateData)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[Submissions PATCH] Error:", error);
+      return NextResponse.json(
+        { error: "Có lỗi xảy ra khi cập nhật bài nộp." },
+        { status: 500 }
+      );
     }
-  } else if (existing.user_id === user.id && existing.status === "pending") {
-    // Student can only edit their own pending submissions
-    if (content !== undefined) updateData.content = content.trim();
-    if (links !== undefined) updateData.links = links;
-  } else {
-    return NextResponse.json(
-      { error: "Không có quyền chỉnh sửa bài nộp này." },
-      { status: 403 }
-    );
+
+    return NextResponse.json({ submission: data });
+  } catch (err) {
+    console.error("[Submissions PATCH] Unexpected error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  const { data, error } = await adminClient
-    .from("lesson_submissions")
-    .update(updateData)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("[Submissions PATCH] Error:", error);
-    return NextResponse.json(
-      { error: "Có lỗi xảy ra khi cập nhật bài nộp." },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({ submission: data });
 }

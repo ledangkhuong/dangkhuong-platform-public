@@ -52,7 +52,7 @@ export async function createCampaignSends(campaignId: string): Promise<number> {
   // Nếu campaign có target list cụ thể, lọc theo list
   if (campaign.list_id) {
     const { data: listSubscriberIds } = await supabase
-      .from("email_list_subscribers")
+      .from("subscriber_list_members")
       .select("subscriber_id")
       .eq("list_id", campaign.list_id);
 

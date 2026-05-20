@@ -7,6 +7,7 @@ import {
   BookOpen,
   Users,
   ClipboardCheck,
+  MessageSquare,
   ArrowRight,
   Loader2,
 } from "lucide-react";
@@ -22,21 +23,25 @@ interface Course {
 export default function InstructorDashboardPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [questionCount, setQuestionCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [coursesRes, submissionsRes] = await Promise.all([
+        const [coursesRes, submissionsRes, questionsRes] = await Promise.all([
           fetch("/api/instructor/courses"),
           fetch("/api/instructor/submissions?status=pending&limit=1"),
+          fetch("/api/instructor/questions?status=unresolved&limit=1"),
         ]);
 
         const coursesData = await coursesRes.json();
         const submissionsData = await submissionsRes.json();
+        const questionsData = await questionsRes.json();
 
         setCourses(coursesData.courses ?? []);
         setPendingCount(submissionsData.total ?? 0);
+        setQuestionCount(questionsData.total ?? 0);
       } catch {
         // silently fail
       } finally {
@@ -73,6 +78,13 @@ export default function InstructorDashboardPage() {
       color: "#f59e0b",
       bg: "rgba(245,158,11,0.1)",
     },
+    {
+      label: "Câu hỏi mới",
+      value: questionCount,
+      icon: MessageSquare,
+      color: "#a855f7",
+      bg: "rgba(168,85,247,0.1)",
+    },
   ];
 
   return (
@@ -97,7 +109,7 @@ export default function InstructorDashboardPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map((s, i) => (
                 <div key={i} className="card-dark p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -174,6 +186,58 @@ export default function InstructorDashboardPage() {
                   <ArrowRight
                     size={16}
                     className="text-gray-500 group-hover:text-[#D4A843] transition-colors"
+                  />
+                </Link>
+
+                <Link
+                  href="/instructor/students"
+                  className="card-dark p-4 hover:bg-[#222] transition-all duration-150 group cursor-pointer flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{ background: "rgba(59,130,246,0.1)" }}
+                    >
+                      <Users size={18} style={{ color: "#3b82f6" }} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white group-hover:text-white">
+                        Tiến trình học viên
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Theo dõi tiến độ học
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="text-gray-500 group-hover:text-[#3b82f6] transition-colors"
+                  />
+                </Link>
+
+                <Link
+                  href="/instructor/questions"
+                  className="card-dark p-4 hover:bg-[#222] transition-all duration-150 group cursor-pointer flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{ background: "rgba(168,85,247,0.1)" }}
+                    >
+                      <MessageSquare size={18} style={{ color: "#a855f7" }} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white group-hover:text-white">
+                        Câu hỏi học viên
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {questionCount} câu hỏi mới
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="text-gray-500 group-hover:text-[#a855f7] transition-colors"
                   />
                 </Link>
               </div>

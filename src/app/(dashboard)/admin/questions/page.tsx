@@ -88,7 +88,7 @@ export default function AdminQuestionsPage() {
 
       if (
         !profile ||
-        !["admin", "manager", "support"].includes(profile.role)
+        !["admin", "manager", "support", "editor"].includes(profile.role)
       ) {
         router.push("/dashboard");
         return;

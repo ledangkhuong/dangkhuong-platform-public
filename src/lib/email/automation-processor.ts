@@ -456,7 +456,7 @@ export async function evaluateCondition(
 
     case "in_list": {
       const { data: membership } = await adminClient
-        .from("email_list_subscribers")
+        .from("subscriber_list_members")
         .select("id")
         .eq("subscriber_id", enrollment.subscriber_id)
         .eq("list_id", conditionData.config.listId || "")

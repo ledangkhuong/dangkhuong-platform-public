@@ -15,6 +15,7 @@ import {
   Clock,
 } from "lucide-react";
 import ShareButtons from "@/components/blog/ShareButtons";
+import RelatedPosts from "@/components/blog/RelatedPosts";
 
 export const revalidate = 3600;
 
@@ -479,6 +480,15 @@ export default async function BlogPostPage({ params }: PageProps) {
         {/* Share buttons */}
         <div className="mb-8">
           <ShareButtons title={post.title} slug={post.slug} />
+        </div>
+
+        {/* Related posts */}
+        <div className="mb-8">
+          <RelatedPosts
+            currentPostId={post.id}
+            category={post.category}
+            tags={post.tags}
+          />
         </div>
 
         {/* Back link (bottom) */}

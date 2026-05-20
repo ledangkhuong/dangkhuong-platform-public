@@ -72,7 +72,8 @@ export default async function AdminCoursesPage() {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") redirect("/dashboard");
+  const allowedRoles = ["admin", "manager", "editor"];
+  if (!profile || !allowedRoles.includes(profile.role)) redirect("/dashboard");
 
   // Fetch products with nested chapters → lessons
   const { data: products } = await supabase

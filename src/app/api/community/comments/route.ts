@@ -3,36 +3,46 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { createNotification } from "@/lib/notifications";
 import { rateLimit } from "@/lib/rate-limit";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // GET /api/community/comments?post_id=...&limit=20&offset=0
 export async function GET(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { searchParams } = req.nextUrl;
-  const post_id = searchParams.get("post_id");
-  if (!post_id)
-    return NextResponse.json({ error: "post_id required" }, { status: 400 });
+    const { searchParams } = req.nextUrl;
+    const post_id = searchParams.get("post_id");
+    if (!post_id)
+      return NextResponse.json({ error: "post_id required" }, { status: 400 });
 
-  const limit = Math.min(parseInt(searchParams.get("limit") ?? "20"), 100);
-  const offset = parseInt(searchParams.get("offset") ?? "0");
+    if (!UUID_RE.test(post_id))
+      return NextResponse.json({ error: "Invalid post_id" }, { status: 400 });
 
-  const { data, error } = await supabase
-    .from("comments")
-    .select(`*, profiles(full_name, avatar_url, level)`)
-    .eq("post_id", post_id)
-    .order("created_at", { ascending: true })
-    .range(offset, offset + limit - 1);
+    const limit = Math.min(parseInt(searchParams.get("limit") ?? "20"), 100);
+    const offset = parseInt(searchParams.get("offset") ?? "0");
 
-  if (error) {
-    console.error("GET /api/community/comments error:", error.message);
-    return NextResponse.json({ error: "Không thể tải bình luận. Vui lòng thử lại." }, { status: 500 });
+    const { data, error } = await supabase
+      .from("comments")
+      .select(`*, profiles(full_name, avatar_url, level)`)
+      .eq("post_id", post_id)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("GET /api/community/comments error:", error.message);
+      return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    return NextResponse.json({ comments: data });
+  } catch (err) {
+    console.error("GET /api/community/comments error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  return NextResponse.json({ comments: data });
 }
 
 // POST /api/community/comments — tạo comment mới
@@ -64,6 +74,9 @@ export async function POST(req: NextRequest) {
 
     if (!post_id)
       return NextResponse.json({ error: "post_id required" }, { status: 400 });
+
+    if (!UUID_RE.test(post_id))
+      return NextResponse.json({ error: "Invalid post_id" }, { status: 400 });
 
     if (!content?.trim())
       return NextResponse.json({ error: "content required" }, { status: 400 });
@@ -148,42 +161,50 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/community/comments?comment_id=... — xoá comment
 export async function DELETE(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const comment_id = req.nextUrl.searchParams.get("comment_id");
-  if (!comment_id)
-    return NextResponse.json({ error: "comment_id required" }, { status: 400 });
+    const comment_id = req.nextUrl.searchParams.get("comment_id");
+    if (!comment_id)
+      return NextResponse.json({ error: "comment_id required" }, { status: 400 });
 
-  // Fetch comment to verify ownership
-  const { data: comment, error: fetchError } = await supabase
-    .from("comments")
-    .select("id, user_id, post_id")
-    .eq("id", comment_id)
-    .single();
+    if (!UUID_RE.test(comment_id))
+      return NextResponse.json({ error: "Invalid comment_id" }, { status: 400 });
 
-  if (fetchError || !comment)
-    return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    // Fetch comment to verify ownership
+    const { data: comment, error: fetchError } = await supabase
+      .from("comments")
+      .select("id, user_id, post_id")
+      .eq("id", comment_id)
+      .single();
 
-  if (comment.user_id !== user.id)
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (fetchError || !comment)
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
 
-  const { error: deleteError } = await supabase
-    .from("comments")
-    .delete()
-    .eq("id", comment_id);
+    if (comment.user_id !== user.id)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  if (deleteError) {
-    console.error("DELETE /api/community/comments error:", deleteError.message);
-    return NextResponse.json({ error: "Không thể xoá bình luận. Vui lòng thử lại." }, { status: 500 });
+    const { error: deleteError } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", comment_id);
+
+    if (deleteError) {
+      console.error("DELETE /api/community/comments error:", deleteError.message);
+      return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    // Atomically decrement comments_count (floor at 0 handled by RPC)
+    await supabase.rpc("decrement_comments_count", { post_id: comment.post_id });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /api/community/comments error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  // Atomically decrement comments_count (floor at 0 handled by RPC)
-  await supabase.rpc("decrement_comments_count", { post_id: comment.post_id });
-
-  return NextResponse.json({ ok: true });
 }

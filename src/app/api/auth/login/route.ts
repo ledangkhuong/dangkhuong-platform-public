@@ -79,11 +79,23 @@ export async function POST(req: NextRequest) {
         if (updateErr) {
           console.error("Failed to update last_login:", updateErr.message);
         }
-        await admin.from("xp_events").insert({
-          user_id: userId,
-          action: "login",
-          xp_amount: 10,
-        });
+        // Check daily cap for login XP (max 1 per day)
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { count: loginXpToday } = await admin
+          .from("xp_events")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("action", "login")
+          .gte("created_at", todayStart.toISOString());
+
+        if ((loginXpToday ?? 0) < 1) {
+          await admin.from("xp_events").insert({
+            user_id: userId,
+            action: "login",
+            xp_amount: 10,
+          });
+        }
       }
     } catch (e) {
       console.error("last_login/XP update error:", e);

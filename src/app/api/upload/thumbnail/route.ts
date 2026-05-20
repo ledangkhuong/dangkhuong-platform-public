@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api-handler";
 import crypto from "crypto";
 
 const BUCKET = "thumbnails";
@@ -37,7 +38,7 @@ function validateImageMagicBytes(buffer: ArrayBuffer): boolean {
   return false;
 }
 
-export async function POST(req: NextRequest) {
+async function _POST(req: NextRequest) {
   // Auth check — admin only
   const supabase = await createClient();
   const {
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
+  if (!profile || !["admin", "manager", "editor"].includes(profile.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -147,3 +148,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ url: publicUrl });
 }
+
+export const POST = withErrorHandler(_POST);

@@ -44,7 +44,13 @@ export async function POST(
   }
 
   const { quizId } = await params;
-  const body = await req.json();
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
   const answers: Record<string, number | string> = body.answers;
 
   if (!answers || typeof answers !== "object") {
@@ -54,100 +60,105 @@ export async function POST(
     );
   }
 
-  // Fetch quiz info
-  const { data: quiz, error: quizError } = await supabase
-    .from("quizzes")
-    .select("id, pass_score")
-    .eq("id", quizId)
-    .single();
+  try {
+    // Fetch quiz info
+    const { data: quiz, error: quizError } = await supabase
+      .from("quizzes")
+      .select("id, pass_score")
+      .eq("id", quizId)
+      .single();
 
-  if (quizError || !quiz) {
-    return NextResponse.json(
-      { error: "Quiz không tồn tại" },
-      { status: 404 }
-    );
-  }
+    if (quizError || !quiz) {
+      return NextResponse.json(
+        { error: "Quiz không tồn tại" },
+        { status: 404 }
+      );
+    }
 
-  // Fetch all questions with correct answers (server-side only)
-  const { data: questions } = await supabase
-    .from("quiz_questions")
-    .select("id, question_type, options, correct_answer")
-    .eq("quiz_id", quizId);
+    // Fetch all questions with correct answers (server-side only)
+    const { data: questions } = await supabase
+      .from("quiz_questions")
+      .select("id, question_type, options, correct_answer")
+      .eq("quiz_id", quizId);
 
-  if (!questions || questions.length === 0) {
-    return NextResponse.json(
-      { error: "Quiz không có câu hỏi" },
-      { status: 400 }
-    );
-  }
+    if (!questions || questions.length === 0) {
+      return NextResponse.json(
+        { error: "Quiz không có câu hỏi" },
+        { status: 400 }
+      );
+    }
 
-  // Grade: compare submitted answers with correct answers
-  let correctCount = 0;
-  const correctAnswers: Record<string, number | string> = {};
+    // Grade: compare submitted answers with correct answers
+    let correctCount = 0;
+    const correctAnswers: Record<string, number | string> = {};
 
-  for (const question of questions) {
-    if (question.question_type === "short_answer") {
-      // For short_answer: compare trimmed/lowercased text, or auto-mark correct if no correct_answer
-      const correctText = (question as Record<string, unknown>).correct_answer as string | null;
-      const studentAnswer = answers[question.id];
+    for (const question of questions) {
+      if (question.question_type === "short_answer") {
+        // For short_answer: compare trimmed/lowercased text, or auto-mark correct if no correct_answer
+        const correctText = (question as Record<string, unknown>).correct_answer as string | null;
+        const studentAnswer = answers[question.id];
 
-      if (correctText) {
-        correctAnswers[question.id] = correctText;
-        if (
-          typeof studentAnswer === "string" &&
-          studentAnswer.trim().toLowerCase() === correctText.trim().toLowerCase()
-        ) {
-          correctCount++;
+        if (correctText) {
+          correctAnswers[question.id] = correctText;
+          if (
+            typeof studentAnswer === "string" &&
+            studentAnswer.trim().toLowerCase() === correctText.trim().toLowerCase()
+          ) {
+            correctCount++;
+          }
+        } else {
+          // No correct_answer defined — auto-mark as correct (teacher reviews manually)
+          correctAnswers[question.id] = "__auto_correct__";
+          if (studentAnswer !== undefined && String(studentAnswer).trim().length > 0) {
+            correctCount++;
+          }
         }
-      } else {
-        // No correct_answer defined — auto-mark as correct (teacher reviews manually)
-        correctAnswers[question.id] = "__auto_correct__";
-        if (studentAnswer !== undefined && String(studentAnswer).trim().length > 0) {
-          correctCount++;
-        }
+        continue;
       }
-      continue;
+
+      const options = question.options as { text: string; is_correct: boolean }[];
+      // Find the correct option index
+      const correctIndex = options.findIndex((opt) => opt.is_correct);
+      correctAnswers[question.id] = correctIndex;
+
+      // Check if student's answer matches
+      const studentAnswer = answers[question.id];
+      if (studentAnswer !== undefined && studentAnswer === correctIndex) {
+        correctCount++;
+      }
     }
 
-    const options = question.options as { text: string; is_correct: boolean }[];
-    // Find the correct option index
-    const correctIndex = options.findIndex((opt) => opt.is_correct);
-    correctAnswers[question.id] = correctIndex;
+    const score = Math.round((correctCount / questions.length) * 100);
+    const passed = score >= (quiz.pass_score ?? 70);
 
-    // Check if student's answer matches
-    const studentAnswer = answers[question.id];
-    if (studentAnswer !== undefined && studentAnswer === correctIndex) {
-      correctCount++;
+    // Save attempt
+    const { error: insertError } = await supabase
+      .from("quiz_attempts")
+      .insert({
+        quiz_id: quizId,
+        user_id: user.id,
+        score,
+        passed,
+        answers,
+      });
+
+    if (insertError) {
+      console.error("[Quiz Submit] Insert attempt error:", insertError.message);
+      return NextResponse.json(
+        { error: "Có lỗi khi lưu kết quả. Vui lòng thử lại." },
+        { status: 500 }
+      );
     }
-  }
 
-  const score = Math.round((correctCount / questions.length) * 100);
-  const passed = score >= (quiz.pass_score ?? 70);
-
-  // Save attempt
-  const { error: insertError } = await supabase
-    .from("quiz_attempts")
-    .insert({
-      quiz_id: quizId,
-      user_id: user.id,
+    return NextResponse.json({
       score,
       passed,
-      answers,
+      correct_count: correctCount,
+      total_questions: questions.length,
+      correct_answers: correctAnswers,
     });
-
-  if (insertError) {
-    console.error("[Quiz Submit] Insert attempt error:", insertError.message);
-    return NextResponse.json(
-      { error: "Có lỗi khi lưu kết quả. Vui lòng thử lại." },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("[Quiz Submit] Unexpected error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  return NextResponse.json({
-    score,
-    passed,
-    correct_count: correctCount,
-    total_questions: questions.length,
-    correct_answers: correctAnswers,
-  });
 }

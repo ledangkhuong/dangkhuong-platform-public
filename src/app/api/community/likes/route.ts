@@ -17,6 +17,10 @@ export async function POST(req: NextRequest) {
     if (!post_id)
       return NextResponse.json({ error: "post_id required" }, { status: 400 });
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(post_id))
+      return NextResponse.json({ error: "Invalid post_id" }, { status: 400 });
+
     // Use admin client for DB operations (auth already verified above)
     const admin = await createAdminClient();
 
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
         .eq("post_id", post_id);
 
       if (deleteError)
-        return NextResponse.json({ error: deleteError.message }, { status: 500 });
+        return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
 
       // Atomic decrement — avoids race condition with concurrent requests
       const { data: updated } = await admin
@@ -52,7 +56,7 @@ export async function POST(req: NextRequest) {
         .insert({ user_id: user.id, post_id });
 
       if (insertError)
-        return NextResponse.json({ error: insertError.message }, { status: 500 });
+        return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
 
       // Atomic increment — avoids race condition with concurrent requests
       const { data: updated } = await admin
@@ -118,23 +122,32 @@ export async function POST(req: NextRequest) {
 
 // GET /api/community/likes?post_id=... — check like status
 export async function GET(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const post_id = req.nextUrl.searchParams.get("post_id");
-  if (!post_id)
-    return NextResponse.json({ error: "post_id required" }, { status: 400 });
+    const post_id = req.nextUrl.searchParams.get("post_id");
+    if (!post_id)
+      return NextResponse.json({ error: "post_id required" }, { status: 400 });
 
-  const { data } = await supabase
-    .from("post_likes")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .eq("post_id", post_id)
-    .maybeSingle();
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(post_id))
+      return NextResponse.json({ error: "Invalid post_id" }, { status: 400 });
 
-  return NextResponse.json({ liked: data !== null });
+    const { data } = await supabase
+      .from("post_likes")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .eq("post_id", post_id)
+      .maybeSingle();
+
+    return NextResponse.json({ liked: data !== null });
+  } catch (err) {
+    console.error("GET /api/community/likes unexpected error:", err);
+    return NextResponse.json({ error: "Không thể kiểm tra trạng thái. Vui lòng thử lại." }, { status: 500 });
+  }
 }

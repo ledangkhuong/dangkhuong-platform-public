@@ -3,195 +3,214 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // GET /api/blog?id=xxx — fetch single blog post for editing
 export async function GET(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-  if (!["admin", "manager", "marketing"].includes(profile?.role ?? "")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!["admin", "manager", "marketing"].includes(profile?.role ?? "")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const id = req.nextUrl.searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    }
+
+    const admin = await createAdminClient();
+    const { data: post, error } = await admin
+      .from("blog_posts")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !post) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ post });
+  } catch (err) {
+    console.error("[GET /api/blog]", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  const id = req.nextUrl.searchParams.get("id");
-  if (!id) {
-    return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  }
-
-  const admin = await createAdminClient();
-  const { data: post, error } = await admin
-    .from("blog_posts")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !post) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  return NextResponse.json({ post });
 }
 
 // POST /api/blog — create or update blog post
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-  if (!["admin", "manager", "marketing"].includes(profile?.role ?? "")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+    if (!["admin", "manager", "marketing"].includes(profile?.role ?? "")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-  const {
-    id,
-    title,
-    slug,
-    excerpt,
-    content,
-    body,
-    category,
-    tags,
-    status,
-    thumbnail,
-    sendEmail,
-    focus_keyword,
-  } = await req.json();
+    const {
+      id,
+      title,
+      slug,
+      excerpt,
+      content,
+      body,
+      category,
+      tags,
+      status,
+      thumbnail,
+      sendEmail,
+      focus_keyword,
+      author_name,
+      author_avatar,
+    } = await req.json();
 
-  if (!title?.trim())
-    return NextResponse.json({ error: "Title required" }, { status: 400 });
+    if (!title?.trim())
+      return NextResponse.json({ error: "Title required" }, { status: 400 });
 
-  const admin = await createAdminClient();
+    const admin = await createAdminClient();
 
-  // Generate slug if not provided
-  const finalSlug =
-    slug?.trim() ||
-    title
-      .trim()
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .slice(0, 80);
+    // Generate slug if not provided
+    const finalSlug =
+      slug?.trim() ||
+      title
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .slice(0, 80);
 
-  const postData: Record<string, unknown> = {
-    title: title.trim(),
-    slug: finalSlug,
-    excerpt: excerpt?.trim() || null,
-    content: content?.trim() || body?.trim() || null,
-    body: body?.trim() || content?.trim() || null,
-    category: category?.trim() || null,
-    tags: tags || null,
-    status: status || "draft",
-    thumbnail: thumbnail || null,
-    focus_keyword: focus_keyword?.trim() || null,
-  };
+    const postData: Record<string, unknown> = {
+      title: title.trim(),
+      slug: finalSlug,
+      excerpt: excerpt?.trim() || null,
+      content: content?.trim() || body?.trim() || null,
+      body: body?.trim() || content?.trim() || null,
+      category: category?.trim() || null,
+      tags: tags || null,
+      status: status || "draft",
+      thumbnail: thumbnail || null,
+      focus_keyword: focus_keyword?.trim() || null,
+      author_name: author_name?.trim() || null,
+      author_avatar: author_avatar?.trim() || null,
+    };
 
-  // Only set published_at when first publishing
-  if (status === "published") {
-    if (id) {
-      // Check if already published — don't overwrite published_at
-      const { data: existing } = await admin
-        .from("blog_posts")
-        .select("published_at")
-        .eq("id", id)
-        .single();
-      if (!existing?.published_at) {
+    // Only set published_at when first publishing
+    if (status === "published") {
+      if (id) {
+        // Check if already published — don't overwrite published_at
+        const { data: existing } = await admin
+          .from("blog_posts")
+          .select("published_at")
+          .eq("id", id)
+          .single();
+        if (!existing?.published_at) {
+          postData.published_at = new Date().toISOString();
+        }
+      } else {
         postData.published_at = new Date().toISOString();
       }
+    }
+
+    let result;
+
+    if (id) {
+      // Update existing
+      const { data, error } = await admin
+        .from("blog_posts")
+        .update(postData)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) {
+        console.error("[Blog Update] Error:", error);
+        return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật bài viết. Vui lòng thử lại." }, { status: 500 });
+      }
+      result = data;
     } else {
-      postData.published_at = new Date().toISOString();
+      // Create new
+      const { data, error } = await admin
+        .from("blog_posts")
+        .insert(postData)
+        .select()
+        .single();
+      if (error) {
+        console.error("[Blog Create] Error:", error);
+        return NextResponse.json({ error: "Có lỗi xảy ra khi tạo bài viết. Vui lòng thử lại." }, { status: 500 });
+      }
+      result = data;
     }
+
+    // Only send email if explicitly requested
+    if (status === "published" && sendEmail === true) {
+      try {
+        await sendBlogNotificationEmail(admin, result);
+      } catch {
+        // Don't fail the request if email fails
+      }
+    }
+
+    return NextResponse.json({ post: result });
+  } catch (err) {
+    console.error("[POST /api/blog]", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  let result;
-
-  if (id) {
-    // Update existing
-    const { data, error } = await admin
-      .from("blog_posts")
-      .update(postData)
-      .eq("id", id)
-      .select()
-      .single();
-    if (error) {
-      console.error("[Blog Update] Error:", error);
-      return NextResponse.json({ error: "Có lỗi xảy ra khi cập nhật bài viết. Vui lòng thử lại." }, { status: 500 });
-    }
-    result = data;
-  } else {
-    // Create new
-    const { data, error } = await admin
-      .from("blog_posts")
-      .insert(postData)
-      .select()
-      .single();
-    if (error) {
-      console.error("[Blog Create] Error:", error);
-      return NextResponse.json({ error: "Có lỗi xảy ra khi tạo bài viết. Vui lòng thử lại." }, { status: 500 });
-    }
-    result = data;
-  }
-
-  // Only send email if explicitly requested
-  if (status === "published" && sendEmail === true) {
-    try {
-      await sendBlogNotificationEmail(admin, result);
-    } catch {
-      // Don't fail the request if email fails
-    }
-  }
-
-  return NextResponse.json({ post: result });
 }
 
 // DELETE /api/blog?id=xxx — delete blog post
 export async function DELETE(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-  if (!["admin", "manager"].includes(profile?.role ?? "")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!["admin", "manager"].includes(profile?.role ?? "")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const id = req.nextUrl.searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    }
+
+    const admin = await createAdminClient();
+    const { error } = await admin.from("blog_posts").delete().eq("id", id);
+
+    if (error) {
+      console.error("[Blog Delete] Error:", error);
+      return NextResponse.json({ error: "Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[DELETE /api/blog]", err);
+    return NextResponse.json({ error: "Không thể thực hiện. Vui lòng thử lại." }, { status: 500 });
   }
-
-  const id = req.nextUrl.searchParams.get("id");
-  if (!id) {
-    return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  }
-
-  const admin = await createAdminClient();
-  const { error } = await admin.from("blog_posts").delete().eq("id", id);
-
-  if (error) {
-    console.error("[Blog Delete] Error:", error);
-    return NextResponse.json({ error: "Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại." }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true });
 }
 
 function escapeHtml(str: string): string {
