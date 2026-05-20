@@ -31,6 +31,9 @@ export default function RegisterForm() {
     const email = form.get("email") as string;
     const password = form.get("password") as string;
 
+    // CAPTCHA check
+    if (!turnstileToken) { setError("Vui lòng đợi xác minh bảo mật hoàn tất rồi thử lại."); setLoading(false); return; }
+
     // Client-side validation
     if (!full_name?.trim()) { setError("Vui lòng nhập họ và tên"); setLoading(false); return; }
     if (!phone || !/^(0|\+84)[0-9]{9}$/.test(phone)) { setError("Số điện thoại không hợp lệ (VD: 0912345678)"); setLoading(false); return; }
@@ -129,7 +132,7 @@ export default function RegisterForm() {
       </div>
 
       {/* Turnstile CAPTCHA */}
-      <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} appearance="interaction-only" />
+      <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} appearance="always" />
 
       <p className="text-xs text-gray-500 pt-1">
         Bằng cách đăng ký, bạn đồng ý với{" "}

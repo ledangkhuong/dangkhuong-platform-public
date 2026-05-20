@@ -161,6 +161,13 @@ export default function HomePage() {
     e.preventDefault();
     setFormStatus("loading");
     setFormError("");
+
+    if (!turnstileToken) {
+      setFormError("Vui lòng đợi xác minh bảo mật hoàn tất rồi thử lại.");
+      setFormStatus("idle");
+      return;
+    }
+
     const fd = new FormData(e.currentTarget);
     const password = fd.get("popup_password") as string;
     try {
@@ -951,7 +958,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Turnstile CAPTCHA */}
-                    <TurnstileWidget onVerify={handleTurnstileVerify} onExpire={handleTurnstileExpire} />
+                    <TurnstileWidget onVerify={handleTurnstileVerify} onExpire={handleTurnstileExpire} appearance="always" />
 
                     <p className="text-xs text-gray-500 pt-1">
                       Bằng cách đăng ký, bạn đồng ý với{" "}
