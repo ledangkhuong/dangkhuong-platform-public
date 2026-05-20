@@ -3,7 +3,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { useState, useEffect, useRef } from "react";
 import NextImage from "next/image";
-import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp, Loader2, X, Flag, AlertTriangle } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image, Link2, Smile, Trophy, Star, Flame, TrendingUp, Loader2, X, Flag, AlertTriangle, Copy, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import UserAvatar from "@/components/admin/UserAvatar";
 
@@ -156,6 +156,8 @@ export default function CommunityPage() {
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -400,7 +402,12 @@ export default function CommunityPage() {
     try {
       const res = await fetch(`/api/community/comments?post_id=${postId}`);
       const data = await res.json();
-      setCommentsMap(prev => ({ ...prev, [postId]: data.comments || [] }));
+      const comments = data.comments || [];
+      setCommentsMap(prev => ({ ...prev, [postId]: comments }));
+      // Sync displayed comments_count with actual count from DB
+      setPosts(prev => prev.map(p =>
+        p.id === postId ? { ...p, comments_count: comments.length } : p
+      ));
     } catch {
       setCommentsMap(prev => ({ ...prev, [postId]: [] }));
     } finally {
@@ -485,6 +492,55 @@ export default function CommunityPage() {
       setReportSubmitting(false);
     }
   };
+
+  const getShareUrl = (postId: string) => `https://dangkhuong.com/community?post=${postId}`;
+
+  const handleShare = async (postId: string, platform: "copy" | "facebook" | "x" | "zalo") => {
+    const url = getShareUrl(postId);
+    const post = posts.find(p => p.id === postId);
+    const text = post?.content?.slice(0, 100) || "Xem bài viết trên Lê Đăng Khương Academy";
+
+    switch (platform) {
+      case "copy":
+        try {
+          await navigator.clipboard.writeText(url);
+          setCopiedLink(true);
+          setTimeout(() => setCopiedLink(false), 2000);
+        } catch {
+          // Fallback for mobile
+          const input = document.createElement("input");
+          input.value = url;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand("copy");
+          document.body.removeChild(input);
+          setCopiedLink(true);
+          setTimeout(() => setCopiedLink(false), 2000);
+        }
+        break;
+      case "facebook":
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank", "width=600,height=400");
+        break;
+      case "x":
+        window.open(`https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, "_blank", "width=600,height=400");
+        break;
+      case "zalo":
+        window.open(`https://zalo.me/share?url=${encodeURIComponent(url)}`, "_blank", "width=600,height=400");
+        break;
+    }
+    setShareOpen(null);
+  };
+
+  // Close share dropdown when clicking outside
+  useEffect(() => {
+    if (!shareOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-share-menu]")) setShareOpen(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [shareOpen]);
 
   return (
     <div>
@@ -709,9 +765,42 @@ export default function CommunityPage() {
                     className={`flex items-center gap-1.5 text-sm transition-colors ${openComments === post.id ? "text-[#D4A843]" : "text-gray-500 hover:text-[#D4A843]"}`}>
                     <MessageCircle size={15} /> <span>{post.comments_count}</span>
                   </button>
-                  <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-400 transition-colors">
-                    <Share2 size={15} />
-                  </button>
+                  {/* Share dropdown */}
+                  <div className="relative" data-share-menu>
+                    <button
+                      onClick={() => setShareOpen(shareOpen === post.id ? null : post.id)}
+                      className={`flex items-center gap-1.5 text-sm transition-colors ${shareOpen === post.id ? "text-blue-400" : "text-gray-500 hover:text-blue-400"}`}>
+                      <Share2 size={15} />
+                    </button>
+                    {shareOpen === post.id && (
+                      <div className="absolute left-0 bottom-full mb-2 z-20 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl shadow-lg overflow-hidden min-w-[180px]">
+                        <button
+                          onClick={() => handleShare(post.id, "copy")}
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                          {copiedLink ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                          {copiedLink ? "Đã copy!" : "Sao chép liên kết"}
+                        </button>
+                        <button
+                          onClick={() => handleShare(post.id, "facebook")}
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                          Facebook
+                        </button>
+                        <button
+                          onClick={() => handleShare(post.id, "x")}
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                          X (Twitter)
+                        </button>
+                        <button
+                          onClick={() => handleShare(post.id, "zalo")}
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 14.163c-.18.36-.66.66-1.14.66H9.168c-.66 0-1.2-.36-1.32-.9-.12-.36 0-.78.3-1.08l4.56-5.1H9.468c-.42 0-.78-.36-.78-.78s.36-.78.78-.78h6.12c.48 0 .9.24 1.08.66.18.36.06.84-.24 1.14l-4.56 5.1h4.56c.42 0 .78.36.78.78.06.12-.06.24-.06.3z"/></svg>
+                          Zalo
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {/* Report button — don't show for own posts */}
                   {myProfile?.id !== post.user_id && (
                     <button
