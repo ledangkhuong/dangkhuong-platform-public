@@ -56,6 +56,16 @@ export default function AIAssistant({ context }: AIAssistantProps) {
       const data = await res.json();
       if (data.reply) {
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      } else if (res.status === 401) {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: "Bạn cần đăng nhập để sử dụng AI Assistant. Hãy đăng nhập hoặc tạo tài khoản miễn phí nhé! 🔑",
+        }]);
+      } else if (res.status === 429) {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: data.error || "Bạn đã hết lượt chat. Vui lòng thử lại sau nhé!",
+        }]);
       } else {
         setMessages((prev) => [...prev, {
           role: "assistant",
@@ -81,18 +91,20 @@ export default function AIAssistant({ context }: AIAssistantProps) {
 
   return (
     <>
-      {/* Floating button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
-        style={{ background: "linear-gradient(135deg, #FFD814, #FFA41C)", boxShadow: "0 4px 24px rgba(255,216,20,0.4)" }}>
-        <MessageCircle size={22} className="text-[#131921]" />
-      </button>
+      {/* Floating button — pushed up on mobile to avoid sticky buy bar */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
+          style={{ background: "linear-gradient(135deg, #FFD814, #FFA41C)", boxShadow: "0 4px 24px rgba(255,216,20,0.4)" }}>
+          <MessageCircle size={22} className="text-[#131921]" />
+        </button>
+      )}
 
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-          style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", height: "480px" }}>
+        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-80 sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+          style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", height: "100dvh", maxHeight: "480px" }}>
 
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 shrink-0"
