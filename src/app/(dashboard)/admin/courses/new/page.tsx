@@ -35,6 +35,7 @@ export default function NewCoursePage() {
   const [type, setType] = useState("course");
   const [tierRequired, setTierRequired] = useState("free");
   const [status, setStatus] = useState("draft");
+  const [category, setCategory] = useState("");
   const [sortOrder, setSortOrder] = useState<number>(0);
   const [instructorId, setInstructorId] = useState<string>("");
   const [instructors, setInstructors] = useState<{ id: string; full_name: string | null }[]>([]);
@@ -107,6 +108,7 @@ export default function NewCoursePage() {
       type,
       tier_required: tierRequired,
       status,
+      category: category || null,
       sort_order: sortOrder,
       instructor_id: instructorId || null,
     });
@@ -284,6 +286,24 @@ export default function NewCoursePage() {
                 className="input-dark w-full"
               />
             </div>
+          </div>
+
+          {/* Danh mục */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">
+              Danh mục khoá học
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="input-dark w-full"
+            >
+              <option value="">— Chưa phân loại —</option>
+              <option value="video">Khóa học làm video</option>
+              <option value="branding">Khóa học xây kênh, thương hiệu cá nhân</option>
+              <option value="business">Khóa học kinh doanh, hệ thống chuyển đổi cao</option>
+              <option value="personal_development">Khóa học phát triển bản thân</option>
+            </select>
           </div>
 
           {/* Giảng viên */}

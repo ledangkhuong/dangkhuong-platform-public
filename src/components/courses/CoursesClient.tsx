@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   PlayCircle, Lock, CheckCircle, ChevronDown, BookOpen,
-  Clock, Sparkles, GraduationCap,
+  Clock, Video, Globe, TrendingUp, Sparkles, GraduationCap,
 } from "lucide-react";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 
@@ -21,11 +21,53 @@ type CourseItem = {
   tier_required: string;
   thumbnail: string | null;
   status: string;
+  category: string | null;
   enrolled: boolean;
   progress: number;
   lesson_count: number;
   chapter_count: number;
 };
+
+/* ─── Category config ───────────────────────────────────────────────────────── */
+
+type CategoryKey = "video" | "branding" | "business" | "personal_development";
+
+const CATEGORIES: {
+  key: CategoryKey;
+  title: string;
+  subtitle: string;
+  icon: typeof Video;
+  color: string;
+}[] = [
+  {
+    key: "video",
+    title: "Khóa học làm video",
+    subtitle: "Học cách tạo video chuyên nghiệp, thu hút triệu view",
+    icon: Video,
+    color: "#3b82f6",
+  },
+  {
+    key: "branding",
+    title: "Khóa học xây kênh, thương hiệu cá nhân",
+    subtitle: "Xây dựng thương hiệu và kênh truyền thông bền vững",
+    icon: Globe,
+    color: "#a855f7",
+  },
+  {
+    key: "business",
+    title: "Khóa học kinh doanh, hệ thống chuyển đổi cao",
+    subtitle: "Chiến lược kinh doanh và tối ưu doanh thu",
+    icon: TrendingUp,
+    color: "#f59e0b",
+  },
+  {
+    key: "personal_development",
+    title: "Khóa học phát triển bản thân",
+    subtitle: "Nâng cao kỹ năng và tư duy để thành công",
+    icon: Sparkles,
+    color: "#22c55e",
+  },
+];
 
 const PLACEHOLDER_COLORS = ["#D4A843", "#3b82f6", "#a855f7", "#f59e0b", "#ec4899", "#06b6d4"];
 
@@ -33,7 +75,7 @@ function formatPrice(p: number) {
   return p.toLocaleString("vi-VN") + "đ";
 }
 
-/* ─── Course Card (shared across sections) ──────────────────────────────────── */
+/* ─── Course Card ───────────────────────────────────────────────────────────── */
 
 function CourseCard({
   course,
@@ -106,10 +148,7 @@ function CourseCard({
         {/* Progress overlay */}
         {course.progress > 0 && !isComingSoon && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
-            <div
-              className="h-full bg-[#22c55e]"
-              style={{ width: `${course.progress}%` }}
-            />
+            <div className="h-full bg-[#22c55e]" style={{ width: `${course.progress}%` }} />
           </div>
         )}
       </div>
@@ -145,12 +184,10 @@ function CourseCard({
           )}
         </div>
 
-        {/* Spacer */}
         <div className="flex-1" />
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between mt-auto pt-3" style={{ borderTop: "1px solid #222" }}>
-          {/* Price */}
           <div>
             {isComingSoon ? (
               <span className="text-xs text-gray-500 italic">Đang chuẩn bị</span>
@@ -160,21 +197,14 @@ function CourseCard({
               <span className="text-xs text-gray-400">Đã sở hữu</span>
             ) : hasSale ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#f59e0b]">
-                  {formatPrice(course.sale_price!)}
-                </span>
-                <span className="text-xs text-gray-400 line-through">
-                  {formatPrice(course.price)}
-                </span>
+                <span className="text-sm font-bold text-[#f59e0b]">{formatPrice(course.sale_price!)}</span>
+                <span className="text-xs text-gray-400 line-through">{formatPrice(course.price)}</span>
               </div>
             ) : (
-              <span className="text-sm font-bold text-[#f59e0b]">
-                {formatPrice(course.price)}
-              </span>
+              <span className="text-sm font-bold text-[#f59e0b]">{formatPrice(course.price)}</span>
             )}
           </div>
 
-          {/* CTA */}
           {isComingSoon ? (
             <span className="text-xs py-1.5 px-3 rounded-lg bg-purple-600/20 text-purple-400 border border-purple-600/30 font-medium flex items-center gap-1">
               <Clock size={11} /> Chờ đón
@@ -188,8 +218,7 @@ function CourseCard({
                 onBuy(course);
               }}
             >
-              <Lock size={11} />
-              Mua ngay
+              <Lock size={11} /> Mua ngay
             </span>
           ) : (
             <span className="btn-success text-xs py-1.5 px-3">
@@ -241,7 +270,6 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
 
   const searchParams = useSearchParams();
 
-  // Auto-open checkout modal when ?checkout=<productId> is in the URL
   useEffect(() => {
     const checkoutId = searchParams.get("checkout");
     if (!checkoutId) return;
@@ -256,15 +284,6 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
     }
   }, [searchParams, courses]);
 
-  // Split courses into 3 sections
-  const myCourses = courses.filter(
-    (c) => c.status !== "coming_soon" && (c.enrolled || c.price === 0)
-  );
-  const recommendedCourses = courses.filter(
-    (c) => c.status !== "coming_soon" && !c.enrolled && c.price > 0
-  );
-  const comingSoonCourses = courses.filter((c) => c.status === "coming_soon");
-
   const handleBuy = (course: CourseItem) => {
     setCheckoutProduct({
       id: course.id,
@@ -274,9 +293,23 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
     });
   };
 
+  // ── "Khóa học của tôi" — enrolled courses ──
+  const myCourses = courses.filter(
+    (c) => c.status !== "coming_soon" && (c.enrolled || c.price === 0)
+  );
+
+  // ── Coming soon ──
+  const comingSoonCourses = courses.filter((c) => c.status === "coming_soon");
+
+  // ── Published courses (not coming_soon) grouped by category ──
+  const publishedCourses = courses.filter((c) => c.status !== "coming_soon");
+
+  // ── Courses without a category (show separately if any) ──
+  const uncategorized = publishedCourses.filter((c) => !c.category);
+
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-10">
-      {/* ── Section 1: Khóa học của tôi ── */}
+      {/* ── Khóa học của tôi ── */}
       {myCourses.length > 0 && (
         <section>
           <SectionHeader
@@ -293,24 +326,52 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
         </section>
       )}
 
-      {/* ── Section 2: Khóa học nên tham khảo ── */}
-      {recommendedCourses.length > 0 && (
+      {/* ── Category sections ── */}
+      {CATEGORIES.map((cat) => {
+        const catCourses = publishedCourses.filter((c) => c.category === cat.key);
+        if (catCourses.length === 0) return null;
+
+        return (
+          <section key={cat.key}>
+            <SectionHeader
+              icon={cat.icon}
+              title={cat.title}
+              subtitle={cat.subtitle}
+              iconColor={cat.color}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+              {catCourses.map((course, idx) => (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  idx={idx}
+                  onBuy={handleBuy}
+                  isComingSoon={course.status === "coming_soon"}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
+      {/* ── Uncategorized courses (fallback) ── */}
+      {uncategorized.length > 0 && !CATEGORIES.some((cat) => publishedCourses.some((c) => c.category === cat.key)) && (
         <section>
           <SectionHeader
-            icon={Sparkles}
-            title="Khoá học nên tham khảo"
-            subtitle="Nâng cao kỹ năng với những khoá học chất lượng"
-            iconColor="#f59e0b"
+            icon={BookOpen}
+            title="Tất cả khoá học"
+            subtitle="Khám phá các khoá học chất lượng"
+            iconColor="#D4A843"
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
-            {recommendedCourses.map((course, idx) => (
+            {uncategorized.map((course, idx) => (
               <CourseCard key={course.id} course={course} idx={idx} onBuy={handleBuy} />
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Section 3: Khóa học sắp ra mắt ── */}
+      {/* ── Coming soon ── */}
       {comingSoonCourses.length > 0 && (
         <section>
           <SectionHeader
@@ -336,7 +397,6 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
         </div>
       )}
 
-      {/* Checkout modal */}
       {checkoutProduct && (
         <CheckoutModal
           product={checkoutProduct}

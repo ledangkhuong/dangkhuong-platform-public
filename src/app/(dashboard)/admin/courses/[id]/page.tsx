@@ -39,6 +39,7 @@ interface CourseForm {
   type: string;
   tier_required: string;
   status: string;
+  category: string;
   sort_order: number;
   instructor_id: string | null;
 }
@@ -75,6 +76,7 @@ export default function EditCoursePage() {
     type: "course",
     tier_required: "free",
     status: "draft",
+    category: "",
     sort_order: 0,
     instructor_id: null,
   });
@@ -123,6 +125,7 @@ export default function EditCoursePage() {
         type: data.type ?? "course",
         tier_required: data.tier_required ?? "free",
         status: data.status ?? "draft",
+        category: data.category ?? "",
         sort_order: data.sort_order ?? 0,
         instructor_id: data.instructor_id ?? null,
       });
@@ -164,6 +167,7 @@ export default function EditCoursePage() {
       type: form.type,
       tier_required: form.tier_required,
       status: form.status,
+      category: form.category || null,
       sort_order: Number(form.sort_order) || 0,
       instructor_id: form.instructor_id || null,
     };
@@ -470,6 +474,28 @@ export default function EditCoursePage() {
                 className="input-dark w-full"
               />
             </div>
+          </div>
+
+          {/* Category */}
+          <div className="card-dark p-4 space-y-2">
+            <label className="text-xs font-medium text-gray-400">
+              Danh mục khoá học
+            </label>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="input-dark w-full"
+            >
+              <option value="">— Chưa phân loại —</option>
+              <option value="video">Khóa học làm video</option>
+              <option value="branding">Khóa học xây kênh, thương hiệu cá nhân</option>
+              <option value="business">Khóa học kinh doanh, hệ thống chuyển đổi cao</option>
+              <option value="personal_development">Khóa học phát triển bản thân</option>
+            </select>
+            <p className="text-[11px] text-gray-500">
+              Khoá học sẽ được hiển thị trong mục tương ứng trên trang Khoá học.
+            </p>
           </div>
 
           {/* Instructor */}
