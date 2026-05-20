@@ -22,7 +22,7 @@ export default async function AdminLayout({
     .eq("id", user.id)
     .single();
 
-  const staffRoles = ["admin", "manager", "marketing", "sale", "support", "editor"];
+  const staffRoles = ["admin", "manager", "marketing", "sale", "support", "editor", "instructor"];
   if (!profile || !staffRoles.includes(profile.role)) {
     redirect("/dashboard");
   }

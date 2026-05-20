@@ -72,15 +72,24 @@ export default async function AdminCoursesPage() {
     .eq("id", user.id)
     .single();
 
-  const allowedRoles = ["admin", "manager", "editor"];
+  const allowedRoles = ["admin", "manager", "editor", "instructor"];
   if (!profile || !allowedRoles.includes(profile.role)) redirect("/dashboard");
 
+  const isInstructor = profile.role === "instructor";
+
   // Fetch products with nested chapters → lessons
-  const { data: products } = await supabase
+  let query = supabase
     .from("products")
     .select("*, chapters(id, lessons(id))")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
+
+  // Instructors only see their own courses
+  if (isInstructor) {
+    query = query.eq("instructor_id", user.id);
+  }
+
+  const { data: products } = await query;
 
   const courses = products ?? [];
 

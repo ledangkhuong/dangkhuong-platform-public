@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 
-const VALID_ROLES = ["student", "admin", "manager", "marketing", "sale", "support", "instructor"];
+const VALID_ROLES = ["student", "admin", "manager", "marketing", "sale", "support", "instructor", "editor"];
 const VALID_TIERS = ["free", "member", "vip"];
 
 // PATCH /api/admin/users — update user role/tier

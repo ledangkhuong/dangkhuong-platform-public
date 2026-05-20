@@ -278,10 +278,23 @@ export default function LessonsPage() {
         .eq("id", user.id)
         .single();
 
-      const allowedRoles = ["admin", "manager", "editor"];
+      const allowedRoles = ["admin", "manager", "editor", "instructor"];
       if (!profile || !allowedRoles.includes(profile.role)) {
         router.push("/dashboard");
         return;
+      }
+
+      // Instructors can only manage lessons of their own courses
+      if (profile.role === "instructor") {
+        const { data: course } = await supabase
+          .from("products")
+          .select("instructor_id")
+          .eq("id", courseId)
+          .single();
+        if (!course || course.instructor_id !== user.id) {
+          router.push("/admin/courses");
+          return;
+        }
       }
     }
     checkRole();

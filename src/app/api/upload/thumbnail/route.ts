@@ -53,7 +53,7 @@ async function _POST(req: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  if (!profile || !["admin", "manager", "editor"].includes(profile.role)) {
+  if (!profile || !["admin", "manager", "editor", "instructor"].includes(profile.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

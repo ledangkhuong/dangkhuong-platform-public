@@ -85,6 +85,8 @@ export default function EditCoursePage() {
   const [instructors, setInstructors] = useState<InstructorOption[]>([]);
 
   const isEditor = userRole === "editor";
+  const isInstructor = userRole === "instructor";
+  const isRestricted = isEditor || isInstructor;
 
   // ─── Auth + role check ────────────────────────────────────────────────────
 
@@ -101,11 +103,25 @@ export default function EditCoursePage() {
         .eq("id", user.id)
         .single();
 
-      const allowedRoles = ["admin", "manager", "editor"];
+      const allowedRoles = ["admin", "manager", "editor", "instructor"];
       if (!profile || !allowedRoles.includes(profile.role)) {
         router.push("/dashboard");
         return;
       }
+
+      // Instructors can only edit their own courses
+      if (profile.role === "instructor") {
+        const { data: course } = await supabase
+          .from("products")
+          .select("instructor_id")
+          .eq("id", id)
+          .single();
+        if (!course || course.instructor_id !== user.id) {
+          router.push("/admin/courses");
+          return;
+        }
+      }
+
       setUserRole(profile.role);
     }
     checkRole();
@@ -413,7 +429,7 @@ export default function EditCoursePage() {
                 onChange={handleChange}
                 min={0}
                 className="input-dark w-full"
-                disabled={isEditor}
+                disabled={isRestricted}
               />
             </div>
             <div className="card-dark p-4 space-y-2">
@@ -433,7 +449,7 @@ export default function EditCoursePage() {
                 min={0}
                 placeholder="Để trống nếu không giảm giá"
                 className="input-dark w-full"
-                disabled={isEditor}
+                disabled={isRestricted}
               />
             </div>
           </div>
@@ -464,7 +480,7 @@ export default function EditCoursePage() {
                 value={form.tier_required}
                 onChange={handleChange}
                 className="input-dark w-full"
-                disabled={isEditor}
+                disabled={isRestricted}
               >
                 <option value="free">Miễn phí</option>
                 <option value="basic">Basic</option>
@@ -485,7 +501,7 @@ export default function EditCoursePage() {
                 value={form.status}
                 onChange={handleChange}
                 className="input-dark w-full"
-                disabled={isEditor}
+                disabled={isRestricted}
               >
                 <option value="draft">Bản nháp</option>
                 <option value="published">Đã xuất bản</option>
@@ -546,7 +562,7 @@ export default function EditCoursePage() {
                 }))
               }
               className="input-dark w-full"
-              disabled={isEditor}
+              disabled={isRestricted}
             >
               <option value="">— Chưa phân công —</option>
               {instructors.map((inst) => (

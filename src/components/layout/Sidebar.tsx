@@ -48,7 +48,7 @@ const instructorNav = [
 
 const adminNav = [
   { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
-  { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor"] },
+  { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor", "instructor"] },
   { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager"] },
   { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager"] },
   { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
@@ -136,7 +136,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const isAdmin = userRole === "admin";
   const isInstructor = userRole === "instructor";
   const isEditor = userRole === "editor";
-  const isStaff = ["admin", "manager", "marketing", "sale", "support", "editor"].includes(userRole);
+  const isStaff = ["admin", "manager", "marketing", "sale", "support", "editor", "instructor"].includes(userRole);
 
   const roleLabels: Record<string, string> = {
     admin: "Admin", manager: "Quản lý", marketing: "Marketing",
