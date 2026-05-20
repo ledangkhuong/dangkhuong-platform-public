@@ -6,7 +6,7 @@ import { randomBytes } from "crypto";
 /**
  * POST /api/hocchuaxongtiendave/register
  * Đăng ký tài khoản + tạo đơn hàng cho landing page /hocchuaxongtiendave
- * Body: { full_name, email, phone, password, turnstile_token }
+ * Body: { full_name, email, phone, password }
  */
 
 const PRODUCT_SLUG = "hoc-chua-xong-tien-da-ve-tao-san-pham-so-ban-chay-trong-ngach-cua-ban";
@@ -44,9 +44,6 @@ export async function POST(req: NextRequest) {
       email,
       phone,
       password,
-      utm_source,
-      utm_medium,
-      utm_campaign,
     } = body;
 
     if (!email?.trim())
@@ -245,9 +242,6 @@ export async function POST(req: NextRequest) {
       customer_email: email.trim(),
       customer_phone: orderPhone,
       ref_code: refCode,
-      utm_source: utm_source?.trim() || null,
-      utm_medium: utm_medium?.trim() || null,
-      utm_campaign: utm_campaign?.trim() || null,
     };
 
     if (product?.id) {
