@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { interest_id, status, notes, contacted, contacted_at } = body;
+    const { interest_id, status, notes, contacted, contacted_at, assigned_to } = body;
 
     if (!interest_id) {
       return NextResponse.json(
@@ -48,10 +48,17 @@ export async function PATCH(req: NextRequest) {
     if (notes !== undefined) {
       updateData.notes = notes;
     }
+    if (assigned_to !== undefined) {
+      updateData.assigned_to = assigned_to || null;
+    }
     if (contacted !== undefined) {
       updateData.contacted = contacted;
       updateData.contacted_at = contacted_at || new Date().toISOString();
       updateData.contacted_by = user.id;
+      // Auto-assign to the sale who contacted
+      if (!assigned_to) {
+        updateData.assigned_to = user.id;
+      }
     }
 
     const { error } = await admin
@@ -115,7 +122,9 @@ export async function GET(req: NextRequest) {
         `
         *,
         profiles!course_interests_user_id_profiles_fkey(full_name, avatar_url, tier, level),
-        products!course_interests_product_id_fkey(title, slug, price, sale_price, thumbnail)
+        products!course_interests_product_id_fkey(title, slug, price, sale_price, thumbnail),
+        contacted_profile:profiles!course_interests_contacted_by_profiles_fkey(full_name),
+        assigned_profile:profiles!course_interests_assigned_to_fkey(full_name)
       `
       )
       .order("last_viewed_at", { ascending: false })
