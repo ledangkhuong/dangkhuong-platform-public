@@ -142,9 +142,9 @@ export default async function CRMInterestsPage({
     .select(
       `
       *,
-      profiles!course_interests_user_id_fkey(full_name, avatar_url, tier, level),
+      profiles!course_interests_user_id_profiles_fkey(full_name, avatar_url, tier, level),
       products!course_interests_product_id_fkey(title, slug, price, sale_price, thumbnail),
-      contacted_profile:contacted_by(full_name)
+      contacted_profile:profiles!course_interests_contacted_by_profiles_fkey(full_name)
     `
     )
     .order("last_viewed_at", { ascending: false })

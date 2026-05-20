@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
       .select(
         `
         *,
-        profiles!course_interests_user_id_fkey(full_name, avatar_url, tier, level),
+        profiles!course_interests_user_id_profiles_fkey(full_name, avatar_url, tier, level),
         products!course_interests_product_id_fkey(title, slug, price, sale_price, thumbnail)
       `
       )
