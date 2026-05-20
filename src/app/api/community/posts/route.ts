@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     // Use admin client for DB operations (auth already verified above)
     const admin = await createAdminClient();
 
-    // New-user posting limit: accounts < 24h old → max 2 posts/day
+    // New-user posting limit: accounts < 24h old → max 5 posts/day
     const { data: userProfile } = await admin
       .from("profiles")
       .select("created_at, role")
@@ -118,9 +118,9 @@ export async function POST(req: NextRequest) {
         .eq("user_id", user.id)
         .gte("created_at", todayStart.toISOString());
 
-      if ((postsToday ?? 0) >= 2) {
+      if ((postsToday ?? 0) >= 5) {
         return NextResponse.json(
-          { error: "Tài khoản mới chỉ được đăng tối đa 2 bài/ngày. Vui lòng thử lại sau." },
+          { error: "Tài khoản mới chỉ được đăng tối đa 5 bài/ngày. Vui lòng thử lại sau." },
           { status: 429 }
         );
       }
