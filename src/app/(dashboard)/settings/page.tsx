@@ -32,6 +32,7 @@ function ProfileTab({
 }) {
   const { error, saved } = use(searchParams);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [initials, setInitials] = useState("??");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -61,6 +62,7 @@ function ProfileTab({
                 : name.slice(0, 2).toUpperCase()
             );
           }
+          setProfileLoaded(true);
         });
     });
   }, []);
@@ -126,6 +128,28 @@ function ProfileTab({
       setUploadingAvatar(false);
     }
   };
+
+  if (!profileLoaded) {
+    return (
+      <div className="space-y-6">
+        <div className="card-dark p-6 animate-pulse">
+          <div className="h-5 w-32 bg-[#2a2a2a] rounded mb-4" />
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-full bg-[#2a2a2a]" />
+            <div className="h-8 w-24 bg-[#2a2a2a] rounded" />
+          </div>
+        </div>
+        <div className="card-dark p-6 animate-pulse">
+          <div className="h-5 w-40 bg-[#2a2a2a] rounded mb-4" />
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="h-10 bg-[#2a2a2a] rounded" />
+            <div className="h-10 bg-[#2a2a2a] rounded" />
+            <div className="h-10 bg-[#2a2a2a] rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
