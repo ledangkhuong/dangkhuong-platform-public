@@ -2,6 +2,52 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 
+// POST /api/admin/courses — create a new course (bypasses RLS)
+export async function POST(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || !["admin", "manager", "editor"].includes(profile.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const admin = await createAdminClient();
+
+    const { data, error } = await admin
+      .from("products")
+      .insert(body)
+      .select("id")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, id: data.id });
+  } catch (err) {
+    console.error("POST /api/admin/courses error:", err);
+    return NextResponse.json({ error: "Không thể thực hiện." }, { status: 500 });
+  }
+}
+
 // DELETE /api/admin/courses — delete a course and all related data
 export async function DELETE(req: NextRequest) {
   try {

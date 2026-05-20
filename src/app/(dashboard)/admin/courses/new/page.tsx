@@ -99,23 +99,34 @@ export default function NewCoursePage() {
 
     setSubmitting(true);
 
-    const { error: insertError } = await supabase.from("products").insert({
-      title: title.trim(),
-      slug: slug.trim(),
-      description: description.trim() || null,
-      thumbnail: thumbnail.trim() || null,
-      price,
-      sale_price: salePrice ? parseInt(salePrice) : null,
-      type,
-      tier_required: tierRequired,
-      status,
-      category: category || null,
-      sort_order: sortOrder,
-      instructor_id: instructorId || null,
-    });
+    try {
+      const res = await fetch("/api/admin/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          slug: slug.trim(),
+          description: description.trim() || null,
+          thumbnail: thumbnail.trim() || null,
+          price,
+          sale_price: salePrice ? parseInt(salePrice) : null,
+          type,
+          tier_required: tierRequired,
+          status,
+          category: category || null,
+          sort_order: sortOrder,
+          instructor_id: instructorId || null,
+        }),
+      });
 
-    if (insertError) {
-      setError(insertError.message);
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.error || "Không thể tạo khoá học.");
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setError("Lỗi kết nối. Vui lòng thử lại.");
       setSubmitting(false);
       return;
     }

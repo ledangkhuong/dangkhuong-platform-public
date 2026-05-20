@@ -286,12 +286,18 @@ export default function LessonsPage() {
 
       // Instructors can only manage lessons of their own courses
       if (profile.role === "instructor") {
-        const { data: course } = await supabase
-          .from("products")
-          .select("instructor_id")
-          .eq("id", courseId)
-          .single();
-        if (!course || course.instructor_id !== user.id) {
+        try {
+          const res = await fetch(`/api/admin/courses/${courseId}`);
+          if (!res.ok) {
+            router.push("/admin/courses");
+            return;
+          }
+          const course = await res.json();
+          if (course.instructor_id !== user.id) {
+            router.push("/admin/courses");
+            return;
+          }
+        } catch {
           router.push("/admin/courses");
           return;
         }
@@ -312,13 +318,15 @@ export default function LessonsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    const { data: course } = await supabase
-      .from("products")
-      .select("title")
-      .eq("id", courseId)
-      .single();
-
-    if (course) setCourseTitle(course.title);
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}`);
+      if (res.ok) {
+        const course = await res.json();
+        setCourseTitle(course.title);
+      }
+    } catch {
+      // Course title fetch failed, continue without it
+    }
 
     const { data: chaptersData } = await supabase
       .from("chapters")
@@ -596,14 +604,16 @@ export default function LessonsPage() {
     setSelectedChapterIds(new Set());
     setSelectedTargetCourse("");
 
-    // Fetch all courses except current
-    const { data } = await supabase
-      .from("products")
-      .select("id, title")
-      .neq("id", courseId)
-      .order("sort_order", { ascending: true });
-
-    setAllCourses(data ?? []);
+    // Fetch all courses except current (via API to bypass RLS)
+    try {
+      const res = await fetch("/api/admin/courses/list");
+      if (res.ok) {
+        const allData = await res.json();
+        setAllCourses(allData.filter((c: CourseOption) => c.id !== courseId));
+      }
+    } catch {
+      setAllCourses([]);
+    }
   };
 
   const toggleChapterSelect = (id: string) => {

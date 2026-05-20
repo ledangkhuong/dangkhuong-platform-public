@@ -111,12 +111,18 @@ export default function EditCoursePage() {
 
       // Instructors can only edit their own courses
       if (profile.role === "instructor") {
-        const { data: course } = await supabase
-          .from("products")
-          .select("instructor_id")
-          .eq("id", id)
-          .single();
-        if (!course || course.instructor_id !== user.id) {
+        try {
+          const res = await fetch(`/api/admin/courses/${id}`);
+          if (!res.ok) {
+            router.push("/admin/courses");
+            return;
+          }
+          const course = await res.json();
+          if (course.instructor_id !== user.id) {
+            router.push("/admin/courses");
+            return;
+          }
+        } catch {
           router.push("/admin/courses");
           return;
         }
@@ -141,38 +147,38 @@ export default function EditCoursePage() {
     fetchInstructors();
   }, []);
 
-  // ─── Fetch course data ────────────────────────────────────────────────────
+  // ─── Fetch course data (via API to bypass RLS) ─────────────────────────────
 
   useEffect(() => {
     async function fetchCourse() {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", id)
-        .single();
+      try {
+        const res = await fetch(`/api/admin/courses/${id}`);
+        if (!res.ok) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
 
-      if (error || !data) {
+        setForm({
+          title: data.title ?? "",
+          slug: data.slug ?? "",
+          description: data.description ?? "",
+          description_html: data.description_html ?? "",
+          thumbnail: data.thumbnail ?? "",
+          price: data.price ?? 0,
+          sale_price: data.sale_price ?? null,
+          type: data.type ?? "course",
+          tier_required: data.tier_required ?? "free",
+          status: data.status ?? "draft",
+          category: data.category ?? "",
+          sort_order: data.sort_order ?? 0,
+          instructor_id: data.instructor_id ?? null,
+        });
+      } catch {
         setNotFound(true);
-        setLoading(false);
-        return;
       }
-
-      setForm({
-        title: data.title ?? "",
-        slug: data.slug ?? "",
-        description: data.description ?? "",
-        description_html: data.description_html ?? "",
-        thumbnail: data.thumbnail ?? "",
-        price: data.price ?? 0,
-        sale_price: data.sale_price ?? null,
-        type: data.type ?? "course",
-        tier_required: data.tier_required ?? "free",
-        status: data.status ?? "draft",
-        category: data.category ?? "",
-        sort_order: data.sort_order ?? 0,
-        instructor_id: data.instructor_id ?? null,
-      });
       setLoading(false);
     }
 
@@ -222,18 +228,24 @@ export default function EditCoursePage() {
       return;
     }
 
-    const { error } = await supabase
-      .from("products")
-      .update(payload)
-      .eq("id", id);
-
-    if (error) {
-      setMessage({
-        type: "error",
-        text: `Lỗi khi cập nhật: ${error.message}`,
+    try {
+      const res = await fetch(`/api/admin/courses/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-    } else {
-      setMessage({ type: "success", text: "Cập nhật khoá học thành công!" });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setMessage({
+          type: "error",
+          text: err.error || "Lỗi khi cập nhật khoá học.",
+        });
+      } else {
+        setMessage({ type: "success", text: "Cập nhật khoá học thành công!" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Lỗi kết nối. Vui lòng thử lại." });
     }
 
     setSaving(false);

@@ -77,8 +77,11 @@ export default async function AdminCoursesPage() {
 
   const isInstructor = profile.role === "instructor";
 
+  // Use admin client to bypass RLS for admin pages
+  const adminClient = await createAdminClient();
+
   // Fetch products with nested chapters → lessons
-  let query = supabase
+  let query = adminClient
     .from("products")
     .select("*, chapters(id, lessons(id))")
     .order("sort_order", { ascending: true })
@@ -93,12 +96,11 @@ export default async function AdminCoursesPage() {
 
   const courses = products ?? [];
 
-  // Fetch enrollment counts per product (use admin client to bypass RLS)
+  // Fetch enrollment counts per product
   const productIds = courses.map((c) => c.id);
   let enrollmentMap: Record<string, number> = {};
 
   if (productIds.length > 0) {
-    const adminClient = await createAdminClient();
     const { data: enrollments } = await adminClient
       .from("enrollments")
       .select("product_id");
