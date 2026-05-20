@@ -284,6 +284,16 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
     }
   }, [searchParams, courses]);
 
+  // Scroll to category section when ?cat= is present
+  useEffect(() => {
+    const cat = searchParams.get("cat");
+    if (!cat) return;
+    const el = document.getElementById(`cat-${cat}`);
+    if (el) {
+      setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    }
+  }, [searchParams]);
+
   const handleBuy = (course: CourseItem) => {
     setCheckoutProduct({
       id: course.id,
@@ -332,7 +342,7 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
         if (catCourses.length === 0) return null;
 
         return (
-          <section key={cat.key}>
+          <section key={cat.key} id={`cat-${cat.key}`}>
             <SectionHeader
               icon={cat.icon}
               title={cat.title}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -205,9 +207,20 @@ function SectionHeader({
 /* ─── Main Component ────────────────────────────────────────────────────────── */
 
 export default function CoursesPublicGrid({ courses }: { courses: PublicCourse[] }) {
+  const searchParams = useSearchParams();
   const publishedCourses = courses.filter((c) => c.status !== "coming_soon");
   const comingSoonCourses = courses.filter((c) => c.status === "coming_soon");
   const uncategorized = publishedCourses.filter((c) => !c.category);
+
+  // Scroll to category section when ?cat= is present
+  useEffect(() => {
+    const cat = searchParams.get("cat");
+    if (!cat) return;
+    const el = document.getElementById(`cat-${cat}`);
+    if (el) {
+      setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    }
+  }, [searchParams]);
 
   return (
     <div className="pt-20 pb-16 px-4 sm:px-6">
@@ -228,7 +241,7 @@ export default function CoursesPublicGrid({ courses }: { courses: PublicCourse[]
           if (catCourses.length === 0) return null;
 
           return (
-            <section key={cat.key} className="mb-12">
+            <section key={cat.key} id={`cat-${cat.key}`} className="mb-12">
               <SectionHeader icon={cat.icon} title={cat.title} subtitle={cat.subtitle} iconColor={cat.color} />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {catCourses.map((course, idx) => (

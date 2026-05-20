@@ -12,15 +12,23 @@ import UserAvatar from "@/components/admin/UserAvatar";
 import {
   LayoutDashboard, BookOpen, Users, MessageSquare, MessageCircle,
   FileText, Mail, BarChart3, Settings, LogOut,
-  ChevronLeft, ChevronRight, Rocket, Trophy, Calendar,
+  ChevronLeft, ChevronRight, ChevronDown, Rocket, Trophy, Calendar,
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
+  Video, Globe, Sparkles,
 } from "lucide-react";
+
+const courseSubNav = [
+  { href: "/courses?cat=video", icon: Video, label: "Làm video", color: "#3b82f6" },
+  { href: "/courses?cat=branding", icon: Globe, label: "Xây kênh & thương hiệu", color: "#a855f7" },
+  { href: "/courses?cat=business", icon: TrendingUp, label: "Kinh doanh & chuyển đổi", color: "#f59e0b" },
+  { href: "/courses?cat=personal_development", icon: Sparkles, label: "Phát triển bản thân", color: "#22c55e" },
+];
 
 const mainNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
-  { href: "/courses", icon: BookOpen, label: "Khoá học" },
+  { href: "/courses", icon: BookOpen, label: "Khoá học", subNav: courseSubNav },
   { href: "/resources", icon: FolderOpen, label: "Tài nguyên" },
   { href: "/community", icon: Users, label: "Cộng đồng" },
   { href: "/blog", icon: FileText, label: "Blog" },
@@ -83,7 +91,15 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const { isOpen: mobileOpen, close: closeMobile } = useMobileSidebar();
+
+  // Auto-expand courses submenu when on courses page
+  useEffect(() => {
+    if (pathname.startsWith("/courses")) {
+      setExpandedMenu("/courses");
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -192,16 +208,57 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             const isActive =
               pathname === item.href ||
               (item.href !== "/dashboard" && item.href.length > 1 && pathname.startsWith(item.href));
+            const hasSubNav = item.subNav && item.subNav.length > 0;
+            const isExpanded = expandedMenu === item.href;
+
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
-                title={isCompact ? item.label : undefined}
-              >
-                <item.icon size={18} className="shrink-0" />
-                {!isCompact && <span>{item.label}</span>}
-              </Link>
+              <div key={item.href}>
+                {hasSubNav && !isCompact ? (
+                  /* Parent item with submenu — click toggles submenu, link on icon/text */
+                  <div>
+                    <div
+                      className={`sidebar-nav-item cursor-pointer ${isActive ? "active" : ""}`}
+                      onClick={() => setExpandedMenu(isExpanded ? null : item.href)}
+                    >
+                      <Link href={item.href} className="flex items-center gap-2.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                        <item.icon size={18} className="shrink-0" />
+                        <span>{item.label}</span>
+                      </Link>
+                      <ChevronDown
+                        size={14}
+                        className={`shrink-0 text-gray-500 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                      />
+                    </div>
+                    {/* Submenu */}
+                    <div
+                      className="overflow-hidden transition-all duration-200"
+                      style={{ maxHeight: isExpanded ? `${item.subNav!.length * 36 + 8}px` : "0px" }}
+                    >
+                      <div className="pl-4 py-1 space-y-0.5">
+                        {item.subNav!.map((sub) => (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-[#1a1a1a] transition-colors"
+                          >
+                            <sub.icon size={13} style={{ color: sub.color }} className="shrink-0" />
+                            <span className="truncate">{sub.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
+                    title={isCompact ? item.label : undefined}
+                  >
+                    <item.icon size={18} className="shrink-0" />
+                    {!isCompact && <span>{item.label}</span>}
+                  </Link>
+                )}
+              </div>
             );
           })}
         </div>
