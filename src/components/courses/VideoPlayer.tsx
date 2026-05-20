@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Play,
   Pause,
@@ -67,6 +68,7 @@ export default function VideoPlayer({
   productId,
   initialCompleted,
   onAutoCompleted,
+  nextLessonUrl,
 }: {
   youtubeId: string;
   title?: string;
@@ -76,7 +78,10 @@ export default function VideoPlayer({
   initialCompleted?: boolean;
   /** Called after auto-completion succeeds so the parent can update UI */
   onAutoCompleted?: () => void;
+  /** URL to navigate to after auto-completion */
+  nextLessonUrl?: string;
 }) {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const playerDivRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -246,13 +251,23 @@ export default function VideoPlayer({
       if (!res.ok) throw new Error("Failed");
 
       setAutoCompleteToast(true);
-      setTimeout(() => setAutoCompleteToast(false), 4000);
       onAutoCompleted?.();
+
+      // Auto-navigate to next lesson after a short delay
+      if (nextLessonUrl) {
+        setTimeout(() => {
+          setAutoCompleteToast(false);
+          router.push(nextLessonUrl);
+          router.refresh();
+        }, 2000);
+      } else {
+        setTimeout(() => setAutoCompleteToast(false), 4000);
+      }
     } catch {
       // Silently fail — user can still use the manual button
       autoCompletedRef.current = false;
     }
-  }, [lessonId, productId, onAutoCompleted]);
+  }, [lessonId, productId, onAutoCompleted, nextLessonUrl, router]);
 
   /* ─── Time update loop ─── */
   useEffect(() => {
@@ -453,7 +468,7 @@ export default function VideoPlayer({
           >
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#22c55e]/90 backdrop-blur-sm text-white text-sm font-medium shadow-lg">
               <span>&#x2705;</span>
-              <span>Bài học đã hoàn thành!</span>
+              <span>{nextLessonUrl ? "Hoàn thành! Đang chuyển bài..." : "Bài học đã hoàn thành!"}</span>
             </div>
           </div>
         )}

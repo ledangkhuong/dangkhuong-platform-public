@@ -588,6 +588,18 @@ export default async function CourseDetailPage({
   const currentProgress = currentLesson
     ? progressMap.get(currentLesson.id)
     : null;
+
+  // Compute next lesson (the one right after current in sort order)
+  const currentIdx = currentLesson
+    ? allLessons.findIndex((l) => l.id === currentLesson.id)
+    : -1;
+  const nextLesson =
+    currentIdx >= 0 && currentIdx < allLessons.length - 1
+      ? allLessons[currentIdx + 1]
+      : null;
+  const nextLessonUrl = nextLesson
+    ? `/courses/${slug}?lesson=${nextLesson.id}`
+    : undefined;
   // ─── Sidebar content ─────────────────────
   const sidebarContent = (
     <>
@@ -799,6 +811,7 @@ export default async function CourseDetailPage({
                 lessonId={currentLesson.id}
                 productId={product.id}
                 initialCompleted={currentProgress?.completed ?? false}
+                nextLessonUrl={nextLessonUrl}
               />
             </div>
           ) : currentLesson.thumbnail_url ? (
@@ -973,6 +986,8 @@ export default async function CourseDetailPage({
               lessonId={currentLesson.id}
               productId={product.id}
               initialCompleted={currentProgress?.completed ?? false}
+              nextLessonUrl={nextLessonUrl}
+              nextLessonTitle={nextLesson?.title}
             />
           </div>
 
