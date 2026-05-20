@@ -28,6 +28,7 @@ import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 import LessonQuiz from "@/components/courses/LessonQuiz";
 import LessonSubmission from "@/components/courses/LessonSubmission";
+import CourseInterestTracker from "@/components/courses/CourseInterestTracker";
 import RichDescription from "@/components/courses/RichDescription";
 import CourseDiscussion from "@/components/courses/CourseDiscussion";
 
@@ -356,6 +357,8 @@ export default async function CourseDetailPage({
     };
     return (
       <div>
+        {/* Track interest: user viewed course but hasn't purchased */}
+        <CourseInterestTracker productId={product.id} />
         <TopBar title={product.title} subtitle="Khoá học" />
 
         {/* Tier upgrade banner — shown when tier is the blocking reason */}
