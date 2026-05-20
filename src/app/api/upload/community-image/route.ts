@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 const BUCKET = "community-images";
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 4 * 1024 * 1024; // 4MB (Vercel Hobby has 4.5MB body limit)
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   // Validate file size
   if (file.size > MAX_SIZE) {
     return NextResponse.json(
-      { error: "File quá lớn. Tối đa 5MB." },
+      { error: "File quá lớn. Tối đa 4MB." },
       { status: 400 }
     );
   }

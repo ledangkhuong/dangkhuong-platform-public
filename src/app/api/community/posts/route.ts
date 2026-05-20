@@ -165,6 +165,7 @@ export async function POST(req: NextRequest) {
         content: content.trim(),
         tags,
         image_url,
+        status: "visible",
         ...(category ? { category } : {}),
         ...(product_id ? { product_id } : {}),
         ...(flagResult.flagged ? { flagged: true } : {}),
@@ -173,7 +174,12 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("POST /api/community/posts error:", error.message);
+      console.error("POST /api/community/posts error:", error.message, "code:", error.code, "details:", error.details);
+      return NextResponse.json({ error: "Không thể tạo bài viết. Vui lòng thử lại." }, { status: 500 });
+    }
+
+    if (!data) {
+      console.error("POST /api/community/posts: insert returned no data");
       return NextResponse.json({ error: "Không thể tạo bài viết. Vui lòng thử lại." }, { status: 500 });
     }
 

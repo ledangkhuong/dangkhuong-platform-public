@@ -165,14 +165,14 @@ export default function CommunityPage() {
     // Reset input so same file can be re-selected
     e.target.value = "";
 
-    // Client-side validation
+    // Client-side validation — also allow HEIC (mobile phones) which server will reject gracefully
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(file.type) && !file.type.includes("heic") && !file.type.includes("heif")) {
       setPostError("Chỉ chấp nhận ảnh JPEG, PNG, GIF, WebP.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setPostError("Ảnh quá lớn. Tối đa 5MB.");
+    if (file.size > 4 * 1024 * 1024) {
+      setPostError("Ảnh quá lớn. Tối đa 4MB.");
       return;
     }
 
@@ -189,15 +189,22 @@ export default function CommunityPage() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Kết nối bị gián đoạn. Vui lòng thử lại.");
+      }
+
       if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(data.error || "Tải ảnh lên thất bại.");
       }
       setImageUrl(data.url);
     } catch (err) {
       setImagePreview(null);
       setImageUrl(null);
-      setPostError(err instanceof Error ? err.message : "Tải ảnh lên thất bại.");
+      setPostError(err instanceof Error ? err.message : "Tải ảnh lên thất bại. Kiểm tra internet và thử lại.");
     } finally {
       setUploading(false);
     }
@@ -356,6 +363,21 @@ export default function CommunityPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: postText.trim(), tags, image_url: imageUrl || undefined }),
       });
+
+      if (!res.ok) {
+        // Try to get detailed error from API response
+        let errorMsg = "Đăng bài thất bại. Vui lòng thử lại.";
+        try {
+          const errData = await res.json();
+          if (errData.error) errorMsg = errData.error;
+        } catch {
+          // Response not JSON — likely timeout or server error
+          if (res.status === 504) errorMsg = "Kết nối quá chậm. Vui lòng thử lại.";
+        }
+        setPostError(errorMsg);
+        return;
+      }
+
       const data = await res.json();
       if (data.post) {
         setPosts(prev => [data.post, ...prev]);
@@ -364,10 +386,10 @@ export default function CommunityPage() {
         removeImage();
         setPostError(null);
       } else {
-        setPostError("Đăng bài thất bại. Vui lòng thử lại.");
+        setPostError(data.error || "Đăng bài thất bại. Vui lòng thử lại.");
       }
     } catch {
-      setPostError("Đăng bài thất bại. Vui lòng thử lại.");
+      setPostError("Không kết nối được. Kiểm tra internet và thử lại.");
     } finally {
       setPosting(false);
     }
@@ -496,7 +518,7 @@ export default function CommunityPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  accept="image/*"
                   className="hidden"
                   onChange={handleImageUpload}
                 />
