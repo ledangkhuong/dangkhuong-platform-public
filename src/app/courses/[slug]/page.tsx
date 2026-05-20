@@ -328,19 +328,23 @@ export default async function CourseDetailPage({
 
   // Access rule:
   //   user has access IF (enrolled) OR (admin) OR (product is free)
-  //   OR (user.tier >= product.tier_required)
+  //   OR (product has tier_required set AND user.tier >= product.tier_required)
   // Enrollment always overrides tier requirements.
+  // IMPORTANT: tier access only applies when tier_required is explicitly set.
+  // If tier_required is null (default), user MUST enroll (purchase) to access.
   const hasEnrollment = !!enrollment;
   const hasTierAccess = meetsRequiredTier(userTier, productTierRequired);
+  const hasTierGatedAccess =
+    !!productTierRequired && productTierRequired !== "free" && hasTierAccess;
   const hasAccess =
     profile?.role === "admin" ||
     hasEnrollment ||
     product.price === 0 ||
-    hasTierAccess;
+    hasTierGatedAccess;
 
   // Whether the user is blocked specifically because of tier (not enrollment)
   const blockedByTier =
-    !hasAccess && !hasEnrollment && !hasTierAccess && !!productTierRequired && productTierRequired !== "free";
+    !hasAccess && !hasEnrollment && !hasTierGatedAccess && !!productTierRequired && productTierRequired !== "free";
 
   const enrolledAt = enrollment?.created_at ?? undefined;
 
