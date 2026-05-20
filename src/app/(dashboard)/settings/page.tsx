@@ -44,7 +44,7 @@ function ProfileTab({
 
       supabase
         .from("profiles")
-        .select("full_name, phone, bio, tier, xp, level, avatar_url, zalo_user_id")
+        .select("*")
         .eq("id", user.id)
         .single()
         .then(({ data, error: profileError }) => {
@@ -52,18 +52,25 @@ function ProfileTab({
             console.error("[Settings] Profile fetch error:", profileError);
           }
           if (data) {
-            setFullName(data.full_name ?? "");
-            setPhone(data.phone ?? "");
-            setBio(data.bio ?? "");
-            setZaloLinked(!!data.zalo_user_id);
-            if (data.avatar_url) setAvatarUrl(data.avatar_url);
-            const name = data.full_name ?? user.email ?? "?";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const d = data as Record<string, any>;
+            setFullName(d.full_name ?? "");
+            setPhone(d.phone ?? "");
+            setBio(d.bio ?? "");
+            setZaloLinked(!!d.zalo_user_id);
+            if (d.avatar_url) setAvatarUrl(d.avatar_url);
+            const name = d.full_name ?? user.email ?? "?";
             const parts = name.trim().split(/\s+/);
             setInitials(
               parts.length >= 2
                 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
                 : name.slice(0, 2).toUpperCase()
             );
+          } else {
+            // Profile fetch failed — use auth metadata as fallback
+            const metaName = user.user_metadata?.full_name || user.user_metadata?.name || "";
+            if (metaName) setFullName(metaName);
+            setPhone(user.phone ?? "");
           }
           setProfileLoaded(true);
         });
