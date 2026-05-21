@@ -74,6 +74,7 @@ interface Lesson {
   title: string;
   description: string | null;
   youtube_id: string | null;
+  video_url: string | null;
   thumbnail_url: string | null;
   duration_sec: number;
   content: string | null;
@@ -97,6 +98,7 @@ interface LessonFormData {
   title: string;
   description: string;
   youtube_id: string;
+  video_url: string;
   thumbnail_url: string;
   duration_sec: number;
   content: string;
@@ -114,6 +116,7 @@ const defaultLessonForm: LessonFormData = {
   title: "",
   description: "",
   youtube_id: "",
+  video_url: "",
   thumbnail_url: "",
   duration_sec: 0,
   content: "",
@@ -430,6 +433,7 @@ export default function LessonsPage() {
       title: lessonForm.title.trim(),
       description: lessonForm.description || null,
       youtube_id: lessonForm.youtube_id || null,
+      video_url: lessonForm.video_url || null,
       thumbnail_url: lessonForm.thumbnail_url || null,
       duration_sec: lessonForm.duration_sec || 0,
       content: lessonForm.content || null,
@@ -454,6 +458,7 @@ export default function LessonsPage() {
         title: lessonForm.title.trim(),
         description: lessonForm.description || null,
         youtube_id: lessonForm.youtube_id || null,
+        video_url: lessonForm.video_url || null,
         thumbnail_url: lessonForm.thumbnail_url || null,
         duration_sec: lessonForm.duration_sec || 0,
         content: lessonForm.content || null,
@@ -489,6 +494,7 @@ export default function LessonsPage() {
       title: lesson.title,
       description: lesson.description || "",
       youtube_id: lesson.youtube_id || "",
+      video_url: lesson.video_url || "",
       thumbnail_url: lesson.thumbnail_url || "",
       duration_sec: lesson.duration_sec,
       content: lesson.content || "",
@@ -1238,7 +1244,7 @@ function SortableLessonRow({
     >
       <div className="flex items-center gap-3">
         <DragHandle listeners={listeners} size={14} />
-        {lesson.youtube_id ? (
+        {lesson.youtube_id || lesson.video_url ? (
           <Play size={16} className="text-amber-400" />
         ) : (
           <BookOpen size={16} className="text-gray-500" />
@@ -1393,6 +1399,27 @@ function LessonFormComponent({
               placeholder="0"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-gray-400 text-xs mb-1">
+            Google Drive Video URL{" "}
+            <span className="text-gray-600">(dùng khi không có YouTube)</span>
+          </label>
+          <input
+            type="text"
+            value={lessonForm.video_url}
+            onChange={(e) =>
+              setLessonForm({ ...lessonForm, video_url: e.target.value.trim() })
+            }
+            className="input-dark w-full px-3 py-2 rounded-lg text-sm"
+            placeholder="https://drive.google.com/file/d/.../view"
+          />
+          <p className="text-[10px] text-gray-500 mt-1">
+            Paste link Google Drive video. Video phải được chia sẻ ở chế độ{" "}
+            <strong className="text-[#f59e0b]">&quot;Bất kỳ ai có link&quot;</strong>
+            . YouTube ID sẽ được ưu tiên nếu có cả hai.
+          </p>
         </div>
 
         {/* Ảnh bài học — hiển thị khi không có video */}

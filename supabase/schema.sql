@@ -75,6 +75,7 @@ create table public.lessons (
   title         text not null,
   description   text,
   youtube_id    text,  -- YouTube video ID (không lưu full URL)
+  video_url     text,  -- External video URL (Google Drive, etc). Used when youtube_id is empty.
   duration_sec  integer default 0,
   content       text,  -- markdown nội dung bổ sung
   sort_order    integer default 0,

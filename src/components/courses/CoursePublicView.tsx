@@ -13,6 +13,8 @@ import {
   Award,
 } from "lucide-react";
 import VideoPlayer from "@/components/courses/VideoPlayer";
+import GoogleDrivePlayer from "@/components/courses/GoogleDrivePlayer";
+import { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/components/courses/GoogleDrivePlayer";
 import RichDescription from "@/components/courses/RichDescription";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 
@@ -22,6 +24,7 @@ interface Lesson {
   id: string;
   title: string;
   youtube_id: string | null;
+  video_url?: string | null;
   duration_sec: number;
   is_free: boolean;
   sort_order: number;
@@ -113,8 +116,10 @@ export default function CoursePublicView({
   instructor,
 }: CoursePublicViewProps) {
   const [activeVideo, setActiveVideo] = useState<{
-    youtubeId: string;
+    youtubeId?: string;
+    driveFileId?: string;
     title: string;
+    durationSec?: number;
   } | null>(null);
   const [collapsedChapters, setCollapsedChapters] = useState<Set<string>>(
     new Set()
@@ -162,9 +167,17 @@ export default function CoursePublicView({
   };
 
   const handleFreeLesson = (lesson: Lesson) => {
-    if (!lesson.is_free || !lesson.youtube_id) return;
-    setActiveVideo({ youtubeId: lesson.youtube_id, title: lesson.title });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!lesson.is_free) return;
+    if (lesson.youtube_id) {
+      setActiveVideo({ youtubeId: lesson.youtube_id, title: lesson.title });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (lesson.video_url && isGoogleDriveUrl(lesson.video_url)) {
+      const fileId = extractGoogleDriveFileId(lesson.video_url);
+      if (fileId) {
+        setActiveVideo({ driveFileId: fileId, title: lesson.title, durationSec: lesson.duration_sec || undefined });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
   };
 
   const handleProLesson = () => {
@@ -182,10 +195,18 @@ export default function CoursePublicView({
       {/* ═══ VIDEO PLAYER (when a free lesson is selected) ═══ */}
       {activeVideo && (
         <section className="max-w-4xl mx-auto px-4 pt-20 pb-4">
-          <VideoPlayer
-            youtubeId={activeVideo.youtubeId}
-            title={activeVideo.title}
-          />
+          {activeVideo.youtubeId ? (
+            <VideoPlayer
+              youtubeId={activeVideo.youtubeId}
+              title={activeVideo.title}
+            />
+          ) : activeVideo.driveFileId ? (
+            <GoogleDrivePlayer
+              fileId={activeVideo.driveFileId}
+              title={activeVideo.title}
+              durationSec={activeVideo.durationSec}
+            />
+          ) : null}
           <div className="mt-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">
               {activeVideo.title}
@@ -500,10 +521,13 @@ export default function CoursePublicView({
                     >
                       {chapterLessons.map((lesson) => {
                         const dripLocked = isDripLocked(lesson, enrolledAt);
+                        const hasVideo = !!lesson.youtube_id || (!!lesson.video_url && isGoogleDriveUrl(lesson.video_url));
                         const isFreeLesson =
-                          lesson.is_free && !!lesson.youtube_id && !dripLocked;
+                          lesson.is_free && hasVideo && !dripLocked;
+                        const driveId = lesson.video_url ? extractGoogleDriveFileId(lesson.video_url) : null;
                         const isPlaying =
-                          activeVideo?.youtubeId === lesson.youtube_id;
+                          (activeVideo?.youtubeId && activeVideo.youtubeId === lesson.youtube_id) ||
+                          (activeVideo?.driveFileId && driveId && activeVideo.driveFileId === driveId);
                         const remainingDays = dripLocked
                           ? dripDaysLeft(lesson, enrolledAt)
                           : 0;

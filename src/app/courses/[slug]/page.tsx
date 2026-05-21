@@ -25,6 +25,8 @@ import {
 import LessonActions from "@/components/courses/LessonActions";
 import LessonQA from "@/components/courses/LessonQA";
 import VideoPlayer from "@/components/courses/VideoPlayer";
+import GoogleDrivePlayer from "@/components/courses/GoogleDrivePlayer";
+import { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/components/courses/GoogleDrivePlayer";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 import LessonQuiz from "@/components/courses/LessonQuiz";
@@ -42,6 +44,7 @@ type Lesson = {
   id: string;
   title: string;
   youtube_id: string | null;
+  video_url: string | null;
   thumbnail_url: string | null;
   duration_sec: number;
   content: string | null;
@@ -238,7 +241,7 @@ export default async function CourseDetailPage({
       .select(
         `
         id, title, sort_order,
-        lessons(id, title, youtube_id, thumbnail_url, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
+        lessons(id, title, youtube_id, video_url, thumbnail_url, duration_sec, content, sort_order, is_free, unlock_after_days, attachments)
       `
       )
       .eq("product_id", product.id)
@@ -253,7 +256,7 @@ export default async function CourseDetailPage({
         .select(
           `
           id, title, sort_order,
-          lessons(id, title, youtube_id, thumbnail_url, duration_sec, content, sort_order, is_free)
+          lessons(id, title, youtube_id, video_url, thumbnail_url, duration_sec, content, sort_order, is_free)
         `
         )
         .eq("product_id", product.id)
@@ -344,6 +347,7 @@ export default async function CourseDetailPage({
             id: l.id,
             title: l.title,
             youtube_id: l.is_free ? l.youtube_id : null,
+            video_url: l.is_free ? l.video_url : null,
             duration_sec: l.duration_sec,
             is_free: l.is_free,
             sort_order: l.sort_order,
@@ -492,6 +496,7 @@ export default async function CourseDetailPage({
               id: l.id,
               title: l.title,
               youtube_id: l.is_free ? l.youtube_id : null,
+              video_url: l.is_free ? l.video_url : null,
               duration_sec: l.duration_sec,
               is_free: l.is_free,
               sort_order: l.sort_order,
@@ -813,6 +818,24 @@ export default async function CourseDetailPage({
                 initialCompleted={currentProgress?.completed ?? false}
                 nextLessonUrl={nextLessonUrl}
               />
+            </div>
+          ) : currentLesson.video_url && isGoogleDriveUrl(currentLesson.video_url) ? (
+            <div className="mb-4 sm:mb-5">
+              {(() => {
+                const driveFileId = extractGoogleDriveFileId(currentLesson.video_url!);
+                return driveFileId ? (
+                  <GoogleDrivePlayer
+                    key={currentLesson.id}
+                    fileId={driveFileId}
+                    title={currentLesson.title}
+                    lessonId={currentLesson.id}
+                    productId={product.id}
+                    initialCompleted={currentProgress?.completed ?? false}
+                    nextLessonUrl={nextLessonUrl}
+                    durationSec={currentLesson.duration_sec || undefined}
+                  />
+                ) : null;
+              })()}
             </div>
           ) : currentLesson.thumbnail_url ? (
             <div className="mb-4 sm:mb-5">
