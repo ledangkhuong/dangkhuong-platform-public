@@ -80,25 +80,38 @@ export async function POST(req: NextRequest) {
 
     // Extract all possible order codes to try
     // IMPORTANT: Preserve original case — order codes are case-sensitive (nanoid)
-    // Formats encountered:
-    //   Old: transfer_content = "DK{DKxxx}" (double DK) → content = "DKDKa3Bf9Kx2Mn"
-    //   New: transfer_content = "{DKxxx}" (single)      → content = "DKa3Bf9Kx2Mn"
-    //   SP:  transfer_content = "DK{SPxxx}"             → content = "DKSPTSXecPUjukw2"
+    // Known order code prefixes: DK, OF (Omni Flash), SP (sanphamso), SE (slowenglish), HX (hocchuaxong)
+    // Known transfer_content formats:
+    //   Standard:  "DK{orderCode}"  → e.g. "DKOF5WUrNymCdSHL"
+    //   Legacy OF: "OF{orderCode}"  → e.g. "OFOF5WUrNymCdSHL" (bug: double OF)
+    //   Double DK: "DK{DKxxx}"     → e.g. "DKDKa3Bf9Kx2Mn"
     const rawCode = (code || "").trim();
     const fullContent = (content || "").trim();
-    const contentMatch = fullContent.match(/DK([A-Za-z0-9]+)/i);
-    const contentCode = contentMatch?.[1] || "";
-    const contentFullMatch = contentMatch?.[0] || ""; // includes "DK" prefix
+
+    // Primary regex: match DK prefix (standard format)
+    const dkMatch = fullContent.match(/DK([A-Za-z0-9]+)/i);
+    const dkCode = dkMatch?.[1] || "";
+    const dkFullMatch = dkMatch?.[0] || "";
+
+    // Secondary regex: match any known order prefix (OF, SP, SE, HX) for resilience
+    // This catches cases where transfer_content accidentally uses wrong prefix
+    const anyPrefixMatch = fullContent.match(/(?:OF|SP|SE|HX)([A-Za-z0-9]{10,})/);
+    const anyPrefixCode = anyPrefixMatch?.[1] || "";
+    const anyPrefixFullMatch = anyPrefixMatch?.[0] || "";
 
     // Build list of candidates to try (deduplicated)
     // Order matters: most specific first for faster matching
     const candidates = [...new Set([
       rawCode,                                    // SePay code field as-is
-      rawCode.replace(/^DK/i, ""),                // Strip DK prefix (case-insensitive)
-      contentFullMatch,                           // Full regex match WITH DK prefix (e.g. "DKsN7hvQbbCuGA")
-      contentCode,                                // Regex extract AFTER DK (e.g. "sN7hvQbbCuGA")
-      contentCode.replace(/^DK/i, ""),            // Strip another DK if double-prefixed (old format)
-      `DK${contentCode}`,                         // Reconstruct with DK prefix
+      rawCode.replace(/^DK/i, ""),                // Strip DK prefix
+      rawCode.replace(/^(OF|SP|SE|HX)/i, ""),     // Strip any known prefix from rawCode
+      dkFullMatch,                                // Full DK regex match (e.g. "DKsN7hvQbbCuGA")
+      dkCode,                                     // After DK (e.g. "sN7hvQbbCuGA")
+      dkCode.replace(/^DK/i, ""),                 // Strip double DK (old format)
+      `DK${dkCode}`,                              // Reconstruct with DK prefix
+      anyPrefixFullMatch,                         // Full match with OF/SP/SE/HX prefix
+      anyPrefixCode,                              // After OF/SP/SE/HX prefix
+      `${anyPrefixFullMatch.slice(0, 2)}${anyPrefixCode}`, // Preserve original 2-char prefix + code
       fullContent,                                // Full content as-is (fallback)
       fullContent.replace(/^DK/i, ""),            // Full content minus DK prefix
     ])].filter(Boolean);
