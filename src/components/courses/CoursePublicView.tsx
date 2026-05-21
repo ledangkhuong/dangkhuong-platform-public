@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import VideoPlayer from "@/components/courses/VideoPlayer";
 import GoogleDrivePlayer from "@/components/courses/GoogleDrivePlayer";
-import { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/components/courses/GoogleDrivePlayer";
+import { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/lib/video-utils";
 import RichDescription from "@/components/courses/RichDescription";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 

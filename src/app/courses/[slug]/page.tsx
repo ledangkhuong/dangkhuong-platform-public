@@ -26,7 +26,7 @@ import LessonActions from "@/components/courses/LessonActions";
 import LessonQA from "@/components/courses/LessonQA";
 import VideoPlayer from "@/components/courses/VideoPlayer";
 import GoogleDrivePlayer from "@/components/courses/GoogleDrivePlayer";
-import { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/components/courses/GoogleDrivePlayer";
+import { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/lib/video-utils";
 import CourseMobileLayout from "@/components/courses/CourseMobileLayout";
 import CoursePublicView from "@/components/courses/CoursePublicView";
 import LessonQuiz from "@/components/courses/LessonQuiz";

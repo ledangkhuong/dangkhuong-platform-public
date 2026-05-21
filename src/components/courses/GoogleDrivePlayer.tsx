@@ -3,30 +3,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Maximize, Minimize } from "lucide-react";
+// Re-export utils so existing client imports still work
+export { extractGoogleDriveFileId, isGoogleDriveUrl } from "@/lib/video-utils";
 
 /* ───────── Constants ───────── */
 const AUTO_COMPLETE_THRESHOLD = 0.8; // 80% of duration
-
-/**
- * Extract the Google Drive file ID from various URL formats:
- * - https://drive.google.com/file/d/FILE_ID/view
- * - https://drive.google.com/file/d/FILE_ID/preview
- * - https://drive.google.com/open?id=FILE_ID
- */
-export function extractGoogleDriveFileId(url: string): string | null {
-  // /file/d/{ID}
-  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (fileMatch) return fileMatch[1];
-  // ?id={ID}
-  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch) return idMatch[1];
-  return null;
-}
-
-/** Check if a URL is a Google Drive link */
-export function isGoogleDriveUrl(url: string): boolean {
-  return /drive\.google\.com/.test(url);
-}
 
 /* ───────── Component ───────── */
 export default function GoogleDrivePlayer({
