@@ -38,6 +38,7 @@ export default function GoogleDrivePlayer({
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [autoCompleteToast, setAutoCompleteToast] = useState(false);
 
@@ -161,16 +162,72 @@ export default function GoogleDrivePlayer({
       className="rounded-xl overflow-hidden select-none relative"
       style={{ border: "1px solid #2a2a2a", background: "#000" }}
     >
-      {/* Video area */}
-      <div className="relative aspect-video bg-black">
+      {/* Video area — block right-click */}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      <div
+        className="relative aspect-video bg-black"
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        {/* Iframe — hidden behind poster until user clicks play */}
         <iframe
           src={embedUrl}
           className="absolute inset-0 w-full h-full"
           allow="autoplay; encrypted-media"
           allowFullScreen
           onLoad={() => setLoaded(true)}
-          style={{ border: "none" }}
+          style={{
+            border: "none",
+            pointerEvents: playing ? "auto" : "none",
+          }}
         />
+
+        {/* ── Protection overlays ── */}
+
+        {/* Top bar overlay — covers Google Drive download / pop-out buttons */}
+        {playing && (
+          <div
+            className="absolute top-0 left-0 right-0 z-20"
+            style={{ height: 56, background: "transparent", cursor: "default" }}
+          />
+        )}
+
+        {/* Bottom-right overlay — covers Drive branding / open-in-new-tab link */}
+        {playing && (
+          <div
+            className="absolute bottom-0 right-0 z-20"
+            style={{
+              width: 200,
+              height: 48,
+              background: "transparent",
+              cursor: "default",
+            }}
+          />
+        )}
+
+        {/* Custom play poster — shown before user starts video */}
+        {loaded && !playing && (
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 hover:bg-black/50 transition-colors cursor-pointer group"
+            aria-label="Phát video"
+          >
+            <div className="w-16 h-16 rounded-full bg-[#D4A843]/90 group-hover:bg-[#D4A843] flex items-center justify-center transition-colors shadow-lg">
+              <svg
+                viewBox="0 0 24 24"
+                fill="white"
+                className="w-7 h-7 ml-1"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            {title && (
+              <p className="mt-3 text-sm text-white/80 max-w-[80%] text-center line-clamp-2">
+                {title}
+              </p>
+            )}
+          </button>
+        )}
 
         {/* Loading state */}
         {!loaded && (
