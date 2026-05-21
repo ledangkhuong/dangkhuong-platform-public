@@ -140,7 +140,7 @@ const BENEFITS = [
 const AGENDA = [
   {
     day: "BUỔI 1",
-    date: "Tối Thứ 6 · 23/05 · 20:00–22:00",
+    date: "Tối Thứ 7 · 23/05 · 20:00–22:00",
     title: "Hiểu cuộc chơi mới & làm chủ nhân vật",
     items: [
       "Vì sao Omni Flash là bước nhảy, không chỉ là bản vá nhỏ",
@@ -151,7 +151,7 @@ const AGENDA = [
   },
   {
     day: "BUỔI 2",
-    date: "Tối Thứ 7 · 24/05 · 20:00–22:00",
+    date: "Tối Chủ Nhật · 24/05 · 20:00–22:00",
     title: "Đưa chính bạn vào video & biến thành tiền",
     items: [
       "Tạo Avatar @me và Voices — diễn viên số mang gương mặt của bạn",
@@ -449,7 +449,7 @@ export default function UpdateVeoLanding() {
           >
             <span className="flex items-center gap-2 text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.85)" }}>
               <Calendar size={16} style={{ color: "#3B82F6" }} />
-              <strong className="text-white">23 & 24/05</strong> · Thứ 6 & 7
+              <strong className="text-white">23 & 24/05</strong> · Thứ 7 & CN
             </span>
             <span className="hidden sm:block h-4 w-px" style={{ background: "rgba(59,130,246,0.25)" }} />
             <span className="flex items-center gap-2 text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.85)" }}>
@@ -562,11 +562,49 @@ export default function UpdateVeoLanding() {
             5 nâng cấp từ Google Flow giúp bạn vận hành studio video AI hoàn chỉnh:
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {UPGRADES.map((u) => (
+          {/* Top row: 3 cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {UPGRADES.slice(0, 3).map((u) => (
               <div
                 key={u.num}
-                className={`rounded-2xl p-5 sm:p-6 flex flex-col ${u.num === "05" ? "md:col-span-2 lg:col-span-1" : ""}`}
+                className="rounded-2xl p-5 sm:p-6 flex flex-col"
+                style={{
+                  background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
+                  border: "1px solid rgba(59,130,246,0.18)",
+                  boxShadow: "0 10px 30px -20px rgba(0,0,0,0.5)",
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+                    style={{
+                      background: "rgba(59,130,246,0.15)",
+                      border: "1px solid rgba(59,130,246,0.3)",
+                      color: "#3B82F6",
+                    }}
+                  >
+                    {u.icon}
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: "#22D3EE" }}>
+                      {u.num} · {u.subtitle}
+                    </div>
+                    <div className="text-base font-bold text-white">{u.title}</div>
+                  </div>
+                </div>
+                <p className="text-[13.5px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.72)" }}>
+                  {u.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom row: 2 cards centered */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+            {UPGRADES.slice(3).map((u) => (
+              <div
+                key={u.num}
+                className="rounded-2xl p-5 sm:p-6 flex flex-col"
                 style={{
                   background: "linear-gradient(180deg, #13203F 0%, #0E1730 100%)",
                   border: "1px solid rgba(59,130,246,0.18)",
