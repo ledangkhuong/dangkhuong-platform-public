@@ -26,15 +26,24 @@
 
 ## Bước 1: Fork Repository
 
-1. Đăng nhập GitHub tại https://github.com
-2. Vào repo gốc → click **Fork**
-3. Đặt tên repo mới (vd: `my-platform`)
-4. Clone về máy:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/my-platform.git
-   cd my-platform
-   npm install
-   ```
+1. Đăng nhập GitHub tại https://github.com (tạo tài khoản miễn phí nếu chưa có)
+2. Vào repo gốc do giảng viên cung cấp
+3. Click nút **Fork** (góc trên bên phải) → **Create fork**
+4. Đợi GitHub tạo bản copy (~10 giây)
+
+> **Quan trọng:** Khi giảng viên cập nhật tính năng mới, bạn chỉ cần:
+> 1. Vào repo fork của bạn trên GitHub
+> 2. Thấy dòng "This branch is X commits behind..." 
+> 3. Click **Sync fork** → **Update branch**
+> 4. Vercel sẽ **tự động deploy** bản mới!
+
+### Nếu muốn chạy trên máy local (tuỳ chọn):
+```bash
+git clone https://github.com/YOUR_USERNAME/my-platform.git
+cd my-platform
+npm install
+npm run dev
+```
 
 ---
 
@@ -136,55 +145,40 @@ NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 - Google Analytics / Facebook Pixel → tracking
 - Cloudflare Turnstile → chống bot
 
-### 4b. Đổi thương hiệu
-Mở file `src/lib/site-config.ts` và thay đổi:
+### 4b. Đổi thương hiệu (KHÔNG cần sửa code!)
 
-```typescript
-export const siteConfig = {
-  // ─── Thay tên thương hiệu của bạn ───
-  name: "Tên Academy Của Bạn",
-  shortName: "Tên Ngắn",
-  domain: "yourdomain.com",
-  tagline: "Slogan của bạn",
-  description: "Mô tả ngắn về platform",
+Tất cả thông tin thương hiệu đều cấu hình qua **Environment Variables**.
+Bạn KHÔNG cần sửa file code nào — chỉ cần thêm env vars vào `.env.local` (hoặc trên Vercel).
 
-  // ─── Thông tin chủ sở hữu ───
-  owner: {
-    name: "Tên Của Bạn",
-    bio: "Giới thiệu ngắn về bạn",
-    avatar: "/images/about/portrait.jpg",  // Thay ảnh trong thư mục public/images/
-  },
+Thêm các dòng sau vào `.env.local`:
 
-  // ─── Màu thương hiệu ───
-  colors: {
-    brand: "#D4A843",       // Đổi sang màu brand của bạn
-    brandHover: "#FBBF24",
-    background: "#0a0a0a",
-    surface: "#111111",
-    text: "#f5f5f5",
-  },
+```env
+# Tên thương hiệu
+NEXT_PUBLIC_SITE_NAME=Tên Academy Của Bạn
+NEXT_PUBLIC_SITE_SHORT_NAME=Tên Ngắn
+NEXT_PUBLIC_SITE_DOMAIN=yourdomain.com
+NEXT_PUBLIC_SITE_TAGLINE=Slogan của bạn
+NEXT_PUBLIC_SITE_DESCRIPTION=Mô tả ngắn về platform
 
-  // ─── Link mạng xã hội ───
-  socials: {
-    facebook: "https://facebook.com/your-page",
-    youtube: "https://youtube.com/@your-channel",
-    zalo: "https://zalo.me/your-phone",
-    tiktok: "",
-    instagram: "",
-  },
+# Thông tin chủ sở hữu
+NEXT_PUBLIC_OWNER_NAME=Tên Của Bạn
+NEXT_PUBLIC_OWNER_BIO=Giới thiệu ngắn về bạn
+NEXT_PUBLIC_OWNER_AVATAR=/images/about/portrait.jpg
 
-  // ─── Bật/tắt tính năng ───
-  features: {
-    affiliate: true,     // Hệ thống affiliate
-    community: true,     // Cộng đồng
-    leaderboard: true,   // Bảng xếp hạng
-    events: true,        // Sự kiện
-    blog: true,          // Blog
-    crm: true,           // CRM quản lý khách hàng
-    emailMarketing: true,// Email marketing
-  },
-};
+# Màu thương hiệu (thay bằng màu của bạn)
+NEXT_PUBLIC_COLOR_BRAND=#D4A843
+NEXT_PUBLIC_COLOR_BRAND_HOVER=#FBBF24
+
+# Mạng xã hội
+NEXT_PUBLIC_SOCIAL_FACEBOOK=https://facebook.com/your-page
+NEXT_PUBLIC_SOCIAL_YOUTUBE=https://youtube.com/@your-channel
+NEXT_PUBLIC_SOCIAL_ZALO=https://zalo.me/your-phone
+
+# Footer
+NEXT_PUBLIC_FOOTER_COPYRIGHT=© 2026 Tên Academy Của Bạn
 ```
+
+> **Lợi ích:** Vì KHÔNG sửa code, khi giảng viên cập nhật tính năng mới → bạn click "Sync fork" → nhận update mà KHÔNG bị conflict!
 
 ### 4c. Thay ảnh & logo
 Thay các file trong thư mục `public/`:
