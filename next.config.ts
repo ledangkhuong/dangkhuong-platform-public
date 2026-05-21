@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
               `img-src 'self' data: blob: ${supabaseHostname ? `https://${supabaseHostname}` : ""} https://i.ytimg.com https://img.youtube.com; ` +
               "font-src 'self' data: https://fonts.gstatic.com; " +
               "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://challenges.cloudflare.com https://api.anthropic.com https://www.facebook.com https://api.qrserver.com; " +
-              "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com; " +
+              "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com https://drive.google.com; " +
               "media-src 'self' https://www.youtube.com; " +
               "frame-ancestors 'none'; " +
               "base-uri 'self'; " +
