@@ -224,9 +224,9 @@ export async function POST(req: NextRequest) {
       amount,
       bank_account: hasSepay ? bankAccount : null,
       bank_code: hasSepay ? bankCode : null,
-      transfer_content: `OF${orderCode}`,
+      transfer_content: `DK${orderCode}`,
       qr_url: hasSepay
-        ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${amount}&des=OF${orderCode}`
+        ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${amount}&des=DK${orderCode}`
         : null,
     };
 
