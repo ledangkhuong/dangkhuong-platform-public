@@ -1,6 +1,7 @@
 -- ============================================================
--- DANGKHUONG.COM — Supabase Database Schema
+-- LMS Platform — Supabase Database Schema
 -- Copy toàn bộ file này vào Supabase → SQL Editor → Run
+-- Xem hướng dẫn đầy đủ tại SETUP.md
 -- ============================================================
 
 -- ─── EXTENSIONS ─────────────────────────────────────────────
@@ -309,14 +310,15 @@ create policy "public_read_comments" on comments for select using (true);
 create policy "users_create_comments" on comments for insert with check (auth.uid() = user_id);
 create policy "users_delete_own_comments" on comments for delete using (auth.uid() = user_id);
 
--- ─── SEED DATA (demo) ────────────────────────────────────────
+-- ─── SEED DATA (sản phẩm mẫu — có thể xóa/sửa) ─────────────
+-- Bạn có thể xóa phần này và tạo sản phẩm riêng qua Admin Dashboard
 insert into public.products (slug, title, description, price, type, status, sort_order) values
-('digital-snacks', 'Digital Snacks — Kiếm tiền từ sản phẩm số',
- 'Học cách tạo và bán sản phẩm số nhỏ gọn, lợi nhuận cao. Không cần vốn lớn.', 499000, 'course', 'published', 1),
-('marketing-01', 'Marketing 0→1 — Xây dựng thương hiệu cá nhân',
- 'Từ con số 0, xây dựng thương hiệu cá nhân mạnh mẽ trên internet.', 0, 'course', 'published', 2),
-('email-mastery', 'Email Marketing Mastery',
- 'Xây dựng danh sách email và tự động hoá chuỗi email bán hàng.', 699000, 'course', 'published', 3);
+('khoa-hoc-mau-1', 'Khóa Học Mẫu — Bắt Đầu Kinh Doanh Online',
+ 'Hướng dẫn từng bước xây dựng business online đầu tiên. Phù hợp cho người mới.', 499000, 'course', 'published', 1),
+('khoa-hoc-mau-2', 'Marketing Cơ Bản — Xây Dựng Thương Hiệu',
+ 'Xây dựng thương hiệu cá nhân mạnh mẽ trên internet.', 0, 'course', 'published', 2),
+('tai-lieu-mau', 'Tài Liệu Mẫu — Ebook Template',
+ 'Ebook hướng dẫn chi tiết kèm template sẵn. Download ngay sau khi mua.', 99000, 'ebook', 'published', 3);
 
 -- ─── VIEWS tiện ích ──────────────────────────────────────────
 -- Tổng quan CRM

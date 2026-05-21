@@ -94,30 +94,21 @@ export async function GET(req: NextRequest) {
     checks.push({ name: "stuck_orders", status: "warn", message: "Could not check stuck orders" });
   }
 
-  // 6. Products exist for all landing pages
+  // 6. Products exist (check at least 1 published product)
   try {
     const supabase = await createAdminClient();
-    const requiredSlugs = [
-      "tai-lieu-100-mo-hinh-kinh-doanh-san-pham-so-doanh-thu-1-trieu-do",
-      "con-duong-kiem-tien-tu-san-pham-so-2026",
-      "hoc-chua-xong-tien-da-ve-tao-san-pham-so-ban-chay-trong-ngach-cua-ban",
-      "standard-lam-video-youtube-slow-english-bang-veo3-1",
-      "ultra-dong-hanh-lam-video-youtube-slow-english-bang-veo3-1",
-    ];
-    const { data: products } = await supabase
+    const { count } = await supabase
       .from("products")
-      .select("slug")
-      .in("slug", requiredSlugs);
+      .select("id", { count: "exact", head: true })
+      .eq("status", "published");
 
-    const foundSlugs = (products ?? []).map((p) => p.slug);
-    const missing = requiredSlugs.filter((s) => !foundSlugs.includes(s));
-    if (missing.length > 0) {
-      checks.push({ name: "landing_products", status: "warn", message: `Missing products: ${missing.length}` });
+    if ((count ?? 0) === 0) {
+      checks.push({ name: "products", status: "warn", message: "No published products found" });
     } else {
-      checks.push({ name: "landing_products", status: "ok" });
+      checks.push({ name: "products", status: "ok", message: `${count} published` });
     }
   } catch {
-    checks.push({ name: "landing_products", status: "warn", message: "Could not check products" });
+    checks.push({ name: "products", status: "warn", message: "Could not check products" });
   }
 
   const totalMs = Date.now() - start;
