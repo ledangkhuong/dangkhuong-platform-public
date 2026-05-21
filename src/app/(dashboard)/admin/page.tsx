@@ -320,6 +320,13 @@ export default async function AdminPage() {
             ))}
           </div>
         </div>
+
+        {/* License watermark */}
+        <div className="mt-6 text-center text-xs text-gray-600">
+          {process.env.NEXT_PUBLIC_LICENSE_NAME && process.env.NEXT_PUBLIC_LICENSE_NAME !== "UNLICENSED"
+            ? `Licensed to: ${process.env.NEXT_PUBLIC_LICENSE_NAME}`
+            : "Unlicensed Copy"}
+        </div>
       </div>
     </div>
   );
