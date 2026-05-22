@@ -16,7 +16,7 @@ import {
 const SYSTEM_FEATURES = [
   "Dashboard tổng quan — xem doanh thu, học viên, đơn hàng real-time",
   "Quản lý khóa học — cấp quyền học tự động sau thanh toán",
-  "Quản lý 310+ học viên với XP/Level tracking",
+  "Quản lý 421+ học viên với XP/Level tracking",
   "Quản lý đơn hàng + mã giảm giá",
   "Quiz cho học viên + Blog SEO để kéo traffic từ Google",
   "Email marketing + Automation đầy đủ",
@@ -36,7 +36,7 @@ const NOW_ITEMS = [
   "~$200 chi phí",
   "1 tuần hoàn thiện",
   "Sửa lúc nào cũng được",
-  "45tr / tuần",
+  "108tr+ doanh thu",
 ];
 
 const TOOLS = ["Claude Code", "Supabase", "Vercel", "SePay", "Resend"];
@@ -420,21 +420,21 @@ export default function StorySection() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <KpiTile
               label="Doanh Thu"
-              value="45.000.000đ"
+              value="108.673.000đ"
               icon={<Wallet size={14} />}
               spark={SPARKS.revenue}
               color="#E5B663"
             />
             <KpiTile
               label="Học Viên"
-              value="310"
+              value="421"
               icon={<Users size={14} />}
               spark={SPARKS.students}
               color="#7DD3FC"
             />
             <KpiTile
               label="Số Ngày"
-              value="7"
+              value="31"
               icon={<CalendarDays size={14} />}
               spark={SPARKS.days}
               color="#F4D9A8"
@@ -452,7 +452,7 @@ export default function StorySection() {
             className="mt-4 text-center text-[11px] italic"
             style={{ color: "rgba(241,245,251,0.55)" }}
           >
-            Ảnh chụp dashboard thật — số liệu tuần thử nghiệm
+            Ảnh chụp dashboard thật — số liệu cập nhật
           </div>
         </div>
 
@@ -478,10 +478,10 @@ export default function StorySection() {
               Kết quả thực tế
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold tabular-nums mb-2" style={{ color: "#F1F5FB" }}>
-              45 TRIỆU doanh thu / 1 TUẦN
+              108 TRIỆU doanh thu — 421 học viên
             </div>
             <p className="text-[14.5px] sm:text-[15px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.78)" }}>
-              Thử nghiệm với 300 data khách hàng, chưa đẩy mạnh marketing. Hệ thống tự vận hành — tôi đi cà phê, đọc sách, đi tập, mà tiền vẫn về.
+              421 học viên, 149 đơn hàng, chưa đẩy mạnh marketing. Hệ thống tự vận hành — tôi đi cà phê, đọc sách, đi tập, mà tiền vẫn về.
             </p>
           </div>
         </div>

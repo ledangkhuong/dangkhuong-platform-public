@@ -77,8 +77,8 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           >
             <TrendingUp className="h-3.5 w-3.5" style={{ color: "#E5B663" }} />
             <span>
-              <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>45tr/tuần</strong>
-              <span className="font-normal"> doanh thu thử nghiệm, chưa quảng cáo</span>
+              <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>108tr+</strong>
+              <span className="font-normal"> tổng doanh thu, hệ thống tự vận hành</span>
             </span>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           </div>
           <span className="hidden sm:block h-4 w-px" style={{ background: "rgba(229,182,99,0.25)" }} />
           <span className="text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.75)" }}>
-            <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>313+</strong> chuyên gia đã tham gia
+            <strong className="font-extrabold tabular-nums" style={{ color: "#F1F5FB" }}>421+</strong> chuyên gia đã tham gia
           </span>
           <span className="hidden sm:block h-4 w-px" style={{ background: "rgba(229,182,99,0.25)" }} />
           <span className="text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.75)" }}>
@@ -245,13 +245,13 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
             boxShadow:
               "0 0 60px rgba(229,182,99,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
-          aria-label="Mở dashboard quản trị dangkhuong.com/admin — Doanh thu 45.776.000đ, 307 học viên"
+          aria-label="Mở dashboard quản trị dangkhuong.com/admin — Doanh thu 108.673.000đ, 421 học viên"
         >
           {/* Real dashboard screenshot */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/hocchuaxongtiendave/admin-dashboard.png"
-            alt="Dashboard quản trị dangkhuong.com/admin — Doanh thu thật 45.776.000đ, 307 học viên, 65 đơn hàng"
+            alt="Dashboard quản trị dangkhuong.com/admin — Doanh thu thật 108.673.000đ, 421 học viên, 149 đơn hàng"
             className="absolute inset-0 h-full w-full object-cover object-top"
             loading="eager"
           />
@@ -297,7 +297,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
               letterSpacing: "0.05em",
             }}
           >
-            <span className="font-extrabold tabular-nums" style={{ color: "#E5B663" }}>45.776.000đ</span> · <span className="tabular-nums">307</span> học viên
+            <span className="font-extrabold tabular-nums" style={{ color: "#E5B663" }}>108.673.000đ</span> · <span className="tabular-nums">421</span> học viên
           </span>
 
           {/* Hover overlay (only on hover) */}

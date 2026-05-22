@@ -28,7 +28,7 @@ const PROOFS: Proof[] = [
   {
     icon: BarChart3,
     title: "Dashboard quản trị dangkhuong.com/admin",
-    body: "310 học viên đang được track real-time. Mỗi học viên có XP riêng, level riêng. Hệ thống tự cấp khi họ hoàn thành bài học.",
+    body: "421 học viên đang được track real-time. Mỗi học viên có XP riêng, level riêng. Hệ thống tự cấp khi họ hoàn thành bài học.",
     pill: "Real-time Analytics",
     mockup: "dashboard",
   },
@@ -48,8 +48,8 @@ const PROOFS: Proof[] = [
   },
   {
     icon: TrendingUp,
-    title: "Doanh thu 45 triệu / 7 ngày",
-    body: "Kết quả 1 tuần đầu thử nghiệm với 300 data. Chưa chạy ads gì cả. Chỉ post Facebook cá nhân.",
+    title: "Doanh thu 108 triệu+",
+    body: "Kết quả thật từ hệ thống đang vận hành với 421 học viên. Chưa chạy ads gì cả. Chỉ post Facebook cá nhân.",
     pill: "Validated Result",
     mockup: "revenue",
   },
@@ -124,7 +124,7 @@ function DashboardMockup({ Icon }: { Icon: LucideIcon }) {
   const kpis = [
     {
       label: "Doanh thu",
-      value: "45.000.000đ",
+      value: "108.673.000đ",
       delta: "+12%",
       spark: [3, 5, 4, 7, 6, 9, 11],
       color: "#E5B663",
@@ -132,16 +132,16 @@ function DashboardMockup({ Icon }: { Icon: LucideIcon }) {
     },
     {
       label: "Học viên",
-      value: "310",
-      delta: "+24",
+      value: "421",
+      delta: "+70",
       spark: [4, 5, 6, 8, 9, 11, 12],
       color: "#7DD3FC",
       Tag: Users,
     },
     {
       label: "Đơn hàng",
-      value: "5",
-      delta: "+2",
+      value: "149",
+      delta: "+70",
       spark: [2, 3, 4, 4, 6, 7, 9],
       color: "#34D399",
       Tag: Receipt,
@@ -582,18 +582,18 @@ function LmsMockup({ Icon }: { Icon: LucideIcon }) {
 /* ---------------- Mockup 4: Revenue Bar Chart ---------------- */
 
 function RevenueMockup({ Icon }: { Icon: LucideIcon }) {
-  // 7 days, values in millions, building up to 45M total
+  // 7 days, values in millions — recent week snapshot
   const days = [
-    { d: "T2", v: 3 },
-    { d: "T3", v: 4 },
-    { d: "T4", v: 5 },
-    { d: "T5", v: 6.5 },
-    { d: "T6", v: 8 },
-    { d: "T7", v: 9 },
-    { d: "CN", v: 9.5 },
+    { d: "T2", v: 10 },
+    { d: "T3", v: 12 },
+    { d: "T4", v: 15 },
+    { d: "T5", v: 18 },
+    { d: "T6", v: 20 },
+    { d: "T7", v: 22 },
+    { d: "CN", v: 11 },
   ];
-  const yLabels = [10, 8, 6, 4, 2];
-  const maxY = 10;
+  const yLabels = [25, 20, 15, 10, 5];
+  const maxY = 25;
 
   return (
     <div
@@ -607,7 +607,7 @@ function RevenueMockup({ Icon }: { Icon: LucideIcon }) {
             className="text-[8.5px] uppercase tracking-wider"
             style={{ color: "rgba(241,245,251,0.55)" }}
           >
-            7 ngày qua
+            Tuần này
           </div>
           <div
             className="text-[9.5px] sm:text-[10px]"
@@ -629,7 +629,7 @@ function RevenueMockup({ Icon }: { Icon: LucideIcon }) {
             className="text-[10px] sm:text-[12px] font-extrabold"
             style={{ color: "#F4D9A8", letterSpacing: "-0.01em" }}
           >
-            +45,000,000đ
+            +108,673,000đ
           </span>
         </div>
       </div>

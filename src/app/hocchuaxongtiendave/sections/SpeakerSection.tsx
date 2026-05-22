@@ -17,7 +17,7 @@ import {
 const ACHIEVEMENTS = [
   "11+ năm kinh nghiệm trong giáo dục online & marketing",
   "151K Follow trên Facebook cá nhân — hàng trăm ngàn học viên đã học",
-  "45 triệu doanh thu trong 1 tuần thử nghiệm với chỉ 300 data",
+  "108 triệu+ tổng doanh thu — hệ thống đang vận hành với 421 học viên",
   "Đã tự xây thành công hệ thống dangkhuong.com (LMS, Admin, CRM)",
   "Tiết kiệm 1 tỷ đồng so với cách làm truyền thống thuê dev",
 ];
@@ -68,9 +68,9 @@ const STATS: Stat[] = [
   },
   {
     Icon: TrendingUp,
-    target: 45,
-    display: (n) => `${n}tr/tuần`,
-    label: "doanh thu thử nghiệm",
+    target: 108,
+    display: (n) => `${n}tr+`,
+    label: "tổng doanh thu",
   },
 ];
 
@@ -308,7 +308,7 @@ export default function SpeakerSection() {
                     className="text-xl font-extrabold tabular-nums tracking-[-0.02em]"
                     style={{ color: "#F1F5FB" }}
                   >
-                    310
+                    421
                   </div>
                   <div
                     className="text-[10px] uppercase tracking-[0.15em]"
@@ -322,13 +322,13 @@ export default function SpeakerSection() {
                     className="text-xl font-extrabold tabular-nums tracking-[-0.02em]"
                     style={{ color: "#7DD3FC" }}
                   >
-                    47
+                    149
                   </div>
                   <div
                     className="text-[10px] uppercase tracking-[0.15em]"
                     style={{ color: "rgba(241,245,251,0.55)" }}
                   >
-                    đơn hôm nay
+                    đơn hàng
                   </div>
                 </div>
                 <div style={{ borderLeft: "1px solid rgba(229,182,99,0.18)", paddingLeft: "12px" }}>
@@ -336,7 +336,7 @@ export default function SpeakerSection() {
                     className="text-xl font-extrabold tabular-nums tracking-[-0.02em]"
                     style={{ color: "#E5B663" }}
                   >
-                    45tr
+                    108tr+
                   </div>
                   <div
                     className="text-[10px] uppercase tracking-[0.15em]"
