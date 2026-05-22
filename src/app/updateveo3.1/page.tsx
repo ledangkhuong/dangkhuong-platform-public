@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import UpdateVeoLanding from "./UpdateVeoLanding";
 
 export const metadata: Metadata = {
-  title: "Update VEO 3.1 → Gemini Omni Flash | Workshop Trực Tuyến 2 Buổi Tối",
+  title: "Tạo Tool Làm Video Tự Động trên Google Flow | Workshop 2 Buổi Tối",
   description:
-    "Workshop trực tuyến 2 buổi tối cùng Thầy Lê Đăng Khương. Từ người gõ prompt đến ĐẠO DIỄN AI. Học trọn bộ 5 nâng cấp Google Flow & Gemini Omni Flash. Vé chỉ 100.000đ.",
+    "Workshop 2 buổi tối cùng Thầy Lê Đăng Khương. Tạo Tool video tự động trên Google Flow với Gemini Omni Flash — nhập ý tưởng, AI tự viết kịch bản, tạo MC ảo, render cả loạt video. Vé chỉ 100.000đ.",
   alternates: {
     canonical: "https://dangkhuong.com/updateveo3.1",
   },
   openGraph: {
-    title: "Update VEO 3.1 → Gemini Omni Flash | Workshop 2 Buổi Tối",
+    title: "Tạo Tool Làm Video Tự Động trên Google Flow | Workshop 2 Buổi Tối",
     description:
-      "Từ người gõ prompt đến ĐẠO DIỄN AI. Google Flow & Gemini Omni Flash. 23-24/05. 20:00-22:00. Zoom. Vé 100.000đ.",
+      "Tạo Tool video tự động trên Google Flow — MC ảo, kịch bản AI, render tự động. Workshop 23-24/05. 20:00-22:00. Zoom. Vé 100.000đ.",
     type: "website",
     url: "https://dangkhuong.com/updateveo3.1",
     images: [

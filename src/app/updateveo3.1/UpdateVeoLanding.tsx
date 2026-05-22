@@ -385,8 +385,35 @@ export default function UpdateVeoLanding() {
 
           {/* H1 for SEO */}
           <h1 className="sr-only">
-            Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến cùng Thầy Lê Đăng Khương
+            Update VEO 3.1 thành Gemini Omni Flash — Tạo Tool Làm Video Tự Động trên Google Flow
           </h1>
+
+          {/* Headline */}
+          <h2
+            className="mb-3 font-extrabold max-w-4xl text-[22px] sm:text-[28px] md:text-[36px] leading-[1.25]"
+            style={{ letterSpacing: "-0.01em" }}
+          >
+            Tạo{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Tool Làm Video Tự Động
+            </span>
+            {" "}trên Google Flow
+          </h2>
+
+          <p
+            className="mx-auto mb-6 max-w-3xl text-[14px] sm:text-[15px] leading-[1.7]"
+            style={{ color: "rgba(241,245,251,0.75)" }}
+          >
+            Nhập ý tưởng → AI tự viết kịch bản, tạo <strong className="text-white">MC ảo</strong>, lồng giọng, render cả loạt video —{" "}
+            <strong style={{ color: "#22D3EE" }}>chỉ bằng 1 nút bấm</strong>. Workshop 2 buổi tối cùng Thầy Khương: từ Gemini Omni Flash đến xây tool video tự động hoàn chỉnh.
+          </p>
 
           {/* Video giới thiệu */}
           <div className="mb-6 sm:mb-8 w-full max-w-3xl">
@@ -400,7 +427,7 @@ export default function UpdateVeoLanding() {
             >
               <iframe
                 src="https://www.youtube.com/embed/Z6mbgX7kSXk?rel=0"
-                title="Update VEO 3.1 thành Gemini Omni Flash — Giới thiệu Workshop"
+                title="Update VEO 3.1 thành Gemini Omni Flash — Tạo Tool Video Tự Động"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
@@ -409,32 +436,69 @@ export default function UpdateVeoLanding() {
             </div>
           </div>
 
-          {/* Headline */}
-          <h2
-            className="mb-4 font-extrabold max-w-4xl text-[20px] sm:text-2xl md:text-3xl leading-[1.3]"
-            style={{ letterSpacing: "-0.01em" }}
-          >
-            Từ người gõ prompt đến{" "}
-            <span
-              style={{
-                background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              ĐẠO DIỄN AI
-            </span>
-          </h2>
-
-          <p
-            className="mx-auto mb-6 max-w-3xl text-[14px] sm:text-[15px] leading-[1.7]"
-            style={{ color: "rgba(241,245,251,0.75)" }}
-          >
-            Google vừa nâng Veo 3.1 lên một tầm cao mới:{" "}
-            <strong className="text-white">Gemini Omni Flash</strong>. Không còn là &quot;tạo clip cho vui&quot; — giờ một cá nhân có thể tự vận hành{" "}
-            <strong style={{ color: "#22D3EE" }}>cả một studio sản xuất video AI</strong>: nhân vật nhất quán, giọng nói riêng, và đưa chính khuôn mặt mình vào video.
-          </p>
+          {/* Google Flow Tool Screenshots — ngay trong hero */}
+          <div className="w-full max-w-4xl mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  border: "1px solid rgba(34,211,238,0.3)",
+                  boxShadow: "0 15px 40px -10px rgba(0,0,0,0.5), 0 0 25px rgba(34,211,238,0.1)",
+                }}
+              >
+                <div
+                  className="px-3.5 py-2 flex items-center gap-2"
+                  style={{
+                    background: "linear-gradient(180deg, #1a1a2e 0%, #16162a 100%)",
+                    borderBottom: "1px solid rgba(34,211,238,0.15)",
+                  }}
+                >
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#ef4444" }} />
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#eab308" }} />
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#22c55e" }} />
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-medium ml-1.5" style={{ color: "rgba(241,245,251,0.5)" }}>
+                    Tool Builder · MC ảo - Video tiếng Việt
+                  </span>
+                </div>
+                <img
+                  src="/images/updateveo31/flow-tool-overview.png"
+                  alt="Google Flow Tool Builder — Tạo tool MC ảo tự động"
+                  className="block w-full h-auto"
+                />
+              </div>
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  border: "1px solid rgba(34,211,238,0.3)",
+                  boxShadow: "0 15px 40px -10px rgba(0,0,0,0.5), 0 0 25px rgba(34,211,238,0.1)",
+                }}
+              >
+                <div
+                  className="px-3.5 py-2 flex items-center gap-2"
+                  style={{
+                    background: "linear-gradient(180deg, #1a1a2e 0%, #16162a 100%)",
+                    borderBottom: "1px solid rgba(34,211,238,0.15)",
+                  }}
+                >
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#ef4444" }} />
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#eab308" }} />
+                    <span className="w-2 h-2 rounded-full" style={{ background: "#22c55e" }} />
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-medium ml-1.5" style={{ color: "rgba(241,245,251,0.5)" }}>
+                    Kịch bản chi tiết · 4 cảnh · Omni Flash
+                  </span>
+                </div>
+                <img
+                  src="/images/updateveo31/flow-tool-detail.png"
+                  alt="Google Flow — Kịch bản video chi tiết từng cảnh"
+                  className="block w-full h-auto"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Event info */}
           <div
@@ -783,137 +847,6 @@ export default function UpdateVeoLanding() {
                     </li>
                   ))}
                 </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ GOOGLE FLOW TOOL ═══ */}
-      <section
-        className="relative overflow-hidden py-12 sm:py-20 md:py-24 px-4 sm:px-6"
-        style={{
-          background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(34,211,238,0.06) 0%, transparent 60%), #0A1020",
-        }}
-      >
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-4">
-            <span
-              className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
-              style={{
-                borderColor: "rgba(34,211,238,0.4)",
-                background: "rgba(34,211,238,0.08)",
-                color: "#22D3EE",
-              }}
-            >
-              <Sparkles size={12} /> Bonus Đặc Biệt
-            </span>
-          </div>
-          <h2 className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]">
-            Tạo <span style={{ color: "#22D3EE" }}>Tool Làm Video Tự Động</span> trên Google Flow
-          </h2>
-          <p className="mb-10 text-center text-[14.5px] sm:text-[15px] leading-[1.75] max-w-3xl mx-auto" style={{ color: "rgba(241,245,251,0.65)" }}>
-            Không chỉ học cách tạo video — bạn sẽ được hướng dẫn xây một <strong className="text-white">công cụ tự động</strong> trên Google Flow:
-            nhập ý tưởng → AI tự viết kịch bản, tạo MC ảo, lồng giọng, và render cả loạt video chỉ bằng 1 nút bấm.
-          </p>
-
-          {/* Tool preview — 2 screenshots */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
-            {/* Screenshot 1: Tool Builder Overview */}
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                border: "1px solid rgba(34,211,238,0.25)",
-                boxShadow: "0 20px 50px -15px rgba(0,0,0,0.5), 0 0 30px rgba(34,211,238,0.08)",
-              }}
-            >
-              <div
-                className="px-4 py-2.5 flex items-center gap-2"
-                style={{
-                  background: "linear-gradient(180deg, #1a1a2e 0%, #16162a 100%)",
-                  borderBottom: "1px solid rgba(34,211,238,0.15)",
-                }}
-              >
-                <div className="flex gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ef4444" }} />
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#eab308" }} />
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#22c55e" }} />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-medium ml-2" style={{ color: "rgba(241,245,251,0.5)" }}>
-                  Tool Builder · MC ảo - Video tiếng Việt
-                </span>
-              </div>
-              <img
-                src="/images/updateveo31/flow-tool-overview.png"
-                alt="Google Flow Tool Builder — Giao diện tạo tool MC ảo tự động với Omni Flash"
-                className="block w-full h-auto"
-                loading="lazy"
-              />
-            </div>
-
-            {/* Screenshot 2: Video Script Detail */}
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                border: "1px solid rgba(34,211,238,0.25)",
-                boxShadow: "0 20px 50px -15px rgba(0,0,0,0.5), 0 0 30px rgba(34,211,238,0.08)",
-              }}
-            >
-              <div
-                className="px-4 py-2.5 flex items-center gap-2"
-                style={{
-                  background: "linear-gradient(180deg, #1a1a2e 0%, #16162a 100%)",
-                  borderBottom: "1px solid rgba(34,211,238,0.15)",
-                }}
-              >
-                <div className="flex gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ef4444" }} />
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#eab308" }} />
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#22c55e" }} />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-medium ml-2" style={{ color: "rgba(241,245,251,0.5)" }}>
-                  Kịch bản chi tiết · 4 cảnh · Omni Flash
-                </span>
-              </div>
-              <img
-                src="/images/updateveo31/flow-tool-detail.png"
-                alt="Google Flow — Kịch bản video chi tiết với caption, lời thoại MC, visual prompt cho từng cảnh"
-                className="block w-full h-auto"
-                loading="lazy"
-              />
-            </div>
-          </div>
-
-          {/* Feature highlights */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {[
-              { icon: <Bot size={18} />, title: "MC Ảo Tự Động", desc: "AI tạo MC với gương mặt & giọng nói nhất quán cho mọi video" },
-              { icon: <Video size={18} />, title: "4 Cảnh / 1 Click", desc: "Tự động chia cảnh, viết caption, lời thoại & visual prompt" },
-              { icon: <Sparkles size={18} />, title: "Omni Flash", desc: "Dùng model mạnh nhất — chất lượng điện ảnh, tốn ít credit" },
-              { icon: <Zap size={18} />, title: "Tạo Loạt Video", desc: "Nhập ý tưởng → nhận cả series video hoàn chỉnh tự động" },
-            ].map((f) => (
-              <div
-                key={f.title}
-                className="rounded-xl p-4 sm:p-5 flex flex-col"
-                style={{
-                  background: "rgba(34,211,238,0.04)",
-                  border: "1px solid rgba(34,211,238,0.15)",
-                }}
-              >
-                <div
-                  className="flex h-9 w-9 items-center justify-center rounded-lg mb-3"
-                  style={{
-                    background: "rgba(34,211,238,0.12)",
-                    border: "1px solid rgba(34,211,238,0.25)",
-                    color: "#22D3EE",
-                  }}
-                >
-                  {f.icon}
-                </div>
-                <div className="text-[13px] sm:text-[14px] font-bold text-white mb-1">{f.title}</div>
-                <div className="text-[12px] sm:text-[13px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.6)" }}>
-                  {f.desc}
-                </div>
               </div>
             ))}
           </div>
