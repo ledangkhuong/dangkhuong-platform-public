@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     url: "https://dangkhuong.com/weballinone",
     images: [
       {
-        url: "https://dangkhuong.com/images/weballinone/banner.jpg",
+        url: "https://dangkhuong.com/images/weballinone/banner.png",
         width: 1200,
         height: 630,
         alt: "Lộ Trình Thiết Kế Website All-In-One Bằng AI Agent",

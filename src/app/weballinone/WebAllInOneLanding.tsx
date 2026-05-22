@@ -424,7 +424,7 @@ export default function WebAllInOneLanding() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/weballinone/dashboard.jpg"
+              src="/images/weballinone/dashboard.png"
               alt="Admin Dashboard"
               width={1200}
               height={680}
