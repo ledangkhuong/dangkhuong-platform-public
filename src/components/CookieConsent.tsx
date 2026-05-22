@@ -3,8 +3,15 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-// Routes where the cookie banner should never appear (long-form sales pages)
-const HIDE_ON_PATHS = ["/hocchuaxongtiendave"];
+// Routes where the cookie banner should never appear (sales / checkout pages)
+const HIDE_ON_PATHS = [
+  "/hocchuaxongtiendave",
+  "/updateveo3.1",
+  "/updateveo3",
+  "/slowenglish",
+  "/sanphamso",
+  "/cafe",
+];
 
 export interface CookiePreferences {
   essential: true;

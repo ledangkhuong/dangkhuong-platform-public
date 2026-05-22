@@ -1237,7 +1237,7 @@ export default function UpdateVeoLanding() {
 
       {/* ═══ PAYMENT MODAL ═══ */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={() => setShowModal(false)} />
           <div
             className="relative w-full max-w-md rounded-2xl overflow-y-auto max-h-[90vh]"
