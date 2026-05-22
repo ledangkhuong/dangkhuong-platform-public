@@ -133,6 +133,7 @@ const BENEFITS = [
   "Hiểu trọn bộ 5 nâng cấp của Google Flow và biết dùng cho việc gì.",
   "Tạo nhân vật & avatar @me của riêng mình, dùng lại cho mọi video.",
   "Biết cách chỉnh sửa video bằng câu lệnh thay vì tạo lại từ đầu.",
+  "Tự xây Tool tạo video tự động — nhập ý tưởng, AI tự viết kịch bản & render video.",
   "Nhìn ra cách biến video AI thành hệ thống kinh doanh: phễu nội dung, video bán hàng, sản phẩm số.",
 ];
 
@@ -152,11 +153,11 @@ const AGENDA = [
   {
     day: "BUỔI 2",
     date: "Tối Chủ Nhật · 24/05 · 20:00–22:00",
-    title: "Đưa chính bạn vào video & biến thành tiền",
+    title: "Đưa chính bạn vào video & xây tool tự động",
     items: [
       "Tạo Avatar @me và Voices — diễn viên số mang gương mặt của bạn",
       "Dùng Agent để brainstorm, viết prompt, dựng mạch truyện",
-      "Ghép 5 mảnh thành một studio sản xuất nội dung cá nhân",
+      "Xây Tool làm video tự động trên Google Flow — nhập ý tưởng, ra cả loạt video",
       "Ứng dụng vào phễu bán hàng: video quảng cáo, đào tạo, đa ngôn ngữ",
     ],
   },
@@ -167,6 +168,7 @@ const INCLUDED = [
   "Trọn vẹn 2 buổi tối trực tiếp trên Zoom (23 & 24/05)",
   "Cập nhật mới nhất về Google Flow & Gemini Omni Flash",
   "Demo thực tế: Characters, Avatar @me, Voices, Agent",
+  "Hướng dẫn xây Tool làm video tự động trên Google Flow",
   "Góc nhìn biến video AI thành hệ thống kinh doanh",
   "Hỏi đáp trực tiếp cùng Thầy Lê Đăng Khương",
 ];
@@ -781,6 +783,137 @@ export default function UpdateVeoLanding() {
                     </li>
                   ))}
                 </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ GOOGLE FLOW TOOL ═══ */}
+      <section
+        className="relative overflow-hidden py-12 sm:py-20 md:py-24 px-4 sm:px-6"
+        style={{
+          background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(34,211,238,0.06) 0%, transparent 60%), #0A1020",
+        }}
+      >
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-4">
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.18em] uppercase"
+              style={{
+                borderColor: "rgba(34,211,238,0.4)",
+                background: "rgba(34,211,238,0.08)",
+                color: "#22D3EE",
+              }}
+            >
+              <Sparkles size={12} /> Bonus Đặc Biệt
+            </span>
+          </div>
+          <h2 className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]">
+            Tạo <span style={{ color: "#22D3EE" }}>Tool Làm Video Tự Động</span> trên Google Flow
+          </h2>
+          <p className="mb-10 text-center text-[14.5px] sm:text-[15px] leading-[1.75] max-w-3xl mx-auto" style={{ color: "rgba(241,245,251,0.65)" }}>
+            Không chỉ học cách tạo video — bạn sẽ được hướng dẫn xây một <strong className="text-white">công cụ tự động</strong> trên Google Flow:
+            nhập ý tưởng → AI tự viết kịch bản, tạo MC ảo, lồng giọng, và render cả loạt video chỉ bằng 1 nút bấm.
+          </p>
+
+          {/* Tool preview — 2 screenshots */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+            {/* Screenshot 1: Tool Builder Overview */}
+            <div
+              className="rounded-2xl overflow-hidden"
+              style={{
+                border: "1px solid rgba(34,211,238,0.25)",
+                boxShadow: "0 20px 50px -15px rgba(0,0,0,0.5), 0 0 30px rgba(34,211,238,0.08)",
+              }}
+            >
+              <div
+                className="px-4 py-2.5 flex items-center gap-2"
+                style={{
+                  background: "linear-gradient(180deg, #1a1a2e 0%, #16162a 100%)",
+                  borderBottom: "1px solid rgba(34,211,238,0.15)",
+                }}
+              >
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ef4444" }} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#eab308" }} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#22c55e" }} />
+                </div>
+                <span className="text-[10px] sm:text-[11px] font-medium ml-2" style={{ color: "rgba(241,245,251,0.5)" }}>
+                  Tool Builder · MC ảo - Video tiếng Việt
+                </span>
+              </div>
+              <img
+                src="/images/updateveo31/flow-tool-overview.png"
+                alt="Google Flow Tool Builder — Giao diện tạo tool MC ảo tự động với Omni Flash"
+                className="block w-full h-auto"
+                loading="lazy"
+              />
+            </div>
+
+            {/* Screenshot 2: Video Script Detail */}
+            <div
+              className="rounded-2xl overflow-hidden"
+              style={{
+                border: "1px solid rgba(34,211,238,0.25)",
+                boxShadow: "0 20px 50px -15px rgba(0,0,0,0.5), 0 0 30px rgba(34,211,238,0.08)",
+              }}
+            >
+              <div
+                className="px-4 py-2.5 flex items-center gap-2"
+                style={{
+                  background: "linear-gradient(180deg, #1a1a2e 0%, #16162a 100%)",
+                  borderBottom: "1px solid rgba(34,211,238,0.15)",
+                }}
+              >
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ef4444" }} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#eab308" }} />
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#22c55e" }} />
+                </div>
+                <span className="text-[10px] sm:text-[11px] font-medium ml-2" style={{ color: "rgba(241,245,251,0.5)" }}>
+                  Kịch bản chi tiết · 4 cảnh · Omni Flash
+                </span>
+              </div>
+              <img
+                src="/images/updateveo31/flow-tool-detail.png"
+                alt="Google Flow — Kịch bản video chi tiết với caption, lời thoại MC, visual prompt cho từng cảnh"
+                className="block w-full h-auto"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          {/* Feature highlights */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {[
+              { icon: <Bot size={18} />, title: "MC Ảo Tự Động", desc: "AI tạo MC với gương mặt & giọng nói nhất quán cho mọi video" },
+              { icon: <Video size={18} />, title: "4 Cảnh / 1 Click", desc: "Tự động chia cảnh, viết caption, lời thoại & visual prompt" },
+              { icon: <Sparkles size={18} />, title: "Omni Flash", desc: "Dùng model mạnh nhất — chất lượng điện ảnh, tốn ít credit" },
+              { icon: <Zap size={18} />, title: "Tạo Loạt Video", desc: "Nhập ý tưởng → nhận cả series video hoàn chỉnh tự động" },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="rounded-xl p-4 sm:p-5 flex flex-col"
+                style={{
+                  background: "rgba(34,211,238,0.04)",
+                  border: "1px solid rgba(34,211,238,0.15)",
+                }}
+              >
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-lg mb-3"
+                  style={{
+                    background: "rgba(34,211,238,0.12)",
+                    border: "1px solid rgba(34,211,238,0.25)",
+                    color: "#22D3EE",
+                  }}
+                >
+                  {f.icon}
+                </div>
+                <div className="text-[13px] sm:text-[14px] font-bold text-white mb-1">{f.title}</div>
+                <div className="text-[12px] sm:text-[13px] leading-[1.6]" style={{ color: "rgba(241,245,251,0.6)" }}>
+                  {f.desc}
+                </div>
               </div>
             ))}
           </div>
