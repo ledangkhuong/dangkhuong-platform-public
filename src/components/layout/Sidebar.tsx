@@ -57,6 +57,7 @@ const adminNav = [
   { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
   { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support", "editor"] },
   { href: "/admin/promotions", icon: Star, label: "Quảng cáo đầu trang", roles: ["admin", "manager"] },
+  { href: "/admin/featured-courses", icon: Sparkles, label: "Khoá học nổi bật", roles: ["admin", "manager"] },
   { href: "/admin/announcements", icon: Megaphone, label: "Thông báo", roles: ["admin", "manager"] },
   { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
   { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },

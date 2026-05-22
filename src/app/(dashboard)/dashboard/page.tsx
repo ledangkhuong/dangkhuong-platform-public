@@ -8,7 +8,7 @@ import {
   BookOpen, FolderOpen, Bell,
   Users, ArrowRight, Star, Zap, PlayCircle
 } from "lucide-react";
-import LearningJourney from "@/components/profile/LearningJourney";
+import FeaturedCourses from "@/components/dashboard/FeaturedCourses";
 
 const quickCards = [
   { href: "/courses", icon: BookOpen, color: "#D4A843", bg: "rgba(212,168,67,0.1)", label: "Khoá học của tôi", desc: "Xem và học các khoá học" },
@@ -222,10 +222,8 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Mobile: Learning Journey */}
-          <div className="card-dark p-4">
-            <LearningJourney />
-          </div>
+          {/* Mobile: Featured Courses */}
+          <FeaturedCourses />
 
           {/* Mobile: Zalo CTA */}
           <a
@@ -350,10 +348,8 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Learning Journey */}
-          <div className="card-dark p-5">
-            <LearningJourney />
-          </div>
+          {/* Featured Courses */}
+          <FeaturedCourses />
 
           {/* Quick Access */}
           <div>
