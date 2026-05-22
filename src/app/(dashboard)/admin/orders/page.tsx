@@ -136,7 +136,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     .select("role")
     .eq("id", user.id)
     .single();
-  if (profile?.role !== "admin") redirect("/dashboard");
+  if (!["admin", "manager", "sale"].includes(profile?.role ?? "")) redirect("/dashboard");
+
+  const canWrite = ["admin", "manager"].includes(profile?.role ?? "");
 
   // Bank info for QR
   const bankAccount = process.env.SEPAY_BANK_ACCOUNT ?? "";
@@ -285,15 +287,17 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         </Suspense>
 
         {/* ── Bulk delete ── */}
-        <BulkDeleteOrders
-          orders={rows.map((o) => ({
-            id: o.id,
-            order_code: o.order_code,
-            customer_name: o.customer_name,
-            amount: o.amount,
-            status: o.status,
-          }))}
-        />
+        {canWrite && (
+          <BulkDeleteOrders
+            orders={rows.map((o) => ({
+              id: o.id,
+              order_code: o.order_code,
+              customer_name: o.customer_name,
+              amount: o.amount,
+              status: o.status,
+            }))}
+          />
+        )}
 
         {/* ── Orders table ── */}
         <div className="card-dark overflow-hidden">
@@ -464,20 +468,21 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       {/* Actions */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          {order.status === "pending" && (
+                          {canWrite && order.status === "pending" && (
                             <ConfirmOrderButton
                               orderCode={order.order_code}
                               customerName={order.customer_name}
                               amount={order.amount}
                             />
                           )}
-                          {(order.status === "pending" ||
-                            order.status === "cancelled") && (
-                            <DeleteOrderButton
-                              orderId={order.id}
-                              orderCode={order.order_code}
-                            />
-                          )}
+                          {canWrite &&
+                            (order.status === "pending" ||
+                              order.status === "cancelled") && (
+                              <DeleteOrderButton
+                                orderId={order.id}
+                                orderCode={order.order_code}
+                              />
+                            )}
                         </div>
                       </td>
                     </tr>

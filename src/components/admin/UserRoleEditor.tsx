@@ -83,17 +83,20 @@ export default function UserRoleEditor({
     (r) => r.value !== "admin" || myRole === "admin"
   );
 
+  const canEdit = ["admin", "manager"].includes(myRole);
+
   return (
     <div className="flex items-center gap-2">
       {/* Role select */}
       <select
         value={role}
+        disabled={!canEdit}
         onChange={(e) => {
           setRole(e.target.value as Role);
           setError(null);
           setSaved(false);
         }}
-        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#D4A843]/50 transition-colors"
+        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#D4A843]/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {availableRoles.map((r) => (
           <option key={r.value} value={r.value}>
@@ -105,12 +108,13 @@ export default function UserRoleEditor({
       {/* Tier select */}
       <select
         value={tier}
+        disabled={!canEdit}
         onChange={(e) => {
           setTier(e.target.value as Tier);
           setError(null);
           setSaved(false);
         }}
-        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#D4A843]/50 transition-colors"
+        className="bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#D4A843]/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {tierOptions.map((t) => (
           <option key={t.value} value={t.value}>

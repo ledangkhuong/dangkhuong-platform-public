@@ -271,7 +271,9 @@ export default async function AdminUsersPage({
     .select("role")
     .eq("id", user.id)
     .single();
-  if (!["admin", "manager"].includes(myProfile?.role ?? "")) redirect("/dashboard");
+  if (!["admin", "manager", "sale"].includes(myProfile?.role ?? "")) redirect("/dashboard");
+
+  const canWrite = ["admin", "manager"].includes(myProfile?.role ?? "");
 
   // Fetch all profiles via admin client (bypasses RLS)
   const supabase = await createAdminClient();
@@ -490,7 +492,7 @@ export default async function AdminUsersPage({
         </div>
 
         {/* ── Fake account actions ─────────────────────────────── */}
-        {activeTab === "fake" && filteredUsers.length > 0 && (
+        {canWrite && activeTab === "fake" && filteredUsers.length > 0 && (
           <div className="flex items-center gap-4 flex-wrap">
             <DeleteFakeUsers
               userIds={filteredUsers.map((u) => u.id)}
@@ -668,13 +670,15 @@ export default async function AdminUsersPage({
         )}
 
         {/* ── Bulk delete tool ──────────────────────────────────── */}
-        <BulkDeleteUsers
-          users={filteredUsers.map((u) => ({
-            id: u.id,
-            full_name: u.full_name,
-            role: u.role,
-          }))}
-        />
+        {canWrite && (
+          <BulkDeleteUsers
+            users={filteredUsers.map((u) => ({
+              id: u.id,
+              full_name: u.full_name,
+              role: u.role,
+            }))}
+          />
+        )}
 
         {/* ── Users table ───────────────────────────────────────── */}
         <div className="card-dark overflow-hidden">
@@ -823,7 +827,7 @@ export default async function AdminUsersPage({
 
                           {/* Delete */}
                           <td className="px-2 py-3 whitespace-nowrap">
-                            {!["admin", "manager"].includes(profile.role) && (
+                            {canWrite && !["admin", "manager"].includes(profile.role) && (
                               <DeleteUserButton userId={profile.id} userName={profile.full_name} />
                             )}
                           </td>
@@ -891,7 +895,7 @@ export default async function AdminUsersPage({
 
                           {/* Delete */}
                           <td className="px-2 py-3 whitespace-nowrap">
-                            {!["admin", "manager"].includes(profile.role) && (
+                            {canWrite && !["admin", "manager"].includes(profile.role) && (
                               <DeleteUserButton userId={profile.id} userName={profile.full_name} />
                             )}
                           </td>
