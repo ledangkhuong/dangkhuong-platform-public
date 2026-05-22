@@ -428,7 +428,7 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
             <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
           </button>
           <p className="mt-4 text-[13px] sm:text-sm" style={{ color: "rgba(241,245,251,0.55)" }}>
-            ⏰ Early Bird 10.000.000đ · Tặng 6 Bonus 16.479.000đ · Truy cập 6 tháng
+            ⏰ Early Bird 10.000.000đ · Tặng 6 Bonus 16.482.000đ · Truy cập 6 tháng
           </p>
 
           {/* Secondary mini-CTA */}

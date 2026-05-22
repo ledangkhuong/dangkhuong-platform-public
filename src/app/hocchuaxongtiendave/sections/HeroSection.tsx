@@ -357,7 +357,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
             }}
           >
             <span style={{ color: "#34D399" }}>✓</span>
-            <span>Bonus <span className="tabular-nums">16.479.000đ</span> kèm theo</span>
+            <span>Bonus <span className="tabular-nums">16.482.000đ</span> kèm theo</span>
           </span>
         </div>
 
@@ -365,7 +365,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           className="mt-3 text-[10px] sm:text-[11px] font-semibold uppercase tabular-nums"
           style={{ color: "rgba(229,182,99,0.7)", letterSpacing: "0.18em" }}
         >
-          Giá gốc 20.000.000đ — Tiết kiệm 75%
+          Giá gốc 20.000.000đ — Tiết kiệm 50%
         </p>
       </div>
 

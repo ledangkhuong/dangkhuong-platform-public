@@ -140,8 +140,8 @@ function DashboardMockup({ Icon }: { Icon: LucideIcon }) {
     },
     {
       label: "Đơn hàng",
-      value: "47",
-      delta: "+8",
+      value: "5",
+      delta: "+2",
       spark: [2, 3, 4, 4, 6, 7, 9],
       color: "#34D399",
       Tag: Receipt,
@@ -157,9 +157,9 @@ function DashboardMockup({ Icon }: { Icon: LucideIcon }) {
   ];
 
   const activity = [
-    { name: "Nguyễn Văn A", amount: "5tr", time: "2 phút trước", color: "#34D399" },
-    { name: "Trần Thị B", amount: "5tr", time: "11 phút trước", color: "#7DD3FC" },
-    { name: "Lê Hoàng C", amount: "5tr", time: "38 phút trước", color: "#E5B663" },
+    { name: "Nguyễn Văn A", amount: "10tr", time: "2 phút trước", color: "#34D399" },
+    { name: "Trần Thị B", amount: "10tr", time: "11 phút trước", color: "#7DD3FC" },
+    { name: "Lê Hoàng C", amount: "10tr", time: "38 phút trước", color: "#E5B663" },
   ];
 
   return (
@@ -592,8 +592,8 @@ function RevenueMockup({ Icon }: { Icon: LucideIcon }) {
     { d: "T7", v: 9 },
     { d: "CN", v: 9.5 },
   ];
-  const yLabels = [45, 40, 30, 20, 10];
-  const maxY = 45;
+  const yLabels = [10, 8, 6, 4, 2];
+  const maxY = 10;
 
   return (
     <div

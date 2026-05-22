@@ -19,7 +19,7 @@ const ROWS = [
   { label: "Bonus 6: Group Zalo + Live Q&A", value: "2.997.000đ", bonus: true },
 ];
 
-const TOTAL = "78.479.000đ";
+const TOTAL = "78.482.000đ";
 
 export default function TotalValueSection({ onScrollToRegister }: TotalValueSectionProps) {
   return (
@@ -160,7 +160,7 @@ export default function TotalValueSection({ onScrollToRegister }: TotalValueSect
             className="text-[13px] sm:text-[14px] tabular-nums mb-6"
             style={{ color: "#34D399" }}
           >
-            Bạn tiết kiệm <span className="font-bold">68.479.000đ</span> so với giá trị thật
+            Bạn tiết kiệm <span className="font-bold">68.482.000đ</span> so với giá trị thật
           </p>
 
           <button
@@ -173,7 +173,7 @@ export default function TotalValueSection({ onScrollToRegister }: TotalValueSect
             }}
           >
             <Crown size={16} />
-            ĐĂNG KÝ NGAY — TIẾT KIỆM 73 TRIỆU
+            ĐĂNG KÝ NGAY — TIẾT KIỆM 68 TRIỆU
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </button>
         </div>

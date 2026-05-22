@@ -15,7 +15,7 @@ const COMPARISONS = [
 const INCLUDED = [
   "Truy cập 6 tháng vào toàn bộ 50 bài học",
   "Update miễn phí khi có phiên bản mới",
-  "Toàn bộ 6 bonus trị giá 16.479.000đ",
+  "Toàn bộ 6 bonus trị giá 16.482.000đ",
   "Vào Group Zalo hỗ trợ 30 ngày",
   "Live Q&A hàng tuần với Thầy Khương",
 ];
@@ -143,7 +143,7 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             >
               Tổng giá trị thực tế{" "}
               <strong className="tabular-nums" style={{ color: "#F1F5FB" }}>
-                78.479.000đ
+                78.482.000đ
               </strong>
             </p>
             <p
@@ -186,7 +186,7 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
               className="text-center text-[13.5px] sm:text-[14.5px] font-semibold mb-8 tabular-nums"
               style={{ color: "#34D399" }}
             >
-              Tiết kiệm 10.000.000đ — giảm 50% + Bonus 16.479.000đ
+              Tiết kiệm 10.000.000đ — giảm 50% + Bonus 16.482.000đ
             </p>
 
             {/* What you get */}

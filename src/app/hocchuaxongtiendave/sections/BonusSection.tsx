@@ -57,7 +57,7 @@ const BONUSES = [
   },
 ];
 
-const TOTAL_BONUS_VALUE = "16.479.000đ";
+const TOTAL_BONUS_VALUE = "16.482.000đ";
 
 /* ---------- Mockup previews (pure CSS / inline) ---------- */
 /* All previews are wrapped in a fixed-height shell so the 6 cards line up. */

@@ -228,7 +228,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
             </div>
 
             <p className="text-[13px] sm:text-[14px] leading-[1.7]" style={{ color: "rgba(241,245,251,0.65)" }}>
-              Sau khi đủ 100 suất — giá trở về <strong className="text-white">20.000.000đ</strong> (tăng 4 lần).
+              Sau khi đủ 100 suất — giá trở về <strong className="text-white">20.000.000đ</strong> (gấp đôi).
             </p>
           </div>
 
@@ -403,7 +403,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
           >
             <div>
               <div className="text-[9px] uppercase tracking-[0.18em] font-bold opacity-90">Mỗi giờ mất</div>
-              <div className="text-[18px] font-extrabold tabular-nums">~71.000Đ</div>
+              <div className="text-[18px] font-extrabold tabular-nums">~139.000Đ</div>
               <div className="text-[9px] uppercase tracking-[0.18em] font-bold opacity-90">nếu trì hoãn</div>
             </div>
           </div>
@@ -455,7 +455,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
               </div>
               <div className="text-xl font-bold tabular-nums flex items-center justify-center gap-1.5" style={{ color: "#F87171" }}>
                 <TrendingDown size={18} />
-                ~1.700.000đ
+                ~3.300.000đ
               </div>
             </div>
           </div>
