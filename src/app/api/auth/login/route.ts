@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!email?.trim() || !password) {
+    const trimmedEmail = email?.trim().toLowerCase();
+
+    if (!trimmedEmail || !password) {
       return NextResponse.json(
         { error: "Vui lòng nhập email và mật khẩu" },
         { status: 400 }
@@ -34,11 +36,27 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createClient();
     const { data: signInData, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: trimmedEmail,
       password,
     });
 
     if (error) {
+      // Detect "email not confirmed" error from Supabase
+      const isEmailNotConfirmed =
+        error.message?.toLowerCase().includes("email not confirmed") ||
+        (error as any).code === "email_not_confirmed";
+
+      if (isEmailNotConfirmed) {
+        return NextResponse.json(
+          {
+            error: "Email chưa được xác nhận. Vui lòng kiểm tra hộp thư và nhấn link xác nhận.",
+            code: "email_not_confirmed",
+            email: trimmedEmail,
+          },
+          { status: 403 }
+        );
+      }
+
       // Record failed attempt for rate limiting
       await recordFailedAttempt(ip);
 
@@ -47,7 +65,7 @@ export async function POST(req: NextRequest) {
         admin_id: "system",
         action: "auth.login_failed" as any,
         target_type: "user",
-        target_id: email || "unknown",
+        target_id: trimmedEmail || "unknown",
         details: { ip, reason: "invalid_credentials" },
       }).catch(() => {});
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
@@ -23,8 +24,10 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="card-dark p-6 sm:p-8">
-          {/* Login Form with Turnstile */}
-          <LoginForm />
+          {/* Login Form */}
+          <Suspense fallback={null}>
+            <LoginForm />
+          </Suspense>
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Chưa có tài khoản?{" "}

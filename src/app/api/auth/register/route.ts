@@ -40,23 +40,28 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanPhone = phone.replace(/\s+/g, "");
+    const cleanEmail = email.trim().toLowerCase();
     const admin = await createAdminClient();
 
     // Create user
     const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email,
+      email: cleanEmail,
       password,
       email_confirm: false,
-      user_metadata: { full_name },
+      user_metadata: { full_name: full_name.trim() },
     });
     if (createError) {
       console.error("[Register] Create user error:", createError.message);
       return NextResponse.json({ error: "Không thể tạo tài khoản. Vui lòng thử email khác." }, { status: 400 });
     }
 
-    // Save phone
+    // Save phone (upsert to handle case where trigger hasn't fired yet)
     if (created?.user) {
-      await admin.from("profiles").update({ phone: cleanPhone }).eq("id", created.user.id);
+      await admin.from("profiles").upsert({
+        id: created.user.id,
+        phone: cleanPhone,
+        full_name: full_name.trim(),
+      }, { onConflict: "id" });
     }
 
     // GDPR/PDPA: Only sync subscriber if user explicitly opted in to newsletter

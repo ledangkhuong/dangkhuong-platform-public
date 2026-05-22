@@ -14,15 +14,16 @@ export async function signUp(formData: FormData) {
     redirect("/register?error=" + encodeURIComponent("Quá nhiều yêu cầu. Vui lòng thử lại sau."));
   }
 
-  const email = formData.get("email") as string;
+  const rawEmail = formData.get("email") as string;
   const password = formData.get("password") as string;
   const full_name = formData.get("full_name") as string;
   const phone = (formData.get("phone") as string)?.replace(/\s+/g, "");
+  const email = rawEmail?.trim().toLowerCase();
 
   // Validate required fields
   if (!full_name?.trim()) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập họ và tên"));
   if (!phone || !/^(0|\+84)[0-9]{9}$/.test(phone)) redirect("/register?error=" + encodeURIComponent("Số điện thoại không hợp lệ. Vui lòng nhập đúng 10 số (VD: 0912345678)"));
-  if (!email?.trim()) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập email"));
+  if (!email) redirect("/register?error=" + encodeURIComponent("Vui lòng nhập email"));
   if (!password || password.length < 8) redirect("/register?error=" + encodeURIComponent("Mật khẩu phải có ít nhất 8 ký tự"));
   if (password.length > 72) redirect("/register?error=" + encodeURIComponent("Mật khẩu không được quá 72 ký tự"));
 
@@ -33,13 +34,17 @@ export async function signUp(formData: FormData) {
     email,
     password,
     email_confirm: false,
-    user_metadata: { full_name },
+    user_metadata: { full_name: full_name.trim() },
   });
   if (createError) redirect(`/register?error=${encodeURIComponent(createError.message)}`);
 
-  // Save phone to profile immediately (using admin client to bypass RLS)
+  // Save phone to profile (upsert to handle case where trigger hasn't fired yet)
   if (created?.user) {
-    await admin.from("profiles").update({ phone }).eq("id", created.user.id);
+    await admin.from("profiles").upsert({
+      id: created.user.id,
+      phone,
+      full_name: full_name?.trim() || "",
+    }, { onConflict: "id" });
   }
 
   // GDPR/PDPA: Only add to subscribers/newsletter if user explicitly opted in.
@@ -140,15 +145,27 @@ export async function signIn(formData: FormData) {
     return `/login?error=${encodeURIComponent("Quá nhiều lần thử. Vui lòng đợi " + Math.ceil(rateCheck.retryAfterSec / 60) + " phút.")}`;
   }
 
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const password = formData.get("password") as string;
+
   const supabase = await createClient();
   const { data: signInData, error } = await supabase.auth.signInWithPassword({
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
+    email,
+    password,
   });
 
   if (error) {
+    // Detect "email not confirmed" error
+    const isEmailNotConfirmed =
+      error.message?.toLowerCase().includes("email not confirmed") ||
+      (error as any).code === "email_not_confirmed";
+
+    if (isEmailNotConfirmed) {
+      redirect(`/login?error=${encodeURIComponent("Email chưa được xác nhận. Vui lòng kiểm tra hộp thư và nhấn link xác nhận.")}&code=email_not_confirmed`);
+    }
+
     await recordFailedAttempt(ip);
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    redirect(`/login?error=${encodeURIComponent("Email hoặc mật khẩu không đúng")}`);
   }
 
   await resetRateLimit(ip);
