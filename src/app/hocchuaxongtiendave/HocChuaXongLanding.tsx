@@ -293,7 +293,7 @@ export default function HocChuaXongLanding() {
               }}
             >
               <span className="text-xl font-extrabold" style={{ color: "#E5B663" }}>
-                5.000.000đ
+                10.000.000đ
               </span>
               <span className="text-sm line-through" style={{ color: "rgba(241,245,251,0.4)" }}>
                 20.000.000đ
@@ -302,7 +302,7 @@ export default function HocChuaXongLanding() {
                 className="text-[10px] font-bold uppercase px-2 py-1 rounded"
                 style={{ background: "#E5B663", color: "#0A1020" }}
               >
-                -75%
+                -50%
               </span>
             </div>
           </div>
@@ -516,7 +516,7 @@ export default function HocChuaXongLanding() {
               ) : (
                 <Crown size={18} />
               )}
-              {loading ? "Đang xử lý..." : "ĐĂNG KÝ EARLY BIRD — 5.000.000Đ"}
+              {loading ? "Đang xử lý..." : "ĐĂNG KÝ EARLY BIRD — 10.000.000Đ"}
             </button>
 
             <div className="flex items-center justify-center gap-4 pt-3 text-xs" style={{ color: "rgba(241,245,251,0.45)" }}>
@@ -570,7 +570,7 @@ export default function HocChuaXongLanding() {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-base sm:text-lg font-extrabold text-white leading-none">
-                  5.000.000đ
+                  10.000.000đ
                 </span>
                 <span
                   className="text-xs line-through"
@@ -582,7 +582,7 @@ export default function HocChuaXongLanding() {
                   className="hidden md:inline-block text-[10px] font-bold uppercase px-1.5 py-0.5 rounded"
                   style={{ background: "#E5B663", color: "#0A1020" }}
                 >
-                  -75%
+                  -50%
                 </span>
               </div>
             </div>
