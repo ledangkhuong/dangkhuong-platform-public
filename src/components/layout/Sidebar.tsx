@@ -49,7 +49,7 @@ const instructorNav = [
 const adminNav = [
   { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
   { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor", "instructor"] },
-  { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager"] },
+  { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager", "sale"] },
   { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager", "sale"] },
   { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
   { href: "/admin/coupons", icon: Tag, label: "Mã giảm giá", roles: ["admin", "manager"] },

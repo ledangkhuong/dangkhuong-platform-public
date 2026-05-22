@@ -122,7 +122,7 @@ export default async function AdminEnrollmentsPage({
     .select("role")
     .eq("id", user.id)
     .single();
-  if (!profile || !["admin", "manager"].includes(profile.role)) redirect("/dashboard");
+  if (!profile || !["admin", "manager", "sale"].includes(profile.role)) redirect("/dashboard");
 
   // Fetch data with admin client
   const supabase = await createAdminClient();

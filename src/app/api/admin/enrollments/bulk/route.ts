@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  if (!profile || !["admin", "manager"].includes(profile.role))
+  if (!profile || !["admin", "manager", "sale"].includes(profile.role))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const rl = await rateLimit(`bulk-enroll:${user.id}`, 5, 60);

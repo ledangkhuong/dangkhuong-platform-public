@@ -9,9 +9,9 @@ export async function grantCourseAccess(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Check admin/manager role
+  // Check admin/manager/sale role
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!profile || !["admin", "manager"].includes(profile.role)) redirect("/dashboard");
+  if (!profile || !["admin", "manager", "sale"].includes(profile.role)) redirect("/dashboard");
 
   const email = (formData.get("email") as string || "").trim().toLowerCase();
   const productIds = formData.getAll("product_ids") as string[];
@@ -79,7 +79,7 @@ export async function revokeCourseAccess(formData: FormData) {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (!profile || !["admin", "manager"].includes(profile.role)) redirect("/dashboard");
+  if (!profile || !["admin", "manager", "sale"].includes(profile.role)) redirect("/dashboard");
 
   const enrollmentId = formData.get("enrollment_id") as string;
   if (!enrollmentId) redirect("/admin/enrollments");
