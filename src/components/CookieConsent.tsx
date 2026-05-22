@@ -11,6 +11,7 @@ const HIDE_ON_PATHS = [
   "/slowenglish",
   "/sanphamso",
   "/cafe",
+  "/weballinone",
 ];
 
 export interface CookiePreferences {
