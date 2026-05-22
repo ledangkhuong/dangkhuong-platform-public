@@ -252,6 +252,26 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // 4a. Cancel other pending orders for same user + product (prevents stale "Chờ thanh toán" showing)
+    if (order.user_id && order.product_id) {
+      const { data: cancelledOrders } = await supabase
+        .from("orders")
+        .update({
+          status: "cancelled",
+          note: `Auto-cancelled: payment confirmed on order ${matchedCode}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", order.user_id as string)
+        .eq("product_id", order.product_id as string)
+        .eq("status", "pending")
+        .neq("id", order.id as string)
+        .select("order_code");
+
+      if (cancelledOrders && cancelledOrders.length > 0) {
+        console.log(`[Sepay] 🗑 Cancelled ${cancelledOrders.length} duplicate pending order(s):`, cancelledOrders.map(o => o.order_code));
+      }
+    }
+
     // 4b. Handle subscription orders
     if (order.payment_method === "subscription" || (updatedOrder as Record<string, unknown>).payment_method === "subscription") {
       try {

@@ -156,6 +156,53 @@ export async function POST(req: NextRequest) {
       appliedCouponUsedCount = coupon.used_count ?? 0;
     }
 
+    // ── Reuse existing pending order for same user + product ──────
+    // This prevents duplicate pending orders when customer clicks "Buy" multiple times
+    const { data: existingOrder } = await admin
+      .from("orders")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("product_id", product_id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (existingOrder) {
+      // If amount matches (same price/coupon), reuse the existing order
+      // If amount changed (new coupon), cancel old and create new below
+      if (existingOrder.amount === amount) {
+        const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
+        const bankCode = process.env.SEPAY_BANK_CODE;
+        const hasSepay = !!(bankAccount && bankCode && !bankAccount.includes("your-"));
+        const hasPayOS = isPayOSConfigured();
+
+        return NextResponse.json({
+          success: true,
+          order: existingOrder,
+          paymentInfo: {
+            order_code: existingOrder.order_code,
+            amount: existingOrder.amount,
+            bank_account: hasSepay ? bankAccount : null,
+            bank_code: hasSepay ? bankCode : null,
+            transfer_content: existingOrder.order_code,
+            qr_url: hasSepay
+              ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${existingOrder.amount}&des=${existingOrder.order_code}`
+              : null,
+            manual: !hasSepay && !hasPayOS,
+            sepay_available: hasSepay,
+            payos_available: hasPayOS,
+          },
+        });
+      }
+
+      // Amount differs — cancel old pending order
+      await admin
+        .from("orders")
+        .update({ status: "cancelled", note: "Replaced by new order with different amount", updated_at: new Date().toISOString() })
+        .eq("id", existingOrder.id);
+    }
+
     // Đọc affiliate ref_code từ cookie dk_ref
     let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
 
