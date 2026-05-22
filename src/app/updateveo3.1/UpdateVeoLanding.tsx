@@ -1288,10 +1288,22 @@ export default function UpdateVeoLanding() {
                         <span style={{ color: "#22D3EE" }}>{paymentInfo.amount.toLocaleString("vi-VN")}đ</span>{" "}
                         để xác nhận vé:
                       </p>
-                      <div className="flex justify-center mb-5">
+                      <div className="flex justify-center mb-4">
                         <div className="p-3 rounded-xl bg-white">
                           <img src={paymentInfo.qr_url} alt="QR thanh toán" width={220} height={220} className="block" />
                         </div>
+                      </div>
+
+                      {/* Hướng dẫn chụp QR */}
+                      <div className="p-3 rounded-lg mb-5 text-xs leading-relaxed" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                        <p className="font-semibold text-[#f59e0b] mb-1.5">📱 Hướng dẫn thanh toán:</p>
+                        <ol className="text-gray-400 space-y-1 list-decimal list-inside">
+                          <li><strong className="text-gray-300">Chụp màn hình</strong> mã QR ở trên</li>
+                          <li>Mở <strong className="text-gray-300">app ngân hàng</strong> trên điện thoại</li>
+                          <li>Chọn <strong className="text-gray-300">Quét mã QR</strong> hoặc <strong className="text-gray-300">QR Pay</strong></li>
+                          <li>Quét mã QR đã chụp → Xác nhận chuyển khoản</li>
+                        </ol>
+                        <p className="text-gray-500 mt-2 italic">Hoặc bấm nút &ldquo;Chuyển khoản ngay&rdquo; bên dưới để mở app ngân hàng tự động.</p>
                       </div>
 
                       <div className="space-y-3">
