@@ -202,6 +202,10 @@ const FAQ_DATA = [
 ];
 
 const ZALO_GROUP = "https://zalo.me/g/mwrjxixtjhe0aed8fkdf";
+const ZOOM_URL =
+  "https://us06web.zoom.us/j/2727682727?pwd=bzA4NG1xZEpaTXVaOFVNR1BKNXc0Zz09";
+const ZOOM_ID = "272 768 2727";
+const ZOOM_PASS = "272727";
 const COURSE_URL =
   "/courses/lo-trinh-thiet-ke-website-all-in-one-bang-ai-agent";
 
@@ -1205,32 +1209,88 @@ export default function WebAllInOneLanding() {
                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
                   Thanh Toán Thành Công! 🎉
                 </h3>
-                <p className="text-sm text-gray-400 leading-relaxed mb-4">
-                  Chúc mừng bạn đã đăng ký thành công! Vào nhóm Zalo bên dưới
-                  để nhận link Zoom và trao đổi trực tiếp.
+                <p className="text-sm text-gray-400 leading-relaxed mb-5">
+                  Chúc mừng bạn đã đăng ký thành công! Dưới đây là thông tin
+                  buổi Zoom tối nay.
                 </p>
 
-                {/* Zalo Group CTA */}
+                {/* Zoom Info Card */}
+                <div
+                  className="rounded-xl p-4 mb-4 text-left"
+                  style={{
+                    background: "rgba(59,130,246,0.08)",
+                    border: "1px solid rgba(59,130,246,0.2)",
+                  }}
+                >
+                  <p className="text-xs font-semibold mb-3 flex items-center gap-1.5" style={{ color: accent }}>
+                    <Video size={13} /> Zoom Live &middot; 20h&ndash;22h tối nay
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Meeting ID</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-white">{ZOOM_ID}</span>
+                        <button
+                          onClick={() => copyText(ZOOM_ID.replace(/\s/g, ""), "zoom-id")}
+                          className="text-gray-500 hover:text-white transition-colors"
+                        >
+                          {copied === "zoom-id" ? <Check size={12} style={{ color: accent }} /> : <Copy size={12} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Passcode</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-white">{ZOOM_PASS}</span>
+                        <button
+                          onClick={() => copyText(ZOOM_PASS, "zoom-pass")}
+                          className="text-gray-500 hover:text-white transition-colors"
+                        >
+                          {copied === "zoom-pass" ? <Check size={12} style={{ color: accent }} /> : <Copy size={12} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Zoom CTA */}
                 <a
-                  href={ZALO_GROUP}
+                  href={ZOOM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold text-white transition-all hover:scale-[1.02] mb-3 w-full justify-center"
                   style={{
-                    background: "linear-gradient(135deg, #0068FF, #0054CC)",
+                    background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
                   }}
                 >
-                  <MessageCircle size={18} />
-                  Vào Nhóm Zalo Ngay
+                  <Video size={18} />
+                  Vào Phòng Zoom
                 </a>
 
+                {/* Zalo Group */}
+                <a
+                  href={ZALO_GROUP}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] mb-3 w-full justify-center"
+                  style={{
+                    background: "rgba(0,104,255,0.12)",
+                    color: "#3b82f6",
+                    border: "1px solid rgba(0,104,255,0.25)",
+                  }}
+                >
+                  <MessageCircle size={16} />
+                  Vào Nhóm Zalo Trao Đổi
+                </a>
+
+                {/* Course link */}
                 <a
                   href={COURSE_URL}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] w-full justify-center"
                   style={{
-                    background: "rgba(34,197,94,0.15)",
+                    background: "rgba(34,197,94,0.12)",
                     color: "#22c55e",
-                    border: "1px solid rgba(34,197,94,0.3)",
+                    border: "1px solid rgba(34,197,94,0.25)",
                   }}
                 >
                   <Monitor size={16} />
@@ -1245,8 +1305,8 @@ export default function WebAllInOneLanding() {
                   }}
                 >
                   <Mail size={12} className="inline mr-1" style={{ color: accent }} />
-                  Check email để nhận xác nhận đơn hàng và truy cập khóa học.
-                  Kiểm tra cả mục Spam/Junk.
+                  Check email để nhận xác nhận đơn hàng. Kiểm tra cả mục
+                  Spam/Junk.
                 </div>
 
                 <button
