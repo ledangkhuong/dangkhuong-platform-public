@@ -1206,8 +1206,8 @@ export default function WebAllInOneLanding() {
                   Thanh Toán Thành Công! 🎉
                 </h3>
                 <p className="text-sm text-gray-400 leading-relaxed mb-4">
-                  Chúc mừng bạn đã đăng ký thành công! Kiểm tra email để nhận
-                  thông tin buổi Zoom và tài liệu.
+                  Chúc mừng bạn đã đăng ký thành công! Vào nhóm Zalo bên dưới
+                  để nhận link Zoom và trao đổi trực tiếp.
                 </p>
 
                 {/* Zalo Group CTA */}
@@ -1245,8 +1245,8 @@ export default function WebAllInOneLanding() {
                   }}
                 >
                   <Mail size={12} className="inline mr-1" style={{ color: accent }} />
-                  Check email để nhận link Zoom + tài liệu. Kiểm tra cả mục
-                  Spam/Junk.
+                  Check email để nhận xác nhận đơn hàng và truy cập khóa học.
+                  Kiểm tra cả mục Spam/Junk.
                 </div>
 
                 <button
