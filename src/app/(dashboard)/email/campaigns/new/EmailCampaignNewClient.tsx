@@ -78,7 +78,7 @@ export default function NewCampaignPage() {
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
   const [fromName, setFromName] = useState<string>(siteConfig.name);
-  const [fromEmail] = useState<string>(`support@${siteConfig.domain}`);
+  const [fromEmail] = useState<string>(siteConfig.emailFrom);
   const [replyTo, setReplyTo] = useState("");
 
   // Step 2 - Recipients
@@ -414,7 +414,7 @@ export default function NewCampaignPage() {
                 type="email"
                 value={replyTo}
                 onChange={(e) => setReplyTo(e.target.value)}
-                placeholder={`VD: support@${siteConfig.domain}`}
+                placeholder={`VD: ${siteConfig.emailFrom}`}
                 className="input-dark w-full text-sm"
               />
             </div>

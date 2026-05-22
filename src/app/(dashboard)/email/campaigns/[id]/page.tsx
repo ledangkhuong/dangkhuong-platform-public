@@ -108,7 +108,7 @@ export default function EditCampaignPage() {
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
   const [fromName, setFromName] = useState<string>(siteConfig.name);
-  const [fromEmail] = useState<string>(`support@${siteConfig.domain}`);
+  const [fromEmail] = useState<string>(siteConfig.emailFrom);
   const [replyTo, setReplyTo] = useState("");
   const [listId, setListId] = useState("");
   const [htmlContent, setHtmlContent] = useState("");

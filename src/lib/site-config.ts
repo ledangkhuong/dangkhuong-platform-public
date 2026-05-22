@@ -30,6 +30,10 @@ export const siteConfig = {
     avatar: env("NEXT_PUBLIC_OWNER_AVATAR", "/images/about/portrait.jpg"),
   },
 
+  // ─── Email ───
+  // Env: NEXT_PUBLIC_EMAIL_FROM (the verified SES sender address)
+  emailFrom: env("NEXT_PUBLIC_EMAIL_FROM", "support@ledangkhuong.net"),
+
   // ─── Colors (CSS values) ───
   // Env: NEXT_PUBLIC_COLOR_BRAND, NEXT_PUBLIC_COLOR_BRAND_HOVER
   //      NEXT_PUBLIC_COLOR_BG, NEXT_PUBLIC_COLOR_SURFACE, NEXT_PUBLIC_COLOR_TEXT
