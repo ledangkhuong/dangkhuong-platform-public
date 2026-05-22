@@ -381,35 +381,10 @@ export default function UpdateVeoLanding() {
             Workshop Trực Tuyến · 2 Buổi Tối
           </span>
 
-          {/* Banner */}
-          <div className="mb-6 sm:mb-8 w-full max-w-3xl">
-            <h1 className="sr-only">
-              Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến cùng Thầy Lê Đăng Khương
-            </h1>
-            <div
-              className="relative overflow-hidden rounded-2xl"
-              style={{
-                border: "1px solid rgba(59,130,246,0.35)",
-                boxShadow:
-                  "0 30px 80px -20px rgba(0,0,0,0.6), 0 0 60px rgba(59,130,246,0.18)",
-              }}
-            >
-              <img
-                src="/images/updateveo31/banner.png"
-                alt="Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến 23-24/05 · Trainer Lê Đăng Khương · KOHADA"
-                className="block w-full h-auto"
-                loading="eager"
-                fetchPriority="high"
-              />
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-2xl"
-                style={{
-                  boxShadow: "0 0 0 1px rgba(59,130,246,0.2) inset, 0 0 60px rgba(59,130,246,0.12) inset",
-                }}
-              />
-            </div>
-          </div>
+          {/* H1 for SEO */}
+          <h1 className="sr-only">
+            Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến cùng Thầy Lê Đăng Khương
+          </h1>
 
           {/* Video giới thiệu */}
           <div className="mb-6 sm:mb-8 w-full max-w-3xl">
@@ -808,6 +783,33 @@ export default function UpdateVeoLanding() {
                 </ul>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ BANNER ═══ */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6" style={{ background: "#0A1020" }}>
+        <div className="mx-auto max-w-4xl">
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            style={{
+              border: "1px solid rgba(59,130,246,0.35)",
+              boxShadow: "0 30px 80px -20px rgba(0,0,0,0.6), 0 0 60px rgba(59,130,246,0.18)",
+            }}
+          >
+            <img
+              src="/images/updateveo31/banner.png"
+              alt="Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến 23-24/05 · Trainer Lê Đăng Khương · KOHADA"
+              className="block w-full h-auto"
+              loading="lazy"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-2xl"
+              style={{
+                boxShadow: "0 0 0 1px rgba(59,130,246,0.2) inset, 0 0 60px rgba(59,130,246,0.12) inset",
+              }}
+            />
           </div>
         </div>
       </section>
