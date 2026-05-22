@@ -371,6 +371,16 @@ export default function WebAllInOneLanding() {
             <span>1.200+ học viên</span>
             <span>Lê Đăng Khương Academy</span>
           </div>
+
+          {/* Hero Banner */}
+          <div className="mt-10 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(59,130,246,0.15)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/weballinone/banner.png"
+              alt="Lộ Trình Thiết Kế Website All-In-One Bằng AI Agent"
+              className="w-full h-auto"
+            />
+          </div>
         </div>
       </section>
 
