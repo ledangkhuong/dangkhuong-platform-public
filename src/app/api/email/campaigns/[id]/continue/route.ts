@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 
 const BATCH_SIZE = 50;
+const SEND_DELAY_MS = 80; // ~12 emails/s, safely under SES 14/s limit
 
 function createSESClient() {
   return new SESv2Client({
@@ -14,14 +15,23 @@ function createSESClient() {
   });
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function renderTemplate(
   html: string,
   subscriber: { email: string; full_name?: string; id: string }
 ): string {
   return html
-    .replace(/\{\{name\}\}/g, subscriber.full_name || "")
-    .replace(/\{\{email\}\}/g, subscriber.email)
-    .replace(/\{\{subscriber_id\}\}/g, subscriber.id);
+    .replace(/\{\{name\}\}/g, escapeHtml(subscriber.full_name || ""))
+    .replace(/\{\{email\}\}/g, escapeHtml(subscriber.email))
+    .replace(/\{\{subscriber_id\}\}/g, escapeHtml(subscriber.id));
 }
 
 function addTrackingPixel(html: string, sendId: string): string {
@@ -41,6 +51,10 @@ function rewriteLinksForTracking(html: string, sendId: string): string {
       return `href="${trackingUrl}"`;
     }
   );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // POST /api/email/campaigns/[id]/continue — process next batch of queued sends
@@ -81,41 +95,73 @@ export async function POST(
       );
     }
 
-    // If paused, set back to sending
-    if (campaign.status === "paused") {
+    // If paused, check for "resume" query param; otherwise just return status
+    const url = new URL(_req.url);
+    const resume = url.searchParams.get("resume") === "1";
+
+    if (campaign.status === "paused" && !resume) {
+      return NextResponse.json({
+        sent: 0,
+        remaining: 0,
+        completed: false,
+        campaign,
+      });
+    }
+
+    // Resume: set back to sending
+    if (campaign.status === "paused" && resume) {
       await admin
         .from("email_campaigns")
         .update({ status: "sending", updated_at: new Date().toISOString() })
         .eq("id", id);
     }
 
-    // Get next batch of queued sends with subscriber info
-    const { data: queuedSends, error: queueError } = await admin
+    // ─── ATOMIC CLAIM: mark batch as "sending" to prevent duplicates ───
+    // Use UPDATE ... WHERE status='queued' to atomically claim records
+    // This prevents concurrent /continue calls from picking the same emails
+    const { data: claimedSends, error: claimError } = await admin
       .from("email_sends")
-      .select("id, subscriber_id, email")
+      .update({ status: "sending" })
       .eq("campaign_id", id)
       .eq("status", "queued")
-      .limit(BATCH_SIZE);
+      .limit(BATCH_SIZE)
+      .select("id, subscriber_id, email");
 
-    if (queueError) {
+    if (claimError) {
       return NextResponse.json(
-        { error: queueError.message },
+        { error: claimError.message },
         { status: 500 }
       );
     }
 
-    if (!queuedSends || queuedSends.length === 0) {
-      // No more queued sends, mark campaign as completed
-      await admin
-        .from("email_campaigns")
-        .update({
-          status: "sent",
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+    if (!claimedSends || claimedSends.length === 0) {
+      // No more queued sends — check if all done
+      const { count: remainingCount } = await admin
+        .from("email_sends")
+        .select("id", { count: "exact", head: true })
+        .eq("campaign_id", id)
+        .in("status", ["queued", "sending"]);
 
-      // Re-fetch to get updated campaign data for UI
+      if (!remainingCount || remainingCount === 0) {
+        // All done, mark campaign as completed
+        // Calculate actual sent count from email_sends
+        const { count: actualSentCount } = await admin
+          .from("email_sends")
+          .select("id", { count: "exact", head: true })
+          .eq("campaign_id", id)
+          .eq("status", "sent");
+
+        await admin
+          .from("email_campaigns")
+          .update({
+            status: "sent",
+            sent_count: actualSentCount || 0,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+      }
+
       const { data: finalCampaign } = await admin
         .from("email_campaigns")
         .select("*")
@@ -131,7 +177,7 @@ export async function POST(
     }
 
     // Fetch subscriber details for template rendering
-    const subscriberIds = queuedSends.map((s) => s.subscriber_id);
+    const subscriberIds = claimedSends.map((s) => s.subscriber_id);
     const { data: subscribers } = await admin
       .from("subscribers")
       .select("id, email, full_name")
@@ -144,16 +190,26 @@ export async function POST(
     const sesClient = createSESClient();
     let sentCount = 0;
 
-    for (const send of queuedSends) {
+    for (const send of claimedSends) {
       // Check if campaign was paused mid-batch
-      const { data: currentCampaign } = await admin
-        .from("email_campaigns")
-        .select("status")
-        .eq("id", id)
-        .single();
+      if (sentCount > 0 && sentCount % 10 === 0) {
+        const { data: currentCampaign } = await admin
+          .from("email_campaigns")
+          .select("status")
+          .eq("id", id)
+          .single();
 
-      if (currentCampaign?.status === "paused") {
-        break;
+        if (currentCampaign?.status === "paused") {
+          // Revert unclaimed sends back to queued
+          const unsentIds = claimedSends.slice(sentCount).map(s => s.id);
+          if (unsentIds.length > 0) {
+            await admin
+              .from("email_sends")
+              .update({ status: "queued" })
+              .in("id", unsentIds);
+          }
+          break;
+        }
       }
 
       try {
@@ -195,7 +251,7 @@ export async function POST(
 
         const result = await sesClient.send(command);
 
-        // Update send status
+        // Update send status to "sent"
         await admin
           .from("email_sends")
           .update({
@@ -206,6 +262,11 @@ export async function POST(
           .eq("id", send.id);
 
         sentCount++;
+
+        // Rate limiting delay between sends
+        if (SEND_DELAY_MS > 0) {
+          await sleep(SEND_DELAY_MS);
+        }
       } catch (sendErr) {
         console.error(
           `Failed to send email to ${send.email}:`,
@@ -224,28 +285,27 @@ export async function POST(
       }
     }
 
-    // Update campaign sent_count (increment)
-    const { data: updatedCampaign } = await admin
-      .from("email_campaigns")
-      .select("sent_count")
-      .eq("id", id)
-      .single();
+    // ─── ATOMIC sent_count: count actual "sent" records instead of incrementing ───
+    const { count: totalSent } = await admin
+      .from("email_sends")
+      .select("id", { count: "exact", head: true })
+      .eq("campaign_id", id)
+      .eq("status", "sent");
 
-    const newSentCount = (updatedCampaign?.sent_count || 0) + sentCount;
     await admin
       .from("email_campaigns")
       .update({
-        sent_count: newSentCount,
+        sent_count: totalSent || 0,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
 
-    // Check remaining
+    // Check remaining (queued + sending)
     const { count: remainingCount } = await admin
       .from("email_sends")
       .select("id", { count: "exact", head: true })
       .eq("campaign_id", id)
-      .eq("status", "queued");
+      .in("status", ["queued", "sending"]);
 
     const remaining = remainingCount || 0;
     const completed = remaining === 0;

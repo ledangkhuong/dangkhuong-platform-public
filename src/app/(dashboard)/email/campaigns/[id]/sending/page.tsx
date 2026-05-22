@@ -57,7 +57,7 @@ export default function SendingProgressPage() {
     }
   }, []);
 
-  // Fetch status + continue
+  // Fetch status + continue (sequential — waits for response before next call)
   const pollAndContinue = useCallback(async () => {
     try {
       // Continue sending (this also returns updated status)
@@ -65,7 +65,6 @@ export default function SendingProgressPage() {
       const data = await continueRes.json();
 
       if (continueRes.ok && data.campaign) {
-        // Continue endpoint returned campaign data
         updateFromCampaign(data.campaign);
       } else {
         // Fallback: fetch campaign status directly
@@ -81,15 +80,24 @@ export default function SendingProgressPage() {
     }
   }, [campaignId, updateFromCampaign]);
 
-  // Start polling
+  // Sequential polling — wait for each /continue to finish before calling next
+  // This prevents concurrent requests that cause duplicate sends
   useEffect(() => {
     startTimeRef.current = Date.now();
-    pollAndContinue();
-    intervalRef.current = setInterval(pollAndContinue, 3000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+    let cancelled = false;
+
+    const runSequential = async () => {
+      while (!cancelled) {
+        await pollAndContinue();
+        // Small delay between calls to avoid hammering the server
+        await new Promise(r => setTimeout(r, 1500));
+      }
     };
-  }, [pollAndContinue]);
+
+    runSequential();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Pause
   const handlePause = async () => {
@@ -108,14 +116,14 @@ export default function SendingProgressPage() {
     }
   };
 
-  // Resume
+  // Resume — update status to "sending" then let the sequential loop continue
   const handleResume = async () => {
     setResuming(true);
     try {
-      const res = await fetch(`/api/email/campaigns/${campaignId}/send`, { method: "POST" });
+      // Resume by calling continue (which handles paused → sending transition)
+      const res = await fetch(`/api/email/campaigns/${campaignId}/continue?resume=1`, { method: "POST" });
       if (res.ok && state) {
         setState({ ...state, status: "sending" });
-        intervalRef.current = setInterval(pollAndContinue, 3000);
       }
     } catch { /* */ } finally {
       setResuming(false);

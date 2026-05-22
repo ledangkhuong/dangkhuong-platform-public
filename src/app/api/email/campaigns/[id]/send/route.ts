@@ -4,6 +4,11 @@ import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { rateLimit } from "@/lib/rate-limit";
 
 const BATCH_SIZE = 50;
+const SEND_DELAY_MS = 80; // ~12 emails/s, safely under SES 14/s limit
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function escapeHtml(str: string): string {
   return str
@@ -260,17 +265,18 @@ export async function POST(
       })
       .eq("id", id);
 
-    // Step 3: Process first batch
-    const { data: queuedSends, error: queueError } = await admin
+    // Step 3: Atomically claim first batch (set status to "sending" to prevent duplicates)
+    const { data: claimedSends, error: claimError } = await admin
       .from("email_sends")
-      .select("id, subscriber_id, email")
+      .update({ status: "sending" })
       .eq("campaign_id", id)
       .eq("status", "queued")
-      .limit(BATCH_SIZE);
+      .limit(BATCH_SIZE)
+      .select("id, subscriber_id, email");
 
-    if (queueError || !queuedSends) {
+    if (claimError || !claimedSends) {
       return NextResponse.json(
-        { error: queueError?.message || "Failed to fetch queued sends" },
+        { error: claimError?.message || "Failed to claim batch" },
         { status: 500 }
       );
     }
@@ -283,7 +289,7 @@ export async function POST(
       subscribers.map((s) => [s.email, s])
     );
 
-    for (const send of queuedSends) {
+    for (const send of claimedSends) {
       try {
         const subscriber = subscriberMap.get(send.email) || {
           id: send.subscriber_id,
@@ -325,6 +331,11 @@ export async function POST(
           .eq("id", send.id);
 
         sentCount++;
+
+        // Rate limiting delay between sends
+        if (SEND_DELAY_MS > 0) {
+          await sleep(SEND_DELAY_MS);
+        }
       } catch (sendErr) {
         console.error(
           `Failed to send email to ${send.email}:`,
@@ -343,25 +354,31 @@ export async function POST(
       }
     }
 
-    // Update campaign sent_count
+    // Atomic sent_count: count actual "sent" records
+    const { count: totalSent } = await admin
+      .from("email_sends")
+      .select("id", { count: "exact", head: true })
+      .eq("campaign_id", id)
+      .eq("status", "sent");
+
     await admin
       .from("email_campaigns")
       .update({
-        sent_count: sentCount,
+        sent_count: totalSent || 0,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
 
-    // Check remaining
+    // Check remaining (queued + sending)
     const { count: remainingCount } = await admin
       .from("email_sends")
       .select("id", { count: "exact", head: true })
       .eq("campaign_id", id)
-      .eq("status", "queued");
+      .in("status", ["queued", "sending"]);
 
     const remaining = remainingCount || 0;
 
-    // If no more queued, mark as completed
+    // If no more queued/sending, mark as completed
     if (remaining === 0) {
       await admin
         .from("email_campaigns")
