@@ -411,6 +411,27 @@ export default function UpdateVeoLanding() {
             </div>
           </div>
 
+          {/* Video giới thiệu */}
+          <div className="mb-6 sm:mb-8 w-full max-w-3xl">
+            <div
+              className="relative overflow-hidden rounded-2xl"
+              style={{
+                paddingBottom: "56.25%",
+                border: "1px solid rgba(59,130,246,0.25)",
+                boxShadow: "0 20px 60px -15px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.12)",
+              }}
+            >
+              <iframe
+                src="https://www.youtube.com/embed/Z6mbgX7kSXk?rel=0"
+                title="Update VEO 3.1 thành Gemini Omni Flash — Giới thiệu Workshop"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
           {/* Headline */}
           <h2
             className="mb-4 font-extrabold max-w-4xl text-[20px] sm:text-2xl md:text-3xl leading-[1.3]"
