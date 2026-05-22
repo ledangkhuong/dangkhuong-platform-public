@@ -334,11 +334,14 @@ export default function WebAllInOneLanding() {
             nay 22.05.2026
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.3] sm:leading-[1.25] mb-8">
-            Mời Tôi Ly Sinh Tố 100K &mdash; Tôi Chia Sẻ Cách Xây{" "}
+          <p className="text-base sm:text-lg text-gray-400 mb-4 font-medium">
+            Mời tôi ly sinh tố 100K &mdash; tôi chia sẻ cách xây
+          </p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.2] sm:leading-[1.15] mb-8">
             <span style={{ color: accent }}>
-              Hệ Thống Website All-In-One
-            </span>{" "}
+              Website All-In-One
+            </span>
+            <br />
             Tạo Ra Thu Nhập Thực Sự
           </h1>
 
