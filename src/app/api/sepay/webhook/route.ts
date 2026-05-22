@@ -210,12 +210,16 @@ export async function POST(req: NextRequest) {
 
     // 4. Cập nhật đơn hàng → PAID
     // Sepay transactionDate is Vietnam local time (UTC+7) WITHOUT timezone suffix.
-    // We must append +07:00 before storing so it converts correctly when displayed.
+    // Format: "2026-05-22 13:22:21" — always append +07:00 to convert correctly.
+    // BUGFIX: Old regex /[Z+\-]\d{2}/ falsely matched "-05" in the DATE part "2026-05-22",
+    // causing Vietnam time to be treated as UTC (7 hours off).
     let paidAt: string;
     try {
       if (transactionDate) {
-        const hasTimezone = /[Z+\-]\d{2}/.test(transactionDate);
-        const dateStr = hasTimezone ? transactionDate : transactionDate.replace(" ", "T") + "+07:00";
+        // Only detect timezone if it ends with Z, +HH:MM, or +HHMM pattern
+        const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})\s*$/.test(transactionDate);
+        const normalized = transactionDate.replace(" ", "T");
+        const dateStr = hasTimezone ? normalized : normalized + "+07:00";
         paidAt = new Date(dateStr).toISOString();
       } else {
         paidAt = new Date().toISOString();
