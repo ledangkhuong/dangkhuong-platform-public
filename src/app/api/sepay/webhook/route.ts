@@ -323,7 +323,7 @@ export async function POST(req: NextRequest) {
           await sendPurchaseConfirmation(
             authUser.user.email,
             profile?.full_name || "bạn",
-            products?.name as string || "Sản phẩm",
+            products?.title as string || "Sản phẩm",
             order.amount as number,
             order.order_code as string,
           ).catch((err) => console.error("[SePay Webhook] Non-critical error:", err));
@@ -341,7 +341,7 @@ export async function POST(req: NextRequest) {
           await sendEnrollmentWelcomeEmail(
             enrollAuth.user.email,
             enrollProfile?.full_name || "bạn",
-            products?.name as string || products?.title as string || "Khoá học",
+            products?.title as string || "Khoá học",
             products?.slug as string || "",
           ).catch((err) => console.error("[SePay Webhook] Enrollment email error (non-critical):", err));
         }
@@ -356,7 +356,7 @@ export async function POST(req: NextRequest) {
         await notifyPurchaseViaZalo(
           order.user_id as string,
           zaloProfile?.full_name || "bạn",
-          products?.name as string || "Sản phẩm",
+          products?.title as string || "Sản phẩm",
           order.amount as number,
           order.order_code as string,
         );
@@ -404,7 +404,7 @@ export async function POST(req: NextRequest) {
               await sendAffiliateCommissionEmail(
                 affAuth.user.email,
                 affProfile?.full_name || "bạn",
-                (order.products as Record<string, unknown>)?.name as string || "Sản phẩm",
+                (order.products as Record<string, unknown>)?.title as string || "Sản phẩm",
                 commissionAmount,
               ).catch((err) => console.error("[SePay Webhook] Non-critical error:", err));
             }
@@ -434,7 +434,7 @@ export async function POST(req: NextRequest) {
         orderId: matchedCode,
         contentName: (products?.title as string) || (products?.name as string) || "Product",
         eventId: `purchase_${order.id}`,
-        sourceUrl: "https://dangkhuong.com/slowenglish",
+        sourceUrl: products?.slug ? `https://dangkhuong.com/courses/${products.slug as string}` : "https://dangkhuong.com",
       }).catch(() => {});
     } catch {
       // Purchase CAPI failure should never block webhook

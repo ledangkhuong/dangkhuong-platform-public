@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
           await sendPurchaseConfirmation(
             email,
             name,
-            products?.name as string || "Sản phẩm",
+            products?.title as string || "Sản phẩm",
             order.amount as number,
             order.order_code as string
           ).catch(() => {});
@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
             await sendEnrollmentWelcomeEmail(
               email,
               name,
-              products?.name as string || products?.title as string || "Khoá học",
+              products?.title as string || "Khoá học",
               products?.slug as string || "",
             ).catch(() => {});
           }
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
         await notifyPurchaseViaZalo(
           order.user_id as string,
           zaloProfile?.full_name || "bạn",
-          (order.products as Record<string, unknown>)?.name as string || "Sản phẩm",
+          (order.products as Record<string, unknown>)?.title as string || "Sản phẩm",
           order.amount as number,
           order.order_code as string,
         );
@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
               await sendAffiliateCommissionEmail(
                 affAuth.user.email,
                 affProfile?.full_name || "bạn",
-                (order.products as Record<string, unknown>)?.name as string || "Sản phẩm",
+                (order.products as Record<string, unknown>)?.title as string || "Sản phẩm",
                 commissionAmount,
               ).catch((err: unknown) => console.error("[Admin Confirm] Affiliate email error:", err));
             }
