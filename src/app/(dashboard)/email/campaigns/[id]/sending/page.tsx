@@ -138,7 +138,7 @@ export default function SendingProgressPage() {
   if (loading) {
     return (
       <div>
-        <TopBar title="Dang tai..." />
+        <TopBar title="Đang tải..." />
         <div className="flex items-center justify-center py-32">
           <Loader2 size={28} className="animate-spin text-[#D4A843]" />
         </div>
@@ -148,7 +148,7 @@ export default function SendingProgressPage() {
 
   return (
     <div>
-      <TopBar title={completed ? "Gui thanh cong!" : "Dang gui campaign..."} subtitle={state?.name ?? ""} />
+      <TopBar title={completed ? "Gửi thành công!" : "Đang gửi campaign..."} subtitle={state?.name ?? ""} />
 
       <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-6">
 
@@ -192,7 +192,7 @@ export default function SendingProgressPage() {
             {completed ? (
               <div className="space-y-2">
                 <h2 className="text-xl font-bold text-[#22c55e]">
-                  Da gui thanh cong {sent.toLocaleString("vi-VN")} emails!
+                  Đã gửi thành công {sent.toLocaleString("vi-VN")} emails!
                 </h2>
                 {/* Confetti-like dots animation */}
                 <div className="flex items-center justify-center gap-1">
@@ -210,13 +210,13 @@ export default function SendingProgressPage() {
                 </div>
               </div>
             ) : state?.status === "paused" ? (
-              <h2 className="text-lg font-semibold text-[#f97316]">Campaign dang tam dung</h2>
+              <h2 className="text-lg font-semibold text-[#f97316]">Campaign đang tạm dừng</h2>
             ) : (
-              <h2 className="text-lg font-semibold text-white">Dang gui emails...</h2>
+              <h2 className="text-lg font-semibold text-white">Đang gửi emails...</h2>
             )}
 
             <p className="text-gray-400 text-sm mt-2">
-              Da gui <span className="text-white font-semibold">{sent.toLocaleString("vi-VN")}</span> / <span className="text-white font-semibold">{total.toLocaleString("vi-VN")}</span> emails
+              Đã gửi <span className="text-white font-semibold">{sent.toLocaleString("vi-VN")}</span> / <span className="text-white font-semibold">{total.toLocaleString("vi-VN")}</span> emails
             </p>
           </div>
 
@@ -243,24 +243,24 @@ export default function SendingProgressPage() {
           <div className="stat-card text-center">
             <Send size={16} className="text-[#D4A843] mx-auto mb-2" />
             <div className="text-xl font-bold text-white">{sent.toLocaleString("vi-VN")}</div>
-            <div className="text-xs text-gray-500 mt-1">Da gui</div>
+            <div className="text-xs text-gray-500 mt-1">Đã gửi</div>
           </div>
           <div className="stat-card text-center">
             <XCircle size={16} className="text-[#ef4444] mx-auto mb-2" />
             <div className="text-xl font-bold text-white">{failed.toLocaleString("vi-VN")}</div>
-            <div className="text-xs text-gray-500 mt-1">That bai</div>
+            <div className="text-xs text-gray-500 mt-1">Thất bại</div>
           </div>
           <div className="stat-card text-center">
             <Mail size={16} className="text-[#3b82f6] mx-auto mb-2" />
             <div className="text-xl font-bold text-white">{total.toLocaleString("vi-VN")}</div>
-            <div className="text-xs text-gray-500 mt-1">Tong</div>
+            <div className="text-xs text-gray-500 mt-1">Tổng</div>
           </div>
           <div className="stat-card text-center">
             <Clock size={16} className="text-[#f59e0b] mx-auto mb-2" />
             <div className="text-xl font-bold text-white">
               {completed ? "0:00" : remaining > 0 ? `${remainingMin}:${String(remainingSec).padStart(2, "0")}` : "--:--"}
             </div>
-            <div className="text-xs text-gray-500 mt-1">Con lai</div>
+            <div className="text-xs text-gray-500 mt-1">Còn lại</div>
           </div>
         </div>
 
@@ -274,7 +274,7 @@ export default function SendingProgressPage() {
               style={{ background: "rgba(249,115,22,0.12)", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)" }}
             >
               {pausing ? <Loader2 size={14} className="animate-spin" /> : <Pause size={14} />}
-              Tam dung
+              Tạm dừng
             </button>
           )}
 
@@ -285,7 +285,7 @@ export default function SendingProgressPage() {
               className="btn-green flex items-center gap-2 text-sm"
             >
               {resuming ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-              Tiep tuc gui
+              Tiếp tục gửi
             </button>
           )}
 
@@ -296,14 +296,14 @@ export default function SendingProgressPage() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 style={{ background: "rgba(212,168,67,0.12)", color: "#D4A843", border: "1px solid rgba(212,168,67,0.3)" }}
               >
-                <BarChart3 size={14} /> Xem analytics
+                <BarChart3 size={14} /> Xem Analytics
               </button>
               <button
                 onClick={() => router.push("/email/campaigns")}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm text-gray-400 hover:text-white transition-colors"
                 style={{ border: "1px solid #2a2a2a" }}
               >
-                <ArrowLeft size={14} /> Ve danh sach
+                <ArrowLeft size={14} /> Về danh sách
               </button>
             </>
           )}
