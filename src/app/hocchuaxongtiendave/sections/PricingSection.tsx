@@ -179,14 +179,14 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
                   filter: "drop-shadow(0 4px 24px rgba(229,182,99,0.25))",
                 }}
               >
-                5.000.000đ
+                10.000.000đ
               </span>
             </div>
             <p
               className="text-center text-[13.5px] sm:text-[14.5px] font-semibold mb-8 tabular-nums"
               style={{ color: "#34D399" }}
             >
-              Tiết kiệm 15.000.000đ — giảm 75% + Bonus 16.479.000đ
+              Tiết kiệm 10.000.000đ — giảm 50% + Bonus 16.479.000đ
             </p>
 
             {/* What you get */}
@@ -276,7 +276,7 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
               }}
             >
               <Crown size={20} />
-              ĐĂNG KÝ EARLY BIRD — 5.000.000Đ
+              ĐĂNG KÝ EARLY BIRD — 10.000.000Đ
               <ArrowRight
                 size={20}
                 className="transition-transform group-hover:translate-x-1"

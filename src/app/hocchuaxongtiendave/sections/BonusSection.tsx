@@ -565,7 +565,7 @@ export default function BonusSection({ onScrollToRegister }: BonusSectionProps) 
             }}
           >
             <Crown size={16} />
-            NHẬN BONUS NGAY — 5.000.000Đ
+            NHẬN BONUS NGAY — 10.000.000Đ
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </button>
         </div>

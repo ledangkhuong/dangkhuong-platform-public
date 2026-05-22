@@ -333,7 +333,7 @@ export default function HeroSection({ onScrollToRegister }: HeroSectionProps) {
           }}
         >
           <Crown className="h-5 w-5" />
-          <span className="tabular-nums">ĐĂNG KÝ EARLY BIRD — CHỈ 5.000.000Đ</span>
+          <span className="tabular-nums">ĐĂNG KÝ EARLY BIRD — CHỈ 10.000.000Đ</span>
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
 

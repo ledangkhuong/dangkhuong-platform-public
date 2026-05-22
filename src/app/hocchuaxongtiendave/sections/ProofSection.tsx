@@ -72,7 +72,7 @@ const COMPARISON = [
   },
   {
     option: "Chương trình Thầy Khương",
-    initial: "5.000.000đ",
+    initial: "10.000.000đ",
     monthly: "~600K",
     own: "✅ 100%",
     bad: false,
@@ -297,11 +297,11 @@ function DashboardMockup({ Icon }: { Icon: LucideIcon }) {
 
 function OrdersMockup({ Icon }: { Icon: LucideIcon }) {
   const orders = [
-    { code: "#DK-1042", name: "Nguyễn Văn A", amount: "5.000.000đ", status: "Paid" },
-    { code: "#DK-1041", name: "Trần Thị B", amount: "5.000.000đ", status: "Paid" },
-    { code: "#DK-1040", name: "Lê Hoàng C", amount: "5.000.000đ", status: "Pending" },
-    { code: "#DK-1039", name: "Phạm Minh D", amount: "5.000.000đ", status: "Paid" },
-    { code: "#DK-1038", name: "Đỗ Thu E", amount: "5.000.000đ", status: "Paid" },
+    { code: "#DK-1042", name: "Nguyễn Văn A", amount: "10.000.000đ", status: "Paid" },
+    { code: "#DK-1041", name: "Trần Thị B", amount: "10.000.000đ", status: "Paid" },
+    { code: "#DK-1040", name: "Lê Hoàng C", amount: "10.000.000đ", status: "Pending" },
+    { code: "#DK-1039", name: "Phạm Minh D", amount: "10.000.000đ", status: "Paid" },
+    { code: "#DK-1038", name: "Đỗ Thu E", amount: "10.000.000đ", status: "Paid" },
   ];
 
   return (

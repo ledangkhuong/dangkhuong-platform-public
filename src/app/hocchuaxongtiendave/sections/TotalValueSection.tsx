@@ -148,7 +148,7 @@ export default function TotalValueSection({ onScrollToRegister }: TotalValueSect
             Nhưng hôm nay bạn chỉ đầu tư:
           </p>
           <p className="text-2xl sm:text-3xl font-extrabold tabular-nums tracking-[-0.01em] mb-2 text-white">
-            5.000.000đ{" "}
+            10.000.000đ{" "}
             <span
               className="text-lg line-through font-normal ml-2 tabular-nums"
               style={{ color: "rgba(241,245,251,0.4)" }}
@@ -160,7 +160,7 @@ export default function TotalValueSection({ onScrollToRegister }: TotalValueSect
             className="text-[13px] sm:text-[14px] tabular-nums mb-6"
             style={{ color: "#34D399" }}
           >
-            Bạn tiết kiệm <span className="font-bold">73.479.000đ</span> so với giá trị thật
+            Bạn tiết kiệm <span className="font-bold">68.479.000đ</span> so với giá trị thật
           </p>
 
           <button

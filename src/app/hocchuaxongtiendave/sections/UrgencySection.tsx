@@ -427,7 +427,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
               <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] mb-2" style={{ color: "rgba(241,245,251,0.55)" }}>
                 1 sản phẩm bán
               </div>
-              <div className="text-xl font-bold text-white tabular-nums">5.000.000đ / khóa</div>
+              <div className="text-xl font-bold text-white tabular-nums">10.000.000đ / khóa</div>
             </div>
             <div
               className="rounded-xl p-4 sm:p-5"
@@ -440,7 +440,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
                 10 đơn/tháng
               </div>
               <div className="text-xl font-bold tabular-nums" style={{ color: "#34D399" }}>
-                = 50tr / tháng
+                = 100tr / tháng
               </div>
             </div>
             <div
@@ -461,9 +461,9 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
           </div>
 
           <p className="text-center mt-6 text-[14px] sm:text-[15px] leading-[1.75]" style={{ color: "rgba(241,245,251,0.75)" }}>
-            Học phí Early Bird chỉ <strong className="text-white">5.000.000đ</strong> — hoàn vốn ngay đơn đầu tiên.
+            Học phí Early Bird chỉ <strong className="text-white">10.000.000đ</strong> — hoàn vốn ngay đơn đầu tiên.
             <br />
-            Nếu trễ — bạn phải trả <strong style={{ color: "#F87171" }}>20.000.000đ</strong> (gấp 4 lần).
+            Nếu trễ — bạn phải trả <strong style={{ color: "#F87171" }}>20.000.000đ</strong> (gấp đôi).
           </p>
         </div>
 
@@ -479,7 +479,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
           <AlertTriangle size={20} style={{ color: "#F87171", flexShrink: 0 }} />
           <p className="text-[13px] sm:text-[14px] leading-[1.6]" style={{ color: "#F1F5FB" }}>
             <strong style={{ color: "#F87171" }}>Cảnh báo:</strong> Sau khi đủ <strong>100 suất</strong>, giá sẽ tăng từ{" "}
-            <strong>5.000.000đ</strong> lên <strong style={{ color: "#F87171" }}>20.000.000đ</strong> (gấp 4 lần).{" "}
+            <strong>10.000.000đ</strong> lên <strong style={{ color: "#F87171" }}>20.000.000đ</strong> (gấp đôi).{" "}
             <strong>Không có gia hạn.</strong>
           </p>
         </div>
@@ -496,7 +496,7 @@ export default function UrgencySection({ onScrollToRegister }: UrgencySectionPro
             }}
           >
             <Crown size={20} />
-            ĐĂNG KÝ EARLY BIRD NGAY — 5.000.000Đ
+            ĐĂNG KÝ EARLY BIRD NGAY — 10.000.000Đ
             <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
           </button>
         </div>
