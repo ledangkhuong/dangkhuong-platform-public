@@ -422,6 +422,23 @@ function NotificationsTab() {
 }
 
 function SecurityTab() {
+  // OAuth-only detection
+  const [isOAuthOnly, setIsOAuthOnly] = useState<boolean | null>(null);
+  const [oauthProviders, setOauthProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        setIsOAuthOnly(false);
+        return;
+      }
+      const providers: string[] = user.app_metadata?.providers ?? [];
+      setOauthProviders(providers.filter((p) => p !== "email"));
+      setIsOAuthOnly(!providers.includes("email"));
+    });
+  }, []);
+
   // Password change state
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -499,96 +516,112 @@ function SecurityTab() {
       <div className="card-dark p-6">
         <h3 className="font-semibold text-white mb-4">Đổi mật khẩu</h3>
 
-        {pwSuccess && (
+        {isOAuthOnly === null ? (
+          <p className="text-sm text-gray-400">Đang tải...</p>
+        ) : isOAuthOnly ? (
           <div
-            className="flex items-center gap-2 p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20 mb-4"
+            className="flex items-center gap-2 p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20"
             style={{ background: "rgba(212,168,67,0.08)" }}
           >
-            <Check size={15} />
-            Đã cập nhật mật khẩu thành công!
+            <Shield size={15} className="shrink-0" />
+            <span>
+              Bạn đăng nhập bằng {oauthProviders.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(", ")} nên không cần mật khẩu. Tài khoản của bạn được bảo mật thông qua nhà cung cấp đăng nhập.
+            </span>
           </div>
-        )}
-        {pwError && (
-          <div
-            className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20 mb-4"
-            style={{ background: "rgba(239,68,68,0.08)" }}
-          >
-            {pwError}
-          </div>
-        )}
+        ) : (
+          <>
+            {pwSuccess && (
+              <div
+                className="flex items-center gap-2 p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20 mb-4"
+                style={{ background: "rgba(212,168,67,0.08)" }}
+              >
+                <Check size={15} />
+                Đã cập nhật mật khẩu thành công!
+              </div>
+            )}
+            {pwError && (
+              <div
+                className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20 mb-4"
+                style={{ background: "rgba(239,68,68,0.08)" }}
+              >
+                {pwError}
+              </div>
+            )}
 
-        <form onSubmit={handlePasswordChange} className="space-y-3 max-w-md">
-          <div>
-            <label htmlFor="currentPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
-            <div className="relative">
-              <input
-                id="currentPassword"
-                type={showOld ? "text" : "password"}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="input-dark w-full pr-10 text-sm"
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
+            <form onSubmit={handlePasswordChange} className="space-y-3 max-w-md">
+              <div>
+                <label htmlFor="currentPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
+                <div className="relative">
+                  <input
+                    id="currentPassword"
+                    type={showOld ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="input-dark w-full pr-10 text-sm"
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOld(!showOld)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showOld ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="newPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
+                <div className="relative">
+                  <input
+                    id="newPassword"
+                    type={showNew ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="input-dark w-full pr-10 text-sm"
+                    placeholder="Ít nhất 8 ký tự"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Xác nhận mật khẩu mới</label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-dark w-full pr-10 text-sm"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={() => setShowOld(!showOld)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                type="submit"
+                disabled={pwLoading}
+                className="btn-green text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {showOld ? <EyeOff size={15} /> : <Eye size={15} />}
+                {pwLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
               </button>
-            </div>
-          </div>
-          <div>
-            <label htmlFor="newPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
-            <div className="relative">
-              <input
-                id="newPassword"
-                type={showNew ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="input-dark w-full pr-10 text-sm"
-                placeholder="Ít nhất 8 ký tự"
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-              >
-                {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </div>
-          </div>
-          <div>
-            <label htmlFor="confirmPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Xác nhận mật khẩu mới</label>
-            <div className="relative">
-              <input
-                id="confirmPassword"
-                type={showConfirm ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input-dark w-full pr-10 text-sm"
-                placeholder="••••••••"
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-              >
-                {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={pwLoading}
-            className="btn-green text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {pwLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
-          </button>
-        </form>
+            </form>
+          </>
+        )}
       </div>
 
       {/* Danger zone */}

@@ -175,7 +175,20 @@ export async function signIn(formData: FormData) {
   if (userId) {
     const admin = await createAdminClient();
     await admin.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", userId);
-    await admin.from("xp_events").insert({ user_id: userId, action: "login", xp_amount: 10 });
+
+    // Check daily login XP cap (max 1 per day, 10 XP) before inserting
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: loginXpToday } = await admin
+      .from("xp_events")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("action", "login")
+      .gte("created_at", todayStart.toISOString());
+
+    if ((loginXpToday ?? 0) < 1) {
+      await admin.from("xp_events").insert({ user_id: userId, action: "login", xp_amount: 10 });
+    }
   }
   redirect("/dashboard");
 }

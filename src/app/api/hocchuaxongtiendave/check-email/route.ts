@@ -31,14 +31,24 @@ export async function POST(req: NextRequest) {
     const trimmed = email.trim().toLowerCase();
     const admin = await createAdminClient();
 
-    // Pattern matches forgot-password.ts: list users, filter in JS
-    const { data: users } = await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-    const matchedUser = users?.users?.find(
-      (u) => u.email?.toLowerCase() === trimmed
+    // Look up user by email via the GoTrue admin REST API with a filter.
+    // The JS client's listUsers() only returns one page and will miss users
+    // once the system grows past that page size.
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const lookupRes = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users?filter=${encodeURIComponent(trimmed)}&page=1&per_page=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          apikey: serviceRoleKey,
+        },
+      }
     );
+    const lookupBody = await lookupRes.json();
+    // The GoTrue filter is a substring match — verify exact email equality
+    const matchedUser = (lookupBody?.users as Array<{ id: string; email?: string; user_metadata?: Record<string, unknown> }> | undefined)
+      ?.find((u) => u.email?.toLowerCase() === trimmed);
 
     if (!matchedUser) {
       return NextResponse.json({ exists: false });
