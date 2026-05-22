@@ -139,6 +139,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   if (!["admin", "manager", "sale"].includes(profile?.role ?? "")) redirect("/dashboard");
 
   const canWrite = ["admin", "manager"].includes(profile?.role ?? "");
+  const canConfirm = ["admin", "manager", "sale"].includes(profile?.role ?? "");
 
   // Bank info for QR
   const bankAccount = process.env.SEPAY_BANK_ACCOUNT ?? "";
@@ -468,7 +469,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       {/* Actions */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          {canWrite && order.status === "pending" && (
+                          {canConfirm && order.status === "pending" && (
                             <ConfirmOrderButton
                               orderCode={order.order_code}
                               customerName={order.customer_name}
