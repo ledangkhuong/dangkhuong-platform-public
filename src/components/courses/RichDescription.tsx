@@ -1,6 +1,6 @@
 "use client";
 
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 /* Renders rich HTML description with styled prose */
 export default function RichDescription({ html }: { html: string }) {
@@ -8,7 +8,7 @@ export default function RichDescription({ html }: { html: string }) {
     <>
       <div
         className="rich-description"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
       />
       <style jsx global>{`
         .rich-description {

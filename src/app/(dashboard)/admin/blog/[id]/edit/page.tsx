@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "@/lib/sanitize";
 import TopBar from "@/components/layout/TopBar";
 import { DEFAULT_AUTHOR } from "@/lib/author-config";
 import {
@@ -426,7 +426,7 @@ export default function EditBlogPostPage() {
                 <Eye size={14} className="text-blue-400" />
                 <span className="text-xs font-semibold text-blue-400">PREVIEW</span>
               </div>
-              <div className="blog-content text-gray-300 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />
+              <div className="blog-content text-gray-300 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlContent) }} />
             </div>
           ) : (
             initialHtml !== null && <NovelEditor onChange={handleEditorChange} initialHtml={initialHtml} />
