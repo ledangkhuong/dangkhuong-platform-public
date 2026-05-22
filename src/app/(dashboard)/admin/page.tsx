@@ -75,9 +75,9 @@ export default async function AdminPage() {
       color: "#D4A843",
     },
     {
-      label: "Đơn hàng chờ xử lý",
-      value: String(pendingCount ?? 0),
-      change: "cần xem",
+      label: "Đơn hàng hôm nay",
+      value: String(todayOrders?.length ?? 0),
+      change: "Hôm nay",
       color: "#f59e0b",
     },
     {
