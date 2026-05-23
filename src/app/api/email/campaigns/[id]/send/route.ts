@@ -265,13 +265,29 @@ export async function POST(
       })
       .eq("id", id);
 
-    // Step 3: Atomically claim first batch (set status to "sending" to prevent duplicates)
+    // Step 3: Claim first batch — SELECT ids first, then UPDATE by ids
+    // (.update().limit() is unreliable in PostgREST/Supabase)
+    const { data: queuedRows, error: selectError } = await admin
+      .from("email_sends")
+      .select("id")
+      .eq("campaign_id", id)
+      .eq("status", "queued")
+      .order("created_at", { ascending: true })
+      .limit(BATCH_SIZE);
+
+    if (selectError || !queuedRows || queuedRows.length === 0) {
+      return NextResponse.json(
+        { error: selectError?.message || "No queued sends found" },
+        { status: 500 }
+      );
+    }
+
+    const batchIds = queuedRows.map((r) => r.id);
+
     const { data: claimedSends, error: claimError } = await admin
       .from("email_sends")
       .update({ status: "sending" })
-      .eq("campaign_id", id)
-      .eq("status", "queued")
-      .limit(BATCH_SIZE)
+      .in("id", batchIds)
       .select("id, subscriber_id, email");
 
     if (claimError || !claimedSends) {

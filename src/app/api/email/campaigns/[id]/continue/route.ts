@@ -116,25 +116,24 @@ export async function POST(
         .eq("id", id);
     }
 
-    // ─── ATOMIC CLAIM: mark batch as "sending" to prevent duplicates ───
-    // Use UPDATE ... WHERE status='queued' to atomically claim records
-    // This prevents concurrent /continue calls from picking the same emails
-    const { data: claimedSends, error: claimError } = await admin
+    // ─── Claim batch: SELECT ids first, then UPDATE by ids ───
+    // (.update().limit() is unreliable in PostgREST/Supabase)
+    const { data: queuedRows, error: selectError } = await admin
       .from("email_sends")
-      .update({ status: "sending" })
+      .select("id")
       .eq("campaign_id", id)
       .eq("status", "queued")
-      .limit(BATCH_SIZE)
-      .select("id, subscriber_id, email");
+      .order("created_at", { ascending: true })
+      .limit(BATCH_SIZE);
 
-    if (claimError) {
+    if (selectError) {
       return NextResponse.json(
-        { error: claimError.message },
+        { error: selectError.message },
         { status: 500 }
       );
     }
 
-    if (!claimedSends || claimedSends.length === 0) {
+    if (!queuedRows || queuedRows.length === 0) {
       // No more queued sends — check if all done
       const { count: remainingCount } = await admin
         .from("email_sends")
@@ -174,6 +173,22 @@ export async function POST(
         completed: true,
         campaign: finalCampaign,
       });
+    }
+
+    // Claim the batch by updating status to "sending"
+    const batchIds = queuedRows.map((r) => r.id);
+
+    const { data: claimedSends, error: claimError } = await admin
+      .from("email_sends")
+      .update({ status: "sending" })
+      .in("id", batchIds)
+      .select("id, subscriber_id, email");
+
+    if (claimError || !claimedSends || claimedSends.length === 0) {
+      return NextResponse.json(
+        { error: claimError?.message || "Failed to claim batch" },
+        { status: 500 }
+      );
     }
 
     // Fetch subscriber details for template rendering
