@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS public.email_sends (
   subscriber_id   uuid NOT NULL REFERENCES public.subscribers(id) ON DELETE CASCADE,
   email           text NOT NULL,
   status          text DEFAULT 'queued'
-                  CHECK (status IN ('queued', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'complained', 'failed')),
+                  CHECK (status IN ('queued', 'sending', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'complained', 'failed')),
   ses_message_id  text,                              -- Message ID từ AWS SES / nhà cung cấp email
   sent_at         timestamptz,
   opened_at       timestamptz,
