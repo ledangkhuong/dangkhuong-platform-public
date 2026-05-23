@@ -1337,23 +1337,123 @@ export default function UpdateVeoLanding() {
             }}
           >
             {paymentStatus === "paid" ? (
-              <div className="p-8 text-center">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: "rgba(34,197,94,0.15)", border: "2px solid rgba(34,197,94,0.5)" }}>
-                  <CheckCircle size={40} style={{ color: "#22c55e" }} />
+              <div className="p-6 sm:p-8">
+                {/* Success header */}
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(34,197,94,0.15)", border: "2px solid rgba(34,197,94,0.5)" }}>
+                    <CheckCircle size={40} style={{ color: "#22c55e" }} />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Thanh Toán Thành Công! 🎉</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(241,245,251,0.6)" }}>
+                    Vé workshop đã được xác nhận. Hãy thực hiện <strong className="text-white">2 bước</strong> bên dưới ngay nhé!
+                  </p>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Thanh Toán Thành Công! 🎉</h3>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(241,245,251,0.6)" }}>
-                  Vé workshop đã được xác nhận. Kiểm tra email để nhận link Zoom.
-                </p>
+
+                {/* Step 1: Check email */}
+                <div
+                  className="rounded-xl p-4 mb-3"
+                  style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)" }}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)", color: "#fff" }}
+                    >
+                      1
+                    </span>
+                    <div>
+                      <div className="text-sm font-semibold text-white mb-1">📧 Kiểm tra Email</div>
+                      <p className="text-[13px] leading-relaxed" style={{ color: "rgba(241,245,251,0.65)" }}>
+                        Email xác nhận đã được gửi kèm thông tin workshop. Kiểm tra cả thư mục <strong className="text-white">Spam/Promotions</strong> nhé.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2: Join Zalo group */}
+                <div
+                  className="rounded-xl p-4 mb-5"
+                  style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)" }}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)", color: "#fff" }}
+                    >
+                      2
+                    </span>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-white mb-1">💬 Vào Nhóm Zalo Học Viên</div>
+                      <p className="text-[13px] leading-relaxed mb-3" style={{ color: "rgba(241,245,251,0.65)" }}>
+                        Tham gia nhóm để nhận thông báo, tài liệu và hỗ trợ trước buổi học.
+                      </p>
+                      <a
+                        href="https://zalo.me/g/fox4t1gvyqaogbenaqmo"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:scale-[1.02]"
+                        style={{ background: "linear-gradient(135deg, #0068FF 0%, #0099FF 100%)", color: "#fff", boxShadow: "0 4px 12px rgba(0,104,255,0.3)" }}
+                      >
+                        <MessageCircle size={16} />
+                        Vào Nhóm Zalo Ngay
+                        <ArrowRight size={14} />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Zoom info */}
+                <div
+                  className="rounded-xl p-4 mb-5"
+                  style={{ background: "rgba(34,211,238,0.05)", border: "1px solid rgba(34,211,238,0.2)" }}
+                >
+                  <div className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                    <MonitorPlay size={16} style={{ color: "#22D3EE" }} />
+                    Thông Tin Zoom
+                  </div>
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "#050913", border: "1px solid rgba(34,211,238,0.1)" }}>
+                      <span className="text-xs" style={{ color: "rgba(241,245,251,0.5)" }}>Meeting ID</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono font-semibold text-white">272 768 2727</span>
+                        <button onClick={() => copyText("2727682727", "zoom-id")} className="p-1 rounded transition-all" style={{ color: "rgba(241,245,251,0.5)" }}>
+                          {copied === "zoom-id" ? <Check size={13} style={{ color: "#22D3EE" }} /> : <Copy size={13} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "#050913", border: "1px solid rgba(34,211,238,0.1)" }}>
+                      <span className="text-xs" style={{ color: "rgba(241,245,251,0.5)" }}>Passcode</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono font-semibold text-white">272727</span>
+                        <button onClick={() => copyText("272727", "zoom-pass")} className="p-1 rounded transition-all" style={{ color: "rgba(241,245,251,0.5)" }}>
+                          {copied === "zoom-pass" ? <Check size={13} style={{ color: "#22D3EE" }} /> : <Copy size={13} />}
+                        </button>
+                      </div>
+                    </div>
+                    <a
+                      href="https://us06web.zoom.us/j/2727682727?pwd=bzA4NG1xZEpaTXVaOFVNR1BKNXc0Zz09"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
+                      style={{ background: "rgba(34,211,238,0.12)", border: "1px solid rgba(34,211,238,0.3)", color: "#22D3EE" }}
+                    >
+                      <MonitorPlay size={15} />
+                      Mở Link Zoom
+                      <ArrowRight size={14} />
+                    </a>
+                  </div>
+                </div>
+
+                {/* CTA buttons */}
                 <a
                   href={COURSE_URL}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold transition-all hover:scale-[1.02]"
-                  style={{ background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)", color: "#fff" }}
+                  className="flex items-center justify-center gap-2 w-full px-6 py-3.5 rounded-xl text-base font-bold transition-all hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)", color: "#fff", boxShadow: "0 4px 16px rgba(34,197,94,0.3)" }}
                 >
                   Vào Khóa Học
                   <ArrowRight size={16} />
                 </a>
-                <button onClick={() => setShowModal(false)} className="block w-full mt-4 py-2 text-sm cursor-pointer" style={{ color: "rgba(241,245,251,0.5)" }}>
+                <button onClick={() => setShowModal(false)} className="block w-full mt-3 py-2 text-sm cursor-pointer" style={{ color: "rgba(241,245,251,0.5)" }}>
                   Đóng
                 </button>
               </div>
