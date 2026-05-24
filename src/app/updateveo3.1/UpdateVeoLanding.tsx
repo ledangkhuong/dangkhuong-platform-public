@@ -531,9 +531,9 @@ export default function UpdateVeoLanding() {
             onClick={scrollToRegister}
             className="group flex cursor-pointer items-center gap-3 rounded-xl px-8 sm:px-12 py-[16px] sm:py-[18px] text-base sm:text-lg font-bold transition-all duration-200 hover:scale-105"
             style={{
-              background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
-              color: "#fff",
-              boxShadow: "0 0 40px rgba(59,130,246,0.4), 0 0 0 1px rgba(59,130,246,0.5)",
+              background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
+              color: "#000000",
+              boxShadow: "0 0 40px rgba(245,158,11,0.4), 0 0 0 1px rgba(245,158,11,0.5)",
             }}
           >
             <Zap className="h-5 w-5" />
@@ -970,9 +970,9 @@ export default function UpdateVeoLanding() {
                 onClick={scrollToRegister}
                 className="group w-full flex items-center justify-center gap-3 rounded-xl px-8 py-4 sm:py-5 text-base sm:text-lg font-bold tracking-wide transition-all hover:scale-[1.02] cursor-pointer"
                 style={{
-                  background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
-                  color: "#fff",
-                  boxShadow: "0 0 40px rgba(59,130,246,0.45), 0 8px 24px rgba(59,130,246,0.3)",
+                  background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
+                  color: "#000000",
+                  boxShadow: "0 0 40px rgba(245,158,11,0.45), 0 8px 24px rgba(245,158,11,0.3)",
                 }}
               >
                 <Zap size={20} />
@@ -1211,9 +1211,9 @@ export default function UpdateVeoLanding() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 rounded-xl py-4 mt-4 text-base sm:text-lg font-bold uppercase tracking-wide transition-all hover:opacity-95 hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
               style={{
-                background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
-                color: "#fff",
-                boxShadow: "0 0 30px rgba(59,130,246,0.4)",
+                background: "#EAB308",
+                color: "#000000",
+                boxShadow: "0 0 30px rgba(234,179,8,0.4)",
               }}
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
@@ -1256,9 +1256,9 @@ export default function UpdateVeoLanding() {
             onClick={scrollToRegister}
             className="group inline-flex items-center gap-3 rounded-xl px-8 sm:px-12 py-4 sm:py-5 text-base sm:text-lg font-bold tracking-wide transition-all hover:scale-[1.03] cursor-pointer"
             style={{
-              background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
-              color: "#fff",
-              boxShadow: "0 0 40px rgba(59,130,246,0.45), 0 10px 24px -10px rgba(59,130,246,0.55)",
+              background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
+              color: "#000000",
+              boxShadow: "0 0 40px rgba(245,158,11,0.45), 0 10px 24px -10px rgba(245,158,11,0.55)",
             }}
           >
             <Zap size={20} />
@@ -1310,9 +1310,9 @@ export default function UpdateVeoLanding() {
             onClick={scrollToRegister}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl py-3.5 sm:py-3 px-6 sm:px-7 text-base font-bold uppercase tracking-wide cursor-pointer transition-all hover:scale-[1.02]"
             style={{
-              background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
-              color: "#fff",
-              boxShadow: "0 -2px 24px rgba(59,130,246,0.3)",
+              background: "linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)",
+              color: "#000000",
+              boxShadow: "0 -2px 24px rgba(234,179,8,0.3)",
             }}
           >
             <Zap size={16} />

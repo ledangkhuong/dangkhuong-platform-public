@@ -202,8 +202,8 @@ export default function FinalCTASection({ onScrollToRegister }: FinalCTASectionP
           <button
             type="button"
             onClick={onScrollToRegister}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 px-8 py-4 text-center text-sm font-bold uppercase tracking-wide transition-colors hover:bg-yellow-400/10 sm:w-auto cursor-pointer"
-            style={{ borderColor: "#FBBF24", color: "#FBBF24" }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-8 py-4 text-center text-sm font-bold uppercase tracking-wide transition-opacity hover:opacity-90 sm:w-auto cursor-pointer"
+            style={{ background: "linear-gradient(135deg, #FBBF24, #F59E0B)", color: "#000000" }}
           >
             GÓI STANDARD – 499K
             <ArrowRight className="h-4 w-4" />

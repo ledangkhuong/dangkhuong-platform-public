@@ -691,20 +691,22 @@ export default function CoursePublicView({
           </div>
 
           {!isAuthenticated ? (
-            <Link href="/register" className={`${isFree ? "btn-success" : "btn-gold"} text-sm py-2.5 px-5`}>
+            <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 px-5 cursor-pointer transition-all hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000" }}>
               {isFree ? "Đăng ký" : "Đăng ký ngay"}
             </Link>
           ) : isFree ? (
             <Link
               href={`/courses/${product.slug}`}
-              className="btn-success text-sm py-2.5 px-5"
+              className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 px-5 cursor-pointer transition-all hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000" }}
             >
               Vào học
             </Link>
           ) : (
             <button
               onClick={() => setShowCheckout(true)}
-              className="btn-gold text-sm py-2.5 px-5"
+              className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 px-5 cursor-pointer transition-all hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000" }}
             >
               Mua ngay
             </button>

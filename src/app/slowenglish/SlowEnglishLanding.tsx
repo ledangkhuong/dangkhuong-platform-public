@@ -452,9 +452,10 @@ export default function SlowEnglishLanding() {
       >
         <button
           onClick={scrollToRegister}
-          className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold uppercase tracking-wide text-gray-900"
+          className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold uppercase tracking-wide"
           style={{
-            background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
+            background: "linear-gradient(135deg, #EAB308, #F59E0B)",
+            color: "#000000",
           }}
         >
           Đăng Ký Ngay <ArrowRight size={14} />

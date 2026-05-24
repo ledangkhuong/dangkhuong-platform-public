@@ -195,7 +195,7 @@ function MonthCalendar({
               onClick={() => onSelectDay(day)}
               className={`relative h-10 rounded-xl flex flex-col items-center justify-center text-sm font-medium transition-all ${
                 isSelected
-                  ? "bg-[#D4A843] text-white"
+                  ? "bg-[#D4A843] text-black"
                   : isToday
                   ? "bg-[#D4A843]/20 text-[#D4A843] ring-1 ring-[#D4A843]/40"
                   : "text-gray-400 hover:bg-white/5"

@@ -112,8 +112,8 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             <button
               type="button"
               onClick={onScrollToRegister}
-              className="block rounded-xl border-2 py-3.5 text-center text-sm font-bold uppercase tracking-wide transition-colors hover:bg-yellow-400/10 cursor-pointer"
-              style={{ borderColor: "#FBBF24", color: "#FBBF24" }}
+              className="block rounded-xl py-3.5 text-center text-sm font-bold uppercase tracking-wide transition-opacity hover:opacity-90 cursor-pointer"
+              style={{ background: "linear-gradient(135deg, #FBBF24, #F59E0B)", color: "#000000" }}
             >
               Đăng Ký Gói Standard
             </button>

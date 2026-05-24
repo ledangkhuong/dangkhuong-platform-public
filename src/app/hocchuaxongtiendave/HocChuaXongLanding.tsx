@@ -506,9 +506,9 @@ export default function HocChuaXongLanding() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 rounded-xl py-4 mt-4 text-base sm:text-lg font-bold uppercase tracking-wide transition-all hover:opacity-95 hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
               style={{
-                background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
-                color: "#0A1020",
-                boxShadow: "0 0 30px rgba(229,182,99,0.4)",
+                background: "#EAB308",
+                color: "#000000",
+                boxShadow: "0 0 30px rgba(234,179,8,0.4)",
               }}
             >
               {loading ? (
@@ -592,9 +592,9 @@ export default function HocChuaXongLanding() {
             onClick={scrollToRegister}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl py-3.5 sm:py-3 px-6 sm:px-7 text-base font-bold uppercase tracking-wide cursor-pointer transition-all hover:scale-[1.02]"
             style={{
-              background: "linear-gradient(135deg, #E5B663 0%, #C9A86B 100%)",
-              color: "#0A1020",
-              boxShadow: "0 -2px 24px rgba(229,182,99,0.3)",
+              background: "linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)",
+              color: "#000000",
+              boxShadow: "0 -2px 24px rgba(234,179,8,0.3)",
             }}
           >
             <Crown size={16} />

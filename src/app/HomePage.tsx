@@ -841,7 +841,8 @@ export default function HomePage() {
           </div>
 
           <button onClick={() => setShowLeadModal(true)}
-            className="btn-success py-3 px-6 sm:px-8 text-sm sm:text-base rounded-full shadow-lg shadow-green-500/25 flex-1 max-w-sm justify-center">
+            className="flex items-center gap-2 py-3 px-6 sm:px-8 text-sm sm:text-base rounded-full shadow-lg flex-1 max-w-sm justify-center font-bold cursor-pointer transition-all hover:scale-[1.02]"
+            style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000", boxShadow: "0 -2px 20px rgba(234,179,8,0.25)" }}>
             <Download size={16} /> Đăng ký nhận Bí Mật Video AI Triệu View Miễn Phí
           </button>
 

@@ -889,9 +889,9 @@ export default function CafeLanding() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 rounded-xl py-4 mt-4 text-base sm:text-lg font-bold uppercase tracking-wide transition-all hover:opacity-95 hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
               style={{
-                background: "linear-gradient(135deg, #D4A843 0%, #B8944A 100%)",
-                color: "#0A1020",
-                boxShadow: "0 0 30px rgba(212,168,67,0.4)",
+                background: "#EAB308",
+                color: "#000000",
+                boxShadow: "0 0 30px rgba(234,179,8,0.4)",
               }}
             >
               {loading ? (
@@ -1057,7 +1057,8 @@ export default function CafeLanding() {
       >
         <button
           onClick={scrollToForm}
-          className="btn-green w-full justify-center text-sm py-3"
+          className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-3 cursor-pointer transition-all hover:scale-[1.02]"
+          style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000" }}
         >
           <Coffee size={14} /> Nhận Tài Liệu — 99K{" "}
           <ArrowRight size={14} />

@@ -1178,7 +1178,8 @@ export default function WebAllInOneLanding() {
       >
         <button
           onClick={scrollToForm}
-          className="btn-green w-full justify-center text-sm py-3"
+          className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-3 cursor-pointer transition-all hover:scale-[1.02]"
+          style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000" }}
         >
           <Coffee size={14} /> Mời Sinh Tố &mdash; 100K{" "}
           <ArrowRight size={14} />

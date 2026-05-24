@@ -93,8 +93,8 @@ body {
 }
 
 .btn-green {
-  background: #FFD814;
-  color: #131921;
+  background: #EAB308;
+  color: #000000;
   font-weight: 700;
   padding: 8px 20px;
   border-radius: 8px;
@@ -107,7 +107,7 @@ body {
   font-size: 14px;
   text-decoration: none;
 }
-.btn-green:hover { background: #F0C400; }
+.btn-green:hover { background: #CA9F06; }
 .btn-green:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-success {
@@ -130,7 +130,7 @@ body {
 
 .btn-gold {
   background: linear-gradient(135deg, #FFD814, #FFA41C);
-  color: #131921;
+  color: #000000;
   font-weight: 700;
   padding: 8px 20px;
   border-radius: 8px;

@@ -117,7 +117,7 @@ export default async function BlogPage({
                   href={href}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-[#D4A843] text-white"
+                      ? "bg-[#D4A843] text-black"
                       : "text-gray-400 hover:text-white"
                   }`}
                   style={

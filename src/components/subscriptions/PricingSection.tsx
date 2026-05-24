@@ -281,12 +281,10 @@ export default function PricingSection({ onSubscribe }: PricingSectionProps) {
                 className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
                 style={{
                   background: isPopular
-                    ? "linear-gradient(135deg, #D4A843, #b8922e)"
-                    : "rgba(212,168,67,0.1)",
-                  color: isPopular ? "#0a0a0a" : "#D4A843",
-                  border: isPopular
-                    ? "none"
-                    : "1px solid rgba(212,168,67,0.3)",
+                    ? "linear-gradient(135deg, #FFD814, #FFA41C)"
+                    : "linear-gradient(135deg, #FFD814, #FFA41C)",
+                  color: "#000000",
+                  border: "none",
                 }}
               >
                 {subscribing === plan.id ? (

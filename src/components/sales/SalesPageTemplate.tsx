@@ -912,7 +912,8 @@ export default function SalesPageTemplate({
 
           <button
             onClick={handleCTA}
-            className="btn-gold text-sm py-2.5 px-5"
+            className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 px-5 cursor-pointer transition-all hover:scale-[1.02]"
+            style={{ background: "linear-gradient(135deg, #EAB308, #F59E0B)", color: "#000000" }}
           >
             {isFree ? "Vào học" : isAuthenticated ? "Mua ngay" : "Đăng ký ngay"}
           </button>

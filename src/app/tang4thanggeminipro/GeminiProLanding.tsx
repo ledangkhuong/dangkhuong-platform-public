@@ -146,7 +146,7 @@ export default function GeminiProLanding() {
             Mời tôi ly cafe <strong style={{ color: "#FBBC05" }}>99.000đ</strong>, tôi gửi bạn hướng dẫn chi tiết + link đăng ký + <strong className="text-white">tặng tài liệu bí mật Video AI Triệu View</strong>.
           </p>
 
-          <button onClick={scrollToRegister} className="inline-flex items-center gap-2 rounded-xl py-3.5 px-8 text-base font-bold cursor-pointer transition-all hover:scale-[1.03]" style={{ background: "linear-gradient(135deg, #4285F4 0%, #34A853 100%)", color: "#fff", boxShadow: "0 8px 30px rgba(66,133,244,0.35)" }}>
+          <button onClick={scrollToRegister} className="inline-flex items-center gap-2 rounded-xl py-3.5 px-8 text-base font-bold cursor-pointer transition-all hover:scale-[1.03]" style={{ background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)", color: "#000000", boxShadow: "0 8px 30px rgba(245,158,11,0.35)" }}>
             <Coffee size={18} /> Mời Cafe & Nhận Ngay <ArrowRight size={16} />
           </button>
 
@@ -296,7 +296,7 @@ export default function GeminiProLanding() {
                 </div>
               )}
 
-              <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-bold cursor-pointer transition-all hover:scale-[1.01] disabled:opacity-50" style={{ background: "linear-gradient(135deg, #4285F4 0%, #34A853 100%)", color: "#fff", boxShadow: "0 6px 24px rgba(66,133,244,0.3)" }}>
+              <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-bold cursor-pointer transition-all hover:scale-[1.01] disabled:opacity-50" style={{ background: "#EAB308", color: "#000000", boxShadow: "0 6px 24px rgba(234,179,8,0.3)" }}>
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Đang xử lý...</> : <><Coffee size={16} /> Thanh Toán 99.000đ <ArrowRight size={16} /></>}
               </button>
 
@@ -336,7 +336,7 @@ export default function GeminiProLanding() {
             <div className="text-sm font-bold text-white">4 Tháng Gemini Pro Miễn Phí</div>
             <div className="text-xs" style={{ color: "rgba(241,245,251,0.5)" }}>Trị giá hơn 2 triệu</div>
           </div>
-          <button onClick={scrollToRegister} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl py-3 px-6 text-sm font-bold cursor-pointer transition-all hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #4285F4 0%, #34A853 100%)", color: "#fff", boxShadow: "0 -2px 24px rgba(66,133,244,0.3)" }}>
+          <button onClick={scrollToRegister} className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl py-3 px-6 text-sm font-bold cursor-pointer transition-all hover:scale-[1.02]" style={{ background: "linear-gradient(135deg, #EAB308 0%, #F59E0B 100%)", color: "#000000", boxShadow: "0 -2px 24px rgba(234,179,8,0.3)" }}>
             <Coffee size={15} /> Mời Cafe 99K & Nhận Ngay <ArrowRight size={15} />
           </button>
         </div>

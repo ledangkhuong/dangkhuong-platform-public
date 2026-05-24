@@ -364,10 +364,11 @@ export default function SanPhamSoLanding() {
       >
         <button
           onClick={scrollToRegister}
-          className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-base font-bold uppercase tracking-wide text-gray-900 cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-base font-bold uppercase tracking-wide cursor-pointer"
           style={{
-            background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
-            boxShadow: "0 -2px 20px rgba(251,191,36,0.25)",
+            background: "linear-gradient(135deg, #EAB308, #F59E0B)",
+            color: "#000000",
+            boxShadow: "0 -2px 20px rgba(234,179,8,0.25)",
           }}
         >
           Đăng Ký Ngay — 100K <ArrowRight size={16} />
