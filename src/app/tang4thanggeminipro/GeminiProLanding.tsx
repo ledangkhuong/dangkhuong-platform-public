@@ -429,7 +429,7 @@ export default function GeminiProLanding() {
                   {paymentInfo?.bank_account && paymentInfo?.bank_code && (
                     <BankTransferButtons
                       bankCode={paymentInfo.bank_code}
-                      accountNumber={paymentInfo.bank_account}
+                      bankAccount={paymentInfo.bank_account}
                       amount={paymentInfo.amount}
                       transferContent={paymentInfo.transfer_content}
                     />
