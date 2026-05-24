@@ -91,14 +91,17 @@ export default function GeminiProLanding() {
     try {
       const res = await fetch("/api/geminipro/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form }) });
       const data = await res.json();
-      if (data.success) { if (data.paymentInfo) setPaymentInfo(data.paymentInfo); setShowModal(true); }
+      if (data.success && data.paymentInfo) { setPaymentInfo(data.paymentInfo); setShowModal(true); }
+      else if (data.success) { setError("Không nhận được thông tin thanh toán. Vui lòng thử lại."); }
       else { setError(data.error || "Có lỗi xảy ra, vui lòng thử lại"); }
     } catch { setError("Lỗi kết nối. Vui lòng thử lại."); }
     finally { setLoading(false); }
   };
 
   const copyText = (text: string, label: string) => {
-    navigator.clipboard.writeText(text).then(() => { setCopied(label); setTimeout(() => setCopied(""), 2000); });
+    navigator.clipboard.writeText(text).then(() => { setCopied(label); setTimeout(() => setCopied(""), 2000); }).catch(() => {
+      try { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); setCopied(label); setTimeout(() => setCopied(""), 2000); } catch {}
+    });
   };
 
   return (
