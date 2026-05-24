@@ -10,7 +10,7 @@ import { randomBytes } from "crypto";
  */
 
 const PRODUCT_SLUG = "google-tang-4-thang-gemini-pro-tri-gia-hon-2-trieu";
-const PRODUCT_PRICE = 99000; // 99.000đ
+const PRODUCT_PRICE = 0; // Miễn phí
 
 function generateOrderCode(prefix: string = "GP", length = 12): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
@@ -177,16 +177,18 @@ export async function POST(req: NextRequest) {
       if (!orderPhone && profile?.phone) orderPhone = profile.phone;
     }
 
+    const isFree = amount === 0;
     const orderData: Record<string, unknown> = {
       order_code: orderCode,
       user_id: userId,
       amount,
-      status: "pending",
-      payment_method: "bank_transfer",
+      status: isFree ? "paid" : "pending",
+      payment_method: isFree ? "free" : "bank_transfer",
       customer_name: orderName,
       customer_email: email.trim(),
       customer_phone: orderPhone,
       ref_code: refCode,
+      ...(isFree ? { paid_at: new Date().toISOString() } : {}),
     };
 
     if (product?.id) {
@@ -206,21 +208,6 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-
-    const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
-    const bankCode = process.env.SEPAY_BANK_CODE;
-    const hasSepay = bankAccount && bankCode && !bankAccount.includes("your-");
-
-    const paymentInfo = {
-      order_code: orderCode,
-      amount,
-      bank_account: hasSepay ? bankAccount : null,
-      bank_code: hasSepay ? bankCode : null,
-      transfer_content: `DK${orderCode}`,
-      qr_url: hasSepay
-        ? `/api/qr?bank=${bankCode}&acc=${bankAccount}&amount=${amount}&des=DK${orderCode}`
-        : null,
-    };
 
     if (!isExistingUser) {
       try {
@@ -260,7 +247,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       order,
-      paymentInfo,
       productName: productTitle,
     });
   } catch (err) {
