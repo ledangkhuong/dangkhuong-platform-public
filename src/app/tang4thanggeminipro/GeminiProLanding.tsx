@@ -160,6 +160,11 @@ export default function GeminiProLanding() {
               </div>
             ))}
           </div>
+
+          {/* Banner image */}
+          <div className="mt-10 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(66,133,244,0.2)", boxShadow: "0 8px 40px rgba(66,133,244,0.15)" }}>
+            <img src="/images/geminipro/banner.png" alt="Google tặng 4 tháng Gemini Pro miễn phí — Tiết kiệm hơn 2 triệu, 1000 credit/tháng" className="w-full h-auto" />
+          </div>
         </div>
       </section>
 
@@ -183,6 +188,18 @@ export default function GeminiProLanding() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ GOOGLE ONE PROOF ═══ */}
+      <section className="py-8 sm:py-12 px-4 sm:px-8">
+        <div className="max-w-2xl mx-auto">
+          <p className="text-center text-sm font-semibold mb-4" style={{ color: "rgba(241,245,251,0.6)" }}>
+            Ưu đãi chính thức từ <strong className="text-white">Google One</strong> — 0đ cho 4 tháng Gemini Pro
+          </p>
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(66,133,244,0.2)", boxShadow: "0 4px 30px rgba(66,133,244,0.1)" }}>
+            <img src="/images/geminipro/google-one-offer.png" alt="Trang Google One — 0đ cho 4 tháng Gemini Pro" className="w-full h-auto" />
           </div>
         </div>
       </section>
