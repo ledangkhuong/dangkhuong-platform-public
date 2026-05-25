@@ -2,31 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Phone, MessageSquare, Check, X, Loader2, UserPlus } from "lucide-react";
-
-interface StaffMember {
-  id: string;
-  full_name: string;
-}
+import { Phone, MessageSquare, Check, X, Loader2 } from "lucide-react";
 
 interface InterestActionsProps {
   interestId: string;
   currentStatus: string;
   currentNotes: string | null;
-  assignedTo: string | null;
-  staffList: StaffMember[];
 }
 
 export default function InterestActions({
   interestId,
   currentStatus,
   currentNotes,
-  assignedTo,
-  staffList,
 }: InterestActionsProps) {
   const router = useRouter();
   const [showNoteForm, setShowNoteForm] = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
   const [notes, setNotes] = useState(currentNotes || "");
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -45,7 +35,6 @@ export default function InterestActions({
       // silently fail
     } finally {
       setLoading(null);
-      setShowAssign(false);
     }
   }
 
@@ -119,64 +108,6 @@ export default function InterestActions({
           )}
         </button>
       )}
-
-      {/* Assign sale */}
-      <div className="relative">
-        <button
-          onClick={() => setShowAssign(!showAssign)}
-          className={`inline-flex items-center px-1.5 py-1 rounded-lg text-[11px] transition-colors ${
-            assignedTo
-              ? "text-purple-400"
-              : "text-gray-500 hover:text-gray-300"
-          }`}
-          style={{
-            background: assignedTo
-              ? "rgba(139,92,246,0.08)"
-              : "rgba(107,114,128,0.06)",
-            border: `1px solid ${
-              assignedTo ? "rgba(139,92,246,0.15)" : "rgba(107,114,128,0.1)"
-            }`,
-          }}
-          title="Gán sale"
-        >
-          <UserPlus size={11} />
-        </button>
-        {showAssign && (
-          <div
-            className="absolute right-0 top-full mt-1 z-30 rounded-lg shadow-xl py-1 min-w-[180px]"
-            style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-          >
-            <div className="px-3 py-1.5 text-[10px] text-gray-500 font-medium uppercase tracking-wide">
-              Gán cho sale
-            </div>
-            {assignedTo && (
-              <button
-                onClick={() => updateInterest({ assigned_to: null }, "unassign")}
-                className="w-full text-left px-3 py-1.5 text-xs text-red-400 hover:bg-white/5 transition-colors"
-              >
-                Bỏ gán
-              </button>
-            )}
-            {staffList.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => updateInterest({ assigned_to: s.id }, `assign-${s.id}`)}
-                disabled={!!loading}
-                className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
-                  assignedTo === s.id
-                    ? "text-purple-400 bg-purple-500/5"
-                    : "text-gray-300 hover:bg-white/5"
-                }`}
-              >
-                {s.full_name}
-                {assignedTo === s.id && (
-                  <Check size={10} className="inline ml-1" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Note button */}
       <button

@@ -4,6 +4,7 @@ import { getSalesUsers } from "@/lib/sales";
 import Link from "next/link";
 import UserAvatar from "@/components/admin/UserAvatar";
 import InterestActions from "./InterestActions";
+import InterestAssignSelect from "./InterestAssignSelect";
 import {
   Eye,
   Clock,
@@ -70,11 +71,6 @@ interface CustomerGroup {
   hasNew: boolean;
   hasContacted: boolean;
   hasConverted: boolean;
-}
-
-interface StaffMember {
-  id: string;
-  full_name: string;
 }
 
 /* ---------- Helpers ---------- */
@@ -587,15 +583,18 @@ export default async function CRMInterestsPage({
                             </div>
                           )}
 
+                          {/* Inline sale-assign dropdown */}
+                          <InterestAssignSelect
+                            interestId={interest.id}
+                            assignedTo={interest.assigned_to}
+                            salesUsers={staffList ?? []}
+                          />
+
                           {/* Actions */}
                           <InterestActions
                             interestId={interest.id}
                             currentStatus={interest.status}
                             currentNotes={interest.notes}
-                            assignedTo={interest.assigned_to}
-                            staffList={
-                              (staffList ?? []) as StaffMember[]
-                            }
                           />
                         </div>
                       );

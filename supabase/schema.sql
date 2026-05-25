@@ -21,6 +21,7 @@ create table public.profiles (
   level         integer default 1,
   streak        integer default 0,
   last_login    timestamptz,
+  account_manager_id uuid references public.profiles(id) on delete set null,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );

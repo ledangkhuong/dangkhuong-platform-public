@@ -2,6 +2,8 @@ import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import UserRoleEditor from "@/components/admin/UserRoleEditor";
+import { getSalesUsers } from "@/lib/sales";
+import UserAccountManagerSelect from "./UserAccountManagerSelect";
 import Link from "next/link";
 import {
   Users,
@@ -40,6 +42,8 @@ interface Profile {
   streak: number;
   last_login: string | null;
   created_at: string;
+  account_manager_id: string | null;
+  account_manager?: { full_name: string | null }[] | { full_name: string | null } | null;
 }
 
 interface OrderInfo {
@@ -278,17 +282,20 @@ export default async function AdminUsersPage({
   // Fetch all profiles via admin client (bypasses RLS)
   const supabase = await createAdminClient();
 
-  // Fetch profiles, auth users (for emails), and orders in parallel
-  const [profilesRes, authUsersRes, ordersRes] = await Promise.all([
+  // Fetch profiles, auth users (for emails), orders, and sales users in parallel
+  const [profilesRes, authUsersRes, ordersRes, salesUsers] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, phone, role, tier, xp, level, streak, last_login, created_at")
+      .select(
+        "id, full_name, avatar_url, phone, role, tier, xp, level, streak, last_login, created_at, account_manager_id, account_manager:account_manager_id(full_name)"
+      )
       .order("created_at", { ascending: false }),
     supabase.auth.admin.listUsers({ perPage: 10000 }),
     supabase
       .from("orders")
       .select("customer_email, amount, status, created_at")
       .not("customer_email", "is", null),
+    getSalesUsers(supabase),
   ]);
 
   const { data: profiles, error } = profilesRes;
@@ -700,8 +707,8 @@ export default async function AdminUsersPage({
               <thead>
                 <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
                   {(activeTab === "paid"
-                    ? ["Khách hàng", "Doanh thu", "Đơn hàng", "Vai trò & Hạng", "Đơn gần nhất", "Ngày tham gia"]
-                    : ["Người dùng", "Vai trò & Hạng", "XP / Level", "Streak", "Đăng nhập cuối", "Ngày tham gia"]
+                    ? ["Khách hàng", "Doanh thu", "Đơn hàng", "Vai trò & Hạng", "Đơn gần nhất", "Sale phụ trách", "Ngày tham gia"]
+                    : ["Người dùng", "Vai trò & Hạng", "XP / Level", "Streak", "Đăng nhập cuối", "Sale phụ trách", "Ngày tham gia"]
                   ).map((col) => (
                     <th
                       key={col}
@@ -718,7 +725,7 @@ export default async function AdminUsersPage({
                 {paginatedUsers.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-4 py-12 text-center text-gray-500 text-sm"
                     >
                       {searchQuery
@@ -820,6 +827,15 @@ export default async function AdminUsersPage({
                             {userOrderInfo?.lastOrderDate ? formatRelativeDate(userOrderInfo.lastOrderDate) : "—"}
                           </td>
 
+                          {/* Sale phụ trách */}
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <UserAccountManagerSelect
+                              userId={profile.id}
+                              accountManagerId={profile.account_manager_id}
+                              salesUsers={salesUsers}
+                            />
+                          </td>
+
                           {/* Created at */}
                           <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-xs">
                             {formatDate(profile.created_at)}
@@ -886,6 +902,15 @@ export default async function AdminUsersPage({
                               <Clock size={12} className="text-gray-500" />
                               {formatRelativeDate(profile.last_login)}
                             </div>
+                          </td>
+
+                          {/* Sale phụ trách */}
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <UserAccountManagerSelect
+                              userId={profile.id}
+                              accountManagerId={profile.account_manager_id}
+                              salesUsers={salesUsers}
+                            />
                           </td>
 
                           {/* Created at */}

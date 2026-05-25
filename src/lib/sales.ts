@@ -17,9 +17,21 @@
  *   body:    { interest_id, assigned_to, ... }
  *   200:     { ok: true }
  *
- * Auth on all three: caller must be a profile whose role is in
- * ['admin','manager']. Target `assigned_to` (when not null) must be a
- * profile whose role is in ['admin','manager','sale'].
+ * POST  /api/admin/users/[id]/account-manager
+ *   body:    { account_manager_id: string | null }   // null = unassign
+ *   200:     { ok: true, account_manager_id: string | null }
+ *   4xx/5xx: { error: string }
+ *
+ * POST  /api/crm/deals/[id]/assign
+ *   body:    { assigned_to: string | null }   // null = unassign
+ *   200:     { ok: true, assigned_to: string | null }
+ *   4xx/5xx: { error: string }
+ *
+ * Auth on all of the above: caller must be a profile whose role is in
+ * ['admin','manager']. Target id (when not null) must be a profile
+ * whose role is in ['admin','manager','sale']. For account-manager,
+ * the target id additionally cannot equal the user being assigned
+ * (no self-loop).
  *
  * NOTE on the role string: it is 'sale' (SINGULAR), not 'sales'.
  * See profiles.role CHECK in supabase/schema.sql.

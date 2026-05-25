@@ -1,6 +1,8 @@
 import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
 import { createDeal } from "@/lib/actions/crm";
+import { getSalesUsers, type SalesUser } from "@/lib/sales";
+import DealAssignSelect from "./DealAssignSelect";
 import {
   Plus,
   CircleDollarSign,
@@ -23,6 +25,7 @@ interface Deal {
   probability: number;
   expected_close_date: string | null;
   notes: string | null;
+  assigned_to: string | null;
   contacts: { full_name: string; email: string | null } | null;
   products: { title: string } | null;
   assigned_profile: { full_name: string } | null;
@@ -79,7 +82,15 @@ function getInitials(name: string): string {
 
 // ─── Deal Card ───────────────────────────────────────────────────────────────
 
-function DealCard({ deal, stageColor }: { deal: Deal; stageColor: string }) {
+function DealCard({
+  deal,
+  stageColor,
+  salesUsers,
+}: {
+  deal: Deal;
+  stageColor: string;
+  salesUsers: SalesUser[];
+}) {
   return (
     <div
       className="card-dark p-3 rounded-lg"
@@ -126,6 +137,14 @@ function DealCard({ deal, stageColor }: { deal: Deal; stageColor: string }) {
           </div>
         )}
       </div>
+
+      <div className="mt-2">
+        <DealAssignSelect
+          dealId={deal.id}
+          assignedTo={deal.assigned_to}
+          salesUsers={salesUsers}
+        />
+      </div>
     </div>
   );
 }
@@ -150,8 +169,8 @@ export default async function PipelinePage({
     )
     .order("created_at", { ascending: false });
 
-  // Fetch contacts and products for the new deal form
-  const [contactsRes, productsRes] = await Promise.all([
+  // Fetch contacts, products, and sales users for the new deal form / assign dropdown
+  const [contactsRes, productsRes, salesUsers] = await Promise.all([
     admin
       .from("crm_contacts")
       .select("id, full_name, email")
@@ -161,6 +180,7 @@ export default async function PipelinePage({
       .select("id, title, price")
       .eq("status", "published")
       .order("title"),
+    getSalesUsers(admin),
   ]);
 
   const contacts = (contactsRes.data ?? []) as Contact[];
@@ -421,6 +441,7 @@ export default async function PipelinePage({
                       key={deal.id}
                       deal={deal}
                       stageColor={stage.color}
+                      salesUsers={salesUsers}
                     />
                   ))
                 ) : (
