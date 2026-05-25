@@ -57,7 +57,9 @@ export async function getStickyAssignment(
   }
 
   try {
-    // 1) Direct contact_id lookup — most specific.
+    // 1) Direct contact_id lookup — most specific & authoritative.
+    //    If the row exists, return whatever assigned_to it has (incl. null).
+    //    No fallthrough — caller asked about THIS contact.
     if (contactId) {
       const { data, error } = await supabase
         .from("crm_contacts")
@@ -73,6 +75,8 @@ export async function getStickyAssignment(
     }
 
     // 2) user_id lookup — most recent matching contact wins.
+    //    Fall through to email if no row found (user_id may not be set on
+    //    contacts created from old orders / manual import).
     if (userId) {
       const { data, error } = await supabase
         .from("crm_contacts")
@@ -83,10 +87,14 @@ export async function getStickyAssignment(
 
       if (error) {
         console.error("[stickyAssign] user_id lookup error:", error.message);
+        // don't fall through on DB errors
         return null;
       }
       const row = data?.[0];
-      return (row?.assigned_to as string | null) ?? null;
+      if (row) {
+        return (row.assigned_to as string | null) ?? null;
+      }
+      // no row by user_id — fall through to email
     }
 
     // 3) email lookup — most recent matching contact wins.
@@ -186,6 +194,7 @@ export async function propagateToContact(
     // Find the matching contact row (priority: contact_id → user_id → email).
     let matched: { id: string; assigned_to: string | null } | null = null;
 
+    // 1) contact_id is authoritative — no fallthrough.
     if (contactId) {
       const { data, error } = await supabase
         .from("crm_contacts")
@@ -200,7 +209,10 @@ export async function propagateToContact(
         return { propagated: false, reason: "error" };
       }
       matched = (data as { id: string; assigned_to: string | null } | null) ?? null;
-    } else if (userId) {
+    }
+
+    // 2) user_id lookup — fall through to email if no row.
+    if (!matched && userId) {
       const { data, error } = await supabase
         .from("crm_contacts")
         .select("id, assigned_to, created_at")
@@ -218,7 +230,10 @@ export async function propagateToContact(
         | { id: string; assigned_to: string | null }
         | undefined;
       matched = row ?? null;
-    } else if (email) {
+    }
+
+    // 3) email lookup — last resort.
+    if (!matched && email) {
       const { data, error } = await supabase
         .from("crm_contacts")
         .select("id, assigned_to, created_at")
