@@ -52,8 +52,15 @@ function isProtectedRoute(pathname: string): boolean {
 // ---------------------------------------------------------------------------
 
 export default async function middleware(request: NextRequest) {
+  // --- 0. Forward current pathname to Server Components via request header.
+  //         Used by <AutoPixel /> in root layout to look up DB-bound Pixel.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-dk-pathname", request.nextUrl.pathname);
+
   // --- 1. Prepare a mutable response so Supabase can write refreshed cookies ---
-  let supabaseResponse = NextResponse.next({ request });
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,7 +78,9 @@ export default async function middleware(request: NextRequest) {
           );
 
           // 1b. Re-create the response so the updated request is forwarded.
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
 
           // 1c. Write Set-Cookie headers on the *response* so the browser
           //     stores the refreshed tokens.

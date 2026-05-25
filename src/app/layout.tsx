@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import PageTracker from "@/components/analytics/PageTracker";
 import FacebookPixel from "@/components/analytics/FacebookPixel";
+import AutoPixel from "@/components/analytics/AutoPixel";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
@@ -84,6 +85,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <PageTracker />
           <FacebookPixel />
+          <AutoPixel />
           <AffiliateTracker />
         </Suspense>
         <ErrorBoundary>

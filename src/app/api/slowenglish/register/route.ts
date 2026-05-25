@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
+import { getPixelConfigBySlug } from "@/lib/pixel-config";
 
 /**
  * POST /api/slowenglish/register
@@ -187,6 +188,17 @@ export async function POST(req: NextRequest) {
 
     // 5. Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking)
     {
+      // Lookup per-landing pixel config by slug "slowenglish" (nếu admin đã
+      // tạo); nếu không có sẽ tự fallback về env vars FB_PIXEL_ID + FB_CAPI_*.
+      const pixelConfig = await getPixelConfigBySlug("slowenglish");
+      const pixelOverride = pixelConfig?.capi_access_token
+        ? {
+            pixelId: pixelConfig.pixel_id,
+            accessToken: pixelConfig.capi_access_token,
+            testEventCode: pixelConfig.test_event_code,
+          }
+        : undefined;
+
       const capiBase = {
         email: email.trim(),
         phone: phone?.trim(),
@@ -197,6 +209,7 @@ export async function POST(req: NextRequest) {
         fbp: req.cookies.get("_fbp")?.value,
         userId: userId,
         sourceUrl: "https://dangkhuong.com/slowenglish",
+        config: pixelOverride,
       };
 
       // Lead event — user submitted the registration form

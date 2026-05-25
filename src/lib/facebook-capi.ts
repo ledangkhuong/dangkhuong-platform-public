@@ -79,16 +79,36 @@ export interface CAPIEventParams {
   };
   customData?: Record<string, unknown>;
   actionSource?: "website" | "app" | "email" | "phone_call" | "chat" | "other";
+  /** Override Pixel ID / token / test-code per-call (overrides env vars). */
+  config?: {
+    pixelId?: string;
+    accessToken?: string;
+    testEventCode?: string | null;
+  };
+}
+
+export interface CAPIResult {
+  success: boolean;
+  events_received?: number;
+  error?: string;
+  response?: Record<string, unknown>;
 }
 
 /**
  * Send a single event to Facebook Conversions API.
- * Returns true on success, false on error (never throws).
+ * - If `params.config` is provided, uses those creds (per-landing-page Pixel).
+ * - Otherwise falls back to env vars `FB_PIXEL_ID` + `FB_CAPI_ACCESS_TOKEN`.
+ *
+ * Never throws. Returns `{ success: true|false, ... }` so callers can log it.
  */
-export async function sendCAPIEvent(params: CAPIEventParams): Promise<boolean> {
-  if (!PIXEL_ID || !ACCESS_TOKEN) {
+export async function sendCAPIEvent(params: CAPIEventParams): Promise<CAPIResult> {
+  const pixelId = params.config?.pixelId || PIXEL_ID;
+  const accessToken = params.config?.accessToken || ACCESS_TOKEN;
+  const testEventCode = params.config?.testEventCode ?? TEST_EVENT_CODE;
+
+  if (!pixelId || !accessToken) {
     console.warn("[FB CAPI] Missing PIXEL_ID or ACCESS_TOKEN — skipping event:", params.eventName);
-    return false;
+    return { success: false, error: "missing_credentials" };
   }
 
   const eventTime = Math.floor(Date.now() / 1000);
@@ -97,7 +117,7 @@ export async function sendCAPIEvent(params: CAPIEventParams): Promise<boolean> {
     event_name: params.eventName,
     event_time: eventTime,
     event_id: params.eventId || `${params.eventName}_${eventTime}_${Math.random().toString(36).slice(2, 8)}`,
-    event_source_url: params.sourceUrl || "https://dangkhuong.com/slowenglish",
+    event_source_url: params.sourceUrl,
     action_source: params.actionSource || "website",
     user_data: hashUserData(params.userData),
     custom_data: params.customData || {},
@@ -106,15 +126,15 @@ export async function sendCAPIEvent(params: CAPIEventParams): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: Record<string, any> = {
     data: [eventData],
-    access_token: ACCESS_TOKEN,
+    access_token: accessToken,
   };
 
-  if (TEST_EVENT_CODE) {
-    payload.test_event_code = TEST_EVENT_CODE;
+  if (testEventCode) {
+    payload.test_event_code = testEventCode;
   }
 
   try {
-    const url = `https://graph.facebook.com/${API_VERSION}/${PIXEL_ID}/events`;
+    const url = `https://graph.facebook.com/${API_VERSION}/${pixelId}/events`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -124,22 +144,22 @@ export async function sendCAPIEvent(params: CAPIEventParams): Promise<boolean> {
     if (!res.ok) {
       const body = await res.text();
       console.error(`[FB CAPI] Error ${res.status} for ${params.eventName}:`, body);
-      return false;
+      return { success: false, error: `http_${res.status}`, response: { body } };
     }
 
     const result = await res.json();
     console.log(`[FB CAPI] ✓ ${params.eventName} — events_received: ${result.events_received}`);
-    return true;
+    return { success: true, events_received: result.events_received, response: result };
   } catch (err) {
     console.error(`[FB CAPI] Network error for ${params.eventName}:`, err);
-    return false;
+    return { success: false, error: err instanceof Error ? err.message : "network_error" };
   }
 }
 
 // ── Convenience methods ──────────────────────────────────
 
-/** Track a Lead event (form submission / registration) */
-export function trackLead(opts: {
+/** Shared opts for convenience methods. */
+interface BaseTrackOpts {
   email: string;
   phone?: string;
   name?: string;
@@ -148,16 +168,20 @@ export function trackLead(opts: {
   fbc?: string;
   fbp?: string;
   userId?: string;
-  value?: number;
-  currency?: string;
   eventId?: string;
   sourceUrl?: string;
-}) {
+  /** Per-landing-page Pixel config override (loaded from DB). */
+  config?: CAPIEventParams["config"];
+}
+
+/** Track a Lead event (form submission / registration) */
+export function trackLead(opts: BaseTrackOpts & { value?: number; currency?: string; contentName?: string }) {
   const nameParts = (opts.name || "").split(" ");
   return sendCAPIEvent({
     eventName: "Lead",
     eventId: opts.eventId,
     sourceUrl: opts.sourceUrl,
+    config: opts.config,
     userData: {
       email: opts.email,
       phone: opts.phone,
@@ -170,33 +194,20 @@ export function trackLead(opts: {
       externalId: opts.userId,
     },
     customData: {
-      content_name: "SlowEnglish Registration",
+      content_name: opts.contentName || "Lead Registration",
       ...(opts.value ? { value: opts.value, currency: opts.currency || "VND" } : {}),
     },
   });
 }
 
 /** Track an InitiateCheckout event */
-export function trackInitiateCheckout(opts: {
-  email: string;
-  phone?: string;
-  name?: string;
-  ip?: string;
-  userAgent?: string;
-  fbc?: string;
-  fbp?: string;
-  userId?: string;
-  value: number;
-  currency?: string;
-  contentName?: string;
-  eventId?: string;
-  sourceUrl?: string;
-}) {
+export function trackInitiateCheckout(opts: BaseTrackOpts & { value: number; currency?: string; contentName?: string }) {
   const nameParts = (opts.name || "").split(" ");
   return sendCAPIEvent({
     eventName: "InitiateCheckout",
     eventId: opts.eventId,
     sourceUrl: opts.sourceUrl,
+    config: opts.config,
     userData: {
       email: opts.email,
       phone: opts.phone,
@@ -211,33 +222,24 @@ export function trackInitiateCheckout(opts: {
     customData: {
       value: opts.value,
       currency: opts.currency || "VND",
-      content_name: opts.contentName || "SlowEnglish",
+      content_name: opts.contentName || "Checkout",
     },
   });
 }
 
 /** Track a Purchase event (payment confirmed) */
-export function trackPurchase(opts: {
-  email: string;
-  phone?: string;
-  name?: string;
-  ip?: string;
-  userAgent?: string;
-  fbc?: string;
-  fbp?: string;
-  userId?: string;
+export function trackPurchase(opts: BaseTrackOpts & {
   value: number;
   currency?: string;
   orderId?: string;
   contentName?: string;
-  eventId?: string;
-  sourceUrl?: string;
 }) {
   const nameParts = (opts.name || "").split(" ");
   return sendCAPIEvent({
     eventName: "Purchase",
     eventId: opts.eventId,
     sourceUrl: opts.sourceUrl,
+    config: opts.config,
     userData: {
       email: opts.email,
       phone: opts.phone,
@@ -252,7 +254,7 @@ export function trackPurchase(opts: {
     customData: {
       value: opts.value,
       currency: opts.currency || "VND",
-      content_name: opts.contentName || "SlowEnglish",
+      content_name: opts.contentName || "Purchase",
       order_id: opts.orderId,
     },
   });
