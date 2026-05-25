@@ -368,7 +368,8 @@ export default async function ContactDetailPage({
   const journeyStage = contact.journey_stage || "visitor";
   const currentStageIndex = JOURNEY_STAGES.findIndex((s) => s.key === journeyStage);
   const leadScore = contact.lead_score ?? 0;
-  const lifetimeValue = contact.lifetime_value ?? orders.reduce((sum, o) => o.status === "paid" ? sum + (o.amount || 0) : sum, 0);
+  // Always compute LTV from actual paid orders (DB value may be stale)
+  const lifetimeValue = orders.reduce((sum, o) => o.status === "paid" ? sum + (o.amount || 0) : sum, 0);
   const src = sourceConfig[contact.source || "manual"] || sourceConfig.manual;
 
   return (
@@ -396,12 +397,41 @@ export default async function ContactDetailPage({
               {contact.full_name.charAt(0).toUpperCase()}
             </div>
 
-            {/* Name & Badges */}
+            {/* Name & Contact Info */}
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-white truncate">
                 {contact.full_name}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 mt-2">
+
+              {/* Phone + Email + Assigned Sale — prominent row */}
+              <div className="flex flex-wrap items-center gap-4 mt-2 text-sm">
+                {contact.phone && (
+                  <a
+                    href={`tel:${contact.phone}`}
+                    className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors"
+                  >
+                    <Phone size={14} className="text-green-400" />
+                    <span className="font-medium">{contact.phone}</span>
+                  </a>
+                )}
+                {contact.email && (
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors"
+                  >
+                    <Mail size={14} className="text-blue-400" />
+                    <span>{contact.email}</span>
+                  </a>
+                )}
+                {contact.assigned_profile?.full_name && (
+                  <div className="flex items-center gap-1.5 text-gray-300">
+                    <User size={14} className="text-[#D4A843]" />
+                    <span>Sale: <span className="font-medium text-[#D4A843]">{contact.assigned_profile.full_name}</span></span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 mt-2.5">
                 {/* Journey Stage Badge */}
                 <span
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"

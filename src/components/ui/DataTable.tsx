@@ -90,14 +90,32 @@ function ResizeHandle<T>({
 }) {
   return (
     <div
-      onDoubleClick={() => header.column.resetSize()}
-      onMouseDown={header.getResizeHandler()}
-      onTouchStart={header.getResizeHandler()}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        header.column.resetSize();
+      }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+        header.getResizeHandler()(e);
+      }}
+      onTouchStart={(e) => {
+        e.stopPropagation();
+        header.getResizeHandler()(e);
+      }}
       className={cn(
-        "absolute right-0 top-0 h-full w-[3px] cursor-col-resize select-none touch-none transition-colors",
-        isResizing ? "bg-[#D4A843]" : "bg-[#2a2a2a] hover:bg-[#D4A843]/60"
+        "absolute right-0 top-0 h-full cursor-col-resize select-none touch-none z-10",
+        "group/resize"
       )}
-    />
+      style={{ width: "12px", marginRight: "-4px" }}
+    >
+      {/* Visible line centered inside wider hit area */}
+      <div
+        className={cn(
+          "absolute right-[4px] top-0 w-[3px] h-full transition-colors",
+          isResizing ? "bg-[#D4A843]" : "bg-[#2a2a2a] group-hover/resize:bg-[#D4A843]/60"
+        )}
+      />
+    </div>
   );
 }
 
@@ -166,6 +184,7 @@ export function DataTable<T>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     columnResizeMode,
+    enableColumnResizing: true,
     manualPagination: true,
     pageCount: pageCount ?? -1,
   });

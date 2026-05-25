@@ -247,22 +247,24 @@ export default async function CRMContactsPage({
         <div className="card-dark p-4">
           <form method="GET" className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               <input
                 type="text"
                 name="q"
                 defaultValue={q}
                 placeholder="Tìm theo tên, email, SĐT..."
-                className="input-dark w-full pl-9 pr-4 py-2 text-sm"
+                className="input-dark w-full py-2 text-sm"
+                style={{ paddingLeft: "2.5rem", paddingRight: "1rem" }}
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <div className="relative">
-                <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 <select
                   name="status"
                   defaultValue={statusFilter}
-                  className="input-dark pl-9 pr-8 py-2 text-sm appearance-none min-w-[140px]"
+                  className="input-dark py-2 text-sm appearance-none min-w-[140px]"
+                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem" }}
                 >
                   <option value="">Tất cả TT</option>
                   {Object.entries(statusOptions).map(([key, label]) => (
@@ -271,11 +273,12 @@ export default async function CRMContactsPage({
                 </select>
               </div>
               <div className="relative">
-                <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 <select
                   name="journey_stage"
                   defaultValue={journeyStageFilter}
-                  className="input-dark pl-9 pr-8 py-2 text-sm appearance-none min-w-[140px]"
+                  className="input-dark py-2 text-sm appearance-none min-w-[140px]"
+                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem" }}
                 >
                   <option value="">Tất cả GĐ</option>
                   {Object.entries(journeyStageOptions).map(([key, label]) => (
