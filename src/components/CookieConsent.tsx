@@ -116,7 +116,23 @@ export default function CookieConsent() {
   const hidden = HIDE_ON_PATHS.some((p) => pathname?.startsWith(p));
 
   useEffect(() => {
-    if (hidden) return;
+    // Auto-accept all categories khi user visit sales landing (HIDE_ON_PATHS)
+    // mà chưa có quyết định nào. Lý do: visitor đến sales landing thường từ ads,
+    // họ ngầm chấp nhận cookie tracking để xem ưu đãi. Ngoài ra banner bị ẩn ở
+    // các trang này nên user không thể click — phải auto-set để Pixel/CAPI hoạt động.
+    if (hidden) {
+      if (typeof window !== "undefined" && !hasConsentDecision()) {
+        const allAccepted: CookiePreferences = {
+          essential: true,
+          analytics: true,
+          marketing: true,
+        };
+        localStorage.setItem("dk_cookie_preferences", JSON.stringify(allAccepted));
+        localStorage.setItem("dk_cookie_consent", "accepted");
+        window.dispatchEvent(new Event("dk_cookie_consent_change"));
+      }
+      return;
+    }
     if (!hasConsentDecision()) {
       setShow(true);
     }
