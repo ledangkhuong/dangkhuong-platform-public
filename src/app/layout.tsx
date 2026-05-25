@@ -7,6 +7,7 @@ import AutoPixel from "@/components/analytics/AutoPixel";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
+import TrackingProvider from "@/components/TrackingProvider";
 import WebsiteJsonLd from "@/components/seo/WebsiteJsonLd";
 import { siteConfig, getBaseUrl } from "@/lib/site-config";
 import { validateEnv } from "@/lib/env-check";
@@ -89,7 +90,9 @@ export default function RootLayout({
           <AffiliateTracker />
         </Suspense>
         <ErrorBoundary>
-          <main id="main-content">{children}</main>
+          <TrackingProvider>
+            <main id="main-content">{children}</main>
+          </TrackingProvider>
         </ErrorBoundary>
         <CookieConsent />
         <WebsiteJsonLd />

@@ -50,7 +50,7 @@ async function _POST(req: NextRequest) {
 
   if (!event) return NextResponse.json({ error: "event required" }, { status: 400 });
 
-  const ALLOWED_EVENTS = ["page_view", "click", "scroll", "video_play", "lesson_view", "course_view"];
+  const ALLOWED_EVENTS = ["page_view", "click", "scroll", "scroll_depth", "time_on_page", "video_play", "lesson_view", "course_view"];
   if (!ALLOWED_EVENTS.includes(event)) {
     return NextResponse.json({ error: "Invalid event type" }, { status: 400 });
   }

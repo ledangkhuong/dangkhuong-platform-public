@@ -3,119 +3,24 @@ import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
-import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
-import ConfirmOrderButton from "@/components/admin/ConfirmOrderButton";
-import QRCodeButton from "@/components/admin/QRCodeButton";
 import OrderSearchBar from "@/components/admin/OrderSearchBar";
 import BulkDeleteOrders from "@/components/admin/BulkDeleteOrders";
-import OrderAssignSelect from "./OrderAssignSelect";
+import OrdersTable from "./OrdersTable";
+import type { OrderRow } from "./OrdersTable";
 import {
   ShoppingCart,
   TrendingUp,
   CheckCircle,
   Clock,
-  XCircle,
-  Ban,
-  CreditCard,
-  Calendar,
 } from "lucide-react";
-import Link from "next/link";
 import { Suspense } from "react";
 
 const PAGE_SIZE = 20;
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type OrderStatus = "pending" | "paid" | "cancelled" | "refunded";
-
-interface OrderRow {
-  id: string;
-  order_code: string;
-  customer_name: string | null;
-  customer_email: string | null;
-  customer_phone: string | null;
-  amount: number;
-  status: OrderStatus;
-  payment_method: string | null;
-  paid_at: string | null;
-  created_at: string;
-  assigned_to: string | null;
-  assigned_profile: { full_name: string | null } | null;
-  products: { title: string } | null;
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatCurrency(amount: number): string {
   return amount.toLocaleString("vi-VN") + "đ";
-}
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-}
-
-const STATUS_CONFIG: Record<
-  OrderStatus,
-  { label: string; bg: string; color: string; border: string }
-> = {
-  paid: {
-    label: "Đã thanh toán",
-    bg: "rgba(34,197,94,0.1)",
-    color: "#22c55e",
-    border: "rgba(34,197,94,0.2)",
-  },
-  pending: {
-    label: "Chờ thanh toán",
-    bg: "rgba(245,158,11,0.1)",
-    color: "#f59e0b",
-    border: "rgba(245,158,11,0.2)",
-  },
-  cancelled: {
-    label: "Đã huỷ",
-    bg: "rgba(107,114,128,0.1)",
-    color: "#6b7280",
-    border: "rgba(107,114,128,0.2)",
-  },
-  refunded: {
-    label: "Hoàn tiền",
-    bg: "rgba(239,68,68,0.1)",
-    color: "#ef4444",
-    border: "rgba(239,68,68,0.2)",
-  },
-};
-
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
-  return (
-    <span
-      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-      style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
-    >
-      {cfg.label}
-    </span>
-  );
-}
-
-function StatusIcon({ status }: { status: OrderStatus }) {
-  switch (status) {
-    case "paid":
-      return <CheckCircle size={17} className="text-[#D4A843]" />;
-    case "pending":
-      return <Clock size={17} className="text-[#f59e0b]" />;
-    case "cancelled":
-      return <Ban size={17} className="text-[#6b7280]" />;
-    case "refunded":
-      return <XCircle size={17} className="text-[#ef4444]" />;
-  }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -243,13 +148,6 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   const rows: OrderRow[] = (orders ?? []) as unknown as OrderRow[];
 
-  function buildPageUrl(page: number) {
-    const parts: string[] = [];
-    if (query) parts.push(`q=${encodeURIComponent(query)}`);
-    if (page > 1) parts.push(`page=${page}`);
-    return `/admin/orders${parts.length > 0 ? `?${parts.join("&")}` : ""}`;
-  }
-
   const totalOrders = totalCount ?? 0;
   const paidOrders = paidCount ?? 0;
   const pendingOrders = pendingCount ?? 0;
@@ -342,275 +240,27 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         )}
 
         {/* ── Orders table ── */}
-        <div className="card-dark overflow-hidden">
-          {/* Header */}
-          <div
-            className="flex items-center justify-between px-5 py-3"
-            style={{ borderBottom: "1px solid #2a2a2a" }}
-          >
-            <span className="text-xs text-gray-500">
-              {query ? (
-                <>
-                  Tìm thấy{" "}
-                  <span className="text-white font-medium">{totalFilteredOrders}</span>{" "}
-                  kết quả cho &ldquo;
-                  <span className="text-[#D4A843]">{query}</span>&rdquo;
-                </>
-              ) : (
-                <>
-                  <span className="text-white font-medium">{totalFilteredOrders}</span>{" "}
-                  đơn hàng
-                </>
-              )}
-              {totalPages > 1 && (
-                <> &middot; Trang {safePage}/{totalPages}</>
-              )}
-            </span>
-            {pendingOrders > 0 && !query && (
-              <span
-                className="text-xs font-medium px-2.5 py-1 rounded-lg"
-                style={{
-                  background: "rgba(245,158,11,0.1)",
-                  color: "#f59e0b",
-                  border: "1px solid rgba(245,158,11,0.2)",
-                }}
-              >
-                {pendingOrders} đơn chờ thanh toán
-              </span>
-            )}
+        {error ? (
+          <div className="card-dark p-8 text-center text-red-400 text-sm">
+            Lỗi khi tải đơn hàng: {error.message}
           </div>
-
-          {error ? (
-            <div className="p-8 text-center text-red-400 text-sm">
-              Lỗi khi tải đơn hàng: {error.message}
-            </div>
-          ) : rows.length === 0 ? (
-            <div className="p-12 text-center text-gray-500 text-sm">
-              {query
-                ? "Không tìm thấy đơn hàng nào khớp với từ khoá."
-                : "Chưa có đơn hàng nào."}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
-                    {[
-                      "Mã đơn",
-                      "Khách hàng",
-                      "Sản phẩm",
-                      "Số tiền",
-                      "Trạng thái",
-                      "Sale",
-                      "Thanh toán",
-                      "Ngày tạo",
-                      "",
-                    ].map((col, i) => (
-                      <th
-                        key={col || `col-${i}`}
-                        className="text-left text-xs font-semibold text-gray-500 px-5 py-3 whitespace-nowrap"
-                      >
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((order, idx) => (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-white/[0.02] transition-colors"
-                      style={{
-                        borderBottom:
-                          idx < rows.length - 1
-                            ? "1px solid #1f1f1f"
-                            : "none",
-                      }}
-                    >
-                      {/* Mã đơn */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className="font-mono text-xs text-gray-400">
-                          {order.order_code}
-                        </span>
-                      </td>
-
-                      {/* Khách hàng */}
-                      <td className="px-5 py-3.5">
-                        <div className="font-medium text-white text-sm">
-                          {order.customer_name ?? "—"}
-                        </div>
-                        {order.customer_email && (
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {order.customer_email}
-                          </div>
-                        )}
-                        {order.customer_phone && (
-                          <div className="text-xs text-gray-500">
-                            {order.customer_phone}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Sản phẩm */}
-                      <td className="px-5 py-3.5">
-                        <span className="text-gray-300 text-sm">
-                          {order.products?.title ?? "—"}
-                        </span>
-                      </td>
-
-                      {/* Số tiền */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className="font-bold text-white">
-                          {formatCurrency(order.amount)}
-                        </span>
-                      </td>
-
-                      {/* Trạng thái */}
-                      <td className="px-5 py-3.5">
-                        <StatusBadge status={order.status} />
-                      </td>
-
-                      {/* Sale */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="flex flex-col gap-1.5">
-                          {order.assigned_to ? (
-                            <span className="text-xs text-gray-300">
-                              {order.assigned_profile?.full_name ??
-                                order.assigned_to.slice(0, 8)}
-                            </span>
-                          ) : (
-                            <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold w-fit"
-                              style={{
-                                background: "rgba(245,158,11,0.1)",
-                                color: "#f59e0b",
-                                border: "1px solid rgba(245,158,11,0.2)",
-                              }}
-                            >
-                              Chưa gán
-                            </span>
-                          )}
-                          {canWrite && (
-                            <OrderAssignSelect
-                              orderId={order.id}
-                              assignedTo={order.assigned_to}
-                              salesUsers={salesUsers}
-                            />
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Thanh toán */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <CreditCard size={13} className="text-gray-500" />
-                          <span className="text-xs text-gray-400 capitalize">
-                            {order.payment_method ?? "—"}
-                          </span>
-                          {order.status === "pending" &&
-                            bankAccount &&
-                            bankCode && (
-                              <QRCodeButton
-                                orderCode={order.order_code}
-                                amount={order.amount}
-                                customerName={order.customer_name}
-                                customerEmail={order.customer_email}
-                                customerPhone={order.customer_phone}
-                                bankAccount={bankAccount}
-                                bankCode={bankCode}
-                              />
-                            )}
-                        </div>
-                        {order.status === "paid" && order.paid_at && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <Calendar size={11} className="text-amber-600" />
-                            <span className="text-[11px] text-amber-500/70">
-                              {formatDateTime(order.paid_at)}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Ngày tạo */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className="text-xs text-gray-500">
-                          {formatDateTime(order.created_at)}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1">
-                          {canConfirm && order.status === "pending" && (
-                            <ConfirmOrderButton
-                              orderCode={order.order_code}
-                              customerName={order.customer_name}
-                              amount={order.amount}
-                            />
-                          )}
-                          {canWrite &&
-                            (order.status === "pending" ||
-                              order.status === "cancelled") && (
-                              <DeleteOrderButton
-                                orderId={order.id}
-                                orderCode={order.order_code}
-                              />
-                            )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── Pagination ── */}
-          {totalPages > 1 && (
-            <div
-              className="flex items-center justify-center gap-4 px-4 py-3"
-              style={{ borderTop: "1px solid #2a2a2a" }}
-            >
-              {safePage > 1 ? (
-                <Link
-                  href={buildPageUrl(safePage - 1)}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-                >
-                  ← Trước
-                </Link>
-              ) : (
-                <span
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
-                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-                >
-                  ← Trước
-                </span>
-              )}
-
-              <span className="text-sm text-gray-400">
-                Trang <span className="text-white font-semibold">{safePage}</span> / {totalPages}
-              </span>
-
-              {safePage < totalPages ? (
-                <Link
-                  href={buildPageUrl(safePage + 1)}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-                >
-                  Tiếp →
-                </Link>
-              ) : (
-                <span
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 cursor-not-allowed"
-                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-                >
-                  Tiếp →
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+        ) : (
+          <Suspense fallback={null}>
+            <OrdersTable
+              orders={rows}
+              salesUsers={salesUsers}
+              canWrite={canWrite}
+              canConfirm={canConfirm}
+              bankAccount={bankAccount}
+              bankCode={bankCode}
+              totalPages={totalPages}
+              currentPage={safePage}
+              query={query}
+              totalFilteredOrders={totalFilteredOrders}
+              pendingOrders={pendingOrders}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );

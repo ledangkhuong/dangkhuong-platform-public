@@ -4,100 +4,47 @@ import { createContact, importContacts, syncContactsFromOrders } from "@/lib/act
 import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
-import ContactAssignSelect from "./ContactAssignSelect";
+import ContactsTable, { type Contact } from "./ContactsTable";
 import {
   Users,
   UserPlus,
   Phone,
-  Mail,
   Search,
   Filter,
   CheckCircle,
   XCircle,
   AlertCircle,
   FileUp,
-  Building2,
-  Clock,
-  ShoppingCart,
-  DollarSign,
   RefreshCw,
 } from "lucide-react";
-import Link from "next/link";
 
-/* ---------- Types ---------- */
+/* ---------- Filter option labels (used in search/filter dropdowns) ---------- */
 
-interface Contact {
-  id: string;
-  full_name: string;
-  email: string | null;
-  phone: string | null;
-  company: string | null;
-  status: string;
-  source: string | null;
-  notes: string | null;
-  last_contacted_at: string | null;
-  created_at: string;
-  assigned_to: string | null;
-  assigned_profile: { full_name: string | null } | null;
-  journey_stage: string;
-  lead_score: number;
-  utm_source: string | null;
-}
+const statusOptions: Record<string, string> = {
+  new: "Mới",
+  contacted: "Đã liên hệ",
+  qualified: "Tiềm năng",
+  negotiation: "Đàm phán",
+  won: "Thành công",
+  lost: "Mất",
+  churned: "Rời bỏ",
+};
+
+const journeyStageOptions: Record<string, string> = {
+  visitor: "Khách ghé",
+  lead: "Lead",
+  contacted: "Đã liên hệ",
+  qualified: "Tiềm năng",
+  negotiation: "Đàm phán",
+  customer: "Khách hàng",
+  advocate: "Đại sứ",
+};
 
 interface OrderSummary {
   paidCount: number;
   pendingCount: number;
   totalPaid: number;
 }
-
-/* ---------- Helpers ---------- */
-
-function formatShortDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: "Asia/Ho_Chi_Minh",
-    hour12: false,
-  });
-}
-
-function formatVND(amount: number): string {
-  if (!amount) return "0đ";
-  return amount.toLocaleString("vi-VN") + "đ";
-}
-
-/* ---------- Status & Source Config ---------- */
-
-const statusConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  new:          { label: "Mới",         color: "#3b82f6", bg: "rgba(59,130,246,0.1)",  border: "rgba(59,130,246,0.25)" },
-  contacted:    { label: "Đã liên hệ",  color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.25)" },
-  qualified:    { label: "Tiềm năng",   color: "#a855f7", bg: "rgba(168,85,247,0.1)", border: "rgba(168,85,247,0.25)" },
-  negotiation:  { label: "Đàm phán",    color: "#f97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.25)" },
-  won:          { label: "Thành công",   color: "#D4A843", bg: "rgba(212,168,67,0.1)",  border: "rgba(212,168,67,0.25)" },
-  lost:         { label: "Mất",         color: "#ef4444", bg: "rgba(239,68,68,0.1)",  border: "rgba(239,68,68,0.25)" },
-  churned:      { label: "Rời bỏ",      color: "#6b7280", bg: "rgba(107,114,128,0.1)", border: "rgba(107,114,128,0.25)" },
-};
-
-const sourceConfig: Record<string, { label: string; color: string; bg: string }> = {
-  manual:   { label: "Thủ công",   color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
-  import:   { label: "Import",    color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
-  website:  { label: "Website",   color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
-  referral: { label: "Giới thiệu", color: "#D4A843", bg: "rgba(212,168,67,0.1)" },
-  ads:      { label: "Quảng cáo", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  social:   { label: "MXH",       color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
-};
-
-const journeyStageConfig: Record<string, { label: string; color: string }> = {
-  visitor:      { label: "Khách ghé",    color: "#6b7280" },
-  lead:         { label: "Lead",         color: "#3b82f6" },
-  contacted:    { label: "Đã liên hệ",  color: "#f59e0b" },
-  qualified:    { label: "Tiềm năng",   color: "#a855f7" },
-  negotiation:  { label: "Đàm phán",    color: "#f97316" },
-  customer:     { label: "Khách hàng",  color: "#D4A843" },
-  advocate:     { label: "Đại sứ",      color: "#22c55e" },
-};
 
 /* ---------- Page ---------- */
 
@@ -318,8 +265,8 @@ export default async function CRMContactsPage({
                   className="input-dark pl-9 pr-8 py-2 text-sm appearance-none min-w-[140px]"
                 >
                   <option value="">Tất cả TT</option>
-                  {Object.entries(statusConfig).map(([key, cfg]) => (
-                    <option key={key} value={key}>{cfg.label}</option>
+                  {Object.entries(statusOptions).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
               </div>
@@ -331,8 +278,8 @@ export default async function CRMContactsPage({
                   className="input-dark pl-9 pr-8 py-2 text-sm appearance-none min-w-[140px]"
                 >
                   <option value="">Tất cả GĐ</option>
-                  {Object.entries(journeyStageConfig).map(([key, cfg]) => (
-                    <option key={key} value={key}>{cfg.label}</option>
+                  {Object.entries(journeyStageOptions).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
               </div>
@@ -395,13 +342,15 @@ export default async function CRMContactsPage({
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Công ty</label>
-                <input
-                  type="text"
-                  name="company"
-                  placeholder="Tên công ty"
-                  className="input-dark w-full px-3 py-2 text-sm"
-                />
+                <label className="text-xs text-gray-400 mb-1 block">Gán cho sale</label>
+                <select name="assigned_to" className="input-dark w-full px-3 py-2 text-sm">
+                  <option value="">— Chưa gán —</option>
+                  {salesUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.full_name ?? u.id.slice(0, 8)}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-xs text-gray-400 mb-1 block">Nguồn</label>
@@ -471,245 +420,17 @@ export default async function CRMContactsPage({
         )}
 
         {/* Contacts Table */}
-        <div className="card-dark overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
-            <h3 className="font-semibold text-white text-sm">
-              Danh sách khách hàng
-            </h3>
-            <span className="text-xs text-gray-500">
-              {contacts.length} kết quả
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
-                  {["Tên", "Email", "SĐT", "Trạng thái", "Giai đoạn", "Điểm", "Phụ trách", "Đơn hàng", "Doanh thu", "Nguồn", "Ngày tạo"].map((col) => (
-                    <th
-                      key={col}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                    >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.length === 0 ? (
-                  <tr>
-                    <td colSpan={11} className="px-4 py-12 text-center text-gray-500 text-sm">
-                      {q || statusFilter
-                        ? "Không tìm thấy khách hàng phù hợp."
-                        : "Chưa có khách hàng nào. Hãy thêm khách hàng đầu tiên!"}
-                    </td>
-                  </tr>
-                ) : (
-                  contacts.map((contact, idx) => {
-                    const st = statusConfig[contact.status] || statusConfig.new;
-                    const src = sourceConfig[contact.source || "manual"] || sourceConfig.manual;
-                    const initial = contact.full_name.charAt(0).toUpperCase();
-
-                    return (
-                      <tr
-                        key={contact.id}
-                        className="transition-colors hover:bg-white/[0.02]"
-                        style={{
-                          borderBottom: idx < contacts.length - 1 ? "1px solid #2a2a2a" : "none",
-                        }}
-                      >
-                        {/* Name */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                              style={{ background: `linear-gradient(135deg, ${st.color}, ${st.color}99)` }}
-                            >
-                              {initial}
-                            </div>
-                            <div className="min-w-0">
-                              <Link
-                                href={`/crm/contacts/${contact.id}`}
-                                className="font-medium text-white truncate block hover:underline"
-                              >
-                                {contact.full_name}
-                              </Link>
-                              {contact.company && (
-                                <div className="text-[11px] text-gray-500 truncate flex items-center gap-1">
-                                  <Building2 size={10} />
-                                  {contact.company}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Email */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {contact.email ? (
-                            <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                              <Mail size={12} className="text-gray-500" />
-                              <span className="truncate max-w-[160px]">{contact.email}</span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-700 text-xs">—</span>
-                          )}
-                        </td>
-
-                        {/* Phone */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {contact.phone ? (
-                            <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                              <Phone size={12} className="text-gray-500" />
-                              {contact.phone}
-                            </div>
-                          ) : (
-                            <span className="text-gray-700 text-xs">—</span>
-                          )}
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                            style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}
-                          >
-                            {st.label}
-                          </span>
-                        </td>
-
-                        {/* Journey Stage */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {(() => {
-                            const js = journeyStageConfig[contact.journey_stage] || journeyStageConfig.visitor;
-                            return (
-                              <span
-                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                                style={{ background: js.color + "18", color: js.color, border: `1px solid ${js.color}40` }}
-                              >
-                                {js.label}
-                              </span>
-                            );
-                          })()}
-                        </td>
-
-                        {/* Lead Score */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`text-xs font-bold ${
-                            contact.lead_score >= 81 ? "text-green-400" :
-                            contact.lead_score >= 61 ? "text-amber-400" :
-                            contact.lead_score >= 31 ? "text-blue-400" :
-                            "text-gray-500"
-                          }`}>
-                            {contact.lead_score ?? 0}
-                          </span>
-                        </td>
-
-                        {/* Assigned To */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <ContactAssignSelect
-                            contactId={contact.id}
-                            assignedTo={contact.assigned_to}
-                            salesUsers={salesUsers}
-                          />
-                        </td>
-
-                        {/* Orders */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {contact.email && orderSummaryMap[contact.email] ? (
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-1.5 text-xs">
-                                <ShoppingCart size={12} className="text-gray-500" />
-                                <span>
-                                  {orderSummaryMap[contact.email].paidCount > 0 && (
-                                    <span className="text-amber-400 font-medium">
-                                      {orderSummaryMap[contact.email].paidCount} đã TT
-                                    </span>
-                                  )}
-                                  {orderSummaryMap[contact.email].paidCount > 0 &&
-                                    orderSummaryMap[contact.email].pendingCount > 0 && (
-                                    <span className="text-gray-500"> / </span>
-                                  )}
-                                  {orderSummaryMap[contact.email].pendingCount > 0 && (
-                                    <span className="text-yellow-400 font-medium">
-                                      {orderSummaryMap[contact.email].pendingCount} chờ
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                              {contact.email && enrollmentCountMap[contact.email] > 0 && (
-                                <div className="text-[11px] text-blue-400">
-                                  {enrollmentCountMap[contact.email]} khoá học
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-700 text-xs">
-                              {contact.email && enrollmentCountMap[contact.email] > 0 ? (
-                                <span className="text-blue-400 text-[11px]">
-                                  {enrollmentCountMap[contact.email]} khoá học
-                                </span>
-                              ) : "—"}
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Revenue */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {contact.email && orderSummaryMap[contact.email]?.totalPaid > 0 ? (
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <DollarSign size={12} className="text-amber-500" />
-                              <span className="text-amber-400 font-semibold">
-                                {formatVND(orderSummaryMap[contact.email].totalPaid)}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-700 text-xs">—</span>
-                          )}
-                        </td>
-
-                        {/* Source */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                            style={{ background: src.bg, color: src.color }}
-                          >
-                            {src.label}
-                          </span>
-                        </td>
-
-                        {/* Created at */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                            <Clock size={12} className="text-gray-500" />
-                            {formatShortDate(contact.created_at)}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer */}
-          {contacts.length > 0 && (
-            <div className="px-4 py-3 border-t border-[#2a2a2a] flex items-center justify-between">
-              <p className="text-xs text-gray-500">
-                Hiển thị <span className="text-white font-semibold">{contacts.length}</span> khách hàng
-                {(q || statusFilter || journeyStageFilter) && " (đã lọc)"}
-              </p>
-              {(q || statusFilter || journeyStageFilter) && (
-                <Link
-                  href="/crm/contacts"
-                  className="text-xs text-[#D4A843] hover:underline"
-                >
-                  Xoá bộ lọc
-                </Link>
-              )}
-            </div>
-          )}
-        </div>
+        <ContactsTable
+          contacts={contacts}
+          orderMap={orderSummaryMap}
+          enrollmentMap={enrollmentCountMap}
+          salesUsers={salesUsers}
+          canMutate={scope.canMutate}
+          totalContacts={totalCount ?? 0}
+          query={q}
+          statusFilter={statusFilter}
+          journeyFilter={journeyStageFilter}
+        />
       </div>
     </div>
   );
