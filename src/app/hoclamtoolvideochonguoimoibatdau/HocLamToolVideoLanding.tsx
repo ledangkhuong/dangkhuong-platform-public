@@ -411,23 +411,6 @@ export default function HocLamToolVideoLanding() {
             <strong style={{ color: "#22D3EE" }}>chỉ bằng 1 nút bấm</strong>. Không cần biết code. Đơn giản. Hiệu quả.
           </p>
 
-          {/* Banner chương trình */}
-          <div className="mb-6 sm:mb-8 w-full max-w-4xl">
-            <div
-              className="relative overflow-hidden rounded-2xl"
-              style={{
-                border: "1px solid rgba(59,130,246,0.35)",
-                boxShadow: "0 20px 60px -15px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.15)",
-              }}
-            >
-              <img
-                src="/images/updateveo31/banner.png"
-                alt="Học Làm Tool Video Cho Người Mới Bắt Đầu — Chương trình Lê Đăng Khương"
-                className="block w-full h-auto"
-              />
-            </div>
-          </div>
-
           {/* Video giới thiệu */}
           <div className="mb-6 sm:mb-8 w-full max-w-3xl">
             <div
