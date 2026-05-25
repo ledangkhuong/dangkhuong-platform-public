@@ -3,6 +3,7 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CRM_JOURNEY_STAGES } from "@/lib/crm-constants";
+import { getStickyAssignment } from "@/lib/sticky-assign";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -202,6 +203,22 @@ export async function createDeal(formData: FormData) {
   if (isNaN(probability) || probability < 0) probability = 0;
   if (probability > 100) probability = 100;
 
+  // Honor explicit assignment from the form; otherwise fall back to the
+  // sticky sale rep on the linked CRM contact. Fail-soft on lookup errors.
+  let assignedTo =
+    (formData.get("assigned_to") as string || "").trim() || null;
+  if (!assignedTo) {
+    try {
+      assignedTo = await getStickyAssignment(admin, { contact_id: contactId });
+    } catch (stickyErr) {
+      console.error(
+        "[CRM createDeal] Sticky-assign lookup failed:",
+        stickyErr instanceof Error ? stickyErr.message : stickyErr
+      );
+      assignedTo = null;
+    }
+  }
+
   const { error } = await admin.from("crm_deals").insert({
     contact_id: contactId,
     product_id: (formData.get("product_id") as string || "").trim() || null,
@@ -212,7 +229,7 @@ export async function createDeal(formData: FormData) {
     expected_close_date:
       (formData.get("expected_close_date") as string || "").trim() || null,
     notes: (formData.get("notes") as string || "").trim() || null,
-    assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
+    assigned_to: assignedTo,
     created_by: user.id,
   });
 

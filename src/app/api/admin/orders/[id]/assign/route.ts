@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ASSIGNABLE_ROLES } from "@/lib/sales";
 import { logAudit } from "@/lib/audit";
+import { propagateToContact } from "@/lib/sticky-assign";
 
 /**
  * POST /api/admin/orders/[id]/assign
@@ -96,6 +97,36 @@ export async function POST(
       );
     }
 
+    // First-touch propagation: copy the assignment up to the matching CRM
+    // contact so future items inherit the same sticky owner. Fail-soft —
+    // never block the response on propagation. Skip when unassigning.
+    let propagationResult: Awaited<ReturnType<typeof propagateToContact>> | null =
+      null;
+    if (assignedTo !== null) {
+      const { data: orderRow } = await adminClient
+        .from("orders")
+        .select("customer_email, user_id")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (orderRow) {
+        propagationResult = await propagateToContact(adminClient, {
+          email: orderRow.customer_email ?? null,
+          user_id: orderRow.user_id ?? null,
+          sale_id: assignedTo,
+        });
+        if (propagationResult.propagated) {
+          console.info(
+            `[orders/assign POST] propagated assignment to crm_contact ${propagationResult.contact_id}`
+          );
+        } else {
+          console.info(
+            `[orders/assign POST] propagation skipped: ${propagationResult.reason}`
+          );
+        }
+      }
+    }
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     await logAudit({
@@ -103,7 +134,7 @@ export async function POST(
       action: "order.assign",
       target_type: "order",
       target_id: id,
-      details: { assigned_to: assignedTo },
+      details: { assigned_to: assignedTo, propagation: propagationResult },
       ip_address: ip,
     });
 

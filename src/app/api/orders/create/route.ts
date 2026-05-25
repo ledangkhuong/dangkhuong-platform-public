@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { randomBytes } from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
 import { isPayOSConfigured } from "@/lib/payos";
+import { getStickyAssignment } from "@/lib/sticky-assign";
 
 // Generate a cryptographically random order code
 // Format: DK + 12 random alphanumeric chars (e.g., "DKa3Bf9Kx2Mn")
@@ -219,6 +220,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Sticky sale assignment — inherit assigned_to from the customer's CRM
+    // contact (if any) so a buyer always reaches the same sale rep. Fail-soft.
+    let stickyAssignedTo: string | null = null;
+    try {
+      stickyAssignedTo = await getStickyAssignment(admin, {
+        email: customer_email || user.email || null,
+        user_id: user.id,
+      });
+    } catch (stickyErr) {
+      console.error(
+        "[Create Order] Sticky-assign lookup failed:",
+        stickyErr instanceof Error ? stickyErr.message : stickyErr
+      );
+    }
+
     // Tạo đơn hàng (kèm ref_code và coupon_code nếu có)
     const { data: order, error: orderError } = await admin.from("orders").insert({
       order_code: orderCode,
@@ -232,6 +248,7 @@ export async function POST(req: NextRequest) {
       customer_phone: customer_phone || null,
       ref_code: refCode,
       ...(appliedCouponCode ? { coupon_code: appliedCouponCode } : {}),
+      ...(stickyAssignedTo ? { assigned_to: stickyAssignedTo } : {}),
     }).select().single();
 
     if (orderError) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ASSIGNABLE_ROLES } from "@/lib/sales";
+import { propagateToContact } from "@/lib/sticky-assign";
 
 /**
  * PATCH /api/crm/interests
@@ -97,6 +98,35 @@ export async function PATCH(req: NextRequest) {
         { error: "Update failed" },
         { status: 500 }
       );
+    }
+
+    // First-touch propagation: when admin explicitly assigns a sale to this
+    // interest, copy the assignment up to the matching crm_contact (matched
+    // by user_id) so future items inherit the same sticky owner. Fail-soft
+    // and never blocks the response. Only runs when `assigned_to` was sent
+    // in the request body and is not null (don't propagate on unassign).
+    if (assigned_to !== undefined && assigned_to !== null) {
+      const { data: interestRow } = await admin
+        .from("course_interests")
+        .select("user_id")
+        .eq("id", interest_id)
+        .maybeSingle();
+
+      if (interestRow?.user_id) {
+        const propagationResult = await propagateToContact(admin, {
+          user_id: interestRow.user_id,
+          sale_id: assigned_to,
+        });
+        if (propagationResult.propagated) {
+          console.info(
+            `[crm/interests PATCH] propagated assignment to crm_contact ${propagationResult.contact_id}`
+          );
+        } else {
+          console.info(
+            `[crm/interests PATCH] propagation skipped: ${propagationResult.reason}`
+          );
+        }
+      }
     }
 
     return NextResponse.json({ ok: true });

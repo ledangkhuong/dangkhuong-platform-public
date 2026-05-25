@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getStickyAssignment } from "@/lib/sticky-assign";
 
 /**
  * POST /api/courses/interest
@@ -46,12 +47,27 @@ export async function POST(req: NextRequest) {
         })
         .eq("id", existing.id);
     } else {
+      // Sticky sale assignment — inherit assigned_to from the user's CRM
+      // contact (if any). Fail-soft: log and continue without on error.
+      let stickyAssignedTo: string | null = null;
+      try {
+        stickyAssignedTo = await getStickyAssignment(admin, {
+          user_id: user.id,
+        });
+      } catch (stickyErr) {
+        console.error(
+          "[course-interest] Sticky-assign lookup failed:",
+          stickyErr instanceof Error ? stickyErr.message : stickyErr
+        );
+      }
+
       await admin.from("course_interests").insert({
         user_id: user.id,
         product_id,
         view_count: 1,
         first_viewed_at: new Date().toISOString(),
         last_viewed_at: new Date().toISOString(),
+        ...(stickyAssignedTo ? { assigned_to: stickyAssignedTo } : {}),
       });
 
       // Also auto-create/update CRM contact if not exists
