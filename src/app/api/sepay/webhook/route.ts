@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import crypto from "crypto";
 import { trackPurchase } from "@/lib/facebook-capi";
+import { getPixelConfigBySlug } from "@/lib/pixel-config";
 import { alertPaymentFailure, alertUnderpayment } from "@/lib/admin-alerts";
 
 /**
@@ -448,6 +449,21 @@ export async function POST(req: NextRequest) {
       const { data: purchaseAuth } = await supabase.auth.admin.getUserById(order.user_id as string);
       const products = order.products as Record<string, unknown> | null;
 
+      // Lookup pixel config theo order.source (landing slug) hoặc product slug.
+      // Nếu không tìm thấy hoặc không có CAPI token → fallback env vars.
+      const sourceSlug = (order.source as string | null) || (products?.slug as string | null);
+      let pixelOverride: { pixelId: string; accessToken: string; testEventCode: string | null } | undefined;
+      if (sourceSlug) {
+        const cfg = await getPixelConfigBySlug(sourceSlug);
+        if (cfg?.capi_access_token) {
+          pixelOverride = {
+            pixelId: cfg.pixel_id,
+            accessToken: cfg.capi_access_token,
+            testEventCode: cfg.test_event_code,
+          };
+        }
+      }
+
       trackPurchase({
         email: purchaseAuth?.user?.email || (order.customer_email as string) || "",
         phone: purchaseProfile?.phone || (order.customer_phone as string),
@@ -459,6 +475,7 @@ export async function POST(req: NextRequest) {
         contentName: (products?.title as string) || (products?.name as string) || "Product",
         eventId: `purchase_${order.id}`,
         sourceUrl: products?.slug ? `https://dangkhuong.com/courses/${products.slug as string}` : "https://dangkhuong.com",
+        config: pixelOverride,
       }).catch(() => {});
     } catch {
       // Purchase CAPI failure should never block webhook
