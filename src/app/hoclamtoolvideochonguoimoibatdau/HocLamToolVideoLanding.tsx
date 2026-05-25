@@ -206,6 +206,7 @@ export default function HocLamToolVideoLanding() {
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">("pending");
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   // Poll order status every 5s when payment modal is open
   useEffect(() => {
@@ -411,24 +412,46 @@ export default function HocLamToolVideoLanding() {
             <strong style={{ color: "#22D3EE" }}>chỉ bằng 1 nút bấm</strong>. Không cần biết code. Đơn giản. Hiệu quả.
           </p>
 
-          {/* Video giới thiệu */}
+          {/* Video giới thiệu — banner thumbnail, click to play */}
           <div className="mb-6 sm:mb-8 w-full max-w-3xl">
             <div
-              className="relative overflow-hidden rounded-2xl"
+              className="relative overflow-hidden rounded-2xl cursor-pointer group"
               style={{
                 paddingBottom: "56.25%",
                 border: "1px solid rgba(59,130,246,0.25)",
                 boxShadow: "0 20px 60px -15px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.12)",
               }}
+              onClick={() => setVideoPlaying(true)}
             >
-              <iframe
-                src="https://www.youtube.com/embed/DqmPtSi-cf4?rel=0"
-                title="Học Làm Tool Video Cho Người Mới Bắt Đầu — Xây Tool Video AI Đơn Giản, Hiệu Quả"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-                loading="lazy"
-              />
+              {videoPlaying ? (
+                <iframe
+                  src="https://www.youtube.com/embed/DqmPtSi-cf4?rel=0&autoplay=1"
+                  title="Học Làm Tool Video Cho Người Mới Bắt Đầu — Xây Tool Video AI Đơn Giản, Hiệu Quả"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full"
+                />
+              ) : (
+                <>
+                  <img
+                    src="/images/updateveo31/banner.png"
+                    alt="Học Làm Tool Video Cho Người Mới Bắt Đầu"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  {/* Play button overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div
+                      className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full transition-transform group-hover:scale-110"
+                      style={{
+                        background: "rgba(255,0,0,0.85)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                      }}
+                    >
+                      <Play size={28} className="text-white ml-1" fill="white" />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
