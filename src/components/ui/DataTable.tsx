@@ -95,7 +95,7 @@ function ResizeHandle<T>({
       onTouchStart={header.getResizeHandler()}
       className={cn(
         "absolute right-0 top-0 h-full w-[3px] cursor-col-resize select-none touch-none transition-colors",
-        isResizing ? "bg-blue-500" : "bg-transparent hover:bg-blue-500/50"
+        isResizing ? "bg-[#D4A843]" : "bg-[#2a2a2a] hover:bg-[#D4A843]/60"
       )}
     />
   );

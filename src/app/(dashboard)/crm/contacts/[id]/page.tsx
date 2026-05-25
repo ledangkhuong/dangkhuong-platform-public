@@ -27,6 +27,9 @@ import {
   Lightbulb,
   ListTodo,
   Briefcase,
+  Eye,
+  MousePointerClick,
+  Timer,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -104,6 +107,14 @@ interface Deal {
   title: string;
   stage: string;
   amount: number;
+}
+
+interface PageViewEvent {
+  id: string;
+  event: string;
+  page: string;
+  meta: Record<string, unknown> | null;
+  created_at: string;
 }
 
 /* ---------- Constants ---------- */
@@ -318,6 +329,40 @@ export default async function ContactDetailPage({
       enrollments = (enrollData ?? []) as unknown as Enrollment[];
     }
   }
+
+  // ─── Fetch page view events (web journey) ──────────────────────────────────
+  let pageViewEvents: PageViewEvent[] = [];
+  const trackingUserId = contact.user_id;
+  if (trackingUserId) {
+    const { data: eventsData } = await adminClient
+      .from("analytics_events")
+      .select("id, event, page, meta, created_at")
+      .eq("user_id", trackingUserId)
+      .in("event", ["page_view", "scroll_depth", "time_on_page"])
+      .order("created_at", { ascending: false })
+      .limit(100);
+    pageViewEvents = (eventsData ?? []) as unknown as PageViewEvent[];
+  }
+
+  // Group page views into sessions (pages visited in sequence)
+  const pageViews = pageViewEvents.filter((e) => e.event === "page_view");
+  const scrollEvents = pageViewEvents.filter((e) => e.event === "scroll_depth");
+  const timeEvents = pageViewEvents.filter((e) => e.event === "time_on_page");
+
+  // Build enriched page view list
+  const enrichedPageViews = pageViews.map((pv) => {
+    const scroll = scrollEvents.find(
+      (s) => s.page === pv.page && Math.abs(new Date(s.created_at).getTime() - new Date(pv.created_at).getTime()) < 600000
+    );
+    const time = timeEvents.find(
+      (t) => t.page === pv.page && Math.abs(new Date(t.created_at).getTime() - new Date(pv.created_at).getTime()) < 600000
+    );
+    return {
+      ...pv,
+      scrollDepth: (scroll?.meta as Record<string, unknown>)?.depth as number | undefined,
+      timeOnPage: (time?.meta as Record<string, unknown>)?.seconds as number | undefined,
+    };
+  });
 
   // ─── Computed values ───────────────────────────────────────────────────────
   const journeyStage = contact.journey_stage || "visitor";
@@ -587,6 +632,68 @@ export default async function ContactDetailPage({
                 </div>
               )}
             </div>
+
+            {/* ─── Web Journey Section ─── */}
+            {enrichedPageViews.length > 0 && (
+              <div className="card-dark p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Eye size={16} className="text-[#D4A843]" />
+                  <h3 className="font-semibold text-white text-sm">Hành trình web</h3>
+                  <span className="text-xs text-gray-500 ml-auto">
+                    {enrichedPageViews.length} lượt xem
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {enrichedPageViews.slice(0, 30).map((pv, idx) => (
+                    <div
+                      key={pv.id}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/[0.03]"
+                      style={{
+                        background: idx === 0 ? "rgba(212,168,67,0.04)" : "transparent",
+                      }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: idx === 0 ? "#D4A843" : "#3a3a3a" }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-200 truncate font-mono">
+                          {pv.page}
+                        </p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          {formatDateTime(pv.created_at)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        {pv.scrollDepth != null && (
+                          <div className="flex items-center gap-1.5" title="Scroll depth">
+                            <MousePointerClick size={12} className="text-blue-400" />
+                            <span className="text-xs text-blue-400 font-medium">
+                              {pv.scrollDepth}%
+                            </span>
+                          </div>
+                        )}
+                        {pv.timeOnPage != null && (
+                          <div className="flex items-center gap-1.5" title="Thời gian trên trang">
+                            <Timer size={12} className="text-green-400" />
+                            <span className="text-xs text-green-400 font-medium">
+                              {pv.timeOnPage < 60
+                                ? `${pv.timeOnPage}s`
+                                : `${Math.floor(pv.timeOnPage / 60)}m${pv.timeOnPage % 60 > 0 ? ` ${pv.timeOnPage % 60}s` : ""}`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {enrichedPageViews.length > 30 && (
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    Hiển thị 30 / {enrichedPageViews.length} lượt xem gần nhất
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ─── RIGHT COLUMN (1/3) ─── */}
