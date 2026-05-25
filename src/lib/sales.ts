@@ -46,10 +46,11 @@ export type SalesUser = {
 };
 
 /**
- * Fetch profiles eligible to be assigned to orders / contacts / interests.
- * Caller passes whichever Supabase client is appropriate for the context
- * (createClient for RSCs, createAdminClient for server actions / routes
- * that bypass RLS).
+ * Fetch profiles eligible to APPEAR as an `assigned_to` option in the UI.
+ * Only role='sale' — admin/manager can ASSIGN (via the dropdown) but should
+ * not BE assigned. Per-product decision: keep the dropdown clean for sales
+ * teams; existing legacy assignments to admin/manager are not invalidated
+ * (API still tolerates them via `ASSIGNABLE_ROLES`).
  */
 export async function getSalesUsers(
   supabase: SupabaseClient
@@ -57,7 +58,7 @@ export async function getSalesUsers(
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, role")
-    .in("role", ["admin", "manager", "sale"])
+    .eq("role", "sale")
     .order("full_name", { ascending: true });
 
   if (error) {
@@ -68,5 +69,9 @@ export async function getSalesUsers(
   return (data ?? []) as SalesUser[];
 }
 
-/** Roles allowed as an `assigned_to` target. Single source of truth. */
+/**
+ * Roles tolerated as an `assigned_to` target by the API. Kept broader than
+ * the UI dropdown so legacy admin/manager assignments stay editable. UIs
+ * source options from `getSalesUsers()` (role='sale' only) instead.
+ */
 export const ASSIGNABLE_ROLES: readonly string[] = ["admin", "manager", "sale"];
