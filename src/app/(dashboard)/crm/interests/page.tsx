@@ -1,5 +1,6 @@
 import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
+import { getSalesUsers } from "@/lib/sales";
 import Link from "next/link";
 import UserAvatar from "@/components/admin/UserAvatar";
 import InterestActions from "./InterestActions";
@@ -288,12 +289,8 @@ export default async function CRMInterestsPage({
   const contactedCount = interests.filter((i) => i.status === "contacted").length;
   const convertedCount = interests.filter((i) => i.status === "converted").length;
 
-  // Staff list for assignment dropdown
-  const { data: staffList } = await admin
-    .from("profiles")
-    .select("id, full_name")
-    .in("role", ["admin", "manager", "sale", "support"])
-    .order("full_name");
+  // Staff list for assignment dropdown — must match backend (admin/manager/sale only)
+  const staffList = await getSalesUsers(admin);
 
   // Products for filter
   const { data: allProducts } = await admin
@@ -497,8 +494,15 @@ export default async function CRMInterestsPage({
                           {customer.assignedName}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-gray-600 italic">
-                          Chưa gán sale
+                        <span
+                          className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg font-medium"
+                          style={{
+                            background: "rgba(245,158,11,0.1)",
+                            color: "#f59e0b",
+                            border: "1px solid rgba(245,158,11,0.25)",
+                          }}
+                        >
+                          Chưa gán
                         </span>
                       )}
                     </div>

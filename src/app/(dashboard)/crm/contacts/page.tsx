@@ -1,6 +1,8 @@
 import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
 import { createContact, importContacts, syncContactsFromOrders } from "@/lib/actions/crm";
+import { getSalesUsers } from "@/lib/sales";
+import ContactAssignSelect from "./ContactAssignSelect";
 import {
   Users,
   UserPlus,
@@ -33,6 +35,7 @@ interface Contact {
   notes: string | null;
   last_contacted_at: string | null;
   created_at: string;
+  assigned_to: string | null;
   assigned_profile: { full_name: string | null } | null;
   journey_stage: string;
   lead_score: number;
@@ -203,6 +206,9 @@ export default async function CRMContactsPage({
       }
     }
   }
+
+  // Sales users for assignment dropdown (admin/manager/sale only — must match backend)
+  const salesUsers = await getSalesUsers(admin);
 
   // Notification messages
   const notifications: { type: "success" | "error"; message: string }[] = [];
@@ -577,11 +583,11 @@ export default async function CRMContactsPage({
 
                         {/* Assigned To */}
                         <td className="px-4 py-3 whitespace-nowrap">
-                          {contact.assigned_profile?.full_name ? (
-                            <span className="text-xs text-gray-300">{contact.assigned_profile.full_name}</span>
-                          ) : (
-                            <span className="text-xs text-gray-500">Chưa phân</span>
-                          )}
+                          <ContactAssignSelect
+                            contactId={contact.id}
+                            assignedTo={contact.assigned_to}
+                            salesUsers={salesUsers}
+                          />
                         </td>
 
                         {/* Orders */}

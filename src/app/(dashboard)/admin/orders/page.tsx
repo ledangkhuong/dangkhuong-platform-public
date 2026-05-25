@@ -1,11 +1,13 @@
 import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getSalesUsers } from "@/lib/sales";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import ConfirmOrderButton from "@/components/admin/ConfirmOrderButton";
 import QRCodeButton from "@/components/admin/QRCodeButton";
 import OrderSearchBar from "@/components/admin/OrderSearchBar";
 import BulkDeleteOrders from "@/components/admin/BulkDeleteOrders";
+import OrderAssignSelect from "./OrderAssignSelect";
 import {
   ShoppingCart,
   TrendingUp,
@@ -36,6 +38,8 @@ interface OrderRow {
   payment_method: string | null;
   paid_at: string | null;
   created_at: string;
+  assigned_to: string | null;
+  assigned_profile: { full_name: string | null } | null;
   products: { title: string } | null;
 }
 
@@ -181,10 +185,13 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const totalPages = Math.max(1, Math.ceil(totalFilteredOrders / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
 
+  // Fetch sales users for assignment dropdown
+  const salesUsers = await getSalesUsers(supabase);
+
   // Fetch paginated orders
   let dbQuery = supabase
     .from("orders")
-    .select("*, products(title)")
+    .select("*, products(title), assigned_profile:assigned_to(full_name)")
     .order("created_at", { ascending: false });
 
   if (query) {
@@ -360,6 +367,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       "Sản phẩm",
                       "Số tiền",
                       "Trạng thái",
+                      "Sale",
                       "Thanh toán",
                       "Ngày tạo",
                       "",
@@ -426,6 +434,36 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       {/* Trạng thái */}
                       <td className="px-5 py-3.5">
                         <StatusBadge status={order.status} />
+                      </td>
+
+                      {/* Sale */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        <div className="flex flex-col gap-1.5">
+                          {order.assigned_to ? (
+                            <span className="text-xs text-gray-300">
+                              {order.assigned_profile?.full_name ??
+                                order.assigned_to.slice(0, 8)}
+                            </span>
+                          ) : (
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold w-fit"
+                              style={{
+                                background: "rgba(245,158,11,0.1)",
+                                color: "#f59e0b",
+                                border: "1px solid rgba(245,158,11,0.2)",
+                              }}
+                            >
+                              Chưa gán
+                            </span>
+                          )}
+                          {canWrite && (
+                            <OrderAssignSelect
+                              orderId={order.id}
+                              assignedTo={order.assigned_to}
+                              salesUsers={salesUsers}
+                            />
+                          )}
+                        </div>
                       </td>
 
                       {/* Thanh toán */}

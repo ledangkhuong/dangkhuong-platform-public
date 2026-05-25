@@ -130,6 +130,8 @@ create table public.orders (
   customer_phone  text,
   note            text,
   coupon_code     text,
+  -- Phân công nhân viên sale phụ trách đơn
+  assigned_to     uuid references public.profiles(id) on delete set null,
   created_at      timestamptz default now(),
   updated_at      timestamptz default now()
 );

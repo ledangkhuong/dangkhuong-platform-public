@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { ASSIGNABLE_ROLES } from "@/lib/sales";
 
 /**
  * PATCH /api/crm/interests
@@ -49,6 +50,30 @@ export async function PATCH(req: NextRequest) {
       updateData.notes = notes;
     }
     if (assigned_to !== undefined) {
+      // Validate target profile has an assignable role (matches
+      // /api/admin/orders/[id]/assign + /api/crm/contacts/[id]/assign).
+      if (assigned_to) {
+        const { data: target } = await admin
+          .from("profiles")
+          .select("id, role")
+          .eq("id", assigned_to)
+          .single();
+
+        if (!target) {
+          return NextResponse.json(
+            { error: "Target profile not found" },
+            { status: 400 }
+          );
+        }
+        if (!ASSIGNABLE_ROLES.includes(target.role)) {
+          return NextResponse.json(
+            {
+              error: `Target user role '${target.role}' is not assignable. Must be one of: ${ASSIGNABLE_ROLES.join(", ")}`,
+            },
+            { status: 400 }
+          );
+        }
+      }
       updateData.assigned_to = assigned_to || null;
     }
     if (contacted !== undefined) {

@@ -6,6 +6,7 @@ export type AuditAction =
   | "user.tier_change"
   | "order.confirm"
   | "order.delete"
+  | "order.assign"
   | "course.delete"
   | "course.duplicate"
   | "enrollment.create"
