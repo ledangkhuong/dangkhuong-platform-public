@@ -42,6 +42,7 @@ export async function PATCH(
     "capi_access_token",
     "test_event_code",
     "is_active",
+    "apply_to_all_pages",
     "custom_events",
     "notes",
   ];
@@ -76,6 +77,31 @@ export async function PATCH(
   }
   if (!data) {
     return Response.json({ error: "Không tìm thấy cấu hình" }, { status: 404 });
+  }
+
+  // Sync landing_page_pixels nếu client gửi landing_page_ids
+  if (Array.isArray(body.landing_page_ids)) {
+    const applyToAll = data.apply_to_all_pages === true;
+    // Xoá bindings cũ
+    await admin.from("landing_page_pixels").delete().eq("pixel_config_id", id);
+    // Insert mới (chỉ khi không phải apply_to_all)
+    if (!applyToAll) {
+      const ids = (body.landing_page_ids as unknown[]).filter((x): x is string => typeof x === "string");
+      if (ids.length > 0) {
+        const rows = ids.map((lid, i) => ({
+          landing_page_id: lid,
+          pixel_config_id: id,
+          position: i,
+        }));
+        const { error: bindErr } = await admin.from("landing_page_pixels").insert(rows);
+        if (bindErr) {
+          console.error("[admin pixel-configs PATCH bind]", bindErr.message);
+        }
+      }
+    }
+  } else if (typeof body.apply_to_all_pages === "boolean" && body.apply_to_all_pages === true) {
+    // Switch sang "Toàn site" mà không gửi landing_page_ids → xoá hết bindings (tránh trùng tracking)
+    await admin.from("landing_page_pixels").delete().eq("pixel_config_id", id);
   }
 
   return Response.json({ success: true, config: data });

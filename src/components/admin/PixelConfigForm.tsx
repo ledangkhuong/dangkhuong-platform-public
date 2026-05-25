@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, RefreshCw, Save, Eye, EyeOff, Copy, Check } from "lucide-react";
-import type { PixelConfig } from "@/types/pixel-config";
+import { Plus, X, RefreshCw, Save, Eye, EyeOff, Copy, Check, Globe, Layers } from "lucide-react";
+import type { PixelConfig, LandingPage } from "@/types/pixel-config";
 
 interface Props {
   /** Khi truyền vào → form ở edit mode; bỏ trống → create mode. */
   config?: PixelConfig;
+  /** Danh sách landing_page_id đang attach (chỉ dùng ở edit mode). */
+  attachedLandingIds?: string[];
   /** Khi true, form luôn mở (dùng trong trang detail). Default false (toggle Add). */
   alwaysOpen?: boolean;
   onSaved?: () => void;
 }
 
-export default function PixelConfigForm({ config, alwaysOpen = false, onSaved }: Props) {
+export default function PixelConfigForm({ config, attachedLandingIds, alwaysOpen = false, onSaved }: Props) {
   const router = useRouter();
   const isEdit = !!config;
 
@@ -33,6 +35,36 @@ export default function PixelConfigForm({ config, alwaysOpen = false, onSaved }:
   const [isActive, setIsActive] = useState(config?.is_active ?? true);
   const [notes, setNotes] = useState(config?.notes ?? "");
 
+  // Apply scope
+  const [applyMode, setApplyMode] = useState<"all" | "specific">(
+    config?.apply_to_all_pages ? "all" : "specific",
+  );
+  const [selectedLandingIds, setSelectedLandingIds] = useState<string[]>(
+    attachedLandingIds ?? [],
+  );
+
+  // Available landings (fetched from API)
+  const [landings, setLandings] = useState<LandingPage[]>([]);
+  const [landingsLoading, setLandingsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/landing-pages");
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data?.landings)) {
+          setLandings(data.landings as LandingPage[]);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) setLandingsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Reset state khi config prop thay đổi
   useEffect(() => {
     if (config) {
@@ -44,8 +76,13 @@ export default function PixelConfigForm({ config, alwaysOpen = false, onSaved }:
       setTestEventCode(config.test_event_code ?? "");
       setIsActive(config.is_active);
       setNotes(config.notes ?? "");
+      setApplyMode(config.apply_to_all_pages ? "all" : "specific");
     }
   }, [config]);
+
+  useEffect(() => {
+    if (attachedLandingIds) setSelectedLandingIds(attachedLandingIds);
+  }, [attachedLandingIds]);
 
   const handleReset = () => {
     setSlug("");
@@ -56,7 +93,15 @@ export default function PixelConfigForm({ config, alwaysOpen = false, onSaved }:
     setTestEventCode("");
     setIsActive(true);
     setNotes("");
+    setApplyMode("specific");
+    setSelectedLandingIds([]);
     setError("");
+  };
+
+  const toggleLanding = (id: string) => {
+    setSelectedLandingIds((cur) =>
+      cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +127,8 @@ export default function PixelConfigForm({ config, alwaysOpen = false, onSaved }:
           capi_access_token: capiToken.trim() || null,
           test_event_code: testEventCode.trim() || null,
           is_active: isActive,
+          apply_to_all_pages: applyMode === "all",
+          landing_page_ids: applyMode === "specific" ? selectedLandingIds : [],
           notes: notes.trim() || null,
         }),
       });
@@ -256,6 +303,150 @@ export default function PixelConfigForm({ config, alwaysOpen = false, onSaved }:
             Lấy từ Events Manager &gt; Test Events. <strong>Bỏ trống khi production</strong>{" "}
             — nếu để code này, event sẽ không tính vào ads tracking thật.
           </p>
+        </div>
+
+        {/* ── Áp dụng cho ── */}
+        <div
+          className="p-4 rounded-xl space-y-3"
+          style={{ background: "#0f0f0f", border: "1px solid #2a2a2a" }}
+        >
+          <label className="block text-xs font-medium text-gray-400">
+            Áp dụng Pixel cho <span className="text-red-400">*</span>
+          </label>
+
+          {/* Radio: Toàn site */}
+          <button
+            type="button"
+            onClick={() => setApplyMode("all")}
+            className="w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all"
+            style={{
+              background: applyMode === "all" ? "rgba(212,168,67,0.08)" : "#1a1a1a",
+              border: `1px solid ${applyMode === "all" ? "rgba(212,168,67,0.4)" : "#2a2a2a"}`,
+            }}
+          >
+            <div
+              className="w-4 h-4 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center"
+              style={{
+                background: applyMode === "all" ? "#D4A843" : "transparent",
+                border: `2px solid ${applyMode === "all" ? "#D4A843" : "#3a3a3a"}`,
+              }}
+            >
+              {applyMode === "all" && (
+                <div className="w-1.5 h-1.5 rounded-full bg-black" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Globe size={14} className="text-[#D4A843]" />
+                <span className="text-sm font-semibold text-white">Toàn site</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Pixel fire trên <strong>mọi page</strong> dangkhuong.com (homepage, courses,
+                blog, mọi landing...). Phù hợp khi cần track conversion toàn website.
+              </p>
+            </div>
+          </button>
+
+          {/* Radio: Landing cụ thể */}
+          <button
+            type="button"
+            onClick={() => setApplyMode("specific")}
+            className="w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all"
+            style={{
+              background: applyMode === "specific" ? "rgba(212,168,67,0.08)" : "#1a1a1a",
+              border: `1px solid ${applyMode === "specific" ? "rgba(212,168,67,0.4)" : "#2a2a2a"}`,
+            }}
+          >
+            <div
+              className="w-4 h-4 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center"
+              style={{
+                background: applyMode === "specific" ? "#D4A843" : "transparent",
+                border: `2px solid ${applyMode === "specific" ? "#D4A843" : "#3a3a3a"}`,
+              }}
+            >
+              {applyMode === "specific" && (
+                <div className="w-1.5 h-1.5 rounded-full bg-black" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Layers size={14} className="text-[#D4A843]" />
+                <span className="text-sm font-semibold text-white">Landing cụ thể</span>
+                {applyMode === "specific" && selectedLandingIds.length > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded text-[#D4A843]"
+                        style={{ background: "rgba(212,168,67,0.12)" }}>
+                    Đã chọn {selectedLandingIds.length}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Tick chọn các landing bên dưới — Pixel chỉ fire trên những trang này.
+              </p>
+            </div>
+          </button>
+
+          {/* Multi-select landings (chỉ hiện khi mode = specific) */}
+          {applyMode === "specific" && (
+            <div
+              className="rounded-lg overflow-hidden"
+              style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+            >
+              {landingsLoading ? (
+                <div className="p-4 text-center text-xs text-gray-500">
+                  <RefreshCw size={12} className="inline animate-spin mr-1.5" />
+                  Đang tải danh sách landing...
+                </div>
+              ) : landings.length === 0 ? (
+                <div className="p-4 text-center text-xs text-gray-500">
+                  Chưa có landing nào.{" "}
+                  <a href="/admin/pixel-settings/pages" className="text-[#D4A843] hover:underline">
+                    Tạo landing mới
+                  </a>
+                </div>
+              ) : (
+                <div className="max-h-72 overflow-y-auto">
+                  {landings.map((l, i) => {
+                    const selected = selectedLandingIds.includes(l.id);
+                    return (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => toggleLanding(l.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.02] transition-colors text-left"
+                        style={{
+                          borderBottom: i < landings.length - 1 ? "1px solid #1f1f1f" : "none",
+                        }}
+                      >
+                        <div
+                          className="w-5 h-5 rounded flex-shrink-0 flex items-center justify-center"
+                          style={{
+                            background: selected ? "rgba(212,168,67,0.15)" : "#0f0f0f",
+                            border: `1px solid ${selected ? "rgba(212,168,67,0.5)" : "#2a2a2a"}`,
+                          }}
+                        >
+                          {selected && <Check size={12} className="text-[#D4A843]" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <code className="font-mono text-xs text-[#D4A843] font-semibold">
+                              {l.pathname}
+                            </code>
+                            {!l.is_active && (
+                              <span className="text-[9px] px-1 py-0.5 rounded text-orange-400"
+                                    style={{ background: "rgba(251,146,60,0.08)" }}>
+                                Landing tắt
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5 truncate">{l.name}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Description */}

@@ -44,7 +44,7 @@ export async function GET() {
   const admin = await createAdminClient();
   const { data, error } = await admin
     .from("pixel_configs")
-    .select("*")
+    .select(`*, landing_page_pixels (landing_page_id)`)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -67,8 +67,11 @@ export async function POST(req: NextRequest) {
     capi_access_token?: string | null;
     test_event_code?: string | null;
     is_active?: boolean;
+    apply_to_all_pages?: boolean;
     custom_events?: Record<string, unknown>;
     notes?: string | null;
+    /** Nếu có + apply_to_all_pages=false → bind pixel vào các landing này luôn. */
+    landing_page_ids?: string[];
   };
   try {
     body = await req.json();
@@ -95,6 +98,7 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = await createAdminClient();
+  const applyToAll = body.apply_to_all_pages === true;
   const { data, error } = await admin
     .from("pixel_configs")
     .insert({
@@ -105,6 +109,7 @@ export async function POST(req: NextRequest) {
       capi_access_token: body.capi_access_token?.trim() || null,
       test_event_code: body.test_event_code?.trim() || null,
       is_active: body.is_active ?? true,
+      apply_to_all_pages: applyToAll,
       custom_events: body.custom_events ?? {},
       notes: body.notes ?? null,
       created_by: auth.userId,
@@ -119,6 +124,24 @@ export async function POST(req: NextRequest) {
     }
     console.error("[admin pixel-configs POST]", error.message);
     return Response.json({ error: "Lỗi khi tạo cấu hình" }, { status: 500 });
+  }
+
+  // Bind vào landing pages nếu không phải apply_to_all (và có chọn landing)
+  if (!applyToAll && Array.isArray(body.landing_page_ids) && body.landing_page_ids.length > 0) {
+    const rows = body.landing_page_ids
+      .filter((x) => typeof x === "string")
+      .map((lid, i) => ({
+        landing_page_id: lid,
+        pixel_config_id: data.id,
+        position: i,
+      }));
+    if (rows.length > 0) {
+      const { error: bindErr } = await admin.from("landing_page_pixels").insert(rows);
+      if (bindErr) {
+        console.error("[admin pixel-configs POST bind]", bindErr.message);
+        // Không revert pixel config — chỉ warn
+      }
+    }
   }
 
   return Response.json({ success: true, config: data });

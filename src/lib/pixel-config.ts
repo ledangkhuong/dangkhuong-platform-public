@@ -53,6 +53,7 @@ export function toPublic(config: PixelConfig): PixelConfigPublic {
     name: config.name,
     pixel_id: config.pixel_id,
     is_active: config.is_active,
+    apply_to_all_pages: config.apply_to_all_pages,
     custom_events: config.custom_events,
     has_capi: Boolean(config.capi_access_token),
     has_test_code: Boolean(config.test_event_code),

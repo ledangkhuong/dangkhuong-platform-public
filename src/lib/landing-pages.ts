@@ -12,15 +12,19 @@ import type { LandingPage, LandingPageWithPixels, PixelConfig } from "@/types/pi
  * Resolve all ACTIVE pixel configs cho 1 pathname.
  * Dùng bởi <AutoPixel /> trong root layout.
  *
- * - Match exact pathname (`/weballinone`)
- * - Cả landing_pages.is_active = true + pixel_configs.is_active = true
- * - Order theo position
+ * Bao gồm:
+ *   1. Các pixel đã bind vào landing có pathname này (qua landing_page_pixels)
+ *   2. Các pixel có apply_to_all_pages = true (fire trên MỌI pathname)
+ *
+ * Dedupe theo id (1 pixel chỉ fire 1 lần dù có cả 2 nguồn).
  */
 export async function getPixelsForPathname(pathname: string): Promise<PixelConfig[]> {
   if (!pathname) return [];
 
   const admin = await createAdminClient();
-  const { data, error } = await admin
+
+  // ── Source 1: pixels bind vào landing này ──
+  const { data: landingData } = await admin
     .from("landing_pages")
     .select(`
       id,
@@ -35,23 +39,37 @@ export async function getPixelsForPathname(pathname: string): Promise<PixelConfi
     .eq("is_active", true)
     .maybeSingle();
 
-  if (error || !data) return [];
-
-  type Row = {
-    landing_page_pixels: Array<{
-      position: number;
-      pixel_config: PixelConfig;
-    }>;
+  type LandingRow = {
+    landing_page_pixels: Array<{ position: number; pixel_config: PixelConfig }>;
   };
-  const row = data as unknown as Row;
+  const landingRow = landingData as unknown as LandingRow | null;
 
-  const pixels = (row.landing_page_pixels ?? [])
+  const fromLanding = (landingRow?.landing_page_pixels ?? [])
     .map((r) => ({ position: r.position, cfg: r.pixel_config }))
     .filter((r) => r.cfg && r.cfg.is_active)
     .sort((a, b) => a.position - b.position)
     .map((r) => r.cfg);
 
-  return pixels;
+  // ── Source 2: pixels apply_to_all_pages ──
+  const { data: globalPixels } = await admin
+    .from("pixel_configs")
+    .select("*")
+    .eq("apply_to_all_pages", true)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  const fromGlobal = (globalPixels ?? []) as PixelConfig[];
+
+  // ── Dedupe theo id, ưu tiên thứ tự: landing bind trước, global sau ──
+  const seen = new Set<string>();
+  const out: PixelConfig[] = [];
+  for (const p of [...fromLanding, ...fromGlobal]) {
+    if (!seen.has(p.id)) {
+      seen.add(p.id);
+      out.push(p);
+    }
+  }
+  return out;
 }
 
 /** List tất cả landing pages (admin). */

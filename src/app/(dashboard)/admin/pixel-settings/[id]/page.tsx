@@ -38,12 +38,19 @@ export default async function AdminPixelConfigDetailPage({
     redirect("/dashboard");
   }
 
-  // Load config
+  // Load config + attached landing_page_ids
   const admin = await createAdminClient();
   const { data: config } = await admin
-    .from("pixel_configs").select("*").eq("id", id).maybeSingle();
+    .from("pixel_configs")
+    .select(`*, landing_page_pixels (landing_page_id)`)
+    .eq("id", id)
+    .maybeSingle();
   if (!config) notFound();
-  const typedConfig = config as PixelConfig;
+
+  const rawCfg = config as PixelConfig & { landing_page_pixels?: Array<{ landing_page_id: string }> };
+  const { landing_page_pixels: bindings, ...rest } = rawCfg;
+  const typedConfig = rest as PixelConfig;
+  const attachedLandingIds = (bindings ?? []).map((b) => b.landing_page_id);
 
   // Recent events log (best-effort)
   const { data: logs } = await admin
@@ -92,7 +99,11 @@ export default async function AdminPixelConfigDetailPage({
         </div>
 
         {/* Edit form */}
-        <PixelConfigForm config={typedConfig} alwaysOpen />
+        <PixelConfigForm
+          config={typedConfig}
+          attachedLandingIds={attachedLandingIds}
+          alwaysOpen
+        />
 
         {/* Recent events */}
         <div className="card-dark overflow-hidden">
