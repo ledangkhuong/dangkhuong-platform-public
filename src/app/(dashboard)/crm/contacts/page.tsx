@@ -229,16 +229,16 @@ export default async function CRMContactsPage({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {stats.map((s) => (
             <div key={s.label} className="stat-card">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">{s.label}</span>
+              <div className="flex items-center justify-between mb-3">
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ background: s.color + "18" }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: s.color + "1F" }}
                 >
-                  <s.icon size={15} style={{ color: s.color }} />
+                  <s.icon size={17} style={{ color: s.color }} />
                 </div>
               </div>
               <div className="text-2xl font-bold text-white">{s.value}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
             </div>
           ))}
         </div>
