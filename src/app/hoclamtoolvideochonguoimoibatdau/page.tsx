@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://dangkhuong.com/hoclamtoolvideochonguoimoibatdau",
     images: [
       {
-        url: "https://dangkhuong.com/images/updateveo31/banner.png",
+        url: "https://dangkhuong.com/images/updateveo31/banner.png?v=2",
         width: 1200,
         height: 630,
         alt: "Học Làm Tool Video Cho Người Mới Bắt Đầu — Khóa học Lê Đăng Khương",
