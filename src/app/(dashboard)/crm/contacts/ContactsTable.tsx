@@ -130,13 +130,13 @@ const journeyStageConfig: Record<
   string,
   { label: string; color: string }
 > = {
-  visitor: { label: "Khách ghé", color: "#6b7280" },
-  lead: { label: "Lead", color: "#3b82f6" },
-  contacted: { label: "Đã liên hệ", color: "#f59e0b" },
-  qualified: { label: "Tiềm năng", color: "#a855f7" },
-  negotiation: { label: "Đàm phán", color: "#f97316" },
-  customer: { label: "Khách hàng", color: "#D4A843" },
-  advocate: { label: "Đại sứ", color: "#22c55e" },
+  visitor: { label: "KH Mục tiêu", color: "#6b7280" },
+  lead: { label: "KH Tiềm năng", color: "#3b82f6" },
+  contacted: { label: "Người mua hàng", color: "#f59e0b" },
+  qualified: { label: "Khách hàng", color: "#a855f7" },
+  negotiation: { label: "Hội viên", color: "#f97316" },
+  customer: { label: "Người ủng hộ", color: "#D4A843" },
+  advocate: { label: "Fan hâm mộ", color: "#22c55e" },
 };
 
 /* ---------- Helpers ---------- */

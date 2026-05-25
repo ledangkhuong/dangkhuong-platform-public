@@ -31,13 +31,13 @@ const statusOptions: Record<string, string> = {
 };
 
 const journeyStageOptions: Record<string, string> = {
-  visitor: "Khách ghé",
-  lead: "Lead",
-  contacted: "Đã liên hệ",
-  qualified: "Tiềm năng",
-  negotiation: "Đàm phán",
-  customer: "Khách hàng",
-  advocate: "Đại sứ",
+  visitor: "KH Mục tiêu",
+  lead: "KH Tiềm năng",
+  contacted: "Người mua hàng",
+  qualified: "Khách hàng",
+  negotiation: "Hội viên",
+  customer: "Người ủng hộ",
+  advocate: "Fan hâm mộ",
 };
 
 interface OrderSummary {

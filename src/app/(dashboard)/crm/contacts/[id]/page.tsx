@@ -120,13 +120,13 @@ interface PageViewEvent {
 /* ---------- Constants ---------- */
 
 const JOURNEY_STAGES = [
-  { key: "visitor", label: "Visitor" },
-  { key: "lead", label: "Lead" },
-  { key: "contacted", label: "Contacted" },
-  { key: "qualified", label: "Qualified" },
-  { key: "negotiation", label: "Negotiation" },
-  { key: "customer", label: "Customer" },
-  { key: "advocate", label: "Advocate" },
+  { key: "visitor", label: "KH Mục tiêu" },
+  { key: "lead", label: "KH Tiềm năng" },
+  { key: "contacted", label: "Người mua hàng" },
+  { key: "qualified", label: "Khách hàng" },
+  { key: "negotiation", label: "Hội viên" },
+  { key: "customer", label: "Người ủng hộ" },
+  { key: "advocate", label: "Fan hâm mộ" },
 ];
 
 const activityTypeConfig: Record<string, { label: string; color: string }> = {
@@ -299,32 +299,41 @@ export default async function ContactDetailPage({
   const nextActions = (nextActionsRes.data ?? []) as unknown as NextAction[];
   const deals = (dealsRes.data ?? []) as unknown as Deal[];
 
-  // ─── Fetch orders & enrollments by contact email ───────────────────────────
+  // ─── Fetch orders & enrollments ─────────────────────────────────────────────
   let orders: Order[] = [];
   let enrollments: Enrollment[] = [];
 
+  // Fetch orders by email
   if (contact.email) {
-    const [ordersQuery, enrollmentsQuery] = await Promise.all([
-      adminClient
-        .from("orders")
-        .select("id, order_code, amount, status, created_at, products:product_id(title)")
-        .eq("customer_email", contact.email)
-        .order("created_at", { ascending: false }),
-      adminClient
-        .from("profiles")
-        .select("id")
-        .eq("email", contact.email)
-        .single(),
-    ]);
+    const { data: ordersData } = await adminClient
+      .from("orders")
+      .select("id, order_code, amount, status, created_at, products:product_id(title)")
+      .eq("customer_email", contact.email)
+      .order("created_at", { ascending: false });
+    orders = (ordersData ?? []) as unknown as Order[];
+  }
 
-    orders = (ordersQuery.data ?? []) as unknown as Order[];
-
-    // If there's a matching profile, fetch enrollments
-    if (enrollmentsQuery.data) {
+  // Fetch enrollments — prefer contact.user_id (direct), fallback to email→profile lookup
+  const enrollUserId = contact.user_id;
+  if (enrollUserId) {
+    const { data: enrollData } = await adminClient
+      .from("enrollments")
+      .select("id, created_at, products:product_id(title)")
+      .eq("user_id", enrollUserId)
+      .order("created_at", { ascending: false });
+    enrollments = (enrollData ?? []) as unknown as Enrollment[];
+  } else if (contact.email) {
+    // Fallback: look up profile by email, then fetch enrollments
+    const { data: profileData } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("email", contact.email)
+      .single();
+    if (profileData) {
       const { data: enrollData } = await adminClient
         .from("enrollments")
         .select("id, created_at, products:product_id(title)")
-        .eq("user_id", enrollmentsQuery.data.id)
+        .eq("user_id", profileData.id)
         .order("created_at", { ascending: false });
       enrollments = (enrollData ?? []) as unknown as Enrollment[];
     }
