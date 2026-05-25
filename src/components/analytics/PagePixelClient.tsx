@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { hasCookieConsent } from "@/components/CookieConsent";
 
 /**
  * Client-side initializer cho per-page Facebook Pixel.
  *
- * - Chỉ load fbevents.js nếu user đã đồng ý cookie "marketing".
- * - Init Pixel bằng pixel_id riêng của slug (không phải pixel global trong env).
- * - Mỗi PageView được gán event_id (UUID) → POST song song lên /api/capi/track
- *   để CAPI server-side gửi cùng event_id → Meta dedupe.
+ * Robust init pattern: poll consent + listen to change event + init exactly once
+ * khi cả 2 điều kiện đủ (consent + pixelId). Tránh race condition với
+ * CookieConsent auto-accept trên sales landings.
  */
 export default function PagePixelClient({
   slug,
@@ -22,101 +21,121 @@ export default function PagePixelClient({
   hasCapi: boolean;
 }) {
   const pathname = usePathname();
-  const [consentGiven, setConsentGiven] = useState(false);
   const initialized = useRef(false);
+  const lastFiredPath = useRef<string | null>(null);
 
-  // Lắng nghe consent
+  // Init Pixel + fire PageView. 1 useEffect duy nhất, không phụ thuộc state.
+  // Re-run mỗi khi pathname đổi để fire PageView trên SPA navigation.
   useEffect(() => {
-    setConsentGiven(hasCookieConsent("marketing"));
-    const onChange = () => setConsentGiven(hasCookieConsent("marketing"));
-    window.addEventListener("dk_cookie_consent_change", onChange);
-    return () => window.removeEventListener("dk_cookie_consent_change", onChange);
-  }, []);
+    if (!pixelId) return;
 
-  // Init Pixel sau khi có consent
-  useEffect(() => {
-    if (!consentGiven || !pixelId || initialized.current) return;
+    const tryInitAndFire = (): boolean => {
+      if (!hasCookieConsent("marketing")) return false;
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-      if (f.fbq) {
-        // fbq đã có (do FacebookPixel global) — chỉ init thêm pixel này
-        n = f.fbq;
-      } else {
-        n = f.fbq = function () {
-          // eslint-disable-next-line prefer-rest-params
-          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = "2.0";
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
+      // Init pixel (once per pixelId)
+      if (!initialized.current) {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+          if (!f.fbq) {
+            n = f.fbq = function () {
+              // eslint-disable-next-line prefer-rest-params
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = "2.0";
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            if (s && s.parentNode) {
+              s.parentNode.insertBefore(t, s);
+            } else {
+              document.head.appendChild(t);
+            }
+          }
+        })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+        /* eslint-enable */
+
+        (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("init", pixelId);
+        initialized.current = true;
       }
-    })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-    /* eslint-enable */
 
-    (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("init", pixelId);
-    initialized.current = true;
-  }, [consentGiven, pixelId]);
+      // Fire PageView (once per pathname to avoid double-firing in StrictMode)
+      if (lastFiredPath.current === pathname) return true;
+      lastFiredPath.current = pathname;
 
-  // PageView trên mọi route change — track cả Pixel + CAPI (nếu có token)
-  useEffect(() => {
-    if (!consentGiven || !pixelId) return;
+      const eventId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `pv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    const eventId =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `pv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        fbq("track", "PageView", {}, { eventID: eventId });
+      }
 
-    // Client-side Pixel
-    const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
-    if (typeof fbq === "function") {
-      fbq("track", "PageView", {}, { eventID: eventId });
-    }
+      // Server-side CAPI
+      if (hasCapi) {
+        const url = new URL(window.location.href);
+        const sp = url.searchParams;
+        const attribution = {
+          utm_source: sp.get("utm_source") || undefined,
+          utm_medium: sp.get("utm_medium") || undefined,
+          utm_campaign: sp.get("utm_campaign") || undefined,
+          utm_term: sp.get("utm_term") || undefined,
+          utm_content: sp.get("utm_content") || undefined,
+          fbclid: sp.get("fbclid") || undefined,
+          gclid: sp.get("gclid") || undefined,
+          ttclid: sp.get("ttclid") || undefined,
+          referrer: document.referrer || undefined,
+          landing_path: url.pathname,
+        };
+        void fetch("/api/capi/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            slug,
+            event_name: "PageView",
+            event_id: eventId,
+            source_url: window.location.href,
+            attribution,
+          }),
+        }).catch(() => {
+          /* never throw from analytics */
+        });
+      }
 
-    // Server-side CAPI (nếu config có token)
-    if (hasCapi) {
-      // Đính kèm attribution context (UTM + click IDs + referrer) — Meta dùng
-      // để dedupe + match advertising data
-      const url = new URL(window.location.href);
-      const sp = url.searchParams;
-      const attribution = {
-        utm_source: sp.get("utm_source") || undefined,
-        utm_medium: sp.get("utm_medium") || undefined,
-        utm_campaign: sp.get("utm_campaign") || undefined,
-        utm_term: sp.get("utm_term") || undefined,
-        utm_content: sp.get("utm_content") || undefined,
-        fbclid: sp.get("fbclid") || undefined,
-        gclid: sp.get("gclid") || undefined,
-        ttclid: sp.get("ttclid") || undefined,
-        referrer: document.referrer || undefined,
-        landing_path: url.pathname,
-      };
+      return true;
+    };
 
-      void fetch("/api/capi/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        keepalive: true,
-        body: JSON.stringify({
-          slug,
-          event_name: "PageView",
-          event_id: eventId,
-          source_url: window.location.href,
-          attribution,
-        }),
-      }).catch(() => {
-        /* never throw from analytics */
-      });
-    }
-  }, [pathname, consentGiven, pixelId, slug, hasCapi]);
+    // Thử init ngay
+    if (tryInitAndFire()) return;
 
-  // Noscript fallback (cho user tắt JS)
+    // Chưa có consent — đăng ký listener + poll fallback (đề phòng race condition)
+    const onConsentChange = () => {
+      tryInitAndFire();
+    };
+    window.addEventListener("dk_cookie_consent_change", onConsentChange);
+
+    // Poll lần nữa sau 100ms + 500ms + 1500ms để bắt CookieConsent auto-accept
+    // (case này xảy ra khi auto-accept dispatch event TRƯỚC khi listener install)
+    const t1 = setTimeout(tryInitAndFire, 100);
+    const t2 = setTimeout(tryInitAndFire, 500);
+    const t3 = setTimeout(tryInitAndFire, 1500);
+
+    return () => {
+      window.removeEventListener("dk_cookie_consent_change", onConsentChange);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [pathname, pixelId, slug, hasCapi]);
+
+  // Noscript fallback
   if (!pixelId) return null;
   return (
     <noscript>
