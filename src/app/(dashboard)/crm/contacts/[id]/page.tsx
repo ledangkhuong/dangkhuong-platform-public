@@ -1,6 +1,8 @@
 import TopBar from "@/components/layout/TopBar";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { addActivity } from "@/lib/actions/crm";
+import { getViewerScope } from "@/lib/viewer-scope";
+import { redirect } from "next/navigation";
 import {
   ArrowLeft,
   Mail,
@@ -224,6 +226,10 @@ export default async function ContactDetailPage({
   } = await supabase.auth.getUser();
   if (!user) notFound();
 
+  // Role-aware viewer scope: admin/manager see everything, sale sees only their own
+  const scope = await getViewerScope();
+  if (!scope.canView) redirect("/dashboard");
+
   const adminClient = await createAdminClient();
 
   // ─── Parallel Data Fetching ────────────────────────────────────────────────
@@ -272,6 +278,11 @@ export default async function ContactDetailPage({
 
   if (!contactRes.data) notFound();
   const contact = contactRes.data as unknown as Contact;
+
+  // Sale viewers can only see contacts assigned to themselves
+  if (scope.isSale && contact.assigned_to !== scope.userId) {
+    notFound();
+  }
   const activities = (activitiesRes.data ?? []) as unknown as Activity[];
   const recommendations = (recommendationsRes.data ?? []) as unknown as CourseRecommendation[];
   const nextActions = (nextActionsRes.data ?? []) as unknown as NextAction[];

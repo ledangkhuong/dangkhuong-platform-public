@@ -2,6 +2,8 @@ import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
 import { createContact, importContacts, syncContactsFromOrders } from "@/lib/actions/crm";
 import { getSalesUsers } from "@/lib/sales";
+import { getViewerScope } from "@/lib/viewer-scope";
+import { redirect } from "next/navigation";
 import ContactAssignSelect from "./ContactAssignSelect";
 import {
   Users,
@@ -109,6 +111,10 @@ export default async function CRMContactsPage({
   const statusFilter = params.status || "";
   const journeyStageFilter = params.journey_stage || "";
 
+  // Role-aware viewer scope: admin/manager see everything, sale sees only their own
+  const scope = await getViewerScope();
+  if (!scope.canView) redirect("/dashboard");
+
   const admin = await createAdminClient();
 
   // Build query
@@ -118,6 +124,9 @@ export default async function CRMContactsPage({
     .order("created_at", { ascending: false })
     .limit(200);
 
+  if (scope.isSale) {
+    query = query.eq("assigned_to", scope.userId);
+  }
   if (q) {
     query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
   }
@@ -131,26 +140,40 @@ export default async function CRMContactsPage({
   const { data, error } = await query;
   const contacts: Contact[] = (data ?? []) as unknown as Contact[];
 
-  // Stats counts
-  const { count: totalCount } = await admin
+  // Stats counts — scope to viewer when sale
+  let totalQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true });
-  const { count: newCount } = await admin
+  let newQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true })
     .eq("status", "new");
-  const { count: contactedCount } = await admin
+  let contactedQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true })
     .eq("status", "contacted");
-  const { count: qualifiedCount } = await admin
+  let qualifiedQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true })
     .eq("status", "qualified");
-  const { count: wonCount } = await admin
+  let wonQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true })
     .eq("status", "won");
+
+  if (scope.isSale) {
+    totalQuery = totalQuery.eq("assigned_to", scope.userId);
+    newQuery = newQuery.eq("assigned_to", scope.userId);
+    contactedQuery = contactedQuery.eq("assigned_to", scope.userId);
+    qualifiedQuery = qualifiedQuery.eq("assigned_to", scope.userId);
+    wonQuery = wonQuery.eq("assigned_to", scope.userId);
+  }
+
+  const { count: totalCount } = await totalQuery;
+  const { count: newCount } = await newQuery;
+  const { count: contactedCount } = await contactedQuery;
+  const { count: qualifiedCount } = await qualifiedQuery;
+  const { count: wonCount } = await wonQuery;
 
   const stats = [
     { label: "Tổng KH", value: totalCount ?? 0, icon: Users, color: "#3b82f6" },

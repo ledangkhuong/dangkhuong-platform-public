@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import UserRoleEditor from "@/components/admin/UserRoleEditor";
 import { getSalesUsers } from "@/lib/sales";
+import { getViewerScope } from "@/lib/viewer-scope";
 import UserAccountManagerSelect from "./UserAccountManagerSelect";
 import Link from "next/link";
 import {
@@ -277,19 +278,32 @@ export default async function AdminUsersPage({
     .single();
   if (!["admin", "manager", "sale"].includes(myProfile?.role ?? "")) redirect("/dashboard");
 
+  // Viewer scope: sale role sees only profiles they are the account manager of.
+  const scope = await getViewerScope();
+  if (!scope.canView) redirect("/dashboard");
+
   const canWrite = ["admin", "manager"].includes(myProfile?.role ?? "");
 
   // Fetch all profiles via admin client (bypasses RLS)
   const supabase = await createAdminClient();
 
-  // Fetch profiles, auth users (for emails), orders, and sales users in parallel
+  // Fetch profiles, auth users (for emails), orders, and sales users in parallel.
+  // When the viewer is a sale rep, restrict the profile set to users where
+  // this rep is the account manager. The downstream tab counts, paid-set,
+  // and pagination all derive from this filtered set, so they get scoped
+  // automatically.
+  let profilesQuery = supabase
+    .from("profiles")
+    .select(
+      "id, full_name, avatar_url, phone, role, tier, xp, level, streak, last_login, created_at, account_manager_id, account_manager:account_manager_id(full_name)"
+    )
+    .order("created_at", { ascending: false });
+  if (scope.isSale) {
+    profilesQuery = profilesQuery.eq("account_manager_id", scope.userId);
+  }
+
   const [profilesRes, authUsersRes, ordersRes, salesUsers] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select(
-        "id, full_name, avatar_url, phone, role, tier, xp, level, streak, last_login, created_at, account_manager_id, account_manager:account_manager_id(full_name)"
-      )
-      .order("created_at", { ascending: false }),
+    profilesQuery,
     supabase.auth.admin.listUsers({ perPage: 10000 }),
     supabase
       .from("orders")

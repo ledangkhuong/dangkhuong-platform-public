@@ -2,6 +2,8 @@ import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
 import { createDeal } from "@/lib/actions/crm";
 import { getSalesUsers, type SalesUser } from "@/lib/sales";
+import { getViewerScope } from "@/lib/viewer-scope";
+import { redirect } from "next/navigation";
 import DealAssignSelect from "./DealAssignSelect";
 import {
   Plus,
@@ -159,15 +161,23 @@ export default async function PipelinePage({
   const params = await searchParams;
   const showNewForm = params.new === "1";
 
+  // Role-aware viewer scope: admin/manager see everything, sale sees only their own
+  const scope = await getViewerScope();
+  if (!scope.canView) redirect("/dashboard");
+
   const admin = await createAdminClient();
 
-  // Fetch deals with relations
-  const { data: deals } = await admin
+  // Fetch deals with relations — scope to viewer when sale
+  let dealsQuery = admin
     .from("crm_deals")
     .select(
       "*, contacts:contact_id(full_name, email), products:product_id(title), assigned_profile:assigned_to(full_name)"
     )
     .order("created_at", { ascending: false });
+  if (scope.isSale) {
+    dealsQuery = dealsQuery.eq("assigned_to", scope.userId);
+  }
+  const { data: deals } = await dealsQuery;
 
   // Fetch contacts, products, and sales users for the new deal form / assign dropdown
   const [contactsRes, productsRes, salesUsers] = await Promise.all([

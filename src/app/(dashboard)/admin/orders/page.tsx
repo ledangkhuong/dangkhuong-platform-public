@@ -2,6 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getSalesUsers } from "@/lib/sales";
+import { getViewerScope } from "@/lib/viewer-scope";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 import ConfirmOrderButton from "@/components/admin/ConfirmOrderButton";
 import QRCodeButton from "@/components/admin/QRCodeButton";
@@ -142,6 +143,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     .single();
   if (!["admin", "manager", "sale"].includes(profile?.role ?? "")) redirect("/dashboard");
 
+  // Viewer scope: sale role sees only their own assigned orders.
+  const scope = await getViewerScope();
+  if (!scope.canView) redirect("/dashboard");
+
   const canWrite = ["admin", "manager"].includes(profile?.role ?? "");
   const canConfirm = ["admin", "manager", "sale"].includes(profile?.role ?? "");
 
@@ -162,6 +167,32 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
     );
   }
+  if (scope.isSale) {
+    paginationCountQuery = paginationCountQuery.eq("assigned_to", scope.userId);
+  }
+
+  // Stat-card queries: scope to current sale rep when applicable.
+  let totalCountQuery = supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true });
+  let paidCountQuery = supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "paid");
+  let pendingCountQuery = supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending");
+  let revenueQuery = supabase
+    .from("orders")
+    .select("amount")
+    .eq("status", "paid");
+  if (scope.isSale) {
+    totalCountQuery = totalCountQuery.eq("assigned_to", scope.userId);
+    paidCountQuery = paidCountQuery.eq("assigned_to", scope.userId);
+    pendingCountQuery = pendingCountQuery.eq("assigned_to", scope.userId);
+    revenueQuery = revenueQuery.eq("assigned_to", scope.userId);
+  }
 
   const [
     { count: totalCount },
@@ -170,10 +201,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     { data: revenueData },
     { count: filteredCount },
   ] = await Promise.all([
-    supabase.from("orders").select("*", { count: "exact", head: true }),
-    supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "paid"),
-    supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("orders").select("amount").eq("status", "paid"),
+    totalCountQuery,
+    paidCountQuery,
+    pendingCountQuery,
+    revenueQuery,
     paginationCountQuery,
   ]);
 
@@ -199,6 +230,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     dbQuery = dbQuery.or(
       `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
     );
+  }
+  if (scope.isSale) {
+    dbQuery = dbQuery.eq("assigned_to", scope.userId);
   }
 
   const from = (safePage - 1) * PAGE_SIZE;

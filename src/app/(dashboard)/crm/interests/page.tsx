@@ -1,6 +1,8 @@
 import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getSalesUsers } from "@/lib/sales";
+import { getViewerScope } from "@/lib/viewer-scope";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import UserAvatar from "@/components/admin/UserAvatar";
 import InterestActions from "./InterestActions";
@@ -167,6 +169,10 @@ export default async function CRMInterestsPage({
   const statusFilter = params.status || "";
   const productFilter = params.product_id || "";
 
+  // Role-aware viewer scope: admin/manager see everything, sale sees only their own
+  const scope = await getViewerScope();
+  if (!scope.canView) redirect("/dashboard");
+
   const admin = await createAdminClient();
 
   // Build query
@@ -184,6 +190,9 @@ export default async function CRMInterestsPage({
     .order("last_viewed_at", { ascending: false })
     .limit(500);
 
+  if (scope.isSale) {
+    query = query.eq("assigned_to", scope.userId);
+  }
   if (statusFilter) {
     query = query.eq("status", statusFilter);
   }
