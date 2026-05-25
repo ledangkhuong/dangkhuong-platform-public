@@ -8,8 +8,14 @@ import {
   Users,
   BarChart2,
   ExternalLink,
+  Smartphone,
+  MapPin,
+  FileText,
+  MousePointer,
 } from "lucide-react";
 import { redirect } from "next/navigation";
+import DevicePieChart from "@/components/admin/attribution/DevicePieChart";
+import GeoBarChart from "@/components/admin/attribution/GeoBarChart";
 
 /* ---------- Types ---------- */
 
@@ -95,7 +101,7 @@ export default async function AttributionPage({
   // Data queries via admin client
   const adminClient = await createAdminClient();
 
-  // Fetch all contacts with UTM data
+  // Fetch all contacts with UTM data (existing sections)
   let query = adminClient
     .from("crm_contacts")
     .select("id, utm_source, utm_medium, utm_campaign, journey_stage, lifetime_value, created_at")
@@ -111,6 +117,45 @@ export default async function AttributionPage({
 
   const { data: contacts } = await query;
   const allContacts = contacts ?? [];
+
+  // Fetch broader contact set for new sections (click IDs / device / geo / landing).
+  // Use `*` so the query succeeds even if some of the new columns
+  // (fbclid, gclid, device_type, country, country_code, city,
+  // first_landing_path) don't exist yet — they'll just be missing
+  // from each row, which our defensive accessors treat as null.
+  let extQuery = adminClient.from("crm_contacts").select("*");
+  if (params.from) {
+    extQuery = extQuery.gte("created_at", params.from);
+  }
+  if (params.to) {
+    extQuery = extQuery.lte("created_at", params.to + "T23:59:59");
+  }
+
+  type ExtContact = {
+    id: string;
+    journey_stage?: string | null;
+    lifetime_value?: number | null;
+    created_at?: string | null;
+    fbclid?: string | null;
+    gclid?: string | null;
+    device_type?: string | null;
+    country?: string | null;
+    country_code?: string | null;
+    city?: string | null;
+    first_landing_path?: string | null;
+    first_page?: string | null;
+  };
+
+  const { data: extData } = await extQuery;
+  const extContacts: ExtContact[] = (extData ?? []) as ExtContact[];
+
+  const isCustomer = (s: string | null | undefined) =>
+    s === "customer" || s === "advocate";
+
+  const col = <T,>(row: ExtContact, key: keyof ExtContact): T | null => {
+    const v = row[key];
+    return (v as T | null | undefined) ?? null;
+  };
 
   // Aggregate by source
   const sourceMap = new Map<string, SourceRow>();
@@ -170,6 +215,165 @@ export default async function AttributionPage({
     ...r,
     percentage: totalTracked > 0 ? (r.count / totalTracked * 100) : 0,
   }));
+
+  /* ---------- Section A: Click ID Attribution ---------- */
+
+  interface ClickIdRow {
+    value: string;
+    contacts: number;
+    customers: number;
+    revenue: number;
+  }
+
+  function aggregateClickId(field: "fbclid" | "gclid"): ClickIdRow[] {
+    const map = new Map<string, ClickIdRow>();
+    for (const c of extContacts) {
+      const v = col<string>(c, field);
+      if (!v) continue;
+      if (!map.has(v)) {
+        map.set(v, { value: v, contacts: 0, customers: 0, revenue: 0 });
+      }
+      const row = map.get(v)!;
+      row.contacts += 1;
+      if (isCustomer(c.journey_stage)) row.customers += 1;
+      row.revenue += Number(c.lifetime_value) || 0;
+    }
+    return Array.from(map.values())
+      .sort((a, b) => b.contacts - a.contacts)
+      .slice(0, 10);
+  }
+
+  const fbclidRows = aggregateClickId("fbclid");
+  const gclidRows = aggregateClickId("gclid");
+
+  /* ---------- Section B: Device Breakdown ---------- */
+
+  interface DeviceRow {
+    device: string;
+    label: string;
+    contacts: number;
+    customers: number;
+  }
+
+  const DEVICE_LABELS: Record<string, string> = {
+    mobile: "Mobile",
+    tablet: "Tablet",
+    desktop: "Desktop",
+    unknown: "Không xác định",
+  };
+
+  const deviceMap = new Map<string, DeviceRow>();
+  for (const c of extContacts) {
+    const raw = col<string>(c, "device_type");
+    const device = (raw ?? "unknown").toLowerCase();
+    const key = ["mobile", "tablet", "desktop"].includes(device)
+      ? device
+      : "unknown";
+    if (!deviceMap.has(key)) {
+      deviceMap.set(key, {
+        device: key,
+        label: DEVICE_LABELS[key] ?? key,
+        contacts: 0,
+        customers: 0,
+      });
+    }
+    const row = deviceMap.get(key)!;
+    row.contacts += 1;
+    if (isCustomer(c.journey_stage)) row.customers += 1;
+  }
+  const deviceRows = Array.from(deviceMap.values()).sort(
+    (a, b) => b.contacts - a.contacts,
+  );
+
+  /* ---------- Section C: Geo Breakdown ---------- */
+
+  interface CountryRow {
+    country: string;
+    contacts: number;
+    customers: number;
+    conversionRate: number;
+  }
+
+  const countryMap = new Map<string, { contacts: number; customers: number }>();
+  for (const c of extContacts) {
+    const country = col<string>(c, "country");
+    if (!country) continue;
+    if (!countryMap.has(country)) {
+      countryMap.set(country, { contacts: 0, customers: 0 });
+    }
+    const row = countryMap.get(country)!;
+    row.contacts += 1;
+    if (isCustomer(c.journey_stage)) row.customers += 1;
+  }
+  const countryRows: CountryRow[] = Array.from(countryMap.entries())
+    .map(([country, stats]) => ({
+      country,
+      contacts: stats.contacts,
+      customers: stats.customers,
+      conversionRate:
+        stats.contacts > 0 ? (stats.customers / stats.contacts) * 100 : 0,
+    }))
+    .sort((a, b) => b.contacts - a.contacts)
+    .slice(0, 10);
+
+  interface CityRow {
+    city: string;
+    contacts: number;
+    customers: number;
+  }
+
+  const cityMap = new Map<string, CityRow>();
+  for (const c of extContacts) {
+    const countryCode = col<string>(c, "country_code");
+    if (countryCode !== "VN") continue;
+    const city = col<string>(c, "city");
+    if (!city) continue;
+    if (!cityMap.has(city)) {
+      cityMap.set(city, { city, contacts: 0, customers: 0 });
+    }
+    const row = cityMap.get(city)!;
+    row.contacts += 1;
+    if (isCustomer(c.journey_stage)) row.customers += 1;
+  }
+  const cityRows = Array.from(cityMap.values())
+    .sort((a, b) => b.contacts - a.contacts)
+    .slice(0, 10);
+
+  /* ---------- Section D: Landing Page Performance ---------- */
+
+  interface LandingRow {
+    path: string;
+    visitors: number;
+    leads: number;
+    customers: number;
+    revenue: number;
+  }
+
+  const landingMap = new Map<string, LandingRow>();
+  for (const c of extContacts) {
+    // Prefer first_landing_path (new column), fallback to first_page (existing).
+    const path =
+      col<string>(c, "first_landing_path") ?? col<string>(c, "first_page");
+    if (!path) continue;
+    if (!landingMap.has(path)) {
+      landingMap.set(path, {
+        path,
+        visitors: 0,
+        leads: 0,
+        customers: 0,
+        revenue: 0,
+      });
+    }
+    const row = landingMap.get(path)!;
+    row.visitors += 1;
+    const stage = c.journey_stage ?? null;
+    if (stage && stage !== "visitor") row.leads += 1;
+    if (isCustomer(stage)) row.customers += 1;
+    row.revenue += Number(c.lifetime_value) || 0;
+  }
+  const landingRows = Array.from(landingMap.values())
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 20);
 
   return (
     <div>
@@ -578,6 +782,520 @@ export default async function AttributionPage({
           ) : (
             <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
               Chưa có dữ liệu
+            </div>
+          )}
+        </div>
+
+        {/* ============================================================ */}
+        {/* Section A: Click ID Attribution                                */}
+        {/* ============================================================ */}
+        <div className="card-dark p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MousePointer size={16} className="text-[#D4A843]" />
+            <h3 className="font-semibold text-white text-sm">
+              Click ID Attribution
+            </h3>
+            <span className="text-xs text-gray-500 ml-auto">
+              Top 10 fbclid / gclid
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Facebook fbclid */}
+            <div
+              className="rounded-lg overflow-hidden"
+              style={{ background: "#0f0f0f", border: "1px solid #2a2a2a" }}
+            >
+              <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{ borderBottom: "1px solid #2a2a2a" }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-sm"
+                    style={{ background: "#1877F2" }}
+                  />
+                  <span className="text-sm font-semibold text-white">
+                    Facebook Ads (fbclid)
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {fbclidRows.length} click IDs
+                </span>
+              </div>
+              {fbclidRows.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                        {["fbclid", "Contacts", "Cust.", "Revenue"].map((col) => (
+                          <th
+                            key={col}
+                            className="px-3 py-2 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                          >
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fbclidRows.map((row, idx) => (
+                        <tr
+                          key={row.value}
+                          className="transition-colors hover:bg-white/[0.02]"
+                          style={{
+                            borderBottom:
+                              idx < fbclidRows.length - 1
+                                ? "1px solid #2a2a2a"
+                                : "none",
+                          }}
+                        >
+                          <td className="px-3 py-2">
+                            <span
+                              className="text-white text-xs font-mono truncate block max-w-[180px]"
+                              title={row.value}
+                            >
+                              {row.value}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-white font-semibold text-xs">
+                            {row.contacts}
+                          </td>
+                          <td className="px-3 py-2 text-green-400 font-semibold text-xs">
+                            {row.customers}
+                          </td>
+                          <td className="px-3 py-2 text-[#D4A843] font-semibold text-xs">
+                            {formatVND(row.revenue)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="px-4 py-8 text-center text-gray-500 text-xs">
+                  Chưa có click từ Facebook Ads. Đảm bảo URL ads gắn ?fbclid=...
+                </div>
+              )}
+            </div>
+
+            {/* Google gclid */}
+            <div
+              className="rounded-lg overflow-hidden"
+              style={{ background: "#0f0f0f", border: "1px solid #2a2a2a" }}
+            >
+              <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{ borderBottom: "1px solid #2a2a2a" }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-sm"
+                    style={{ background: "#EA4335" }}
+                  />
+                  <span className="text-sm font-semibold text-white">
+                    Google Ads (gclid)
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {gclidRows.length} click IDs
+                </span>
+              </div>
+              {gclidRows.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                        {["gclid", "Contacts", "Cust.", "Revenue"].map((col) => (
+                          <th
+                            key={col}
+                            className="px-3 py-2 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                          >
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gclidRows.map((row, idx) => (
+                        <tr
+                          key={row.value}
+                          className="transition-colors hover:bg-white/[0.02]"
+                          style={{
+                            borderBottom:
+                              idx < gclidRows.length - 1
+                                ? "1px solid #2a2a2a"
+                                : "none",
+                          }}
+                        >
+                          <td className="px-3 py-2">
+                            <span
+                              className="text-white text-xs font-mono truncate block max-w-[180px]"
+                              title={row.value}
+                            >
+                              {row.value}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-white font-semibold text-xs">
+                            {row.contacts}
+                          </td>
+                          <td className="px-3 py-2 text-green-400 font-semibold text-xs">
+                            {row.customers}
+                          </td>
+                          <td className="px-3 py-2 text-[#D4A843] font-semibold text-xs">
+                            {formatVND(row.revenue)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="px-4 py-8 text-center text-gray-500 text-xs">
+                  Chưa có click từ Google Ads. Đảm bảo URL ads gắn ?gclid=...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* Section B: Device Breakdown                                    */}
+        {/* ============================================================ */}
+        <div className="card-dark p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Smartphone size={16} className="text-[#D4A843]" />
+            <h3 className="font-semibold text-white text-sm">
+              Phân bố theo thiết bị
+            </h3>
+            <span className="text-xs text-gray-500 ml-auto">
+              {deviceRows.reduce((s, r) => s + r.contacts, 0)} contacts
+            </span>
+          </div>
+
+          {deviceRows.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+              <DevicePieChart data={deviceRows} />
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                      {[
+                        "Thiết bị",
+                        "Contacts",
+                        "Customers",
+                        "Conversion",
+                      ].map((col) => (
+                        <th
+                          key={col}
+                          className="px-3 py-2 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                        >
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deviceRows.map((row, idx) => {
+                      const colorMap: Record<string, string> = {
+                        mobile: "#3b82f6",
+                        tablet: "#a855f7",
+                        desktop: "#22c55e",
+                        unknown: "#6b7280",
+                      };
+                      return (
+                        <tr
+                          key={row.device}
+                          className="transition-colors hover:bg-white/[0.02]"
+                          style={{
+                            borderBottom:
+                              idx < deviceRows.length - 1
+                                ? "1px solid #2a2a2a"
+                                : "none",
+                          }}
+                        >
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-sm shrink-0"
+                                style={{
+                                  background:
+                                    colorMap[row.device] ?? "#6b7280",
+                                }}
+                              />
+                              <span className="text-white font-medium">
+                                {row.label}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-white font-semibold">
+                            {row.contacts}
+                          </td>
+                          <td className="px-3 py-2 text-green-400 font-semibold">
+                            {row.customers}
+                          </td>
+                          <td className="px-3 py-2">
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                              style={{
+                                background: "rgba(34,197,94,0.1)",
+                                color: "#22c55e",
+                              }}
+                            >
+                              {pct(row.customers, row.contacts)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
+              Chưa có dữ liệu thiết bị
+            </div>
+          )}
+        </div>
+
+        {/* ============================================================ */}
+        {/* Section C: Geo Breakdown                                       */}
+        {/* ============================================================ */}
+        <div className="card-dark p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin size={16} className="text-[#D4A843]" />
+            <h3 className="font-semibold text-white text-sm">
+              Phân bố theo địa lý
+            </h3>
+            <span className="text-xs text-gray-500 ml-auto">
+              {countryRows.length} quốc gia
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top countries */}
+            <div>
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Top 10 quốc gia
+              </h4>
+              {countryRows.length > 0 ? (
+                <>
+                  <GeoBarChart data={countryRows} />
+                  <div className="mt-3 space-y-1">
+                    {countryRows.map((row) => (
+                      <div
+                        key={row.country}
+                        className="flex items-center justify-between text-xs px-2 py-1"
+                      >
+                        <span className="text-gray-400 truncate flex-1">
+                          {row.country}
+                        </span>
+                        <span className="text-white font-semibold mx-2">
+                          {row.contacts}
+                        </span>
+                        <span
+                          className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold w-14 justify-center"
+                          style={{
+                            background: "rgba(34,197,94,0.1)",
+                            color: "#22c55e",
+                          }}
+                        >
+                          {row.conversionRate.toFixed(1)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center py-8 text-gray-500 text-xs">
+                  Chưa có dữ liệu quốc gia
+                </div>
+              )}
+            </div>
+
+            {/* Top cities (VN) */}
+            <div>
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Top 10 thành phố (Việt Nam)
+              </h4>
+              {cityRows.length > 0 ? (
+                <div
+                  className="overflow-x-auto rounded-lg"
+                  style={{ background: "#0f0f0f", border: "1px solid #2a2a2a" }}
+                >
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                        {["Thành phố", "Contacts", "Customers"].map((col) => (
+                          <th
+                            key={col}
+                            className="px-3 py-2 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                          >
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cityRows.map((row, idx) => (
+                        <tr
+                          key={row.city}
+                          className="transition-colors hover:bg-white/[0.02]"
+                          style={{
+                            borderBottom:
+                              idx < cityRows.length - 1
+                                ? "1px solid #2a2a2a"
+                                : "none",
+                          }}
+                        >
+                          <td className="px-3 py-2">
+                            <span className="text-white font-medium text-xs">
+                              {row.city}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white font-semibold text-xs">
+                                {row.contacts}
+                              </span>
+                              <div className="flex-1 max-w-[80px]">
+                                <div
+                                  className="h-1.5 rounded-full overflow-hidden"
+                                  style={{ background: "#1a1a1a" }}
+                                >
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${
+                                        cityRows[0]
+                                          ? (row.contacts /
+                                              cityRows[0].contacts) *
+                                            100
+                                          : 0
+                                      }%`,
+                                      background: "#D4A843",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-green-400 font-semibold text-xs">
+                            {row.customers}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-8 text-gray-500 text-xs">
+                  Chưa có dữ liệu thành phố tại Việt Nam
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* Section D: Landing Page Performance                            */}
+        {/* ============================================================ */}
+        <div className="card-dark overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-[#2a2a2a]">
+            <div className="flex items-center gap-2">
+              <FileText size={16} className="text-[#D4A843]" />
+              <h3 className="font-semibold text-white text-sm">
+                Hiệu suất landing page
+              </h3>
+            </div>
+            <span className="text-xs text-gray-500">
+              {landingRows.length} trang
+            </span>
+          </div>
+
+          {landingRows.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
+                    {[
+                      "Landing path",
+                      "Visitors",
+                      "Leads",
+                      "Customers",
+                      "Conversion",
+                      "Revenue",
+                    ].map((col) => (
+                      <th
+                        key={col}
+                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                      >
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {landingRows.map((row, idx) => (
+                    <tr
+                      key={row.path}
+                      className="transition-colors hover:bg-white/[0.02]"
+                      style={{
+                        borderBottom:
+                          idx < landingRows.length - 1
+                            ? "1px solid #2a2a2a"
+                            : "none",
+                      }}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <ExternalLink
+                            size={12}
+                            className="text-gray-500 shrink-0"
+                          />
+                          <span
+                            className="text-white font-mono text-xs truncate block max-w-[280px]"
+                            title={row.path}
+                          >
+                            {row.path}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-white font-semibold">
+                        {row.visitors}
+                      </td>
+                      <td className="px-4 py-3 text-blue-400 font-semibold">
+                        {row.leads}
+                      </td>
+                      <td className="px-4 py-3 text-green-400 font-semibold">
+                        {row.customers}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={{
+                            background: "rgba(34,197,94,0.1)",
+                            color: "#22c55e",
+                          }}
+                        >
+                          {pct(row.customers, row.visitors)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-[#D4A843] font-semibold">
+                          {formatVND(row.revenue)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
+              Chưa có dữ liệu landing page
             </div>
           )}
         </div>

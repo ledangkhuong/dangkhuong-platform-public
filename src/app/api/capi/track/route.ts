@@ -34,6 +34,19 @@ interface TrackBody {
   };
   custom_data?: Record<string, unknown>;
   source_url?: string;
+  /** Optional attribution context — auto-merged vào custom_data để Meta nhận. */
+  attribution?: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    fbclid?: string;
+    gclid?: string;
+    ttclid?: string;
+    referrer?: string;
+    landing_path?: string;
+  };
 }
 
 function getClientIp(req: NextRequest): string | undefined {
@@ -112,13 +125,19 @@ export async function POST(req: NextRequest) {
     externalId: body.user_data?.userId,
   };
 
+  // Merge attribution context vào custom_data (Meta nhận utm_*, fbclid, ...)
+  const customData: Record<string, unknown> = {
+    ...(body.custom_data || {}),
+    ...(body.attribution || {}),
+  };
+
   // ── Send to Meta CAPI ───────────────────────────────────────
   const result = await sendCAPIEvent({
     eventName,
     eventId,
     sourceUrl: body.source_url,
     userData,
-    customData: body.custom_data,
+    customData,
     config: {
       pixelId: config.pixel_id,
       accessToken: config.capi_access_token,

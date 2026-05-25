@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit";
 import crypto from "crypto";
 import { trackPurchase } from "@/lib/facebook-capi";
 import { getPixelConfigBySlug } from "@/lib/pixel-config";
+import { syncAttributionToConversion } from "@/lib/attribution";
 import { alertPaymentFailure, alertUnderpayment } from "@/lib/admin-alerts";
 
 /**
@@ -442,6 +443,17 @@ export async function POST(req: NextRequest) {
         console.error("[Sepay] Affiliate attribution error:", affErr);
       }
     }
+
+    // 9b. Re-sync attribution sang crm_contacts + orders khi đã có purchase
+    //     (orders.visitor_id đã được set ở register flow; helper sẽ cập nhật
+     //     crm_contacts journey với purchase data đầy đủ).
+    syncAttributionToConversion({
+      visitorId: (order.visitor_id as string | null) || null,
+      email: (order.customer_email as string | null) || null,
+      orderId: order.id as string,
+      fullName: (order.customer_name as string | null) || null,
+      phone: (order.customer_phone as string | null) || null,
+    }).catch(() => {});
 
     // 10. Facebook CAPI — Purchase event (server-side, non-blocking)
     try {

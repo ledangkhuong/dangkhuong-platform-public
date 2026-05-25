@@ -82,6 +82,23 @@ export default function PagePixelClient({
 
     // Server-side CAPI (nếu config có token)
     if (hasCapi) {
+      // Đính kèm attribution context (UTM + click IDs + referrer) — Meta dùng
+      // để dedupe + match advertising data
+      const url = new URL(window.location.href);
+      const sp = url.searchParams;
+      const attribution = {
+        utm_source: sp.get("utm_source") || undefined,
+        utm_medium: sp.get("utm_medium") || undefined,
+        utm_campaign: sp.get("utm_campaign") || undefined,
+        utm_term: sp.get("utm_term") || undefined,
+        utm_content: sp.get("utm_content") || undefined,
+        fbclid: sp.get("fbclid") || undefined,
+        gclid: sp.get("gclid") || undefined,
+        ttclid: sp.get("ttclid") || undefined,
+        referrer: document.referrer || undefined,
+        landing_path: url.pathname,
+      };
+
       void fetch("/api/capi/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,7 +107,8 @@ export default function PagePixelClient({
           slug,
           event_name: "PageView",
           event_id: eventId,
-          source_url: typeof window !== "undefined" ? window.location.href : undefined,
+          source_url: window.location.href,
+          attribution,
         }),
       }).catch(() => {
         /* never throw from analytics */

@@ -4,6 +4,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
 import { getPixelConfigBySlug } from "@/lib/pixel-config";
+import { syncAttributionToConversion } from "@/lib/attribution";
+import { VISITOR_COOKIE } from "@/lib/visitor-id";
 
 /**
  * POST /api/slowenglish/register
@@ -185,6 +187,15 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    // 4b. Sync first-touch attribution → orders + crm_contacts (non-blocking)
+    syncAttributionToConversion({
+      visitorId: req.cookies.get(VISITOR_COOKIE)?.value,
+      email: email.trim(),
+      orderId: order.id,
+      fullName: full_name.trim(),
+      phone: phone?.trim() || null,
+    }).catch(() => {});
 
     // 5. Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking)
     {
