@@ -73,10 +73,10 @@ interface PaymentInfo {
 
 /* ─── Pain points ─── */
 const PAIN_POINTS = [
-  "Muốn làm video AI nhưng không biết bắt đầu từ đâu.",
-  "Thử nhiều tool nhưng kết quả rời rạc, không thành hệ thống.",
-  "Nhân vật không nhất quán — mỗi cảnh một khuôn mặt khác nhau.",
-  "Tốn hàng giờ chỉnh sửa mà video vẫn chưa ưng ý.",
+  "Muốn làm video bằng AI nhưng không biết bắt đầu từ đâu, quá nhiều tool rối rắm.",
+  "Mỗi video phải làm thủ công từ đầu — tốn hàng giờ mà kết quả chưa ưng ý.",
+  "Không có hệ thống — mỗi lần làm video lại phải lặp lại cả quy trình.",
+  "Muốn tự động hóa nhưng không biết cách xây tool, sợ phức tạp, sợ code.",
 ];
 
 /* ─── 5 Điều bạn sẽ học ─── */
@@ -84,104 +84,104 @@ const UPGRADES = [
   {
     num: "01",
     icon: <Zap size={20} />,
-    title: "Gemini Omni Flash",
+    title: "Hiểu nền tảng Google Flow",
     subtitle: "Nền tảng",
-    desc: "Hiểu cách hoạt động của Google Flow & Gemini Omni Flash — công cụ tạo video AI mạnh nhất hiện tại. Video siêu thực tới 10 giây, chỉnh sửa bằng câu lệnh.",
+    desc: "Nắm trọn cách hoạt động của Google Flow & Gemini — nền tảng xây tool video AI mạnh nhất hiện tại. Không cần biết code, chỉ cần hiểu logic là xây được.",
   },
   {
     num: "02",
-    icon: <Users size={20} />,
-    title: "Characters",
-    subtitle: "Nhân vật cố định",
-    desc: "Tạo nhân vật một lần, dùng ở mọi cảnh. Gán tên rồi gọi bằng @tên_nhân_vật — giữ nguyên gương mặt, giọng nói, phong cách xuyên suốt.",
+    icon: <Bot size={20} />,
+    title: "Xây Tool Video từ Zero",
+    subtitle: "Cốt lõi",
+    desc: "Tự tay xây Tool làm video tự động hoàn chỉnh trên Google Flow — nhập ý tưởng, AI tự viết kịch bản, tạo MC ảo, render cả loạt video chỉ bằng 1 nút bấm.",
   },
   {
     num: "03",
-    icon: <Mic size={20} />,
-    title: "Voices",
-    subtitle: "Giọng nói riêng",
-    desc: "Tạo giọng nói riêng cho nhân vật. MC ảo có cả gương mặt lẫn giọng nói nhất quán — như diễn viên số thật sự.",
+    icon: <Users size={20} />,
+    title: "Tạo nhân vật & MC ảo",
+    subtitle: "Nhân vật",
+    desc: "Xây Characters — nhân vật nhất quán cho cả series. Gán tên, gọi bằng @tên — giữ nguyên gương mặt, phong cách xuyên suốt mọi video.",
   },
   {
     num: "04",
-    icon: <UserCircle size={20} />,
-    title: "Avatar @me",
-    subtitle: "Chính bạn",
-    desc: "Quay video selfie ngắn, hệ thống ghi nhận khuôn mặt & giọng. Gõ @me để đưa chính bạn vào video — không cần dựng máy quay.",
+    icon: <Mic size={20} />,
+    title: "Giọng nói & Avatar @me",
+    subtitle: "Cá nhân hóa",
+    desc: "Tạo giọng nói riêng cho MC ảo. Đưa chính bạn vào video bằng Avatar @me — chỉ cần selfie ngắn, không cần dựng máy quay.",
   },
   {
     num: "05",
-    icon: <Bot size={20} />,
-    title: "Tool tự động",
-    subtitle: "Xây từ zero",
-    desc: "Xây Tool làm video tự động hoàn chỉnh — nhập ý tưởng, AI tự viết kịch bản, tạo MC ảo, lồng giọng, render cả loạt video chỉ bằng 1 nút bấm.",
+    icon: <Video size={20} />,
+    title: "Ứng dụng thực tế",
+    subtitle: "Kinh doanh",
+    desc: "Biến tool video AI thành công cụ kinh doanh: video bán hàng, phễu nội dung, đào tạo, đa ngôn ngữ — tất cả chạy tự động.",
   },
 ];
 
 /* ─── Audience ─── */
 const AUDIENCE = [
-  { icon: <Star size={18} />, title: "Người mới hoàn toàn", desc: "chưa biết gì về video AI, muốn học từ đầu một cách bài bản." },
-  { icon: <Video size={18} />, title: "Người bán hàng, KOL, KOC", desc: "cần video bán hàng & quảng cáo có chính mình xuất hiện nhưng không biết cách." },
-  { icon: <Crown size={18} />, title: "Chủ doanh nghiệp", desc: "muốn xây thương hiệu & phễu nội dung tự động bằng AI mà không cần thuê ekip." },
-  { icon: <Play size={18} />, title: "Content Creator", desc: "muốn tạo video chuyên nghiệp nhanh gấp 10 lần với chi phí gần bằng 0." },
+  { icon: <Star size={18} />, title: "Người mới hoàn toàn", desc: "chưa biết gì về AI hay code, muốn tự xây tool video đơn giản mà hiệu quả." },
+  { icon: <Video size={18} />, title: "Người bán hàng, KOL, KOC", desc: "cần hệ thống tạo video tự động để ra content đều đặn mà không tốn thời gian." },
+  { icon: <Crown size={18} />, title: "Chủ doanh nghiệp", desc: "muốn tự xây tool video nội bộ — đào tạo, quảng cáo, content — không cần thuê ekip." },
+  { icon: <Play size={18} />, title: "Content Creator", desc: "muốn tự động hóa quy trình sản xuất video, ra hàng loạt video chất lượng mỗi ngày." },
 ];
 
 /* ─── Benefits ─── */
 const BENEFITS = [
-  "Hiểu trọn bộ công cụ Google Flow và biết dùng cho việc gì — từ A đến Z.",
-  "Tự tạo nhân vật & avatar @me của riêng mình, dùng lại cho mọi video.",
-  "Biết cách chỉnh sửa video bằng câu lệnh thay vì tạo lại từ đầu.",
-  "Tự xây Tool tạo video tự động — nhập ý tưởng, AI tự viết kịch bản & render video.",
-  "Biến video AI thành hệ thống kinh doanh: phễu nội dung, video bán hàng, sản phẩm số.",
+  "Tự xây được Tool video AI hoàn chỉnh trên Google Flow — từ zero, không cần biết code.",
+  "Nhập ý tưởng → AI tự viết kịch bản, tạo MC ảo, lồng giọng, render video tự động.",
+  "Tạo nhân vật & Avatar @me nhất quán — dùng lại cho hàng loạt video mà không làm lại.",
+  "Hiểu cách tự động hóa quy trình: từ 1 video/ngày lên 10-20 video/ngày dễ dàng.",
+  "Ứng dụng ngay vào kinh doanh: video bán hàng, đào tạo, phễu nội dung tự động.",
 ];
 
 /* ─── Nội dung khóa học ─── */
 const MODULES = [
   {
     module: "PHẦN 1",
-    title: "Làm chủ nền tảng & tạo nhân vật AI",
+    title: "Nền tảng & Nguyên liệu cho Tool Video",
     items: [
-      "Google Flow & Gemini Omni Flash là gì — vì sao đây là bước nhảy lớn",
-      "Tạo video 10 giây siêu thực + tham chiếu ảnh, âm thanh, video",
-      "Chỉnh sửa video bằng câu lệnh trò chuyện — không cần phần mềm",
-      "Xây Characters — nhân vật nhất quán cho cả series nội dung",
+      "Google Flow là gì — vì sao đây là nền tảng xây tool video AI tốt nhất hiện tại",
+      "Tạo video AI chất lượng cao với Gemini — hiểu cách AI tạo video từ prompt",
+      "Xây Characters & Avatar @me — tạo MC ảo với gương mặt và giọng nói nhất quán",
+      "Chuẩn bị đầy đủ nguyên liệu trước khi xây tool: nhân vật, giọng nói, phong cách",
     ],
   },
   {
     module: "PHẦN 2",
-    title: "Đưa chính bạn vào video & xây tool tự động",
+    title: "Xây Tool Video Tự Động từ Zero",
     items: [
-      "Tạo Avatar @me và Voices — MC ảo mang gương mặt & giọng nói của bạn",
-      "Dùng Agent AI để brainstorm, viết prompt, dựng mạch truyện",
-      "Xây Tool làm video tự động trên Google Flow — nhập ý tưởng, ra cả loạt video",
-      "Ứng dụng vào kinh doanh: video quảng cáo, đào tạo, đa ngôn ngữ",
+      "Thiết kế luồng tool trên Google Flow — từ ý tưởng đến video hoàn chỉnh",
+      "Kết nối AI viết kịch bản → tạo MC ảo → lồng giọng → render tự động",
+      "Tối ưu tool: chạy hàng loạt video chỉ bằng 1 nút bấm, không cần can thiệp",
+      "Ứng dụng thực tế: video bán hàng, đào tạo, phễu nội dung, đa ngôn ngữ",
     ],
   },
 ];
 
 /* ─── Included ─── */
 const INCLUDED = [
-  "Trọn bộ khóa học video AI từ cơ bản đến nâng cao",
-  "Cập nhật mới nhất về Google Flow & Gemini Omni Flash",
-  "Demo thực tế: Characters, Avatar @me, Voices, Agent",
-  "Hướng dẫn xây Tool làm video tự động trên Google Flow",
-  "Góc nhìn biến video AI thành hệ thống kinh doanh",
+  "Khóa học từ zero: xây tool video AI hoàn chỉnh, không cần biết code",
+  "Hướng dẫn từng bước trên Google Flow — làm theo là được",
+  "Tạo MC ảo: Characters, Avatar @me, Voices — nhân vật nhất quán",
+  "Template tool sẵn: nhập ý tưởng → AI tự viết kịch bản, render video",
+  "Ứng dụng thực tế: video bán hàng, đào tạo, phễu nội dung tự động",
   "Hỗ trợ qua nhóm Zalo học viên",
 ];
 
 /* ─── FAQ ─── */
 const FAQS = [
   {
-    q: "Tôi chưa biết gì về video AI, học được không?",
-    a: "Hoàn toàn được! Khóa học được thiết kế dành riêng cho người mới bắt đầu, đi từ cơ bản nhất và hướng dẫn từng bước trực quan. Bạn chỉ cần một chiếc máy tính và sự sẵn sàng học hỏi.",
+    q: "Tôi không biết code, có xây được tool không?",
+    a: "Hoàn toàn được! Google Flow là nền tảng kéo-thả, không cần viết code. Khóa học hướng dẫn từng bước — bạn chỉ cần làm theo là xây được tool video AI hoàn chỉnh.",
+  },
+  {
+    q: "Tool xây xong có chạy tự động không?",
+    a: "Có! Sau khi xây xong, bạn chỉ cần nhập ý tưởng → tool tự viết kịch bản, tạo MC ảo, lồng giọng và render video. Chạy hoàn toàn tự động, không cần can thiệp.",
   },
   {
     q: "Khóa học có xem lại được không?",
-    a: "Có! Sau khi đăng ký, bạn sẽ có quyền truy cập vào toàn bộ nội dung khóa học và có thể xem lại bất cứ lúc nào.",
-  },
-  {
-    q: "Google Flow có miễn phí không? Tôi cần chuẩn bị gì?",
-    a: "Một số tính năng nâng cao thuộc gói trả phí. Trong khóa học, Thầy sẽ hướng dẫn cách tiếp cận phù hợp nhất với điều kiện của bạn — kể cả nếu bạn muốn bắt đầu miễn phí.",
+    a: "Có! Sau khi đăng ký, bạn có quyền truy cập trọn đời vào toàn bộ nội dung khóa học và có thể xem lại bất cứ lúc nào.",
   },
   {
     q: "Sao giá ưu đãi chỉ 200K?",
@@ -381,7 +381,7 @@ export default function HocLamToolVideoLanding() {
 
           {/* H1 for SEO */}
           <h1 className="sr-only">
-            Học Làm Tool Video Cho Người Mới Bắt Đầu — Tạo Tool Làm Video Tự Động trên Google Flow
+            Học Làm Tool Video Cho Người Mới Bắt Đầu — Tự Xây Tool Video AI Đơn Giản, Hiệu Quả trên Google Flow
           </h1>
 
           {/* Headline */}
@@ -389,7 +389,7 @@ export default function HocLamToolVideoLanding() {
             className="mb-3 font-extrabold max-w-4xl text-[22px] sm:text-[28px] md:text-[36px] leading-[1.25]"
             style={{ letterSpacing: "-0.01em" }}
           >
-            Học Làm{" "}
+            Tự Xây{" "}
             <span
               style={{
                 background: "linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%)",
@@ -398,18 +398,35 @@ export default function HocLamToolVideoLanding() {
                 backgroundClip: "text",
               }}
             >
-              Tool Video Tự Động
+              Tool Video AI
             </span>
-            {" "}Cho Người Mới
+            {" "}Đơn Giản, Hiệu Quả
           </h2>
 
           <p
             className="mx-auto mb-6 max-w-3xl text-[14px] sm:text-[15px] leading-[1.7]"
             style={{ color: "rgba(241,245,251,0.75)" }}
           >
-            Nhập ý tưởng → AI tự viết kịch bản, tạo <strong className="text-white">MC ảo</strong>, lồng giọng, render cả loạt video —{" "}
-            <strong style={{ color: "#22D3EE" }}>chỉ bằng 1 nút bấm</strong>. Từ zero đến tự tay xây tool video tự động hoàn chỉnh trên Google Flow.
+            Từ zero — tự tay xây tool trên Google Flow: nhập ý tưởng → AI tự viết kịch bản, tạo <strong className="text-white">MC ảo</strong>, lồng giọng, render cả loạt video{" "}
+            <strong style={{ color: "#22D3EE" }}>chỉ bằng 1 nút bấm</strong>. Không cần biết code. Đơn giản. Hiệu quả.
           </p>
+
+          {/* Banner chương trình */}
+          <div className="mb-6 sm:mb-8 w-full max-w-4xl">
+            <div
+              className="relative overflow-hidden rounded-2xl"
+              style={{
+                border: "1px solid rgba(59,130,246,0.35)",
+                boxShadow: "0 20px 60px -15px rgba(0,0,0,0.5), 0 0 40px rgba(59,130,246,0.15)",
+              }}
+            >
+              <img
+                src="/images/updateveo31/banner.png"
+                alt="Học Làm Tool Video Cho Người Mới Bắt Đầu — Chương trình Lê Đăng Khương"
+                className="block w-full h-auto"
+              />
+            </div>
+          </div>
 
           {/* Video giới thiệu */}
           <div className="mb-6 sm:mb-8 w-full max-w-3xl">
@@ -422,8 +439,8 @@ export default function HocLamToolVideoLanding() {
               }}
             >
               <iframe
-                src="https://www.youtube.com/embed/Z6mbgX7kSXk?rel=0"
-                title="Học Làm Tool Video Cho Người Mới Bắt Đầu — Google Flow & Gemini Omni Flash"
+                src="https://www.youtube.com/embed/DqmPtSi-cf4?rel=0"
+                title="Học Làm Tool Video Cho Người Mới Bắt Đầu — Xây Tool Video AI Đơn Giản, Hiệu Quả"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
@@ -607,14 +624,14 @@ export default function HocLamToolVideoLanding() {
                 color: "#3B82F6",
               }}
             >
-              <Sparkles size={12} /> 5 Kỹ Năng Cốt Lõi
+              <Sparkles size={12} /> Lộ Trình Xây Tool
             </span>
           </div>
           <h2 className="mb-3 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]">
-            Bạn sẽ học được <span style={{ color: "#22D3EE" }}>5 điều này</span>
+            <span style={{ color: "#22D3EE" }}>5 bước</span> xây tool video AI
           </h2>
           <p className="mb-10 text-center text-[14.5px] sm:text-[15px] leading-[1.75]" style={{ color: "rgba(241,245,251,0.65)" }}>
-            Từ người mới hoàn toàn đến tự xây tool video tự động:
+            Đơn giản — hiệu quả — từ zero đến tool hoàn chỉnh:
           </p>
 
           {/* Top row: 3 cards */}
@@ -717,7 +734,7 @@ export default function HocLamToolVideoLanding() {
             &ldquo;
           </div>
           <p className="relative text-[15px] sm:text-[17px] leading-[1.8] italic" style={{ color: "rgba(241,245,251,0.85)" }}>
-            &ldquo;AI video không chỉ là công cụ sáng tạo. Nó đang trở thành công cụ kinh doanh. Ai hiểu sớm, học sớm, ứng dụng sớm — sẽ có lợi thế rất lớn.&rdquo;
+            &ldquo;Người giỏi không phải người biết nhiều tool — mà là người tự xây được tool cho riêng mình. Khi bạn có tool video AI chạy tự động, bạn không còn làm video nữa — bạn xây hệ thống.&rdquo;
           </p>
           <div className="mt-4 text-[13px] font-semibold" style={{ color: "#3B82F6" }}>
             — Lê Đăng Khương
@@ -801,7 +818,7 @@ export default function HocLamToolVideoLanding() {
             </span>
           </div>
           <h2 className="mb-8 text-center text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]">
-            Lộ trình <span style={{ color: "#22D3EE" }}>từ zero đến pro</span>
+            Nội dung <span style={{ color: "#22D3EE" }}>chi tiết từng phần</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1241,10 +1258,10 @@ export default function HocLamToolVideoLanding() {
       >
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="mb-4 text-[26px] sm:text-3xl md:text-[40px] font-extrabold tracking-[-0.01em] leading-[1.15]">
-            Bắt đầu hành trình <span style={{ color: "#22D3EE" }}>video AI</span> ngay hôm nay
+            Tự xây <span style={{ color: "#22D3EE" }}>tool video AI</span> của riêng bạn
           </h2>
           <p className="mb-8 text-[14.5px] sm:text-[15px] leading-[1.75]" style={{ color: "rgba(241,245,251,0.65)" }}>
-            Công cụ càng mạnh, khoảng cách giữa người biết dùng và không biết dùng càng xa. Khóa học này là bước đầu tiên để bạn nắm lợi thế.
+            Đừng chỉ dùng tool người khác làm — hãy tự xây tool cho mình. Đơn giản, hiệu quả, và chạy tự động mỗi ngày.
           </p>
 
           <button
@@ -1293,7 +1310,7 @@ export default function HocLamToolVideoLanding() {
             </div>
             <div className="min-w-0">
               <div className="text-[10px] uppercase tracking-[0.18em] font-bold leading-none mb-1" style={{ color: "#22D3EE" }}>
-                Khóa Học Video AI · Người Mới
+                Xây Tool Video AI · Đơn Giản
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-sm line-through" style={{ color: "rgba(241,245,251,0.35)" }}>500K</span>
