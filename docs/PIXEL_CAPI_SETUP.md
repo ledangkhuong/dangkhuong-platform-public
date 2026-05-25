@@ -1,16 +1,28 @@
 # Facebook Pixel + Conversions API — Hướng dẫn sử dụng
 
 Hệ thống cho phép quản lý Pixel + CAPI **theo từng landing page** qua admin UI.
-Mỗi landing có **1 slug riêng**, gắn với 1 cấu hình trong DB.
+**Marketing tự gắn Pixel vào landing — KHÔNG cần đụng code.**
+
+## Quy trình tổng quát
+
+```
+1. Marketing tạo cấu hình Pixel (Pixel ID + CAPI Token)  → /admin/pixel-settings
+2. Marketing gắn Pixel vào landing                       → /admin/pixel-settings/pages
+3. Hiệu lực ngay — không cần dev deploy
+```
 
 ## 1. Apply migration vào Supabase
 
-Mở Supabase Dashboard > SQL Editor, paste nội dung file
-`supabase/migration_pixel_configs.sql` rồi Run.
+Mở Supabase Dashboard > SQL Editor, paste 2 file migration theo thứ tự:
 
-Migration tạo 2 bảng:
+1. `supabase/migration_pixel_configs.sql` — cấu hình Pixel + log
+2. `supabase/migration_landing_pages.sql` — landing pages + binding m-n + seed
+
+Migration tạo 4 bảng:
 - `pixel_configs` — cấu hình Pixel + CAPI theo slug
 - `pixel_events_log` — log event CAPI (dùng debug Match Quality)
+- `landing_pages` — danh sách landing trên dangkhuong.com
+- `landing_page_pixels` — bảng nối m-n (1 landing có thể có N pixel)
 
 ## 2. Lấy thông tin Pixel + CAPI từ Meta
 
@@ -34,11 +46,23 @@ Migration tạo 2 bảng:
    - **Test Event Code**: chỉ điền khi đang test, **bỏ trống khi production**
 4. Bật **"Hoạt động"** → Tạo
 
-## 4. Gắn Pixel vào landing page
+## 4. Gắn Pixel vào landing page (Marketing workflow — không đụng code)
 
-### Option A — Static page
+1. Vào **Admin → Gắn Pixel vào landing** (`/admin/pixel-settings/pages`)
+2. Nếu landing chưa có trong list → bấm **Thêm landing page**, điền:
+   - **Pathname**: `/ten-trang` (VD: `/khoa-hoc-video-ai`)
+   - **Tên**: tên dễ nhớ cho marketing
+3. Mở landing trong list → bấm **Gắn pixel**
+4. **Tick chọn** Pixel muốn fire (có thể chọn nhiều cho split test)
+5. Sắp xếp thứ tự nếu cần (mũi tên lên/xuống)
+6. Bấm **Lưu thay đổi** → có hiệu lực ngay, F5 trang là chạy
 
-Mở file landing (VD: `src/app/khoa-hoc-video-ai/page.tsx`):
+Cơ chế: `<AutoPixel />` trong root layout đọc current pathname → query DB →
+render các Pixel đã attach. Tất cả chạy server-side, dedupe Pixel+CAPI tự động.
+
+### (Tuỳ chọn — dev) Pin Pixel cứng vào source code
+
+Nếu dev muốn gắn pixel theo slug, không qua DB binding:
 
 ```tsx
 import PagePixel from "@/components/analytics/PagePixel";
@@ -53,23 +77,7 @@ export default function Page() {
 }
 ```
 
-`<PagePixel>` là **Server Component**, fetch config từ DB tại runtime. Slug phải khớp với slug đã tạo ở bước 3.
-
-### Option B — Dynamic landing từ DB
-
-Nếu landing được generate từ `/sales/[slug]`, paste cùng cách:
-
-```tsx
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  return (
-    <>
-      <PagePixel slug={slug} />
-      {/* nội dung từ DB */}
-    </>
-  );
-}
-```
+→ Cách này có sẵn nhưng **không khuyến khích** vì marketing không tự sửa được.
 
 ## 5. Track event tuỳ chỉnh (Lead, Contact, Click CTA…)
 

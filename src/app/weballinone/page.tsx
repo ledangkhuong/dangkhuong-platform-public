@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import WebAllInOneLanding from "./WebAllInOneLanding";
-import PagePixel from "@/components/analytics/PagePixel";
 
 export const metadata: Metadata = {
   title:
@@ -29,10 +28,5 @@ export const metadata: Metadata = {
 };
 
 export default function WebAllInOnePage() {
-  return (
-    <>
-      <PagePixel slug="weballinone" />
-      <WebAllInOneLanding />
-    </>
-  );
+  return <WebAllInOneLanding />;
 }

@@ -35,3 +35,20 @@ export interface PixelEventLog {
   error_message: string | null;
   created_at: string;
 }
+
+export interface LandingPage {
+  id: string;
+  pathname: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  notes: string | null;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LandingPageWithPixels extends LandingPage {
+  pixels: PixelConfig[];
+}

@@ -9,6 +9,8 @@ import {
   Shield,
   ShieldOff,
   Pencil,
+  Globe,
+  ArrowRight,
 } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import { createClient } from "@/lib/supabase/server";
@@ -98,44 +100,59 @@ export default async function AdminPixelSettingsPage() {
           </div>
         </div>
 
+        {/* ── Quick action: gắn Pixel vào landing ── */}
+        <Link
+          href="/admin/pixel-settings/pages"
+          className="block p-5 rounded-2xl transition-all hover:scale-[1.005]"
+          style={{
+            background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(212,168,67,0.02))",
+            border: "1px solid rgba(212,168,67,0.25)",
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                 style={{ background: "rgba(212,168,67,0.15)" }}>
+              <Globe size={22} className="text-[#D4A843]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-white">
+                Gắn Pixel vào landing
+              </h3>
+              <p className="text-sm text-gray-400 mt-0.5">
+                Cho marketing tick chọn pixel cho từng landing — không cần đụng code,
+                hiệu lực ngay sau khi Lưu.
+              </p>
+            </div>
+            <ArrowRight size={20} className="text-[#D4A843] flex-shrink-0" />
+          </div>
+        </Link>
+
         {/* ── Hướng dẫn nhanh ── */}
         <div
           className="p-5 rounded-2xl"
           style={{
-            background: "linear-gradient(135deg, rgba(212,168,67,0.06), rgba(212,168,67,0.02))",
-            border: "1px solid rgba(212,168,67,0.2)",
+            background: "linear-gradient(135deg, rgba(59,130,246,0.05), rgba(59,130,246,0.01))",
+            border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h3 className="text-sm font-semibold text-[#D4A843] mb-2">
-            Cách gắn Pixel vào landing page
+          <h3 className="text-sm font-semibold text-[#3b82f6] mb-2">
+            Quy trình tổng quát
           </h3>
           <ol className="text-sm text-gray-300 space-y-1.5 list-decimal pl-5">
             <li>
-              Tạo 1 cấu hình bên dưới với <code className="text-[#D4A843]">slug</code> riêng (VD: <code className="text-[#D4A843]">khoa-hoc-video-ai</code>)
+              <strong>Tạo cấu hình Pixel</strong> ở dưới (Pixel ID + CAPI Token từ
+              Events Manager)
             </li>
             <li>
-              Vào file landing page (VD: <code className="text-[#D4A843]">src/app/khoa-hoc-video-ai/page.tsx</code>), paste:
-              <pre className="mt-1.5 p-2.5 rounded-md text-xs font-mono text-[#D4A843]"
-                   style={{ background: "#0f0f0f", border: "1px solid #1f1f1f" }}>
-{`import PagePixel from "@/components/analytics/PagePixel";
-
-export default function Page() {
-  return (
-    <>
-      <PagePixel slug="khoa-hoc-video-ai" />
-      {/* nội dung landing */}
-    </>
-  );
-}`}
-              </pre>
+              Vào{" "}
+              <Link href="/admin/pixel-settings/pages" className="text-[#D4A843] hover:underline">
+                Gắn Pixel vào landing
+              </Link>{" "}
+              → <strong>tick</strong> chọn pixel vừa tạo cho landing tương ứng → <strong>Lưu</strong>
             </li>
             <li>
-              Trên form/click CTA dùng helper{" "}
-              <code className="text-[#D4A843]">trackPageEvent</code> từ{" "}
-              <code className="text-[#D4A843]">@/lib/pixel-tracker</code>
-            </li>
-            <li>
-              Test ở Events Manager → Test Events (điền code vào trường &ldquo;Test Event Code&rdquo;)
+              Test ở Events Manager → Test Events (điền &ldquo;Test Event Code&rdquo; ở
+              cấu hình Pixel khi cần)
             </li>
           </ol>
         </div>
