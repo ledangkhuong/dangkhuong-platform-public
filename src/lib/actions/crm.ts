@@ -50,7 +50,7 @@ export async function createContact(formData: FormData) {
   const email = (formData.get("email") as string || "").trim() || null;
   const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
 
-  const { data: newContact, error } = await admin.from("crm_contacts").insert({
+  const contactPayload = {
     full_name: fullName,
     email,
     phone: (formData.get("phone") as string || "").trim() || null,
@@ -62,11 +62,29 @@ export async function createContact(formData: FormData) {
     assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
     facebook_url: facebookUrl,
     created_by: user.id,
-  }).select("id").single();
+  };
 
-  if (error || !newContact) {
-    console.error("[CRM createContact]", error);
-    redirect("/crm/contacts?error=create_failed");
+  // If course selected, need the new contact ID back
+  let contactId: string | null = null;
+  if (courseIds.length > 0) {
+    const { data, error: insertErr } = await admin
+      .from("crm_contacts")
+      .insert(contactPayload)
+      .select("id")
+      .single();
+    if (insertErr) {
+      console.error("[CRM createContact]", insertErr);
+      redirect("/crm/contacts?error=create_failed");
+    }
+    contactId = data?.id ?? null;
+  } else {
+    const { error: insertErr } = await admin
+      .from("crm_contacts")
+      .insert(contactPayload);
+    if (insertErr) {
+      console.error("[CRM createContact]", insertErr);
+      redirect("/crm/contacts?error=create_failed");
+    }
   }
 
   // Save new source to crm_sources for reuse (ignore if already exists)
@@ -78,7 +96,7 @@ export async function createContact(formData: FormData) {
   }
 
   // Create course interest activities + course_interests entries
-  if (courseIds.length > 0) {
+  if (courseIds.length > 0 && contactId) {
     // Fetch product titles for activity descriptions
     const { data: products } = await admin
       .from("products")
@@ -90,7 +108,7 @@ export async function createContact(formData: FormData) {
     const activities = courseIds
       .filter((id) => productMap.has(id))
       .map((id) => ({
-        contact_id: newContact.id,
+        contact_id: contactId!,
         type: "note" as const,
         content: `Quan tâm khoá học: ${productMap.get(id)}`,
         created_by: user.id,
