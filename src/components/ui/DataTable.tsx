@@ -46,6 +46,8 @@ export interface DataTableProps<T> {
   // ── Optional ──
   /** When true, the first column stays pinned to the left edge during horizontal scroll. */
   stickyFirstColumn?: boolean;
+  /** When true, the last column stays pinned to the right edge during horizontal scroll. Useful for action columns (delete/confirm) so they remain reachable on narrow viewports. */
+  stickyLastColumn?: boolean;
   /** Called when a row body is clicked. Receives the row's original data object. */
   onRowClick?: (row: T) => void;
   /** Returns an additional className string to apply to a row's `<tr>` element. */
@@ -164,6 +166,7 @@ export function DataTable<T>({
   pageSize = 10,
   onPaginationChange,
   stickyFirstColumn = false,
+  stickyLastColumn = false,
   onRowClick,
   rowClassName,
   maxHeight,
@@ -242,6 +245,9 @@ export function DataTable<T>({
                 {headerGroup.headers.map((header, colIdx) => {
                   const canSort = header.column.getCanSort();
                   const isSticky = stickyFirstColumn && colIdx === 0;
+                  const isStickyRight =
+                    stickyLastColumn &&
+                    colIdx === headerGroup.headers.length - 1;
 
                   return (
                     <th
@@ -250,7 +256,8 @@ export function DataTable<T>({
                         "relative text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-4 py-3 whitespace-nowrap select-none",
                         "border-b border-white/[0.06]",
                         canSort && "cursor-pointer hover:text-gray-200 transition-colors",
-                        isSticky && "sticky left-0 z-30 bg-[#111]"
+                        isSticky && "sticky left-0 z-30 bg-[#111]",
+                        isStickyRight && "sticky right-0 z-30 bg-[#111]"
                       )}
                       style={{
                         width: `var(--header-${header.id}-size)`,
@@ -308,13 +315,17 @@ export function DataTable<T>({
                 >
                   {row.getVisibleCells().map((cell, colIdx) => {
                     const isSticky = stickyFirstColumn && colIdx === 0;
+                    const isStickyRight =
+                      stickyLastColumn &&
+                      colIdx === row.getVisibleCells().length - 1;
 
                     return (
                       <td
                         key={cell.id}
                         className={cn(
                           "px-4 py-3.5 text-gray-300",
-                          isSticky && "sticky left-0 z-10 bg-[#1a1a1a]"
+                          isSticky && "sticky left-0 z-10 bg-[#1a1a1a]",
+                          isStickyRight && "sticky right-0 z-10 bg-[#1a1a1a]"
                         )}
                         style={{
                           width: `var(--col-${cell.column.id}-size)`,

@@ -434,6 +434,7 @@ export default function OrdersTable({
         data={orders}
         emptyMessage={emptyMessage}
         stickyFirstColumn
+        stickyLastColumn
         pageCount={totalPages}
         pageIndex={currentPage - 1}
         pageSize={20}
