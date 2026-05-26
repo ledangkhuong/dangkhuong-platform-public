@@ -31,129 +31,107 @@ async function requireStaff() {
 
 /** Tạo contact mới trong CRM */
 export async function createContact(formData: FormData) {
-  let debugStep = "init";
-  try {
-    debugStep = "requireStaff";
-    const { user } = await requireStaff();
+  const { user } = await requireStaff();
+  const admin = await createAdminClient();
 
-    debugStep = "createAdminClient";
-    const admin = await createAdminClient();
+  const fullName = (formData.get("full_name") as string || "").trim();
+  if (!fullName) {
+    redirect("/crm/contacts?error=name_required");
+  }
 
-    debugStep = "parseForm";
-    const fullName = (formData.get("full_name") as string || "").trim();
-    if (!fullName) {
-      redirect("/crm/contacts?error=name_required");
-    }
+  const tagsRaw = (formData.get("tags") as string || "").trim();
+  const tags = tagsRaw
+    ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
+    : [];
 
-    const tagsRaw = (formData.get("tags") as string || "").trim();
-    const tags = tagsRaw
-      ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
-      : [];
+  const source = (formData.get("source") as string || "").trim() || null;
+  const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
 
-    const source = (formData.get("source") as string || "").trim() || null;
-    const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
+  const email = (formData.get("email") as string || "").trim() || null;
+  const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
 
-    const email = (formData.get("email") as string || "").trim() || null;
-    const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
+  const contactPayload = {
+    full_name: fullName,
+    email,
+    phone: (formData.get("phone") as string || "").trim() || null,
+    company: (formData.get("company") as string || "").trim() || null,
+    source,
+    status: "new" as const,
+    tags,
+    notes: (formData.get("notes") as string || "").trim() || null,
+    assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
+    facebook_url: facebookUrl,
+    created_by: user.id,
+  };
 
-    const contactPayload = {
-      full_name: fullName,
-      email,
-      phone: (formData.get("phone") as string || "").trim() || null,
-      company: (formData.get("company") as string || "").trim() || null,
-      source,
-      status: "new" as const,
-      tags,
-      notes: (formData.get("notes") as string || "").trim() || null,
-      assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
-      facebook_url: facebookUrl,
-      created_by: user.id,
-    };
+  const { data: newContact, error: insertErr } = await admin
+    .from("crm_contacts")
+    .insert(contactPayload)
+    .select("id")
+    .single();
+  if (insertErr) {
+    console.error("[CRM createContact]", insertErr);
+    redirect("/crm/contacts?error=create_failed");
+  }
+  const contactId = newContact?.id ?? null;
 
-    debugStep = "insert";
-    const { data: newContact, error: insertErr } = await admin
-      .from("crm_contacts")
-      .insert(contactPayload)
-      .select("id")
-      .single();
-    if (insertErr) {
-      console.error("[CRM createContact] insert error:", insertErr);
-      redirect(
-        `/crm/contacts?error=create_failed&detail=${encodeURIComponent(insertErr.message ?? "unknown")}`
-      );
-    }
-    const contactId = newContact?.id ?? null;
-
-    debugStep = "saveSources";
-    // Save new source to crm_sources for reuse (ignore if already exists)
-    if (source) {
-      await admin.from("crm_sources").upsert(
-        { label: source },
-        { onConflict: "label", ignoreDuplicates: true }
-      );
-    }
-
-    // Create course interest activities + course_interests entries
-    if (courseIds.length > 0 && contactId) {
-      debugStep = "courseInterests";
-      // Fetch product titles for activity descriptions
-      const { data: products } = await admin
-        .from("products")
-        .select("id, title")
-        .in("id", courseIds);
-      const productMap = new Map((products ?? []).map((p: { id: string; title: string }) => [p.id, p.title]));
-
-      // Create activities
-      const activities = courseIds
-        .filter((id) => productMap.has(id))
-        .map((id) => ({
-          contact_id: contactId!,
-          type: "note" as const,
-          content: `Quan tâm khoá học: ${productMap.get(id)}`,
-          created_by: user.id,
-          is_system: true,
-        }));
-      if (activities.length > 0) {
-        await admin.from("crm_activities").insert(activities);
-      }
-
-      // Try to create course_interests if contact has an auth user (by email)
-      if (email) {
-        try {
-          const { data: { users } } = await admin.auth.admin.listUsers({ page: 1, perPage: 500 });
-          const authUser = (users ?? []).find(
-            (u) => u.email?.toLowerCase() === email.toLowerCase()
-          );
-          if (authUser) {
-            const interests = courseIds.map((productId) => ({
-              user_id: authUser.id,
-              product_id: productId,
-              view_count: 0,
-              status: "new",
-            }));
-            await admin.from("course_interests").upsert(interests, {
-              onConflict: "user_id,product_id",
-              ignoreDuplicates: true,
-            });
-          }
-        } catch (err) {
-          console.error("[CRM createContact] course_interests lookup:", err);
-        }
-      }
-    }
-
-    debugStep = "redirect_success";
-    redirect("/crm/contacts?created=1");
-  } catch (err: unknown) {
-    // Re-throw Next.js redirect errors (they use throw internally)
-    if (err && typeof err === "object" && "digest" in err) throw err;
-    console.error(`[CRM createContact] UNHANDLED at step="${debugStep}":`, err);
-    redirect(
-      `/crm/contacts?error=create_failed&detail=${encodeURIComponent(
-        `step=${debugStep}: ${err instanceof Error ? err.message : String(err)}`
-      )}`
+  // Save new source to crm_sources for reuse (ignore if already exists)
+  if (source) {
+    await admin.from("crm_sources").upsert(
+      { label: source },
+      { onConflict: "label", ignoreDuplicates: true }
     );
   }
+
+  // Create course interest activities + course_interests entries
+  if (courseIds.length > 0 && contactId) {
+    // Fetch product titles for activity descriptions
+    const { data: products } = await admin
+      .from("products")
+      .select("id, title")
+      .in("id", courseIds);
+    const productMap = new Map((products ?? []).map((p: { id: string; title: string }) => [p.id, p.title]));
+
+    // Create activities
+    const activities = courseIds
+      .filter((id) => productMap.has(id))
+      .map((id) => ({
+        contact_id: contactId!,
+        type: "note" as const,
+        content: `Quan tâm khoá học: ${productMap.get(id)}`,
+        created_by: user.id,
+        is_system: true,
+      }));
+    if (activities.length > 0) {
+      await admin.from("crm_activities").insert(activities);
+    }
+
+    // Try to create course_interests if contact has an auth user (by email)
+    if (email) {
+      try {
+        const { data: { users } } = await admin.auth.admin.listUsers({ page: 1, perPage: 500 });
+        const authUser = (users ?? []).find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+        if (authUser) {
+          const interests = courseIds.map((productId) => ({
+            user_id: authUser.id,
+            product_id: productId,
+            view_count: 0,
+            status: "new",
+          }));
+          await admin.from("course_interests").upsert(interests, {
+            onConflict: "user_id,product_id",
+            ignoreDuplicates: true,
+          });
+        }
+      } catch (err) {
+        console.error("[CRM createContact] course_interests lookup:", err);
+      }
+    }
+  }
+
+  redirect("/crm/contacts?created=1");
 }
 
 /** Cập nhật contact */
