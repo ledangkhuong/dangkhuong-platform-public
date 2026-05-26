@@ -78,6 +78,7 @@ interface Order {
   amount: number;
   status: string;
   created_at: string;
+  customer_phone: string | null;
   products: { title: string } | null;
 }
 
@@ -303,11 +304,11 @@ export default async function ContactDetailPage({
   let orders: Order[] = [];
   let enrollments: Enrollment[] = [];
 
-  // Fetch orders by email
+  // Fetch orders by email (include customer_phone for fallback)
   if (contact.email) {
     const { data: ordersData } = await adminClient
       .from("orders")
-      .select("id, order_code, amount, status, created_at, products:product_id(title)")
+      .select("id, order_code, amount, status, created_at, customer_phone, products:product_id(title)")
       .eq("customer_email", contact.email)
       .order("created_at", { ascending: false });
     orders = (ordersData ?? []) as unknown as Order[];
@@ -381,6 +382,23 @@ export default async function ContactDetailPage({
   const lifetimeValue = orders.reduce((sum, o) => o.status === "paid" ? sum + (o.amount || 0) : sum, 0);
   const src = sourceConfig[contact.source || "manual"] || sourceConfig.manual;
 
+  // Derive phone from orders if contact.phone is empty
+  const displayPhone = contact.phone || orders.find((o) => o.customer_phone)?.customer_phone || null;
+
+  // Build purchased courses list from paid orders (fallback when enrollments table is empty)
+  const paidCourses = orders
+    .filter((o) => o.status === "paid" && o.products?.title)
+    .map((o) => ({
+      id: o.id,
+      title: o.products!.title,
+      created_at: o.created_at,
+      amount: o.amount,
+    }));
+  // Deduplicate by title
+  const uniquePaidCourses = paidCourses.filter(
+    (c, i, arr) => arr.findIndex((x) => x.title === c.title) === i
+  );
+
   return (
     <div>
       <TopBar title="Chi tiết khách hàng" subtitle={contact.full_name} />
@@ -414,13 +432,13 @@ export default async function ContactDetailPage({
 
               {/* Phone + Email + Assigned Sale — prominent row */}
               <div className="flex flex-wrap items-center gap-4 mt-2 text-sm">
-                {contact.phone && (
+                {displayPhone && (
                   <a
-                    href={`tel:${contact.phone}`}
+                    href={`tel:${displayPhone}`}
                     className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors"
                   >
                     <Phone size={14} className="text-green-400" />
-                    <span className="font-medium">{contact.phone}</span>
+                    <span className="font-medium">{displayPhone}</span>
                   </a>
                 )}
                 {contact.email && (
@@ -752,10 +770,10 @@ export default async function ContactDetailPage({
                   </div>
                 )}
                 {/* Phone */}
-                {contact.phone && (
+                {displayPhone && (
                   <div className="flex items-center gap-3">
                     <Phone size={14} className="text-gray-500 shrink-0" />
-                    <span className="text-sm text-gray-300">{contact.phone}</span>
+                    <span className="text-sm text-gray-300">{displayPhone}</span>
                   </div>
                 )}
                 {/* Company */}
@@ -881,16 +899,17 @@ export default async function ContactDetailPage({
               )}
             </div>
 
-            {/* Enrolled Courses Card */}
+            {/* Enrolled / Purchased Courses Card */}
             <div className="card-dark p-5">
               <div className="flex items-center gap-2 mb-4">
                 <BookOpen size={16} className="text-[#D4A843]" />
                 <h3 className="font-semibold text-white text-sm">Khoá học đã đăng ký</h3>
-                <span className="text-xs text-gray-500 ml-auto">{enrollments.length}</span>
+                <span className="text-xs text-gray-500 ml-auto">
+                  {enrollments.length > 0 ? enrollments.length : uniquePaidCourses.length}
+                </span>
               </div>
-              {enrollments.length === 0 ? (
-                <p className="text-xs text-gray-500 text-center py-4">Chưa đăng ký khoá học nào</p>
-              ) : (
+              {enrollments.length > 0 ? (
+                /* Show from enrollments table */
                 <div className="space-y-2">
                   {enrollments.map((enrollment) => (
                     <div
@@ -913,6 +932,34 @@ export default async function ContactDetailPage({
                     </div>
                   ))}
                 </div>
+              ) : uniquePaidCourses.length > 0 ? (
+                /* Fallback: show courses derived from paid orders */
+                <div className="space-y-2">
+                  {uniquePaidCourses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="flex items-center gap-3 p-2.5 rounded-lg"
+                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid #2a2a2a" }}
+                    >
+                      <div
+                        className="w-7 h-7 rounded flex items-center justify-center shrink-0"
+                        style={{ background: "rgba(212,168,67,0.12)" }}
+                      >
+                        <BookOpen size={13} className="text-[#D4A843]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-gray-200 truncate">
+                          {course.title}
+                        </p>
+                        <p className="text-[10px] text-gray-500">
+                          Mua {formatDate(course.created_at)} · {formatVND(course.amount)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 text-center py-4">Chưa có khoá học nào</p>
               )}
             </div>
 
