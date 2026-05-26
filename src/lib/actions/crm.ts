@@ -294,9 +294,36 @@ export async function deleteContact(formData: FormData) {
 
 // ─── Activity Actions ────────────────────────────────────────────────────────
 
-/** Thêm hoạt động cho contact */
+/**
+ * Thêm hoạt động cho contact — enhanced for customer-care touches.
+ *
+ * Required FormData fields:
+ *   - contact_id: string
+ *   - type:       'note' | 'call' | 'email' | 'meeting' | 'task'
+ *   - content:    string (the body of the touch)
+ *
+ * Optional FormData fields (for richer call/follow-up logging):
+ *   - outcome:           string  (meaningful only for type='call')
+ *                        'reached'|'no_answer'|'busy'|'rejected'|'callback_later'|'other'
+ *                        → stored in crm_activities.metadata.outcome
+ *   - duration_minutes:  number  (meaningful only for type='call')
+ *                        → stored in crm_activities.metadata.duration_minutes
+ *   - interest_level:    'high'|'medium'|'low'
+ *                        → UPDATEs crm_contacts.interest_level AND snapshots
+ *                          the value in crm_activities.metadata.interest_level_at_touch
+ *   - next_follow_up_at: ISO datetime string
+ *                        → ALSO inserts a row into crm_next_actions
+ *                          (type='follow_up', priority='medium', status='pending',
+ *                          assigned_to & created_by = current user).
+ *
+ * Auth: any staff role. If caller is 'sale', the contact MUST be assigned
+ * to them — otherwise we redirect with error=forbidden. Admin/manager bypass.
+ *
+ * Side-effects preserved: still bumps crm_contacts.last_contacted_at on
+ * call/email/meeting.
+ */
 export async function addActivity(formData: FormData) {
-  const { user } = await requireStaff();
+  const { user, role } = await requireStaff();
   const admin = await createAdminClient();
 
   const contactId = formData.get("contact_id") as string;
@@ -314,25 +341,136 @@ export async function addActivity(formData: FormData) {
     redirect(`/crm/contacts/${contactId}?error=invalid_type`);
   }
 
-  const { error } = await admin.from("crm_activities").insert({
+  // ── Optional enhanced fields ───────────────────────────────────────────
+  const outcomeRaw = (formData.get("outcome") as string || "").trim();
+  const validOutcomes = [
+    "reached",
+    "no_answer",
+    "busy",
+    "rejected",
+    "callback_later",
+    "other",
+  ];
+  const outcome =
+    type === "call" && outcomeRaw && validOutcomes.includes(outcomeRaw)
+      ? outcomeRaw
+      : null;
+
+  const durationRaw = (formData.get("duration_minutes") as string || "").trim();
+  let durationMinutes: number | null = null;
+  if (type === "call" && durationRaw) {
+    const parsed = Number(durationRaw);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      durationMinutes = Math.round(parsed);
+    }
+  }
+
+  const interestRaw = (formData.get("interest_level") as string || "").trim();
+  const validInterests = ["high", "medium", "low"];
+  const interestLevel = validInterests.includes(interestRaw)
+    ? (interestRaw as "high" | "medium" | "low")
+    : null;
+
+  const nextFollowUpRaw = (
+    formData.get("next_follow_up_at") as string || ""
+  ).trim();
+  // Treat empty / unparseable as "not provided" rather than erroring.
+  let nextFollowUpIso: string | null = null;
+  if (nextFollowUpRaw) {
+    const d = new Date(nextFollowUpRaw);
+    if (!isNaN(d.getTime())) {
+      nextFollowUpIso = d.toISOString();
+    }
+  }
+
+  // ── Ownership check for sale role ──────────────────────────────────────
+  // Sale reps can only log activities on contacts assigned to them.
+  // Admin/manager/marketing/support are not restricted here.
+  if (role === "sale") {
+    const { data: contactOwner } = await admin
+      .from("crm_contacts")
+      .select("assigned_to, full_name")
+      .eq("id", contactId)
+      .maybeSingle();
+
+    if (!contactOwner) {
+      redirect(`/crm/contacts?error=contact_not_found`);
+    }
+    if ((contactOwner.assigned_to as string | null) !== user.id) {
+      redirect(`/crm/contacts/${contactId}?error=forbidden`);
+    }
+  }
+
+  // ── Build activity metadata payload ────────────────────────────────────
+  const metadata: Record<string, unknown> = {};
+  if (outcome) metadata.outcome = outcome;
+  if (durationMinutes !== null) metadata.duration_minutes = durationMinutes;
+  if (interestLevel) metadata.interest_level_at_touch = interestLevel;
+
+  const insertPayload: Record<string, unknown> = {
     contact_id: contactId,
     type,
     content,
     created_by: user.id,
-  });
+  };
+  if (Object.keys(metadata).length > 0) {
+    insertPayload.metadata = metadata;
+  }
+
+  const { error } = await admin.from("crm_activities").insert(insertPayload);
 
   if (error) {
     console.error("[CRM addActivity]", error);
     redirect(`/crm/contacts/${contactId}?error=activity_failed`);
   }
 
-  // Cập nhật last_contacted_at nếu là tương tác trực tiếp
+  // ── Cập nhật last_contacted_at nếu là tương tác trực tiếp + interest ──
   const contactTypes = ["call", "email", "meeting"];
+  const contactUpdates: Record<string, unknown> = {};
   if (contactTypes.includes(type)) {
+    contactUpdates.last_contacted_at = new Date().toISOString();
+  }
+  if (interestLevel) {
+    contactUpdates.interest_level = interestLevel;
+  }
+  if (Object.keys(contactUpdates).length > 0) {
     await admin
       .from("crm_contacts")
-      .update({ last_contacted_at: new Date().toISOString() })
+      .update(contactUpdates)
       .eq("id", contactId);
+  }
+
+  // ── Schedule follow-up next-action if requested ────────────────────────
+  if (nextFollowUpIso) {
+    // Pull contact name for a useful title — fail-soft if lookup fails.
+    let contactName = "khách hàng";
+    try {
+      const { data: c } = await admin
+        .from("crm_contacts")
+        .select("full_name")
+        .eq("id", contactId)
+        .maybeSingle();
+      if (c?.full_name) contactName = c.full_name as string;
+    } catch {
+      /* keep default */
+    }
+
+    const { error: naErr } = await admin.from("crm_next_actions").insert({
+      contact_id: contactId,
+      type: "follow_up",
+      title: `Theo dõi: ${contactName}`,
+      description: content || null,
+      priority: "medium",
+      due_at: nextFollowUpIso,
+      assigned_to: user.id,
+      status: "pending",
+      created_by: user.id,
+      is_auto_generated: false,
+    });
+    if (naErr) {
+      console.error("[CRM addActivity] next_action insert failed:", naErr);
+      // Don't redirect-error — activity already saved successfully.
+    }
   }
 
   redirect(`/crm/contacts/${contactId}?activity_added=1`);

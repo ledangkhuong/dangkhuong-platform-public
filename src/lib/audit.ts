@@ -14,6 +14,7 @@ export type AuditAction =
   | "enrollment.create"
   | "enrollment.delete"
   | "email.campaign_send"
+  | "email.send"
   | "payment.received"
   | "account.delete"
   | "auth.login_failed"

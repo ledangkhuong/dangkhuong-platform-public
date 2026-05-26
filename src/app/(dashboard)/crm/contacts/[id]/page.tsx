@@ -1,8 +1,8 @@
 import TopBar from "@/components/layout/TopBar";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { addActivity } from "@/lib/actions/crm";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
+import ActivityComposer from "./ActivityComposer";
 import {
   ArrowLeft,
   Mail,
@@ -52,6 +52,7 @@ interface Contact {
   lifetime_value: number | null;
   assigned_to: string | null;
   user_id: string | null;
+  interest_level: "high" | "medium" | "low" | null;
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
@@ -72,6 +73,15 @@ interface Activity {
   created_at: string;
   created_by: string | null;
   creator_profile: { full_name: string | null } | null;
+  metadata: {
+    outcome?: string;
+    duration_minutes?: number;
+    interest_level_at_touch?: "high" | "medium" | "low";
+    subject?: string;
+    message_id?: string;
+    sent_by?: string;
+    recipient?: string;
+  } | null;
 }
 
 interface Order {
@@ -178,6 +188,21 @@ const priorityConfig: Record<string, { label: string; color: string; bg: string 
   medium: { label: "TB", color: "#f59e0b", bg: "rgba(245,158,11,0.15)" },
   high: { label: "Cao", color: "#ef4444", bg: "rgba(239,68,68,0.15)" },
   urgent: { label: "Gấp", color: "#dc2626", bg: "rgba(220,38,38,0.2)" },
+};
+
+const outcomeConfig: Record<string, { label: string; color: string; bg: string }> = {
+  reached: { label: "Đã liên hệ", color: "#22c55e", bg: "rgba(34,197,94,0.12)" },
+  no_answer: { label: "Không bắt máy", color: "#9ca3af", bg: "rgba(156,163,175,0.12)" },
+  busy: { label: "Bận", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+  rejected: { label: "Từ chối", color: "#ef4444", bg: "rgba(239,68,68,0.12)" },
+  callback_later: { label: "Gọi lại sau", color: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
+  other: { label: "Khác", color: "#a855f7", bg: "rgba(168,85,247,0.12)" },
+};
+
+const interestChipConfig: Record<"high" | "medium" | "low", { label: string; color: string; bg: string }> = {
+  high: { label: "Cao", color: "#22c55e", bg: "rgba(34,197,94,0.12)" },
+  medium: { label: "TB", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+  low: { label: "Thấp", color: "#ef4444", bg: "rgba(239,68,68,0.12)" },
 };
 
 /* ---------- Helpers ---------- */
@@ -413,6 +438,16 @@ export default async function ContactDetailPage({
   // Derive phone from orders if contact.phone is empty
   const displayPhone = contact.phone || orders.find((o) => o.customer_phone)?.customer_phone || null;
 
+  // canEmail: admin/manager can email any contact w/ email; sale can only
+  // email contacts assigned to them. Aligns with the auth check in the
+  // /api/crm/contacts/[id]/send-email route.
+  const hasEmail = !!(contact.email && contact.email.trim().length > 0);
+  const isAdminOrManager = scope.role === "admin" || scope.role === "manager";
+  const canEmail =
+    hasEmail &&
+    (isAdminOrManager ||
+      (scope.isSale && contact.assigned_to === scope.userId));
+
   // Build purchased courses list from paid orders (fallback when enrollments table is empty)
   const paidCourses = orders
     .filter((o) => o.status === "paid" && o.products?.title)
@@ -618,34 +653,13 @@ export default async function ContactDetailPage({
                 <MessageSquare size={16} className="text-[#D4A843]" />
                 <h3 className="font-semibold text-white text-sm">Thêm hoạt động</h3>
               </div>
-              <form action={addActivity}>
-                <input type="hidden" name="contact_id" value={contact.id} />
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <select
-                    name="type"
-                    className="input-dark px-3 py-2 text-sm sm:w-[140px]"
-                  >
-                    <option value="note">Ghi chú</option>
-                    <option value="call">Cuộc gọi</option>
-                    <option value="email">Email</option>
-                    <option value="meeting">Cuộc họp</option>
-                    <option value="task">Task</option>
-                  </select>
-                  <input
-                    type="text"
-                    name="content"
-                    required
-                    placeholder="Nội dung hoạt động..."
-                    className="input-dark flex-1 px-3 py-2 text-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="btn-green px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap"
-                  >
-                    Thêm
-                  </button>
-                </div>
-              </form>
+              <ActivityComposer
+                contactId={contact.id}
+                contactName={contact.full_name}
+                contactEmail={contact.email}
+                currentInterestLevel={contact.interest_level}
+                canEmail={canEmail}
+              />
             </div>
 
             {/* Activity Timeline */}
@@ -670,6 +684,17 @@ export default async function ContactDetailPage({
                     const Icon = getActivityIcon(activity.type);
                     const typeConf = activityTypeConfig[activity.type] || activityTypeConfig.note;
                     const isSystem = activity.is_system;
+                    const meta = activity.metadata ?? null;
+                    const outcomeConf =
+                      activity.type === "call" && meta?.outcome
+                        ? outcomeConfig[meta.outcome] ?? null
+                        : null;
+                    const interestConf =
+                      meta?.interest_level_at_touch
+                        ? interestChipConfig[meta.interest_level_at_touch] ?? null
+                        : null;
+                    const isEmailWithSubject =
+                      activity.type === "email" && !!meta?.subject;
 
                     return (
                       <div
@@ -698,7 +723,7 @@ export default async function ContactDetailPage({
                         </div>
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
                             <span
                               className="text-xs font-semibold px-2 py-0.5 rounded"
                               style={{
@@ -708,16 +733,59 @@ export default async function ContactDetailPage({
                             >
                               {typeConf.label}
                             </span>
+                            {outcomeConf && (
+                              <span
+                                className="text-[11px] font-semibold px-1.5 py-0.5 rounded"
+                                style={{
+                                  background: outcomeConf.bg,
+                                  color: outcomeConf.color,
+                                }}
+                              >
+                                {outcomeConf.label}
+                              </span>
+                            )}
+                            {activity.type === "call" &&
+                              typeof meta?.duration_minutes === "number" && (
+                                <span className="text-[11px] text-gray-500">
+                                  ({meta.duration_minutes} phút)
+                                </span>
+                              )}
+                            {interestConf && (
+                              <span
+                                className="text-[11px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-1"
+                                style={{
+                                  background: interestConf.bg,
+                                  color: interestConf.color,
+                                }}
+                                title="Mức độ quan tâm tại thời điểm này"
+                              >
+                                <Heart size={10} />
+                                {interestConf.label}
+                              </span>
+                            )}
                             <span className="text-[11px] text-gray-500">
                               {timeAgo(activity.created_at)}
                             </span>
                           </div>
-                          <p
-                            className="text-sm leading-relaxed"
-                            style={{ color: isSystem ? "#6b7280" : "#d1d5db" }}
-                          >
-                            {activity.content}
-                          </p>
+                          {isEmailWithSubject && (
+                            <p
+                              className="text-sm font-semibold leading-relaxed mb-0.5"
+                              style={{ color: "#e5e7eb" }}
+                            >
+                              {meta!.subject}
+                            </p>
+                          )}
+                          {/* Email "content" column stores the subject too — avoid duplicating */}
+                          {!(isEmailWithSubject &&
+                            activity.content === meta!.subject) &&
+                            activity.content && (
+                              <p
+                                className="text-sm leading-relaxed whitespace-pre-wrap"
+                                style={{ color: isSystem ? "#6b7280" : "#d1d5db" }}
+                              >
+                                {activity.content}
+                              </p>
+                            )}
                           {activity.creator_profile?.full_name && !isSystem && (
                             <p className="text-[11px] text-gray-500 mt-1">
                               bởi {activity.creator_profile.full_name}
