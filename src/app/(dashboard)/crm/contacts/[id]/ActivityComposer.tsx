@@ -249,12 +249,12 @@ export default function ActivityComposer({
           <textarea
             value={emailBody}
             onChange={(e) => setEmailBody(e.target.value)}
-            rows={6}
-            placeholder="Nội dung email gửi cho khách…"
+            rows={12}
+            placeholder="Nội dung email gửi cho khách…&#10;&#10;Mẹo: gõ xuống dòng để chia đoạn. Tránh dán định dạng từ Word vì email gửi đi là plain text + HTML đơn giản."
             required
             disabled={!canEmail || submitting}
-            className="input-dark px-3 py-2 text-sm resize-y"
-            style={{ minHeight: 140 }}
+            className="input-dark px-3 py-3 text-sm leading-relaxed resize-y"
+            style={{ minHeight: 280, fontFamily: 'inherit' }}
           />
 
           {emailError && (
@@ -342,18 +342,18 @@ export default function ActivityComposer({
           <textarea
             name="content"
             required
-            rows={3}
+            rows={8}
             placeholder={
               type === "call"
-                ? "Ghi chú cuộc gọi…"
+                ? "Ghi chú cuộc gọi (ai nói gì, vướng mắc, giải pháp đề xuất, bước tiếp theo…)"
                 : type === "meeting"
-                ? "Nội dung cuộc họp…"
+                ? "Nội dung cuộc họp (chủ đề bàn, người tham dự, quyết định, action items…)"
                 : type === "task"
-                ? "Mô tả việc cần làm…"
-                : "Nội dung ghi chú…"
+                ? "Mô tả việc cần làm (mục tiêu, deadline, ai phụ trách, kết quả mong đợi…)"
+                : "Nội dung ghi chú (quan sát, cảm nhận, sở thích khách, follow-up cần làm…)"
             }
-            className="input-dark px-3 py-2 text-sm resize-y"
-            style={{ minHeight: 80 }}
+            className="input-dark px-3 py-3 text-sm leading-relaxed resize-y"
+            style={{ minHeight: 200, fontFamily: 'inherit' }}
           />
 
           {/* Interest level segmented control */}
