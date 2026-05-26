@@ -51,7 +51,7 @@ interface OrderSummary {
 export default async function CRMContactsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; journey_stage?: string; created?: string; updated?: string; deleted?: string; imported?: string; synced?: string; error?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; journey_stage?: string; created?: string; updated?: string; deleted?: string; imported?: string; synced?: string; error?: string; detail?: string }>;
 }) {
   const params = await searchParams;
   const q = params.q || "";
@@ -204,7 +204,7 @@ export default async function CRMContactsPage({
   if (params.error) {
     const errMap: Record<string, string> = {
       name_required: "Tên khách hàng là bắt buộc.",
-      create_failed: "Không thể tạo khách hàng. Vui lòng thử lại.",
+      create_failed: `Không thể tạo khách hàng.${params.detail ? ` Lỗi: ${params.detail}` : " Vui lòng thử lại."}`,
       empty_import: "Dữ liệu import trống.",
       no_valid_rows: "Không có dòng hợp lệ trong dữ liệu import.",
       import_failed: "Import thất bại. Vui lòng thử lại.",

@@ -64,28 +64,20 @@ export async function createContact(formData: FormData) {
     created_by: user.id,
   };
 
-  // If course selected, need the new contact ID back
+  // Always get the new contact ID back (needed for course interests + useful for logging)
   let contactId: string | null = null;
-  if (courseIds.length > 0) {
-    const { data, error: insertErr } = await admin
-      .from("crm_contacts")
-      .insert(contactPayload)
-      .select("id")
-      .single();
-    if (insertErr) {
-      console.error("[CRM createContact]", insertErr);
-      redirect("/crm/contacts?error=create_failed");
-    }
-    contactId = data?.id ?? null;
-  } else {
-    const { error: insertErr } = await admin
-      .from("crm_contacts")
-      .insert(contactPayload);
-    if (insertErr) {
-      console.error("[CRM createContact]", insertErr);
-      redirect("/crm/contacts?error=create_failed");
-    }
+  const { data: newContact, error: insertErr } = await admin
+    .from("crm_contacts")
+    .insert(contactPayload)
+    .select("id")
+    .single();
+  if (insertErr) {
+    console.error("[CRM createContact]", insertErr);
+    redirect(
+      `/crm/contacts?error=create_failed&detail=${encodeURIComponent(insertErr.message ?? "unknown")}`
+    );
   }
+  contactId = newContact?.id ?? null;
 
   // Save new source to crm_sources for reuse (ignore if already exists)
   if (source) {
