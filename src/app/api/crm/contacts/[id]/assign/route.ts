@@ -78,6 +78,23 @@ export async function POST(
       }
     }
 
+    // Fetch the contact BEFORE updating so we know how to cascade.
+    const { data: contact } = await adminClient
+      .from("crm_contacts")
+      .select("id, email, user_id, assigned_to")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!contact) {
+      return NextResponse.json(
+        { error: "Contact not found" },
+        { status: 404 }
+      );
+    }
+
+    const previousSaleId = (contact.assigned_to as string | null) ?? null;
+    const noChange = previousSaleId === assignedTo;
+
     const { error: updErr } = await adminClient
       .from("crm_contacts")
       .update({ assigned_to: assignedTo })
@@ -91,7 +108,72 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ ok: true, assigned_to: assignedTo });
+    // Cascade: when manager actively assigns a NEW sale to a customer, push
+    // that sale down to every order / course interest / deal belonging to
+    // this customer. Per product spec: customer-level edits ARE the
+    // authoritative "this customer belongs to X" signal — past + future
+    // items should follow. Order-level edits (different route) stay
+    // per-order and do NOT cascade.
+    //
+    // Skip cascade when:
+    //   - new value is NULL (admin is unassigning the customer — don't
+    //     wipe history; future items will lookup-fallback correctly).
+    //   - no actual change (idempotent re-submit of the same value).
+    let cascade: {
+      orders: number | null;
+      interests: number | null;
+      deals: number | null;
+      skipped?: string;
+    } = { orders: null, interests: null, deals: null };
+
+    if (assignedTo === null) {
+      cascade.skipped = "unassign-no-cascade";
+    } else if (noChange) {
+      cascade.skipped = "no-change";
+    } else {
+      const email = ((contact.email as string | null) ?? "").trim().toLowerCase();
+      const userId = (contact.user_id as string | null) ?? null;
+
+      if (email) {
+        const { count: oCount, error: oErr } = await adminClient
+          .from("orders")
+          .update({ assigned_to: assignedTo }, { count: "exact" })
+          .ilike("customer_email", email);
+        if (oErr) {
+          console.error("[crm/contacts/assign POST] cascade orders:", oErr);
+        } else {
+          cascade.orders = oCount ?? 0;
+        }
+      }
+
+      if (userId) {
+        const { count: iCount, error: iErr } = await adminClient
+          .from("course_interests")
+          .update({ assigned_to: assignedTo }, { count: "exact" })
+          .eq("user_id", userId);
+        if (iErr) {
+          console.error("[crm/contacts/assign POST] cascade interests:", iErr);
+        } else {
+          cascade.interests = iCount ?? 0;
+        }
+      }
+
+      const { count: dCount, error: dErr } = await adminClient
+        .from("crm_deals")
+        .update({ assigned_to: assignedTo }, { count: "exact" })
+        .eq("contact_id", id);
+      if (dErr) {
+        console.error("[crm/contacts/assign POST] cascade deals:", dErr);
+      } else {
+        cascade.deals = dCount ?? 0;
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      assigned_to: assignedTo,
+      cascade,
+    });
   } catch (err) {
     console.error("POST /api/crm/contacts/[id]/assign error:", err);
     return NextResponse.json(
