@@ -258,6 +258,76 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // 4a.0 Auto-tạo user account nếu order chưa có user_id (khách CK trực tiếp
+    //      mà chưa đăng ký). Sau khi tạo, gắn user_id vào order để các bước
+    //      enrollment / progression / Zalo invite chạy được.
+    if (!order.user_id && order.customer_email) {
+      try {
+        const email = String(order.customer_email).trim().toLowerCase();
+        const fullName = (order.customer_name as string | null) || email.split("@")[0];
+        const phone = (order.customer_phone as string | null) || null;
+
+        // 1. Tìm xem user đã tồn tại chưa (trùng email)
+        let existingUserId: string | null = null;
+        try {
+          const { data: existingByEmail } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("email" as never, email)
+            .maybeSingle();
+          if (existingByEmail) existingUserId = (existingByEmail as { id: string }).id;
+        } catch {
+          /* table có thể chưa có cột email — bỏ qua */
+        }
+
+        if (!existingUserId) {
+          // Tạo Supabase auth user mới — password random, user sẽ reset qua email
+          const randomPassword = crypto.randomBytes(16).toString("hex");
+          const { data: created, error: createErr } =
+            await supabase.auth.admin.createUser({
+              email,
+              password: randomPassword,
+              email_confirm: true, // không cần verify email
+              user_metadata: { full_name: fullName, source: "sepay_auto_create" },
+            });
+          if (createErr) {
+            console.warn(`[Sepay] Auto-create user error: ${createErr.message}`);
+          } else if (created?.user) {
+            existingUserId = created.user.id;
+            // Tạo profile nếu trigger handle_new_user chưa lo
+            await supabase.from("profiles").upsert({
+              id: created.user.id,
+              full_name: fullName,
+              phone,
+              role: "student",
+            });
+            // Gửi password reset link để user tự đặt password
+            try {
+              await supabase.auth.admin.generateLink({
+                type: "recovery",
+                email,
+              });
+              console.log(`[Sepay] ✅ Auto-created user ${email} + sent password reset`);
+            } catch (linkErr) {
+              console.warn("[Sepay] generateLink error:", linkErr);
+            }
+          }
+        }
+
+        // Gắn user_id vào order
+        if (existingUserId) {
+          await supabase
+            .from("orders")
+            .update({ user_id: existingUserId })
+            .eq("id", order.id);
+          (order as { user_id?: string }).user_id = existingUserId;
+        }
+      } catch (autoErr) {
+        console.error("[Sepay] Auto-create user failed:", autoErr);
+        // Không block flow — order vẫn paid, admin có thể tạo user thủ công
+      }
+    }
+
     // 4a. Cancel other pending orders for same user + product (prevents stale "Chờ thanh toán" showing)
     if (order.user_id && order.product_id) {
       const { data: cancelledOrders } = await supabase
