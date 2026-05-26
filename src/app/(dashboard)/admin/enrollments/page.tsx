@@ -158,8 +158,8 @@ export default async function AdminEnrollmentsPage({
 
   // Error messages
   const errorMessages: Record<string, string> = {
-    missing_fields: "Vui lòng nhập email và tích chọn ít nhất 1 khoá học.",
-    user_not_found: "Không tìm thấy tài khoản với email này.",
+    missing_fields: "Vui lòng nhập email/SĐT và tích chọn ít nhất 1 khoá học.",
+    user_not_found: "Không tìm thấy tài khoản với email/SĐT này.",
     already_enrolled: "Học viên đã được cấp quyền khoá học này.",
     failed: "Có lỗi xảy ra. Vui lòng thử lại.",
   };
@@ -225,17 +225,17 @@ export default async function AdminEnrollmentsPage({
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Cấp quyền khoá học</h2>
-              <p className="text-xs text-gray-500">Nhập email học viên và chọn khoá học để cấp quyền</p>
+              <p className="text-xs text-gray-500">Nhập email hoặc SĐT học viên và chọn khoá học để cấp quyền</p>
             </div>
           </div>
 
           <form action={grantCourseAccess} className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Email học viên</label>
+              <label className="block text-xs text-gray-400 mb-1.5 font-medium">Email hoặc SĐT học viên</label>
               <input
-                type="email"
-                name="email"
-                placeholder="vd: hocvien@gmail.com"
+                type="text"
+                name="identifier"
+                placeholder="vd: hocvien@gmail.com hoặc 0901234567"
                 required
                 className="input-dark w-full sm:max-w-md"
               />
