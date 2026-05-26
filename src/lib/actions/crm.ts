@@ -48,7 +48,7 @@ export async function createContact(formData: FormData) {
   const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
 
   const email = (formData.get("email") as string || "").trim() || null;
-  const courseIds = formData.getAll("course_ids") as string[];
+  const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
 
   const { data: newContact, error } = await admin.from("crm_contacts").insert({
     full_name: fullName,

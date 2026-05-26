@@ -16,7 +16,6 @@ import {
   AlertCircle,
   FileUp,
   RefreshCw,
-  Heart,
 } from "lucide-react";
 
 /* ---------- Filter option labels (used in search/filter dropdowns) ---------- */
@@ -395,6 +394,18 @@ export default async function CRMContactsPage({
                 />
               </div>
               <div>
+                <label className="text-xs text-gray-400 mb-1 block">Khoá học quan tâm</label>
+                <select
+                  name="course_ids"
+                  className="input-dark w-full px-3 py-2 text-sm"
+                >
+                  <option value="">— Chọn khoá học —</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="text-xs text-gray-400 mb-1 block">Ghi chú</label>
                 <input
                   type="text"
@@ -404,35 +415,6 @@ export default async function CRMContactsPage({
                 />
               </div>
             </div>
-
-            {/* Khoá học quan tâm */}
-            {products.length > 0 && (
-              <details className="mt-4 border border-[#2a2a2a] rounded-xl overflow-hidden">
-                <summary className="px-4 py-2.5 cursor-pointer flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white transition-colors bg-[#1a1a1a]">
-                  <Heart size={14} className="text-pink-400" />
-                  Khoá học quan tâm
-                  <span className="text-xs text-gray-500 ml-1">(tuỳ chọn)</span>
-                </summary>
-                <div className="px-4 py-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[240px] overflow-y-auto">
-                  {products.map((p) => (
-                    <label
-                      key={p.id}
-                      className="flex items-start gap-2 px-2.5 py-1.5 rounded-lg hover:bg-[#1a1a1a] cursor-pointer transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        name="course_ids"
-                        value={p.id}
-                        className="mt-0.5 accent-[#D4A843] shrink-0"
-                      />
-                      <span className="text-xs text-gray-300 leading-snug line-clamp-2">
-                        {p.title}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-            )}
 
             <div className="mt-4 flex justify-end">
               <button type="submit" className="btn-green px-5 py-2 text-sm font-medium rounded-lg flex items-center gap-2">
