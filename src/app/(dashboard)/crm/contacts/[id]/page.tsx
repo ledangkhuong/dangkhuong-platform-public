@@ -30,6 +30,7 @@ import {
   Eye,
   MousePointerClick,
   Timer,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -94,6 +95,17 @@ interface CourseRecommendation {
   reason: string | null;
   score: number | null;
   products: { title: string } | null;
+}
+
+interface CourseInterest {
+  id: string;
+  view_count: number;
+  first_viewed_at: string | null;
+  last_viewed_at: string | null;
+  status: string | null;
+  notes: string | null;
+  contacted: boolean | null;
+  products: { title: string; slug: string | null; price: number | null; sale_price: number | null } | null;
 }
 
 interface NextAction {
@@ -302,6 +314,17 @@ export default async function ContactDetailPage({
   const recommendations = (recommendationsRes.data ?? []) as unknown as CourseRecommendation[];
   const nextActions = (nextActionsRes.data ?? []) as unknown as NextAction[];
   const deals = (dealsRes.data ?? []) as unknown as Deal[];
+
+  // ─── Fetch course interests (courses the user viewed but hasn't purchased) ──
+  let courseInterests: CourseInterest[] = [];
+  if (contact.user_id) {
+    const { data: interestsData } = await adminClient
+      .from("course_interests")
+      .select("id, view_count, first_viewed_at, last_viewed_at, status, notes, contacted, products:product_id(title, slug, price, sale_price)")
+      .eq("user_id", contact.user_id)
+      .order("last_viewed_at", { ascending: false });
+    courseInterests = (interestsData ?? []) as unknown as CourseInterest[];
+  }
 
   // ─── Fetch orders & enrollments ─────────────────────────────────────────────
   let orders: Order[] = [];
@@ -995,6 +1018,68 @@ export default async function ContactDetailPage({
                 <p className="text-xs text-gray-500 text-center py-4">Chưa có khoá học nào</p>
               )}
             </div>
+
+            {/* Course Interests Card */}
+            {courseInterests.length > 0 && (
+              <div className="card-dark p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Heart size={16} className="text-[#D4A843]" />
+                  <h3 className="font-semibold text-white text-sm">Khoá học quan tâm</h3>
+                  <span className="text-xs text-gray-500 ml-auto">{courseInterests.length}</span>
+                </div>
+                <div className="space-y-2.5">
+                  {courseInterests.map((interest) => {
+                    const displayPrice = interest.products?.sale_price ?? interest.products?.price ?? 0;
+                    const isContacted = interest.contacted;
+                    return (
+                      <div
+                        key={interest.id}
+                        className="p-3 rounded-lg"
+                        style={{ background: "rgba(236,72,153,0.04)", border: "1px solid rgba(236,72,153,0.15)" }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm text-white font-medium truncate">
+                              {interest.products?.title || "Khoá học"}
+                            </p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-[11px] text-gray-500">
+                                {interest.view_count} lượt xem
+                              </span>
+                              {interest.last_viewed_at && (
+                                <span className="text-[11px] text-gray-500">
+                                  {timeAgo(interest.last_viewed_at)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            {displayPrice > 0 && (
+                              <p className="text-xs font-semibold text-amber-400">
+                                {formatVND(displayPrice)}
+                              </p>
+                            )}
+                            {isContacted && (
+                              <span
+                                className="inline-block mt-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                                style={{ background: "rgba(34,197,94,0.12)", color: "#22c55e" }}
+                              >
+                                Đã liên hệ
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {interest.notes && (
+                          <p className="text-[11px] text-gray-500 mt-1.5 line-clamp-2">
+                            {interest.notes}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Recommended Courses Card */}
             {recommendations.length > 0 && (
