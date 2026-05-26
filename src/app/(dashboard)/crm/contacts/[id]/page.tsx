@@ -317,11 +317,21 @@ export default async function ContactDetailPage({
 
   // ─── Fetch course interests (courses the user viewed but hasn't purchased) ──
   let courseInterests: CourseInterest[] = [];
-  if (contact.user_id) {
+  // Try direct user_id first, then fallback via email → profiles lookup
+  let interestUserId = contact.user_id;
+  if (!interestUserId && contact.email) {
+    const { data: profileData } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("email", contact.email)
+      .maybeSingle();
+    if (profileData) interestUserId = profileData.id;
+  }
+  if (interestUserId) {
     const { data: interestsData } = await adminClient
       .from("course_interests")
       .select("id, view_count, first_viewed_at, last_viewed_at, status, notes, contacted, products:product_id(title, slug, price, sale_price)")
-      .eq("user_id", contact.user_id)
+      .eq("user_id", interestUserId)
       .order("last_viewed_at", { ascending: false });
     courseInterests = (interestsData ?? []) as unknown as CourseInterest[];
   }
