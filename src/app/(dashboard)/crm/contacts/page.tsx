@@ -177,6 +177,13 @@ export default async function CRMContactsPage({
     }
   }
 
+  // Fetch custom sources from crm_sources table
+  const { data: crmSources } = await admin
+    .from("crm_sources")
+    .select("label")
+    .order("label");
+  const sourceLabels = (crmSources ?? []).map((s: { label: string }) => s.label);
+
   // Sales users for assignment dropdown (admin/manager/sale only — must match backend)
   const salesUsers = await getSalesUsers(admin);
 
@@ -357,13 +364,27 @@ export default async function CRMContactsPage({
               </div>
               <div>
                 <label className="text-xs text-gray-400 mb-1 block">Nguồn</label>
-                <select name="source" className="input-dark w-full px-3 py-2 text-sm">
-                  <option value="manual">Thủ công</option>
-                  <option value="website">Website</option>
-                  <option value="referral">Giới thiệu</option>
-                  <option value="ads">Quảng cáo</option>
-                  <option value="social">Mạng xã hội</option>
-                </select>
+                <input
+                  type="text"
+                  name="source"
+                  list="source-options"
+                  placeholder="Chọn hoặc nhập nguồn mới..."
+                  className="input-dark w-full px-3 py-2 text-sm"
+                />
+                <datalist id="source-options">
+                  {sourceLabels.map((label) => (
+                    <option key={label} value={label} />
+                  ))}
+                </datalist>
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Facebook</label>
+                <input
+                  type="url"
+                  name="facebook_url"
+                  placeholder="https://facebook.com/..."
+                  className="input-dark w-full px-3 py-2 text-sm"
+                />
               </div>
               <div>
                 <label className="text-xs text-gray-400 mb-1 block">Ghi chú</label>

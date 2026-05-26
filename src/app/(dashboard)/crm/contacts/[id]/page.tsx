@@ -56,6 +56,7 @@ interface Contact {
   utm_campaign: string | null;
   first_page: string | null;
   referrer: string | null;
+  facebook_url: string | null;
   last_contacted_at: string | null;
   created_at: string;
   updated_at: string | null;
@@ -147,6 +148,8 @@ const sourceConfig: Record<string, { label: string; color: string; bg: string }>
   ads: { label: "Quảng cáo", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
   social: { label: "MXH", color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
 };
+
+const defaultSourceStyle = { label: "", color: "#9ca3af", bg: "rgba(156,163,175,0.1)" };
 
 const dealStageConfig: Record<string, { label: string; color: string }> = {
   lead: { label: "Lead", color: "#3b82f6" },
@@ -380,7 +383,8 @@ export default async function ContactDetailPage({
   const leadScore = contact.lead_score ?? 0;
   // Always compute LTV from actual paid orders (DB value may be stale)
   const lifetimeValue = orders.reduce((sum, o) => o.status === "paid" ? sum + (o.amount || 0) : sum, 0);
-  const src = sourceConfig[contact.source || "manual"] || sourceConfig.manual;
+  const srcKey = contact.source || "manual";
+  const src = sourceConfig[srcKey] || { ...defaultSourceStyle, label: srcKey };
 
   // Derive phone from orders if contact.phone is empty
   const displayPhone = contact.phone || orders.find((o) => o.customer_phone)?.customer_phone || null;
@@ -448,6 +452,19 @@ export default async function ContactDetailPage({
                   >
                     <Mail size={14} className="text-blue-400" />
                     <span>{contact.email}</span>
+                  </a>
+                )}
+                {contact.facebook_url && (
+                  <a
+                    href={contact.facebook_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors"
+                  >
+                    <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor" className="text-[#1877F2]">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    <span>Facebook</span>
                   </a>
                 )}
                 {contact.assigned_profile?.full_name && (
@@ -781,6 +798,22 @@ export default async function ContactDetailPage({
                   <div className="flex items-center gap-3">
                     <Building2 size={14} className="text-gray-500 shrink-0" />
                     <span className="text-sm text-gray-300">{contact.company}</span>
+                  </div>
+                )}
+                {/* Facebook */}
+                {contact.facebook_url && (
+                  <div className="flex items-center gap-3">
+                    <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor" className="text-[#1877F2] shrink-0">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    <a
+                      href={contact.facebook_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-400 hover:text-blue-300 truncate transition-colors"
+                    >
+                      {contact.facebook_url.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, "fb.com/")}
+                    </a>
                   </div>
                 )}
                 {/* Source */}

@@ -44,22 +44,34 @@ export async function createContact(formData: FormData) {
     ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
+  const source = (formData.get("source") as string || "").trim() || null;
+  const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
+
   const { error } = await admin.from("crm_contacts").insert({
     full_name: fullName,
     email: (formData.get("email") as string || "").trim() || null,
     phone: (formData.get("phone") as string || "").trim() || null,
     company: (formData.get("company") as string || "").trim() || null,
-    source: (formData.get("source") as string || "").trim() || null,
+    source,
     status: (formData.get("status") as string || "new").trim(),
     tags,
     notes: (formData.get("notes") as string || "").trim() || null,
     assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
+    facebook_url: facebookUrl,
     created_by: user.id,
   });
 
   if (error) {
     console.error("[CRM createContact]", error);
     redirect("/crm/contacts?error=create_failed");
+  }
+
+  // Save new source to crm_sources for reuse (ignore if already exists)
+  if (source) {
+    await admin.from("crm_sources").upsert(
+      { label: source },
+      { onConflict: "label", ignoreDuplicates: true }
+    );
   }
 
   redirect("/crm/contacts?created=1");
@@ -83,6 +95,9 @@ export async function updateContact(formData: FormData) {
     ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
+  const source = (formData.get("source") as string || "").trim() || null;
+  const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
+
   const { error } = await admin
     .from("crm_contacts")
     .update({
@@ -90,14 +105,23 @@ export async function updateContact(formData: FormData) {
       email: (formData.get("email") as string || "").trim() || null,
       phone: (formData.get("phone") as string || "").trim() || null,
       company: (formData.get("company") as string || "").trim() || null,
-      source: (formData.get("source") as string || "").trim() || null,
+      source,
       status: (formData.get("status") as string || "").trim() || null,
       tags,
       notes: (formData.get("notes") as string || "").trim() || null,
       assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
+      facebook_url: facebookUrl,
       updated_at: new Date().toISOString(),
     })
     .eq("id", contactId);
+
+  // Save new source to crm_sources for reuse
+  if (source) {
+    await admin.from("crm_sources").upsert(
+      { label: source },
+      { onConflict: "label", ignoreDuplicates: true }
+    );
+  }
 
   if (error) {
     console.error("[CRM updateContact]", error);

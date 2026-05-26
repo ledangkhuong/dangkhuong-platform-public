@@ -126,6 +126,8 @@ const sourceConfig: Record<
   },
 };
 
+const defaultSourceStyle = { label: "", color: "#9ca3af", bg: "rgba(156,163,175,0.1)" };
+
 const journeyStageConfig: Record<
   string,
   { label: string; color: string }
@@ -449,9 +451,8 @@ export default function ContactsTable({
         size: 90,
         enableSorting: true,
         cell: ({ row }) => {
-          const src =
-            sourceConfig[row.original.source || "manual"] ||
-            sourceConfig.manual;
+          const srcKey = row.original.source || "manual";
+          const src = sourceConfig[srcKey] || { ...defaultSourceStyle, label: srcKey };
           return (
             <span
               className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
