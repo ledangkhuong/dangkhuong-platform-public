@@ -97,7 +97,7 @@ export async function getStickyAssignment(
       // no row by user_id — fall through to email
     }
 
-    // 3) email lookup — most recent matching contact wins.
+    // 3) email lookup on crm_contacts — most recent matching contact wins.
     if (email) {
       const { data, error } = await supabase
         .from("crm_contacts")
@@ -108,6 +108,43 @@ export async function getStickyAssignment(
 
       if (error) {
         console.error("[stickyAssign] email lookup error:", error.message);
+        return null;
+      }
+      const row = data?.[0];
+      if (row?.assigned_to) {
+        return row.assigned_to as string;
+      }
+      // contact exists but unassigned, OR no contact — fall through to orders.
+    }
+
+    // 4) Fallback: most recent prior ORDER from the same customer that has an
+    //    `assigned_to`. Useful when no crm_contact row exists yet but the
+    //    customer has already been touched by a sale on a previous order
+    //    (admin assigned the very first order manually — that order's sale
+    //    becomes the sticky default for subsequent orders even before the
+    //    contact record is created).
+    if (email || userId) {
+      let query = supabase
+        .from("orders")
+        .select("assigned_to, created_at, customer_email, user_id")
+        .not("assigned_to", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (email && userId) {
+        // either side matches — wider net
+        query = query.or(
+          `customer_email.ilike.${email},user_id.eq.${userId}`
+        );
+      } else if (email) {
+        query = query.ilike("customer_email", email);
+      } else if (userId) {
+        query = query.eq("user_id", userId);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("[stickyAssign] orders fallback error:", error.message);
         return null;
       }
       const row = data?.[0];
