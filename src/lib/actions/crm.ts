@@ -47,9 +47,12 @@ export async function createContact(formData: FormData) {
   const source = (formData.get("source") as string || "").trim() || null;
   const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
 
-  const { error } = await admin.from("crm_contacts").insert({
+  const email = (formData.get("email") as string || "").trim() || null;
+  const courseIds = formData.getAll("course_ids") as string[];
+
+  const { data: newContact, error } = await admin.from("crm_contacts").insert({
     full_name: fullName,
-    email: (formData.get("email") as string || "").trim() || null,
+    email,
     phone: (formData.get("phone") as string || "").trim() || null,
     company: (formData.get("company") as string || "").trim() || null,
     source,
@@ -59,9 +62,9 @@ export async function createContact(formData: FormData) {
     assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
     facebook_url: facebookUrl,
     created_by: user.id,
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (error || !newContact) {
     console.error("[CRM createContact]", error);
     redirect("/crm/contacts?error=create_failed");
   }
@@ -72,6 +75,54 @@ export async function createContact(formData: FormData) {
       { label: source },
       { onConflict: "label", ignoreDuplicates: true }
     );
+  }
+
+  // Create course interest activities + course_interests entries
+  if (courseIds.length > 0) {
+    // Fetch product titles for activity descriptions
+    const { data: products } = await admin
+      .from("products")
+      .select("id, title")
+      .in("id", courseIds);
+    const productMap = new Map((products ?? []).map((p: { id: string; title: string }) => [p.id, p.title]));
+
+    // Create activities
+    const activities = courseIds
+      .filter((id) => productMap.has(id))
+      .map((id) => ({
+        contact_id: newContact.id,
+        type: "note" as const,
+        content: `Quan tâm khoá học: ${productMap.get(id)}`,
+        created_by: user.id,
+        is_system: true,
+      }));
+    if (activities.length > 0) {
+      await admin.from("crm_activities").insert(activities);
+    }
+
+    // Try to create course_interests if contact has an auth user (by email)
+    if (email) {
+      try {
+        const { data: { users } } = await admin.auth.admin.listUsers({ page: 1, perPage: 500 });
+        const authUser = (users ?? []).find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+        if (authUser) {
+          const interests = courseIds.map((productId) => ({
+            user_id: authUser.id,
+            product_id: productId,
+            view_count: 0,
+            status: "new",
+          }));
+          await admin.from("course_interests").upsert(interests, {
+            onConflict: "user_id,product_id",
+            ignoreDuplicates: true,
+          });
+        }
+      } catch (err) {
+        console.error("[CRM createContact] course_interests lookup:", err);
+      }
+    }
   }
 
   redirect("/crm/contacts?created=1");
