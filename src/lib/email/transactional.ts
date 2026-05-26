@@ -173,6 +173,53 @@ export async function sendLessonCompleteNudge(
   );
 }
 
+/**
+ * Email gửi cho khách hàng vừa CK thành công NHƯNG chưa có tài khoản trước đó.
+ * Sepay webhook auto-tạo account → email này thông báo + đính kèm link set password.
+ */
+export async function sendAutoAccountEmail(
+  to: string,
+  name: string,
+  setPasswordLink: string,
+  productName: string,
+  orderCode: string,
+) {
+  return sesSendEmail(
+    to,
+    `🎉 Tài khoản mới của bạn — Đặt mật khẩu để vào học`,
+    baseTemplate(`
+      <h1>Chào mừng bạn đến với Lê Đăng Khương Academy! 🎉</h1>
+      <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
+      <p>Cảm ơn bạn đã đăng ký khoá <strong>${escapeHtml(productName)}</strong>!
+      Chúng tôi đã <strong>tự động tạo tài khoản</strong> cho bạn vì bạn chưa đăng ký trước khi thanh toán.</p>
+
+      <div style="background:#fef3c7;border-left:4px solid #D4A843;padding:14px 18px;border-radius:8px;margin:20px 0;">
+        <p style="margin:0 0 6px;font-size:13px;color:#92400e;"><strong>Thông tin tài khoản của bạn:</strong></p>
+        <p style="margin:4px 0;font-size:14px;color:#1f2937;">📧 Email đăng nhập: <strong>${escapeHtml(to)}</strong></p>
+        <p style="margin:4px 0;font-size:14px;color:#1f2937;">🧾 Mã đơn hàng: <strong>${escapeHtml(orderCode)}</strong></p>
+      </div>
+
+      <p><strong>Bước 1:</strong> Bấm nút bên dưới để đặt mật khẩu cho tài khoản:</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${escapeHtml(setPasswordLink)}" class="btn">🔑 Đặt mật khẩu để đăng nhập →</a>
+      </div>
+
+      <p><strong>Bước 2:</strong> Sau khi đặt mật khẩu xong, đăng nhập tại
+      <a href="${escapeHtml(getBaseUrl())}/login" style="color:#D4A843;">${escapeHtml(getBaseUrl())}/login</a>
+      bằng email <strong>${escapeHtml(to)}</strong> và mật khẩu bạn vừa đặt.</p>
+
+      <p><strong>Bước 3:</strong> Vào khoá học bạn vừa mua và bắt đầu học! 🚀</p>
+
+      <div class="divider"></div>
+      <p style="font-size:12px;color:#6b7280;">Link đặt mật khẩu hết hạn sau 1 giờ. Nếu hết hạn, vào
+      <a href="${escapeHtml(getBaseUrl())}/forgot-password" style="color:#D4A843;">${escapeHtml(getBaseUrl())}/forgot-password</a>
+      để gửi lại link mới.</p>
+      <p style="margin:8px 0 0;font-size:12px;color:#4b5563;">Nếu nút không hoạt động, copy link sau vào trình duyệt:<br/>
+      <a href="${escapeHtml(setPasswordLink)}" style="color:#D4A843;word-break:break-all;font-size:11px;">${escapeHtml(setPasswordLink)}</a></p>
+    `),
+  );
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   name: string,

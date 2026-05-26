@@ -301,15 +301,42 @@ export async function POST(req: NextRequest) {
               phone,
               role: "student",
             });
-            // Gửi password reset link để user tự đặt password
+
+            // Sinh link đặt mật khẩu (Supabase recovery) — kèm redirect về
+            // /reset-password để UI handle setting new password.
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+            let setPasswordLink = `${baseUrl}/forgot-password`;
             try {
-              await supabase.auth.admin.generateLink({
+              const { data: linkData } = await supabase.auth.admin.generateLink({
                 type: "recovery",
                 email,
+                options: { redirectTo: `${baseUrl}/reset-password` },
               });
-              console.log(`[Sepay] ✅ Auto-created user ${email} + sent password reset`);
+              if (linkData?.properties?.action_link) {
+                setPasswordLink = linkData.properties.action_link;
+              }
             } catch (linkErr) {
               console.warn("[Sepay] generateLink error:", linkErr);
+            }
+
+            // Gửi email welcome tự custom (AWS SES) — không phụ thuộc
+            // Supabase email template config
+            try {
+              const { sendAutoAccountEmail } = await import("@/lib/email/transactional");
+              const productName =
+                ((order.products as Record<string, unknown> | null)?.title as string) ||
+                ((order.products as Record<string, unknown> | null)?.name as string) ||
+                "khoá học";
+              await sendAutoAccountEmail(
+                email,
+                fullName,
+                setPasswordLink,
+                productName,
+                matchedCode,
+              );
+              console.log(`[Sepay] ✅ Auto-created user ${email} + sent welcome email`);
+            } catch (mailErr) {
+              console.warn("[Sepay] sendAutoAccountEmail error:", mailErr);
             }
           }
         }
