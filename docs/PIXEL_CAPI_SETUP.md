@@ -79,7 +79,48 @@ export default function Page() {
 
 → Cách này có sẵn nhưng **không khuyến khích** vì marketing không tự sửa được.
 
-## 5. Track event tuỳ chỉnh (Lead, Contact, Click CTA…)
+## 4b. Mã sự kiện chuyển đổi cho landing (NEW)
+
+Marketing có 2 cách track event trên landing — chọn cách phù hợp:
+
+### Cách 1: Data-attribute (không cần code)
+
+Mọi element HTML có `data-dk-track="EventName"` sẽ tự fire event. Component
+`<EventAttrTracker />` (global trong root layout) lo phần còn lại.
+
+```html
+<!-- Form đăng ký Lead -->
+<form data-dk-track="Lead" data-dk-on="submit" data-dk-content="Đăng ký tư vấn">
+  <input name="email" required />
+  <button type="submit">Đăng ký</button>
+</form>
+
+<!-- Click gọi điện -->
+<a href="tel:0901234567" data-dk-track="Contact" data-dk-content="Gọi điện">
+  📞 Gọi ngay
+</a>
+
+<!-- Scroll tới bảng giá -->
+<section data-dk-track="ViewContent" data-dk-on="visible" data-dk-content="Bảng giá">
+  ...
+</section>
+
+<!-- Nút mua hàng -->
+<button data-dk-track="AddToCart" data-dk-value="999000" data-dk-content="Khoá X">
+  Mua khoá học
+</button>
+```
+
+Set slug mặc định trên `<body>` hoặc landing wrapper:
+```html
+<body data-dk-default-slug="khoa-hoc-video-ai">
+```
+
+Đầy đủ thư viện snippet (Lead / Contact / Purchase / ViewContent / AddToCart /
+Subscribe / CompleteRegistration / Custom) xem tại admin:
+`/admin/pixel-settings/events`
+
+### Cách 2: React helper — Track event tuỳ chỉnh (Lead, Contact, Click CTA…)
 
 Trong **client component** (form, button click handler):
 

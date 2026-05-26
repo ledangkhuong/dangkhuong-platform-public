@@ -11,6 +11,7 @@ import {
   Pencil,
   Globe,
   ArrowRight,
+  Zap,
 } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import { createClient } from "@/lib/supabase/server";
@@ -100,32 +101,58 @@ export default async function AdminPixelSettingsPage() {
           </div>
         </div>
 
-        {/* ── Quick action: gắn Pixel vào landing ── */}
-        <Link
-          href="/admin/pixel-settings/pages"
-          className="block p-5 rounded-2xl transition-all hover:scale-[1.005]"
-          style={{
-            background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(212,168,67,0.02))",
-            border: "1px solid rgba(212,168,67,0.25)",
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                 style={{ background: "rgba(212,168,67,0.15)" }}>
-              <Globe size={22} className="text-[#D4A843]" />
+        {/* ── Quick actions ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            href="/admin/pixel-settings/pages"
+            className="block p-5 rounded-2xl transition-all hover:scale-[1.005]"
+            style={{
+              background: "linear-gradient(135deg, rgba(212,168,67,0.08), rgba(212,168,67,0.02))",
+              border: "1px solid rgba(212,168,67,0.25)",
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                   style={{ background: "rgba(212,168,67,0.15)" }}>
+                <Globe size={22} className="text-[#D4A843]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-white">
+                  Gắn Pixel vào landing
+                </h3>
+                <p className="text-sm text-gray-400 mt-0.5">
+                  Tick chọn pixel cho từng landing — không cần đụng code.
+                </p>
+              </div>
+              <ArrowRight size={20} className="text-[#D4A843] flex-shrink-0" />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-white">
-                Gắn Pixel vào landing
-              </h3>
-              <p className="text-sm text-gray-400 mt-0.5">
-                Cho marketing tick chọn pixel cho từng landing — không cần đụng code,
-                hiệu lực ngay sau khi Lưu.
-              </p>
+          </Link>
+
+          <Link
+            href="/admin/pixel-settings/events"
+            className="block p-5 rounded-2xl transition-all hover:scale-[1.005]"
+            style={{
+              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.02))",
+              border: "1px solid rgba(34,197,94,0.25)",
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                   style={{ background: "rgba(34,197,94,0.15)" }}>
+                <Zap size={22} className="text-[#22c55e]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-white">
+                  Mã sự kiện chuyển đổi
+                </h3>
+                <p className="text-sm text-gray-400 mt-0.5">
+                  Snippet Lead/Contact/Purchase paste vào landing — copy + dùng ngay.
+                </p>
+              </div>
+              <ArrowRight size={20} className="text-[#22c55e] flex-shrink-0" />
             </div>
-            <ArrowRight size={20} className="text-[#D4A843] flex-shrink-0" />
-          </div>
-        </Link>
+          </Link>
+        </div>
 
         {/* ── Hướng dẫn nhanh ── */}
         <div

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import PageTracker from "@/components/analytics/PageTracker";
 import FacebookPixel from "@/components/analytics/FacebookPixel";
 import AutoPixel from "@/components/analytics/AutoPixel";
+import EventAttrTracker from "@/components/analytics/EventAttrTracker";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
@@ -87,6 +88,7 @@ export default function RootLayout({
           <PageTracker />
           <FacebookPixel />
           <AutoPixel />
+          <EventAttrTracker />
           <AffiliateTracker />
         </Suspense>
         <ErrorBoundary>

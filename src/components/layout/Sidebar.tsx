@@ -62,6 +62,7 @@ const adminNav = [
   { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
   { href: "/admin/pixel-settings", icon: Activity, label: "Pixel & CAPI", roles: ["admin", "manager", "marketing"] },
   { href: "/admin/pixel-settings/pages", icon: Globe, label: "Gắn Pixel vào landing", roles: ["admin", "manager", "marketing"] },
+  { href: "/admin/pixel-settings/events", icon: Zap, label: "Mã sự kiện chuyển đổi", roles: ["admin", "manager", "marketing"] },
   { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
   { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
   { href: "/crm/pipeline", icon: GitBranch, label: "Pipeline", roles: ["admin", "manager", "sale"] },
