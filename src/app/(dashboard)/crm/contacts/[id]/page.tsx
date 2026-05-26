@@ -317,15 +317,21 @@ export default async function ContactDetailPage({
 
   // ─── Fetch course interests (courses the user viewed but hasn't purchased) ──
   let courseInterests: CourseInterest[] = [];
-  // Try direct user_id first, then fallback via email → profiles lookup
+  // Try direct user_id first, then fallback via email → auth.users lookup
   let interestUserId = contact.user_id;
   if (!interestUserId && contact.email) {
-    const { data: profileData } = await adminClient
-      .from("profiles")
-      .select("id")
-      .eq("email", contact.email)
-      .maybeSingle();
-    if (profileData) interestUserId = profileData.id;
+    // profiles table has no email column — find auth user by scanning auth.users
+    const emailLower = contact.email.toLowerCase();
+    let authPage = 1;
+    const authPerPage = 500;
+    while (true) {
+      const { data: { users } } = await adminClient.auth.admin.listUsers({ page: authPage, perPage: authPerPage });
+      if (!users || users.length === 0) break;
+      const match = users.find(u => u.email?.toLowerCase() === emailLower);
+      if (match) { interestUserId = match.id; break; }
+      if (users.length < authPerPage) break;
+      authPage++;
+    }
   }
   if (interestUserId) {
     const { data: interestsData } = await adminClient
@@ -350,8 +356,8 @@ export default async function ContactDetailPage({
     orders = (ordersData ?? []) as unknown as Order[];
   }
 
-  // Fetch enrollments — prefer contact.user_id (direct), fallback to email→profile lookup
-  const enrollUserId = contact.user_id;
+  // Fetch enrollments — reuse interestUserId (already resolved from user_id or email→auth lookup)
+  const enrollUserId = interestUserId;
   if (enrollUserId) {
     const { data: enrollData } = await adminClient
       .from("enrollments")
@@ -359,26 +365,11 @@ export default async function ContactDetailPage({
       .eq("user_id", enrollUserId)
       .order("created_at", { ascending: false });
     enrollments = (enrollData ?? []) as unknown as Enrollment[];
-  } else if (contact.email) {
-    // Fallback: look up profile by email, then fetch enrollments
-    const { data: profileData } = await adminClient
-      .from("profiles")
-      .select("id")
-      .eq("email", contact.email)
-      .single();
-    if (profileData) {
-      const { data: enrollData } = await adminClient
-        .from("enrollments")
-        .select("id, created_at, products:product_id(title)")
-        .eq("user_id", profileData.id)
-        .order("created_at", { ascending: false });
-      enrollments = (enrollData ?? []) as unknown as Enrollment[];
-    }
   }
 
   // ─── Fetch page view events (web journey) ──────────────────────────────────
   let pageViewEvents: PageViewEvent[] = [];
-  const trackingUserId = contact.user_id;
+  const trackingUserId = interestUserId;
   if (trackingUserId) {
     const { data: eventsData } = await adminClient
       .from("analytics_events")
