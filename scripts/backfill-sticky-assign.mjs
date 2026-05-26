@@ -1,6 +1,7 @@
 /**
  * One-off backfill: populate `assigned_to` on existing orders, course_interests,
- * and crm_deals using the customer's `crm_contacts.assigned_to` value.
+ * and crm_deals using the customer's `crm_contacts.assigned_to` value, and also
+ * sync `profiles.account_manager_id` from the contact's owner.
  *
  * Mirrors the runtime "sticky" rule applied by the new hooks: once a contact is
  * owned by a sale, every related row should be owned by the same sale (unless
@@ -8,7 +9,7 @@
  *
  * Connection pattern adapted from scripts/run-assigned-to-migration.mjs.
  * Idempotent: re-running results in 0 additional updates because each UPDATE
- * is guarded by `WHERE <table>.assigned_to IS NULL`.
+ * is guarded by `WHERE <table>.assigned_to IS NULL` (or `account_manager_id IS NULL`).
  *
  * Usage: node scripts/backfill-sticky-assign.mjs
  * If all connection strategies fail with auth, set SUPABASE_DB_PASSWORD in
@@ -90,6 +91,14 @@ const PREVIEW_SQL = {
     JOIN src ON d.contact_id = src.contact_id
     WHERE d.assigned_to IS NULL;
   `,
+  profiles: `
+    SELECT COUNT(*)::int AS n
+    FROM public.profiles p
+    JOIN public.crm_contacts c ON c.user_id = p.id
+    WHERE c.assigned_to IS NOT NULL
+      AND c.user_id IS NOT NULL
+      AND p.account_manager_id IS NULL;
+  `,
 };
 
 const UPDATE_SQL = {
@@ -129,6 +138,15 @@ const UPDATE_SQL = {
     WHERE d.assigned_to IS NULL
       AND d.contact_id = src.contact_id;
   `,
+  profiles: `
+    UPDATE public.profiles p
+    SET account_manager_id = c.assigned_to
+    FROM public.crm_contacts c
+    WHERE c.user_id = p.id
+      AND c.assigned_to IS NOT NULL
+      AND c.user_id IS NOT NULL
+      AND p.account_manager_id IS NULL;
+  `,
 };
 
 async function runBackfill(client) {
@@ -139,25 +157,28 @@ async function runBackfill(client) {
     const previewOrders = await client.query(PREVIEW_SQL.orders);
     const previewInterests = await client.query(PREVIEW_SQL.interests);
     const previewDeals = await client.query(PREVIEW_SQL.deals);
+    const previewProfiles = await client.query(PREVIEW_SQL.profiles);
     const pOrders = previewOrders.rows[0]?.n ?? 0;
     const pInterests = previewInterests.rows[0]?.n ?? 0;
     const pDeals = previewDeals.rows[0]?.n ?? 0;
+    const pProfiles = previewProfiles.rows[0]?.n ?? 0;
     console.log(
-      `Would update: orders=${pOrders}, interests=${pInterests}, deals=${pDeals}`
+      `Would update: orders=${pOrders}, interests=${pInterests}, deals=${pDeals}, profiles=${pProfiles}`
     );
 
     // Apply updates.
     const updOrders = await client.query(UPDATE_SQL.orders);
     const updInterests = await client.query(UPDATE_SQL.interests);
     const updDeals = await client.query(UPDATE_SQL.deals);
+    const updProfiles = await client.query(UPDATE_SQL.profiles);
 
     await client.query("COMMIT");
 
     console.log(
-      `Actually updated: orders=${updOrders.rowCount}, interests=${updInterests.rowCount}, deals=${updDeals.rowCount}`
+      `Actually updated: orders=${updOrders.rowCount}, interests=${updInterests.rowCount}, deals=${updDeals.rowCount}, profiles=${updProfiles.rowCount}`
     );
     console.log(
-      `\n=== Backfill complete: orders=${updOrders.rowCount}, course_interests=${updInterests.rowCount}, crm_deals=${updDeals.rowCount} ===`
+      `\n=== Backfill complete: orders=${updOrders.rowCount}, course_interests=${updInterests.rowCount}, crm_deals=${updDeals.rowCount}, profiles=${updProfiles.rowCount} ===`
     );
     return true;
   } catch (err) {

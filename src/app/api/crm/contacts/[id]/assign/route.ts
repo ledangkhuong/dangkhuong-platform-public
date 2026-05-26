@@ -160,8 +160,9 @@ export async function POST(
       orders: number | null;
       interests: number | null;
       deals: number | null;
+      profile: boolean | null;
       skipped?: string;
-    } = { orders: null, interests: null, deals: null };
+    } = { orders: null, interests: null, deals: null, profile: null };
 
     if (assignedTo === null) {
       cascade.skipped = "unassign-no-cascade";
@@ -203,6 +204,21 @@ export async function POST(
         console.error("[crm/contacts/assign POST] cascade deals:", dErr);
       } else {
         cascade.deals = dCount ?? 0;
+      }
+
+      // Sync account_manager on the linked user's profile so the Users admin
+      // page reflects the assignment. Contact-level assignment is authoritative,
+      // so we overwrite any existing account_manager_id.
+      if (userId) {
+        const { error: pErr } = await adminClient
+          .from("profiles")
+          .update({ account_manager_id: assignedTo })
+          .eq("id", userId);
+        if (pErr) {
+          console.error("[crm/contacts/assign POST] cascade profile:", pErr);
+        } else {
+          cascade.profile = true;
+        }
       }
     }
 

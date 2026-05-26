@@ -132,6 +132,22 @@ export async function PATCH(req: NextRequest) {
             `[crm/interests PATCH] propagation skipped: ${propagationResult.reason}`
           );
         }
+
+        // Back-fill profiles.account_manager_id so the profile reflects
+        // the assigned sale. Only sets when currently NULL (fail-soft).
+        admin
+          .from("profiles")
+          .update({ account_manager_id: effectiveAssignedTo })
+          .eq("id", interestRow.user_id)
+          .is("account_manager_id", null)
+          .then(({ error: amErr }) => {
+            if (amErr) {
+              console.error(
+                "[crm/interests PATCH] account_manager_id back-fill failed:",
+                amErr.message
+              );
+            }
+          });
       }
     }
 

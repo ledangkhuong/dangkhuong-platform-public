@@ -129,6 +129,46 @@ export async function POST(
       }
     }
 
+    // Sync account_manager_id on the linked user profile (fail-soft).
+    // Only sets the field when it is currently NULL to preserve manual overrides.
+    if (assignedTo !== null && deal.contact_id) {
+      const [profileSyncResult] = await Promise.allSettled([
+        (async () => {
+          const { data: contact } = await adminClient
+            .from("crm_contacts")
+            .select("user_id")
+            .eq("id", deal.contact_id)
+            .maybeSingle();
+
+          if (contact?.user_id) {
+            const { error: profErr } = await adminClient
+              .from("profiles")
+              .update({ account_manager_id: assignedTo })
+              .eq("id", contact.user_id)
+              .is("account_manager_id", null);
+
+            if (profErr) {
+              console.error(
+                "[crm/deals/assign POST] profiles.account_manager_id sync failed:",
+                profErr.message
+              );
+            } else {
+              console.info(
+                `[crm/deals/assign POST] synced account_manager_id for user ${contact.user_id}`
+              );
+            }
+          }
+        })(),
+      ]);
+
+      if (profileSyncResult.status === "rejected") {
+        console.error(
+          "[crm/deals/assign POST] account_manager_id sync threw:",
+          profileSyncResult.reason
+        );
+      }
+    }
+
     // Log to crm_lead_assignment_log for reporting & round-robin continuity.
     if (deal.contact_id) {
       await adminClient

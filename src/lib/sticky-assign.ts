@@ -315,13 +315,13 @@ export async function propagateToContact(
 
   try {
     // Find the matching contact row (priority: contact_id → user_id → email).
-    let matched: { id: string; assigned_to: string | null } | null = null;
+    let matched: { id: string; assigned_to: string | null; user_id: string | null } | null = null;
 
     // 1) contact_id is authoritative — no fallthrough.
     if (contactId) {
       const { data, error } = await supabase
         .from("crm_contacts")
-        .select("id, assigned_to")
+        .select("id, assigned_to, user_id")
         .eq("id", contactId)
         .maybeSingle();
       if (error) {
@@ -331,14 +331,14 @@ export async function propagateToContact(
         );
         return { propagated: false, reason: "error" };
       }
-      matched = (data as { id: string; assigned_to: string | null } | null) ?? null;
+      matched = (data as { id: string; assigned_to: string | null; user_id: string | null } | null) ?? null;
     }
 
     // 2) user_id lookup — fall through to email if no row.
     if (!matched && userId) {
       const { data, error } = await supabase
         .from("crm_contacts")
-        .select("id, assigned_to, created_at")
+        .select("id, assigned_to, user_id, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1);
@@ -350,7 +350,7 @@ export async function propagateToContact(
         return { propagated: false, reason: "error" };
       }
       const row = data?.[0] as
-        | { id: string; assigned_to: string | null }
+        | { id: string; assigned_to: string | null; user_id: string | null }
         | undefined;
       matched = row ?? null;
     }
@@ -359,7 +359,7 @@ export async function propagateToContact(
     if (!matched && email) {
       const { data, error } = await supabase
         .from("crm_contacts")
-        .select("id, assigned_to, created_at")
+        .select("id, assigned_to, user_id, created_at")
         .eq("email", email)
         .order("created_at", { ascending: false })
         .limit(1);
@@ -371,7 +371,7 @@ export async function propagateToContact(
         return { propagated: false, reason: "error" };
       }
       const row = data?.[0] as
-        | { id: string; assigned_to: string | null }
+        | { id: string; assigned_to: string | null; user_id: string | null }
         | undefined;
       matched = row ?? null;
     }
@@ -398,6 +398,32 @@ export async function propagateToContact(
     if (updErr) {
       console.error("[propagateToContact] update error:", updErr.message);
       return { propagated: false, reason: "error" };
+    }
+
+    // Sync account_manager_id on the linked user's profile (first-touch only).
+    // Fail-soft — never block the propagation result.
+    if (matched.user_id) {
+      try {
+        const { error: profileErr } = await supabase
+          .from("profiles")
+          .update({ account_manager_id: validatedSaleId })
+          .eq("id", matched.user_id)
+          .is("account_manager_id", null); // first-touch: never overwrite
+
+        if (profileErr) {
+          console.error(
+            "[propagateToContact] profile account_manager_id sync error:",
+            profileErr.message
+          );
+        }
+      } catch (profileSyncErr) {
+        console.error(
+          "[propagateToContact] profile account_manager_id sync unexpected error:",
+          profileSyncErr instanceof Error
+            ? profileSyncErr.message
+            : profileSyncErr
+        );
+      }
     }
 
     return { propagated: true, contact_id: matched.id };

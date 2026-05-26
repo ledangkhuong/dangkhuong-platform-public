@@ -144,6 +144,64 @@ export async function POST(
             `[orders/assign POST] propagation skipped: ${propagationResult.reason}`
           );
         }
+
+        // Sync account_manager_id on the user's profile so the Users admin
+        // page reflects the assignment. First-touch only — never overwrite
+        // an existing account manager. Fail-soft via Promise.allSettled.
+        const profileUserId = orderRow.user_id ?? null;
+        const profileEmail = orderRow.customer_email?.trim().toLowerCase() ?? null;
+
+        if (profileUserId || profileEmail) {
+          await Promise.allSettled([
+            (async () => {
+              // Resolve which profile row to update.
+              let targetProfileId: string | null = profileUserId;
+
+              if (!targetProfileId && profileEmail) {
+                // No user_id on order — look up by email in profiles.
+                const { data: profileByEmail } = await adminClient
+                  .from("profiles")
+                  .select("id, account_manager_id")
+                  .eq("email", profileEmail)
+                  .maybeSingle();
+
+                if (!profileByEmail) {
+                  console.info(
+                    `[orders/assign POST] profile sync skipped: no profile found for email ${profileEmail}`
+                  );
+                  return;
+                }
+                if (profileByEmail.account_manager_id) {
+                  console.info(
+                    `[orders/assign POST] profile sync skipped: profile ${profileByEmail.id} already has account_manager_id`
+                  );
+                  return;
+                }
+                targetProfileId = profileByEmail.id;
+              }
+
+              if (!targetProfileId) return;
+
+              // Only update if account_manager_id is currently NULL (first-touch).
+              const { error: profileUpdErr } = await adminClient
+                .from("profiles")
+                .update({ account_manager_id: assignedTo })
+                .eq("id", targetProfileId)
+                .is("account_manager_id", null); // race guard: only write if still null
+
+              if (profileUpdErr) {
+                console.error(
+                  `[orders/assign POST] profile sync error for ${targetProfileId}:`,
+                  profileUpdErr.message
+                );
+              } else {
+                console.info(
+                  `[orders/assign POST] synced account_manager_id on profile ${targetProfileId}`
+                );
+              }
+            })(),
+          ]);
+        }
       }
     }
 

@@ -70,6 +70,24 @@ export async function POST(req: NextRequest) {
         ...(stickyAssignedTo ? { assigned_to: stickyAssignedTo } : {}),
       });
 
+      // Back-fill profiles.account_manager_id so the profile reflects
+      // the sticky owner. Only sets when currently NULL (fail-soft).
+      if (stickyAssignedTo) {
+        admin
+          .from("profiles")
+          .update({ account_manager_id: stickyAssignedTo })
+          .eq("id", user.id)
+          .is("account_manager_id", null)
+          .then(({ error: amErr }) => {
+            if (amErr) {
+              console.error(
+                "[course-interest] account_manager_id back-fill failed:",
+                amErr.message
+              );
+            }
+          });
+      }
+
       // Also auto-create/update CRM contact if not exists
       const userEmail = user.email;
       const { data: profile } = await admin

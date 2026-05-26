@@ -124,6 +124,25 @@ export async function createContact(formData: FormData) {
   }
   const contactId = newContact?.id ?? null;
 
+  // Sync profiles.account_manager_id when a rep is assigned and contact has email
+  if (assignedTo && email) {
+    try {
+      const { data: { users: allUsers } } = await admin.auth.admin.listUsers({ page: 1, perPage: 500 });
+      const matchedAuthUser = (allUsers ?? []).find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase()
+      );
+      if (matchedAuthUser) {
+        await admin
+          .from("profiles")
+          .update({ account_manager_id: assignedTo })
+          .eq("id", matchedAuthUser.id)
+          .is("account_manager_id", null);
+      }
+    } catch (profileErr) {
+      console.error("[CRM createContact] profiles.account_manager_id sync:", profileErr);
+    }
+  }
+
   // Save new source to crm_sources for reuse (ignore if already exists)
   if (source) {
     await admin.from("crm_sources").upsert(
@@ -278,6 +297,14 @@ export async function updateContact(formData: FormData) {
       .from("crm_deals")
       .update({ assigned_to: newAssignedTo })
       .eq("contact_id", contactId);
+
+    // Sync profiles.account_manager_id (authoritative — overwrite existing)
+    if (userId) {
+      await admin
+        .from("profiles")
+        .update({ account_manager_id: newAssignedTo })
+        .eq("id", userId);
+    }
 
     // Log the assignment change
     await admin.from("crm_lead_assignment_log").insert({
@@ -772,6 +799,14 @@ export async function assignContact(formData: FormData) {
       .from("crm_deals")
       .update({ assigned_to: assignedTo })
       .eq("contact_id", contactId);
+
+    // Sync profiles.account_manager_id (authoritative — overwrite existing)
+    if (userId) {
+      await admin
+        .from("profiles")
+        .update({ account_manager_id: assignedTo })
+        .eq("id", userId);
+    }
   }
 
   // Log assignment
@@ -852,6 +887,14 @@ export async function bulkAssignContacts(formData: FormData) {
           .from("crm_deals")
           .update({ assigned_to: assignedTo })
           .eq("contact_id", contactId);
+
+        // Sync profiles.account_manager_id (authoritative — overwrite existing)
+        if (userId) {
+          await admin
+            .from("profiles")
+            .update({ account_manager_id: assignedTo })
+            .eq("id", userId);
+        }
       }
 
       await admin.from("crm_lead_assignment_log").insert({
@@ -1276,6 +1319,41 @@ export async function syncContactsFromOrders() {
   // 5. Bulk insert (nếu có)
   if (toInsert.length > 0) {
     await admin.from("crm_contacts").insert(toInsert);
+  }
+
+  // 6. Sync profiles.account_manager_id for users whose orders have an assigned sale
+  //    Only update profiles that don't already have an account_manager_id (fail-soft).
+  try {
+    // Build email→profile_id map from the already-fetched allProfiles
+    const profileByEmail = new Map<string, string>();
+    for (const p of allProfiles ?? []) {
+      if (p.email && !["admin", "manager", "marketing", "sale", "support"].includes(p.role)) {
+        profileByEmail.set((p.email as string).toLowerCase(), p.id as string);
+      }
+    }
+
+    // Collect profile IDs that need account_manager_id set, grouped by assigned_to
+    const updatesByManager = new Map<string, string[]>();
+    for (const [email, customer] of orderCustomerMap) {
+      if (!customer.assigned_to) continue;
+      const profileId = profileByEmail.get(email);
+      if (!profileId) continue;
+      const list = updatesByManager.get(customer.assigned_to) ?? [];
+      list.push(profileId);
+      updatesByManager.set(customer.assigned_to, list);
+    }
+
+    // Issue one update per account_manager, only touching profiles with NULL account_manager_id
+    for (const [managerId, profileIds] of updatesByManager) {
+      await admin
+        .from("profiles")
+        .update({ account_manager_id: managerId })
+        .in("id", profileIds)
+        .is("account_manager_id", null);
+    }
+  } catch (err) {
+    // Fail-soft: log but don't block the sync
+    console.error("[syncContactsFromOrders] profiles.account_manager_id sync:", err);
   }
 
   redirect(`/crm/contacts?synced=${toInsert.length}&updated=${updatedCount}`);
