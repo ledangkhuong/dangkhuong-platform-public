@@ -5,6 +5,7 @@ import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
 import ContactsTable, { type Contact } from "./ContactsTable";
+import SubmitAddContactButton from "./SubmitAddContactButton";
 import {
   Users,
   UserPlus,
@@ -417,10 +418,7 @@ export default async function CRMContactsPage({
             </div>
 
             <div className="mt-4 flex justify-end">
-              <button type="submit" className="btn-green px-5 py-2 text-sm font-medium rounded-lg flex items-center gap-2">
-                <UserPlus size={14} />
-                Thêm KH
-              </button>
+              <SubmitAddContactButton />
             </div>
           </form>
         </div>

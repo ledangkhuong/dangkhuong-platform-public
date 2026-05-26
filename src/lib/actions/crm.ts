@@ -48,6 +48,30 @@ export async function createContact(formData: FormData) {
   const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
 
   const email = (formData.get("email") as string || "").trim() || null;
+  const phoneCheck = (formData.get("phone") as string || "").trim() || null;
+
+  // ─── Anti double-submit guard ────────────────────────────────────
+  // If THIS staff member just created a contact with the same name
+  // (and same phone, when one was supplied) in the last 30 seconds,
+  // treat the new submission as a duplicate and bounce back instead
+  // of inserting a copy. Pairs with the disabled-while-pending submit
+  // button on the form.
+  const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
+  let dupQuery = admin
+    .from("crm_contacts")
+    .select("id")
+    .eq("full_name", fullName)
+    .eq("created_by", user.id)
+    .gte("created_at", thirtySecondsAgo)
+    .limit(1);
+  if (phoneCheck) {
+    dupQuery = dupQuery.eq("phone", phoneCheck);
+  }
+  const { data: recentDup } = await dupQuery;
+  if (recentDup && recentDup.length > 0) {
+    redirect(`/crm/contacts?error=duplicate&dup=${recentDup[0].id}`);
+  }
+
   const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
 
   const explicitAssign = (formData.get("assigned_to") as string || "").trim() || null;
