@@ -303,13 +303,12 @@ function buildColumns({
                 amount={o.amount}
               />
             )}
-            {canWrite &&
-              (o.status === "pending" || o.status === "cancelled") && (
-                <DeleteOrderButton
-                  orderId={o.id}
-                  orderCode={o.order_code}
-                />
-              )}
+            {canWrite && (
+              <DeleteOrderButton
+                orderId={o.id}
+                orderCode={o.order_code}
+              />
+            )}
           </div>
         );
       },
