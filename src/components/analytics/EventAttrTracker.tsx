@@ -1,151 +1,186 @@
-"use client";
-
-import { useEffect } from "react";
-import { trackPageEvent } from "@/lib/pixel-tracker";
-
 /**
- * <EventAttrTracker /> — Tự động fire Pixel + CAPI event cho element có
- * `data-dk-track` attribute. Marketing chỉ cần paste data-attribute vào HTML
- * của landing, KHÔNG cần viết JS.
+ * <EventAttrTracker /> — Server component emit inline script tự lắng nghe
+ * click / submit / IntersectionObserver cho mọi element có data-dk-track.
  *
- * Ví dụ trong landing:
- *
- *   <button data-dk-track="Contact" data-dk-content="Gọi điện">Gọi ngay</button>
- *
- *   <form data-dk-track="Lead" data-dk-on="submit" data-dk-value="0">
- *     <input name="email" />
- *     ...
- *   </form>
- *
- *   <a href="https://zalo.me/..." data-dk-track="Contact" data-dk-content="Chat Zalo">
- *     Nhắn Zalo
- *   </a>
- *
- *   <div data-dk-track="ViewContent" data-dk-on="visible">  ← fire khi user scroll tới
- *     Bảng giá
- *   </div>
+ * Inline (không phụ thuộc React hydration) để tránh vấn đề Suspense streaming
+ * trong layout root khiến useEffect không fire.
  *
  * Data attributes hỗ trợ:
- *   - data-dk-track="EventName"     (bắt buộc) — Lead | Contact | Purchase | ViewContent | AddToCart | Subscribe | hoặc custom
- *   - data-dk-on="click|submit|visible" (optional) — mặc định click; visible dùng IntersectionObserver
- *   - data-dk-slug="khoa-hoc-x"     (optional) — slug pixel_config, nếu không có sẽ lấy từ <PagePixel> đầu tiên trong DOM
- *   - data-dk-content="..."         (optional) — gắn vào custom_data.content_name
- *   - data-dk-value="999000"        (optional) — gắn vào custom_data.value (VND)
- *   - data-dk-currency="VND"        (optional) — mặc định VND
- *   - data-dk-once="1"              (optional) — chỉ fire 1 lần/page-load (mặc định)
- *   - data-dk-once="0"              — fire mỗi lần click
+ *   data-dk-track="EventName"     (bắt buộc)
+ *   data-dk-on="click|submit|visible"  (mặc định click)
+ *   data-dk-slug="..."            (nếu không có → data-dk-default-slug ancestor)
+ *   data-dk-content="..."         → custom_data.content_name
+ *   data-dk-value="999000"        → custom_data.value
+ *   data-dk-currency="VND"        → custom_data.currency
+ *   data-dk-once="0"              → fire mỗi lần (mặc định: once-per-page)
+ *
+ * Auto-read user data từ <form> cha gần nhất: name="email" / "phone" /
+ * "name" / "full_name" / "fullname".
  */
-export default function EventAttrTracker() {
-  useEffect(() => {
-    if (typeof window === "undefined") return;
 
-    const fired = new WeakSet<Element>();
+const TRACKER_SCRIPT = `(function(){
+if (window.__dkEventTrackerInstalled) return;
+window.__dkEventTrackerInstalled = true;
 
-    function getSlugFromContext(el: Element): string {
-      const explicit = el.getAttribute("data-dk-slug");
-      if (explicit) return explicit;
-      // Tìm slug từ data-dk-default-slug (set ở body/html bởi server hoặc PagePixel)
-      const ctx = document.querySelector("[data-dk-default-slug]") as HTMLElement | null;
-      return ctx?.dataset.dkDefaultSlug || "default";
+var fired = new WeakSet();
+
+function getSlug(el) {
+  var explicit = el.getAttribute && el.getAttribute('data-dk-slug');
+  if (explicit) return explicit;
+  var ctx = document.querySelector('[data-dk-default-slug]');
+  return (ctx && ctx.getAttribute('data-dk-default-slug')) || 'default';
+}
+
+function getUserData(el) {
+  var form = el.closest && el.closest('form');
+  if (!form) return null;
+  try {
+    var fd = new FormData(form);
+    var email = fd.get('email'); email = email ? String(email).trim() : '';
+    var phone = fd.get('phone'); phone = phone ? String(phone).trim() : '';
+    var name = fd.get('name') || fd.get('full_name') || fd.get('fullname');
+    name = name ? String(name).trim() : '';
+    if (!email && !phone && !name) return null;
+    return { email: email || undefined, phone: phone || undefined, name: name || undefined };
+  } catch(e) { return null; }
+}
+
+function genId(prefix) {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,10);
+}
+
+function fire(el) {
+  var onceAttr = el.getAttribute('data-dk-once');
+  var once = onceAttr === null || onceAttr === '' || onceAttr === '1' || onceAttr === 'true';
+  if (once && fired.has(el)) return;
+  fired.add(el);
+
+  var eventName = el.getAttribute('data-dk-track');
+  if (!eventName) return;
+
+  var slug = getSlug(el);
+  var content = el.getAttribute('data-dk-content');
+  var valueStr = el.getAttribute('data-dk-value');
+  var value = valueStr ? Number(valueStr) : undefined;
+  var currency = el.getAttribute('data-dk-currency') || (value ? 'VND' : undefined);
+
+  var customData = {};
+  if (content) customData.content_name = content;
+  if (value !== undefined && !isNaN(value)) {
+    customData.value = value;
+    customData.currency = currency || 'VND';
+  }
+  var hasCustom = Object.keys(customData).length > 0;
+
+  var userData = getUserData(el);
+  var eventId = genId(eventName.toLowerCase());
+
+  // 1) Client Pixel
+  try {
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', eventName, hasCustom ? customData : {}, { eventID: eventId });
     }
+  } catch(e) {}
 
-    function fire(el: Element) {
-      const onceAttr = el.getAttribute("data-dk-once");
-      const once = onceAttr === null || onceAttr === "" || onceAttr === "1" || onceAttr === "true";
-      if (once && fired.has(el)) return;
-      fired.add(el);
+  // 2) Server CAPI
+  try {
+    var url = new URL(window.location.href);
+    var sp = url.searchParams;
+    var attribution = {
+      utm_source: sp.get('utm_source') || undefined,
+      utm_medium: sp.get('utm_medium') || undefined,
+      utm_campaign: sp.get('utm_campaign') || undefined,
+      utm_term: sp.get('utm_term') || undefined,
+      utm_content: sp.get('utm_content') || undefined,
+      fbclid: sp.get('fbclid') || undefined,
+      gclid: sp.get('gclid') || undefined,
+      ttclid: sp.get('ttclid') || undefined,
+      referrer: document.referrer || undefined,
+      landing_path: url.pathname
+    };
+    fetch('/api/capi/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        slug: slug,
+        event_name: eventName,
+        event_id: eventId,
+        user_data: userData || undefined,
+        custom_data: hasCustom ? customData : undefined,
+        source_url: window.location.href,
+        attribution: attribution
+      })
+    }).catch(function(){});
+  } catch(e) {}
+}
 
-      const eventName = el.getAttribute("data-dk-track") || "";
-      if (!eventName) return;
+// Click delegation (bubbling capture phase) — tìm ancestor có data-dk-track
+document.addEventListener('click', function(e) {
+  var t = e.target;
+  while (t && t !== document.body) {
+    if (t.hasAttribute && t.hasAttribute('data-dk-track')) {
+      var on = t.getAttribute('data-dk-on') || 'click';
+      if (on === 'click') fire(t);
+      break;
+    }
+    t = t.parentElement;
+  }
+}, true);
 
-      const slug = getSlugFromContext(el);
-      const content = el.getAttribute("data-dk-content") || undefined;
-      const valueStr = el.getAttribute("data-dk-value");
-      const value = valueStr ? Number(valueStr) : undefined;
-      const currency = el.getAttribute("data-dk-currency") || (value ? "VND" : undefined);
+// Submit delegation cho form
+document.addEventListener('submit', function(e) {
+  var f = e.target;
+  if (f && f.hasAttribute && f.hasAttribute('data-dk-track')) {
+    var on = f.getAttribute('data-dk-on');
+    if (on === 'submit' || !on) fire(f);
+  }
+}, true);
 
-      // Lấy user data từ form gần nhất (nếu có)
-      let userData: { email?: string; phone?: string; name?: string } | undefined;
-      const form = el.closest("form");
-      if (form) {
-        const fd = new FormData(form);
-        const email = fd.get("email")?.toString().trim();
-        const phone = fd.get("phone")?.toString().trim();
-        const name = (fd.get("name") || fd.get("full_name") || fd.get("fullname"))?.toString().trim();
-        if (email || phone || name) userData = { email, phone, name };
-      }
-
-      const customData: Record<string, unknown> = {};
-      if (content) customData.content_name = content;
-      if (!Number.isNaN(value as number) && value !== undefined) {
-        customData.value = value;
-        customData.currency = currency || "VND";
-      }
-
-      try {
-        trackPageEvent({
-          slug,
-          eventName,
-          userData,
-          customData: Object.keys(customData).length ? customData : undefined,
-        });
-      } catch {
-        /* never throw from analytics */
+// IntersectionObserver cho data-dk-on="visible"
+function setupVisibilityObserver() {
+  if (!('IntersectionObserver' in window)) return;
+  var els = document.querySelectorAll('[data-dk-track][data-dk-on="visible"]');
+  if (!els.length) return;
+  var io = new IntersectionObserver(function(entries) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        fire(entries[i].target);
+        io.unobserve(entries[i].target);
       }
     }
-
-    // ── Click handler (delegated) ──────────────────────────────
-    const onClick = (e: Event) => {
-      let target = e.target as Element | null;
-      // Walk up DOM tìm element gần nhất có data-dk-track
-      while (target && target !== document.body) {
-        if (target.hasAttribute && target.hasAttribute("data-dk-track")) {
-          const on = target.getAttribute("data-dk-on") || "click";
-          if (on === "click") fire(target);
-          break;
-        }
-        target = target.parentElement;
-      }
-    };
-
-    // ── Submit handler (forms) ─────────────────────────────────
-    const onSubmit = (e: Event) => {
-      const form = e.target as Element | null;
-      if (!form) return;
-      if (form.hasAttribute("data-dk-track")) {
-        const on = form.getAttribute("data-dk-on");
-        // Submit khi data-dk-on="submit" HOẶC form không chỉ định
-        if (on === "submit" || !on) fire(form);
-      }
-    };
-
-    document.addEventListener("click", onClick, true);
-    document.addEventListener("submit", onSubmit, true);
-
-    // ── IntersectionObserver cho data-dk-on="visible" ──────────
-    const visibleEls = Array.from(document.querySelectorAll('[data-dk-track][data-dk-on="visible"]'));
-    let io: IntersectionObserver | null = null;
-    if (visibleEls.length > 0 && "IntersectionObserver" in window) {
-      io = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              fire(entry.target);
-              io?.unobserve(entry.target);
+  }, { threshold: 0.4 });
+  els.forEach(function(el){ io.observe(el); });
+  // MutationObserver để bắt cả các element thêm vào sau (SPA navigation)
+  if (window.MutationObserver) {
+    new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        m.addedNodes && m.addedNodes.forEach(function(n) {
+          if (n.nodeType === 1) {
+            if (n.matches && n.matches('[data-dk-track][data-dk-on="visible"]')) io.observe(n);
+            if (n.querySelectorAll) {
+              n.querySelectorAll('[data-dk-track][data-dk-on="visible"]').forEach(function(c){ io.observe(c); });
             }
           }
-        },
-        { threshold: 0.4 },
-      );
-      visibleEls.forEach((el) => io!.observe(el));
-    }
+        });
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+}
 
-    return () => {
-      document.removeEventListener("click", onClick, true);
-      document.removeEventListener("submit", onSubmit, true);
-      io?.disconnect();
-    };
-  }, []);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupVisibilityObserver);
+} else {
+  setupVisibilityObserver();
+}
+})();`;
 
-  return null;
+export default function EventAttrTracker() {
+  return (
+    <script
+      dangerouslySetInnerHTML={{ __html: TRACKER_SCRIPT }}
+      suppressHydrationWarning
+    />
+  );
 }
