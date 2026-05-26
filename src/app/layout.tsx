@@ -5,6 +5,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import FacebookPixel from "@/components/analytics/FacebookPixel";
 import AutoPixel from "@/components/analytics/AutoPixel";
 import AutoEvent from "@/components/analytics/AutoEvent";
+import EngagementTracker from "@/components/analytics/EngagementTracker";
 import EventAttrTracker from "@/components/analytics/EventAttrTracker";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
@@ -90,6 +91,7 @@ export default function RootLayout({
           <FacebookPixel />
           <AutoPixel />
           <AutoEvent />
+          <EngagementTracker />
           <EventAttrTracker />
           <AffiliateTracker />
         </Suspense>
