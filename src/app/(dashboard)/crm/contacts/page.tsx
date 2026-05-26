@@ -17,6 +17,11 @@ import {
   AlertCircle,
   FileUp,
   RefreshCw,
+  Target,
+  ShoppingCart,
+  Crown,
+  ThumbsUp,
+  Star,
 } from "lucide-react";
 
 /* ---------- Filter option labels (used in search/filter dropdowns) ---------- */
@@ -88,47 +93,55 @@ export default async function CRMContactsPage({
   const { data, error } = await query;
   const contacts: Contact[] = (data ?? []) as unknown as Contact[];
 
-  // Stats counts — scope to viewer when sale
+  // Stats counts — scope to viewer when sale.
+  // Uses `journey_stage` (the 7-stage loyalty pyramid) instead of legacy
+  // `status` so the cards reflect actual customer-loyalty progression.
+  // Stage values & labels:
+  //   visitor      → KH Mục tiêu       (fits profile, doesn't know us yet)
+  //   lead         → KH Tiềm năng      (expressed interest)
+  //   contacted    → Người mua hàng    (bought once)
+  //   qualified    → Khách hàng         (repeat buyer 2+)
+  //   negotiation  → Hội viên           (recognized member)
+  //   customer     → Người ủng hộ       (refers when asked)
+  //   advocate     → Fan hâm mộ         (evangelist)
+  const journeyStages = [
+    { key: "visitor",     label: "KH Mục tiêu",   icon: Target,       color: "#60a5fa" },
+    { key: "lead",        label: "KH Tiềm năng",  icon: UserPlus,     color: "#a855f7" },
+    { key: "contacted",   label: "Người mua hàng",icon: ShoppingCart, color: "#f59e0b" },
+    { key: "qualified",   label: "Khách hàng",    icon: CheckCircle,  color: "#10b981" },
+    { key: "negotiation", label: "Hội viên",      icon: Crown,        color: "#D4A843" },
+    { key: "customer",    label: "Người ủng hộ",  icon: ThumbsUp,     color: "#f97316" },
+    { key: "advocate",    label: "Fan hâm mộ",    icon: Star,         color: "#ef4444" },
+  ] as const;
+
   let totalQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true });
-  let newQuery = admin
-    .from("crm_contacts")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "new");
-  let contactedQuery = admin
-    .from("crm_contacts")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "contacted");
-  let qualifiedQuery = admin
-    .from("crm_contacts")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "qualified");
-  let wonQuery = admin
-    .from("crm_contacts")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "won");
-
   if (scope.isSale) {
     totalQuery = totalQuery.eq("assigned_to", scope.userId);
-    newQuery = newQuery.eq("assigned_to", scope.userId);
-    contactedQuery = contactedQuery.eq("assigned_to", scope.userId);
-    qualifiedQuery = qualifiedQuery.eq("assigned_to", scope.userId);
-    wonQuery = wonQuery.eq("assigned_to", scope.userId);
   }
 
+  // Build per-stage count queries
+  const stageCountPromises = journeyStages.map((s) => {
+    let q = admin
+      .from("crm_contacts")
+      .select("*", { count: "exact", head: true })
+      .eq("journey_stage", s.key);
+    if (scope.isSale) q = q.eq("assigned_to", scope.userId);
+    return q.then(({ count }) => count ?? 0);
+  });
+
   const { count: totalCount } = await totalQuery;
-  const { count: newCount } = await newQuery;
-  const { count: contactedCount } = await contactedQuery;
-  const { count: qualifiedCount } = await qualifiedQuery;
-  const { count: wonCount } = await wonQuery;
+  const stageCounts = await Promise.all(stageCountPromises);
 
   const stats = [
     { label: "Tổng KH", value: totalCount ?? 0, icon: Users, color: "#3b82f6" },
-    { label: "Mới", value: newCount ?? 0, icon: UserPlus, color: "#60a5fa" },
-    { label: "Đã liên hệ", value: contactedCount ?? 0, icon: Phone, color: "#f59e0b" },
-    { label: "Tiềm năng", value: qualifiedCount ?? 0, icon: CheckCircle, color: "#a855f7" },
-    { label: "Thành công", value: wonCount ?? 0, icon: CheckCircle, color: "#D4A843" },
+    ...journeyStages.map((s, i) => ({
+      label: s.label,
+      value: stageCounts[i] ?? 0,
+      icon: s.icon,
+      color: s.color,
+    })),
   ];
 
   // Fetch order data for contacts (match by email)
@@ -241,7 +254,7 @@ export default async function CRMContactsPage({
         ))}
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-3">
           {stats.map((s) => (
             <div key={s.label} className="stat-card">
               <div className="flex items-center justify-between mb-3">
