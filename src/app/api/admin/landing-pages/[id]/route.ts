@@ -36,6 +36,11 @@ export async function PATCH(
     notes?: string | null;
     /** Nếu có field này → replace toàn bộ danh sách pixel attach */
     pixel_config_ids?: string[];
+    page_event?: string | null;
+    form_submit_event?: string | null;
+    event_value?: number | null;
+    event_currency?: string | null;
+    event_content_name?: string | null;
   };
   try {
     body = await req.json();
@@ -60,6 +65,32 @@ export async function PATCH(
   if (body.description !== undefined) patch.description = body.description?.trim() || null;
   if (body.is_active !== undefined) patch.is_active = body.is_active;
   if (body.notes !== undefined) patch.notes = body.notes?.trim() || null;
+
+  // Event triggers — validate against Meta Standard Events whitelist
+  const META_STANDARD_EVENTS = [
+    "AddPaymentInfo", "AddToCart", "AddToWishlist", "CompleteRegistration",
+    "Contact", "CustomizeProduct", "Donate", "FindLocation", "InitiateCheckout",
+    "Lead", "Purchase", "Schedule", "Search", "StartTrial", "SubmitApplication",
+    "Subscribe", "ViewContent",
+  ];
+  function validEvent(v: unknown): string | null {
+    if (v === null || v === "" || v === undefined) return null;
+    if (typeof v === "string" && META_STANDARD_EVENTS.includes(v)) return v;
+    return null;
+  }
+  if ("page_event" in body) patch.page_event = validEvent(body.page_event);
+  if ("form_submit_event" in body) patch.form_submit_event = validEvent(body.form_submit_event);
+  if ("event_value" in body) {
+    const v = body.event_value;
+    patch.event_value = typeof v === "number" && v > 0 ? Math.floor(v) : null;
+  }
+  if ("event_currency" in body) {
+    const c = (body.event_currency || "").toString().trim().toUpperCase();
+    patch.event_currency = c.length === 3 ? c : "VND";
+  }
+  if ("event_content_name" in body) {
+    patch.event_content_name = body.event_content_name?.toString().trim() || null;
+  }
 
   if (Object.keys(patch).length > 1) {
     const { error } = await admin.from("landing_pages").update(patch).eq("id", id);

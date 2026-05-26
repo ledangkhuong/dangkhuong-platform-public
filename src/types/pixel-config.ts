@@ -38,12 +38,41 @@ export interface PixelEventLog {
   created_at: string;
 }
 
+/** 17 Meta Pixel Standard Events (camelCase format dùng trong fbq). */
+export const META_STANDARD_EVENTS = [
+  "AddPaymentInfo",
+  "AddToCart",
+  "AddToWishlist",
+  "CompleteRegistration",
+  "Contact",
+  "CustomizeProduct",
+  "Donate",
+  "FindLocation",
+  "InitiateCheckout",
+  "Lead",
+  "Purchase",
+  "Schedule",
+  "Search",
+  "StartTrial",
+  "SubmitApplication",
+  "Subscribe",
+  "ViewContent",
+] as const;
+export type MetaStandardEvent = (typeof META_STANDARD_EVENTS)[number];
+
 export interface LandingPage {
   id: string;
   pathname: string;
   name: string;
   description: string | null;
   is_active: boolean;
+  /** Fire khi user mở trang (ngoài PageView mặc định). */
+  page_event: MetaStandardEvent | null;
+  /** Fire khi user submit BẤT KỲ form nào trên page. */
+  form_submit_event: MetaStandardEvent | null;
+  event_value: number | null;
+  event_currency: string | null;
+  event_content_name: string | null;
   notes: string | null;
   created_by: string | null;
   updated_by: string | null;

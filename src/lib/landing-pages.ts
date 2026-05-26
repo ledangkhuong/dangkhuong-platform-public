@@ -72,6 +72,64 @@ export async function getPixelsForPathname(pathname: string): Promise<PixelConfi
   return out;
 }
 
+/**
+ * Lookup landing page event config theo pathname.
+ * Dùng bởi <AutoEvent /> trong root layout để bind sự kiện chuẩn cho landing.
+ */
+export interface LandingEventConfig {
+  pageEvent: string | null;
+  formSubmitEvent: string | null;
+  value: number | null;
+  currency: string | null;
+  contentName: string | null;
+  slug: string | null;
+}
+
+export async function getLandingEventConfig(pathname: string): Promise<LandingEventConfig | null> {
+  if (!pathname) return null;
+  const admin = await createAdminClient();
+  const { data, error } = await admin
+    .from("landing_pages")
+    .select(`
+      id,
+      pathname,
+      page_event,
+      form_submit_event,
+      event_value,
+      event_currency,
+      event_content_name,
+      landing_page_pixels (
+        pixel_config:pixel_configs!inner ( slug, is_active )
+      )
+    `)
+    .eq("pathname", pathname)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error || !data) return null;
+
+  type Row = {
+    page_event: string | null;
+    form_submit_event: string | null;
+    event_value: number | null;
+    event_currency: string | null;
+    event_content_name: string | null;
+    landing_page_pixels: Array<{ pixel_config: { slug: string; is_active: boolean } }>;
+  };
+  const row = data as unknown as Row;
+
+  // Chọn slug pixel đầu tiên đang active để gắn vào event
+  const firstActive = row.landing_page_pixels.find((b) => b.pixel_config?.is_active);
+
+  return {
+    pageEvent: row.page_event,
+    formSubmitEvent: row.form_submit_event,
+    value: row.event_value,
+    currency: row.event_currency,
+    contentName: row.event_content_name,
+    slug: firstActive?.pixel_config.slug || null,
+  };
+}
+
 /** List tất cả landing pages (admin). */
 export async function listLandingPages(): Promise<LandingPage[]> {
   const admin = await createAdminClient();

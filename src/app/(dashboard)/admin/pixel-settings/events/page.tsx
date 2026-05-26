@@ -241,25 +241,73 @@ export default async function EventSnippetsPage() {
           }}
         >
           <h3 className="text-base font-semibold text-[#D4A843] mb-3 flex items-center gap-2">
-            <Zap size={18} /> 2 cách dùng — chọn cách nào tuỳ landing
+            <Zap size={18} /> 3 cách track event — chọn cách phù hợp
           </h3>
           <ol className="text-sm text-gray-300 space-y-2 list-decimal pl-5">
             <li>
-              <strong className="text-white">Cách 1: Data-attribute (KHÔNG cần code)</strong> — Marketing chỉ dán{" "}
-              <code className="text-[#D4A843]">data-dk-track=&ldquo;EventName&rdquo;</code> vào HTML của
-              landing builder (Ladipage, Unbounce, Webflow, custom HTML…). EventAttrTracker
-              global trong root layout tự lắng nghe.
+              <strong className="text-white">Cách 1: Pick dropdown trong admin (NEW — không cần code, dễ nhất)</strong>{" "}
+              — Vào{" "}
+              <Link href="/admin/pixel-settings/pages" className="text-[#D4A843] hover:underline">
+                Gắn Pixel vào landing
+              </Link>{" "}
+              → chọn landing → pick &ldquo;Sự kiện khi mở trang&rdquo; + &ldquo;Sự kiện khi submit form&rdquo; từ dropdown
+              17 Meta Standard Events. Auto-fire khi user mở trang / submit bất kỳ form nào.
             </li>
             <li>
-              <strong className="text-white">Cách 2: React helper (cho dev)</strong> — Dùng{" "}
+              <strong className="text-white">Cách 2: Data-attribute (cho element cụ thể)</strong> — Dán{" "}
+              <code className="text-[#D4A843]">data-dk-track=&ldquo;EventName&rdquo;</code> vào HTML
+              cho button gọi điện / scroll tới section bảng giá / click CTA mua.
+            </li>
+            <li>
+              <strong className="text-white">Cách 3: React helper (cho dev)</strong> — Dùng{" "}
               <code className="text-[#D4A843]">trackPageEvent / trackLead / trackContact</code>{" "}
-              từ <code className="text-[#D4A843]">@/lib/pixel-tracker</code> trong component.
+              từ <code className="text-[#D4A843]">@/lib/pixel-tracker</code>.
             </li>
           </ol>
           <p className="text-xs text-gray-500 mt-3">
-            ⚠️ Cả 2 cách đều tự fire Pixel client + CAPI server dedupe qua event_id.
+            ⚠️ Cả 3 cách đều tự fire Pixel client + CAPI server dedupe qua event_id.
             Không gây nhân đôi tracking.
           </p>
+        </div>
+
+        {/* 17 Meta Standard Events reference */}
+        <div className="card-dark overflow-hidden">
+          <div
+            className="flex items-center gap-2 px-5 py-3"
+            style={{ borderBottom: "1px solid #2a2a2a" }}
+          >
+            <Zap size={14} className="text-[#D4A843]" />
+            <h3 className="text-sm font-semibold text-white">
+              17 Meta Standard Events — Reference
+            </h3>
+          </div>
+          <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+            {[
+              ["AddPaymentInfo", "Thêm thông tin thanh toán (vd: nhập thẻ)"],
+              ["AddToCart", "Thêm vào giỏ hàng"],
+              ["AddToWishlist", "Thêm vào danh sách yêu thích"],
+              ["CompleteRegistration", "Hoàn thành tạo tài khoản"],
+              ["Contact", "Liên hệ — gọi / chat / Zalo / Messenger"],
+              ["CustomizeProduct", "Tuỳ chỉnh sản phẩm (chọn màu, kích thước…)"],
+              ["Donate", "Quyên góp / từ thiện"],
+              ["FindLocation", "Tìm cửa hàng / địa điểm"],
+              ["InitiateCheckout", "Bắt đầu thanh toán"],
+              ["Lead", "Lead form — đăng ký nhận tư vấn / tài liệu"],
+              ["Purchase", "Mua hàng thành công"],
+              ["Schedule", "Đặt lịch hẹn"],
+              ["Search", "Tìm kiếm sản phẩm / nội dung"],
+              ["StartTrial", "Bắt đầu dùng thử miễn phí"],
+              ["SubmitApplication", "Nộp đơn / hồ sơ đăng ký"],
+              ["Subscribe", "Đăng ký gói trả phí / newsletter"],
+              ["ViewContent", "Xem nội dung — sản phẩm, khoá học, bài blog"],
+            ].map(([name, desc]) => (
+              <div key={name} className="flex items-start gap-2 py-1.5"
+                   style={{ borderBottom: "1px dashed #1f1f1f" }}>
+                <code className="text-[#D4A843] font-mono font-semibold flex-shrink-0 min-w-[150px]">{name}</code>
+                <span className="text-gray-400">{desc}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Slug context helper */}

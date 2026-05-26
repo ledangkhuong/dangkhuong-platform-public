@@ -11,8 +11,30 @@ import {
   ShieldOff,
   ChevronUp,
   ChevronDown,
+  Zap,
 } from "lucide-react";
-import type { LandingPage, PixelConfig } from "@/types/pixel-config";
+import type { LandingPage, PixelConfig, MetaStandardEvent } from "@/types/pixel-config";
+import { META_STANDARD_EVENTS } from "@/types/pixel-config";
+
+const STANDARD_EVENT_LABELS: Record<MetaStandardEvent, string> = {
+  AddPaymentInfo: "AddPaymentInfo — Thêm thông tin thanh toán",
+  AddToCart: "AddToCart — Thêm vào giỏ hàng",
+  AddToWishlist: "AddToWishlist — Thêm vào danh sách yêu thích",
+  CompleteRegistration: "CompleteRegistration — Hoàn thành đăng ký tài khoản",
+  Contact: "Contact — Liên hệ (gọi điện / chat)",
+  CustomizeProduct: "CustomizeProduct — Tuỳ chỉnh sản phẩm",
+  Donate: "Donate — Quyên góp",
+  FindLocation: "FindLocation — Tìm cửa hàng",
+  InitiateCheckout: "InitiateCheckout — Bắt đầu thanh toán",
+  Lead: "Lead — Lead form (đăng ký nhận tư vấn)",
+  Purchase: "Purchase — Mua hàng thành công",
+  Schedule: "Schedule — Đặt lịch hẹn",
+  Search: "Search — Tìm kiếm",
+  StartTrial: "StartTrial — Bắt đầu dùng thử miễn phí",
+  SubmitApplication: "SubmitApplication — Nộp đơn đăng ký",
+  Subscribe: "Subscribe — Đăng ký gói trả phí / newsletter",
+  ViewContent: "ViewContent — Xem nội dung (sản phẩm, khoá học)",
+};
 
 interface Props {
   landing: LandingPage;
@@ -27,6 +49,15 @@ export default function LandingPixelEditor({ landing, attached, allPixels }: Pro
   const [description, setDescription] = useState(landing.description ?? "");
   const [isActive, setIsActive] = useState(landing.is_active);
   const [notes, setNotes] = useState(landing.notes ?? "");
+
+  // Event triggers (Meta Standard Events)
+  const [pageEvent, setPageEvent] = useState<string>(landing.page_event ?? "");
+  const [formSubmitEvent, setFormSubmitEvent] = useState<string>(landing.form_submit_event ?? "");
+  const [eventValue, setEventValue] = useState<string>(
+    landing.event_value != null ? String(landing.event_value) : "",
+  );
+  const [eventCurrency, setEventCurrency] = useState<string>(landing.event_currency ?? "VND");
+  const [eventContentName, setEventContentName] = useState<string>(landing.event_content_name ?? "");
 
   // Selected pixel ids — array preserving order
   const [selectedIds, setSelectedIds] = useState<string[]>(attached.map((p) => p.id));
@@ -58,6 +89,7 @@ export default function LandingPixelEditor({ landing, attached, allPixels }: Pro
     setError("");
     setSaved(false);
     try {
+      const valueNum = eventValue ? Number(eventValue) : null;
       const res = await fetch(`/api/admin/landing-pages/${landing.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -68,6 +100,11 @@ export default function LandingPixelEditor({ landing, attached, allPixels }: Pro
           is_active: isActive,
           notes: notes.trim() || null,
           pixel_config_ids: selectedIds,
+          page_event: pageEvent || null,
+          form_submit_event: formSubmitEvent || null,
+          event_value: valueNum && !isNaN(valueNum) ? valueNum : null,
+          event_currency: eventCurrency.trim() || "VND",
+          event_content_name: eventContentName.trim() || null,
         }),
       });
       const data = await res.json();
@@ -165,6 +202,141 @@ export default function LandingPixelEditor({ landing, attached, allPixels }: Pro
               <span className="text-gray-500">(tắt để dừng track toàn bộ Pixel ở landing này)</span>
             </span>
           </label>
+        </div>
+      </div>
+
+      {/* ── Sự kiện chuyển đổi (Meta Standard Events) ── */}
+      <div className="card-dark overflow-hidden">
+        <div
+          className="flex items-center justify-between px-5 py-3"
+          style={{ borderBottom: "1px solid #2a2a2a" }}
+        >
+          <div className="flex items-center gap-2">
+            <Zap size={14} className="text-[#D4A843]" />
+            <h3 className="text-sm font-semibold text-white">
+              Sự kiện chuyển đổi tự động
+            </h3>
+          </div>
+          <span className="text-xs text-gray-500">
+            Auto-fire không cần code
+          </span>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <p className="text-xs text-gray-500 -mt-1">
+            Chọn 1 trong 17 Meta Standard Events. Hệ thống tự fire Pixel + CAPI khi
+            điều kiện xảy ra trên landing này.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Page event */}
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                🌐 Sự kiện khi mở trang
+              </label>
+              <select
+                value={pageEvent}
+                onChange={(e) => setPageEvent(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+              >
+                <option value="">— Không (chỉ PageView) —</option>
+                {META_STANDARD_EVENTS.map((ev) => (
+                  <option key={ev} value={ev}>
+                    {STANDARD_EVENT_LABELS[ev]}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Fire ngay khi user mở trang (vd: ViewContent cho landing khoá học).
+              </p>
+            </div>
+
+            {/* Form submit event */}
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                📝 Sự kiện khi submit form
+              </label>
+              <select
+                value={formSubmitEvent}
+                onChange={(e) => setFormSubmitEvent(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+              >
+                <option value="">— Không tự fire —</option>
+                {META_STANDARD_EVENTS.map((ev) => (
+                  <option key={ev} value={ev}>
+                    {STANDARD_EVENT_LABELS[ev]}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Fire khi BẤT KỲ form nào trên trang submit (vd: Lead).
+              </p>
+            </div>
+          </div>
+
+          {/* Value + Currency + Content name */}
+          <div
+            className="p-3 rounded-lg space-y-3"
+            style={{ background: "#0f0f0f", border: "1px solid #1f1f1f" }}
+          >
+            <p className="text-xs text-gray-500">
+              💰 Thông số chung cho event (gửi cùng cả page event lẫn form submit event):
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Value (VNĐ)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={eventValue}
+                  onChange={(e) => setEventValue(e.target.value.replace(/\D/g, ""))}
+                  placeholder="999000"
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none font-mono"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Currency
+                </label>
+                <input
+                  type="text"
+                  value={eventCurrency}
+                  onChange={(e) => setEventCurrency(e.target.value.toUpperCase().slice(0, 3))}
+                  placeholder="VND"
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none font-mono"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Content name
+                </label>
+                <input
+                  type="text"
+                  value={eventContentName}
+                  onChange={(e) => setEventContentName(e.target.value)}
+                  placeholder="Khoá Video AI VEO3.1"
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                  style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Helper note */}
+          <div
+            className="p-3 rounded-lg text-xs"
+            style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.18)", color: "#94a3b8" }}
+          >
+            💡 Để fire event tuỳ ý cho element cụ thể (button gọi, scroll tới bảng giá...),
+            dùng <code className="text-[#D4A843]">data-dk-track=&quot;EventName&quot;</code>{" "}
+            — xem <a href="/admin/pixel-settings/events" className="text-[#3b82f6] hover:underline">Thư viện snippet</a>.
+          </div>
         </div>
       </div>
 
