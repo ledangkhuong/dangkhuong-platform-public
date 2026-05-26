@@ -100,12 +100,18 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // First-touch propagation: when admin explicitly assigns a sale to this
-    // interest, copy the assignment up to the matching crm_contact (matched
-    // by user_id) so future items inherit the same sticky owner. Fail-soft
-    // and never blocks the response. Only runs when `assigned_to` was sent
-    // in the request body and is not null (don't propagate on unassign).
-    if (assigned_to !== undefined && assigned_to !== null) {
+    // First-touch propagation: when a sale is assigned to this interest
+    // (either explicitly via `assigned_to` in the request body, or
+    // implicitly via the `contacted` auto-assign), copy the assignment
+    // up to the matching crm_contact so future items inherit the same
+    // sticky owner via getStickyAssignment. Fail-soft — never blocks
+    // the response. Skip on unassign (null).
+    const effectiveAssignedTo =
+      updateData.assigned_to !== undefined
+        ? (updateData.assigned_to as string | null)
+        : null;
+
+    if (effectiveAssignedTo) {
       const { data: interestRow } = await admin
         .from("course_interests")
         .select("user_id")
@@ -115,7 +121,7 @@ export async function PATCH(req: NextRequest) {
       if (interestRow?.user_id) {
         const propagationResult = await propagateToContact(admin, {
           user_id: interestRow.user_id,
-          sale_id: assigned_to,
+          sale_id: effectiveAssignedTo,
         });
         if (propagationResult.propagated) {
           console.info(

@@ -119,6 +119,26 @@ export async function POST(
           console.info(
             `[orders/assign POST] propagated assignment to crm_contact ${propagationResult.contact_id}`
           );
+
+          // Mirror what the CRM contact-assign action does: log a
+          // crm_activities entry and a crm_lead_assignment_log row so the
+          // contact timeline and assignment history stay consistent even
+          // when the assignment originates from an order.
+          await Promise.allSettled([
+            adminClient.from("crm_activities").insert({
+              contact_id: propagationResult.contact_id,
+              type: "assignment",
+              content: `Được gán cho nhân viên sale (từ đơn hàng)`,
+              created_by: user.id,
+              is_system: true,
+            }),
+            adminClient.from("crm_lead_assignment_log").insert({
+              contact_id: propagationResult.contact_id,
+              assigned_to: assignedTo,
+              assigned_by: user.id,
+              method: "manual",
+            }),
+          ]);
         } else {
           console.info(
             `[orders/assign POST] propagation skipped: ${propagationResult.reason}`

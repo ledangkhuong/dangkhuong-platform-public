@@ -86,8 +86,13 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         if (!existingContact) {
-          // Create new CRM contact from the interested user
+          // Create new CRM contact from the interested user.
+          // Include user_id so future getStickyAssignment lookups by
+          // user_id find this contact, and carry forward the sticky
+          // sale assignment (if any) so the contact and interest stay
+          // in sync from the start.
           await admin.from("crm_contacts").insert({
+            user_id: user.id,
             full_name: profile?.full_name || userEmail.split("@")[0],
             email: userEmail,
             source: "website",
@@ -95,6 +100,7 @@ export async function POST(req: NextRequest) {
             journey_stage: "lead",
             first_seen_at: new Date().toISOString(),
             first_page: `/courses`,
+            ...(stickyAssignedTo ? { assigned_to: stickyAssignedTo } : {}),
           });
         }
       }

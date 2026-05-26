@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ASSIGNABLE_ROLES } from "@/lib/sales";
 import { logAudit } from "@/lib/audit";
+import { propagateToContact } from "@/lib/sticky-assign";
 
 /**
  * POST /api/crm/deals/[id]/assign
@@ -80,6 +81,21 @@ export async function POST(
       }
     }
 
+    // Fetch the deal BEFORE updating so we know the linked contact for
+    // propagation and assignment-log.
+    const { data: deal } = await adminClient
+      .from("crm_deals")
+      .select("id, contact_id, assigned_to")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!deal) {
+      return NextResponse.json(
+        { error: "Deal not found" },
+        { status: 404 }
+      );
+    }
+
     const { error: updErr } = await adminClient
       .from("crm_deals")
       .update({ assigned_to: assignedTo })
@@ -93,6 +109,46 @@ export async function POST(
       );
     }
 
+    // First-touch propagation: copy the assignment up to the parent CRM
+    // contact so future items inherit the same sticky owner. Fail-soft.
+    let propagationResult: Awaited<ReturnType<typeof propagateToContact>> | null =
+      null;
+    if (assignedTo !== null && deal.contact_id) {
+      propagationResult = await propagateToContact(adminClient, {
+        contact_id: deal.contact_id,
+        sale_id: assignedTo,
+      });
+      if (propagationResult.propagated) {
+        console.info(
+          `[crm/deals/assign POST] propagated assignment to crm_contact ${propagationResult.contact_id}`
+        );
+      } else {
+        console.info(
+          `[crm/deals/assign POST] propagation skipped: ${propagationResult.reason}`
+        );
+      }
+    }
+
+    // Log to crm_lead_assignment_log for reporting & round-robin continuity.
+    if (deal.contact_id) {
+      await adminClient
+        .from("crm_lead_assignment_log")
+        .insert({
+          contact_id: deal.contact_id,
+          assigned_to: assignedTo,
+          assigned_by: user.id,
+          method: "manual",
+        })
+        .then(({ error: logErr }) => {
+          if (logErr) {
+            console.error(
+              "[crm/deals/assign POST] assignment log insert failed:",
+              logErr.message
+            );
+          }
+        });
+    }
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     await logAudit({
@@ -100,7 +156,7 @@ export async function POST(
       action: "deal.assign",
       target_type: "deal",
       target_id: id,
-      details: { assigned_to: assignedTo },
+      details: { assigned_to: assignedTo, propagation: propagationResult },
       ip_address: ip,
     });
 

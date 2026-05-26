@@ -95,9 +95,15 @@ export async function POST(
     const previousSaleId = (contact.assigned_to as string | null) ?? null;
     const noChange = previousSaleId === assignedTo;
 
+    const now = new Date().toISOString();
+
     const { error: updErr } = await adminClient
       .from("crm_contacts")
-      .update({ assigned_to: assignedTo })
+      .update({
+        assigned_to: assignedTo,
+        assigned_at: assignedTo !== null ? now : null,
+        assignment_method: "manual",
+      })
       .eq("id", id);
 
     if (updErr) {
@@ -106,6 +112,37 @@ export async function POST(
         { error: "Update failed" },
         { status: 500 }
       );
+    }
+
+    // Log to crm_lead_assignment_log
+    if (!noChange) {
+      const { error: logErr } = await adminClient
+        .from("crm_lead_assignment_log")
+        .insert({
+          contact_id: id,
+          assigned_to: assignedTo,
+          assigned_by: user.id,
+          method: "manual",
+        });
+      if (logErr) {
+        console.error("[crm/contacts/assign POST] assignment log:", logErr);
+      }
+
+      // Log activity
+      const { error: actErr } = await adminClient
+        .from("crm_activities")
+        .insert({
+          contact_id: id,
+          type: "assignment",
+          content: assignedTo
+            ? `Được gán cho nhân viên sale`
+            : `Đã bỏ gán nhân viên sale`,
+          created_by: user.id,
+          is_system: true,
+        });
+      if (actErr) {
+        console.error("[crm/contacts/assign POST] activity log:", actErr);
+      }
     }
 
     // Cascade: when manager actively assigns a NEW sale to a customer, push

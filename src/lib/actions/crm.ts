@@ -50,7 +50,26 @@ export async function createContact(formData: FormData) {
   const email = (formData.get("email") as string || "").trim() || null;
   const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
 
-  const contactPayload = {
+  const explicitAssign = (formData.get("assigned_to") as string || "").trim() || null;
+
+  // If no explicit assignment, try sticky assignment by email so the contact
+  // inherits the same sale rep as any previous orders/contacts for this customer.
+  let assignedTo = explicitAssign;
+  if (!assignedTo && email) {
+    try {
+      assignedTo = await getStickyAssignment(admin, { email });
+    } catch (stickyErr) {
+      console.error(
+        "[CRM createContact] Sticky-assign lookup failed:",
+        stickyErr instanceof Error ? stickyErr.message : stickyErr
+      );
+      assignedTo = null;
+    }
+  }
+
+  const now = new Date().toISOString();
+
+  const contactPayload: Record<string, unknown> = {
     full_name: fullName,
     email,
     phone: (formData.get("phone") as string || "").trim() || null,
@@ -59,10 +78,16 @@ export async function createContact(formData: FormData) {
     status: "new" as const,
     tags,
     notes: (formData.get("notes") as string || "").trim() || null,
-    assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
+    assigned_to: assignedTo,
     facebook_url: facebookUrl,
     created_by: user.id,
   };
+
+  // When assigned (either explicitly or via sticky), record method and timestamp
+  if (assignedTo) {
+    contactPayload.assigned_at = now;
+    contactPayload.assignment_method = explicitAssign ? "manual" : "sticky";
+  }
 
   const { data: newContact, error: insertErr } = await admin
     .from("crm_contacts")
@@ -136,7 +161,7 @@ export async function createContact(formData: FormData) {
 
 /** Cập nhật contact */
 export async function updateContact(formData: FormData) {
-  await requireStaff();
+  const { user } = await requireStaff();
   const admin = await createAdminClient();
 
   const contactId = formData.get("contact_id") as string;
@@ -154,23 +179,49 @@ export async function updateContact(formData: FormData) {
 
   const source = (formData.get("source") as string || "").trim() || null;
   const facebookUrl = (formData.get("facebook_url") as string || "").trim() || null;
+  const newAssignedTo = (formData.get("assigned_to") as string || "").trim() || null;
+
+  // Fetch current contact to detect assignment changes
+  const { data: currentContact } = await admin
+    .from("crm_contacts")
+    .select("assigned_to, email, user_id")
+    .eq("id", contactId)
+    .maybeSingle();
+
+  const previousAssignedTo = (currentContact?.assigned_to as string | null) ?? null;
+  const assignmentChanged = newAssignedTo !== previousAssignedTo;
+
+  const now = new Date().toISOString();
+
+  const updateData: Record<string, unknown> = {
+    full_name: fullName,
+    email: (formData.get("email") as string || "").trim() || null,
+    phone: (formData.get("phone") as string || "").trim() || null,
+    company: (formData.get("company") as string || "").trim() || null,
+    source,
+    status: (formData.get("status") as string || "").trim() || null,
+    tags,
+    notes: (formData.get("notes") as string || "").trim() || null,
+    assigned_to: newAssignedTo,
+    facebook_url: facebookUrl,
+    updated_at: now,
+  };
+
+  // When assignment changes to a new rep, record method and timestamp
+  if (assignmentChanged && newAssignedTo) {
+    updateData.assigned_at = now;
+    updateData.assignment_method = "manual";
+  }
 
   const { error } = await admin
     .from("crm_contacts")
-    .update({
-      full_name: fullName,
-      email: (formData.get("email") as string || "").trim() || null,
-      phone: (formData.get("phone") as string || "").trim() || null,
-      company: (formData.get("company") as string || "").trim() || null,
-      source,
-      status: (formData.get("status") as string || "").trim() || null,
-      tags,
-      notes: (formData.get("notes") as string || "").trim() || null,
-      assigned_to: (formData.get("assigned_to") as string || "").trim() || null,
-      facebook_url: facebookUrl,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq("id", contactId);
+
+  if (error) {
+    console.error("[CRM updateContact]", error);
+    redirect(`/crm/contacts/${contactId}?error=update_failed`);
+  }
 
   // Save new source to crm_sources for reuse
   if (source) {
@@ -180,9 +231,37 @@ export async function updateContact(formData: FormData) {
     );
   }
 
-  if (error) {
-    console.error("[CRM updateContact]", error);
-    redirect(`/crm/contacts/${contactId}?error=update_failed`);
+  // Cascade assignment change to related orders, interests, and deals
+  // (same logic as /api/crm/contacts/[id]/assign route).
+  // Skip cascade when unassigning (null) or when no actual change.
+  if (assignmentChanged && newAssignedTo) {
+    const email = ((currentContact?.email as string | null) ?? "").trim().toLowerCase();
+    const userId = (currentContact?.user_id as string | null) ?? null;
+
+    if (email) {
+      await admin
+        .from("orders")
+        .update({ assigned_to: newAssignedTo })
+        .ilike("customer_email", email);
+    }
+    if (userId) {
+      await admin
+        .from("course_interests")
+        .update({ assigned_to: newAssignedTo })
+        .eq("user_id", userId);
+    }
+    await admin
+      .from("crm_deals")
+      .update({ assigned_to: newAssignedTo })
+      .eq("contact_id", contactId);
+
+    // Log the assignment change
+    await admin.from("crm_lead_assignment_log").insert({
+      contact_id: contactId,
+      assigned_to: newAssignedTo,
+      assigned_by: user.id,
+      method: "manual",
+    });
   }
 
   redirect("/crm/contacts?updated=1");
@@ -324,7 +403,7 @@ export async function createDeal(formData: FormData) {
 
 /** Chuyển stage cho deal */
 export async function updateDealStage(formData: FormData) {
-  await requireStaff();
+  const { user } = await requireStaff();
   const admin = await createAdminClient();
 
   const dealId = formData.get("deal_id") as string;
@@ -346,6 +425,13 @@ export async function updateDealStage(formData: FormData) {
       (formData.get("lost_reason") as string || "").trim() || null;
   }
 
+  // Fetch the deal BEFORE updating so we can cascade to the contact on "won".
+  const { data: deal } = await admin
+    .from("crm_deals")
+    .select("id, contact_id, amount")
+    .eq("id", dealId)
+    .maybeSingle();
+
   const { error } = await admin
     .from("crm_deals")
     .update(updateData)
@@ -354,6 +440,61 @@ export async function updateDealStage(formData: FormData) {
   if (error) {
     console.error("[CRM updateDealStage]", error);
     redirect("/crm/pipeline?error=stage_update_failed");
+  }
+
+  // When a deal is WON, promote the parent contact to "customer" and
+  // accumulate lifetime_value. Fail-soft — pipeline update already succeeded.
+  if (stage === "won" && deal?.contact_id) {
+    try {
+      const dealAmount = typeof deal.amount === "number" ? deal.amount : 0;
+
+      // Fetch the current contact to read existing lifetime_value.
+      const { data: contact } = await admin
+        .from("crm_contacts")
+        .select("id, journey_stage, lifetime_value")
+        .eq("id", deal.contact_id)
+        .maybeSingle();
+
+      if (contact) {
+        const currentLtv =
+          typeof contact.lifetime_value === "number"
+            ? contact.lifetime_value
+            : 0;
+
+        const contactUpdate: Record<string, unknown> = {
+          lifetime_value: currentLtv + dealAmount,
+          updated_at: new Date().toISOString(),
+        };
+
+        // Only promote journey_stage forward — never demote.
+        const customerStages = ["customer", "advocate"];
+        if (!customerStages.includes(contact.journey_stage ?? "")) {
+          contactUpdate.journey_stage = "customer";
+          contactUpdate.converted_at = new Date().toISOString();
+        }
+
+        await admin
+          .from("crm_contacts")
+          .update(contactUpdate)
+          .eq("id", deal.contact_id);
+
+        // Log journey change activity if the stage was promoted.
+        if (contactUpdate.journey_stage) {
+          await admin.from("crm_activities").insert({
+            contact_id: deal.contact_id,
+            type: "journey_change",
+            content: `Chuyển sang giai đoạn: customer (deal "${deal.id}" won)`,
+            created_by: user.id,
+            is_system: true,
+          });
+        }
+      }
+    } catch (err) {
+      console.error(
+        "[CRM updateDealStage] won-cascade to contact failed:",
+        err instanceof Error ? err.message : err
+      );
+    }
   }
 
   redirect("/crm/pipeline?stage_updated=1");
@@ -424,6 +565,13 @@ export async function assignContact(formData: FormData) {
     redirect("/crm/contacts?error=missing_fields");
   }
 
+  // Fetch contact info for cascade
+  const { data: contact } = await admin
+    .from("crm_contacts")
+    .select("email, user_id")
+    .eq("id", contactId)
+    .maybeSingle();
+
   const now = new Date().toISOString();
 
   // Update contact assignment
@@ -439,6 +587,29 @@ export async function assignContact(formData: FormData) {
   if (updateError) {
     console.error("[CRM assignContact]", updateError);
     redirect("/crm/contacts?error=assign_failed");
+  }
+
+  // Cascade to related orders, interests, and deals
+  if (contact) {
+    const email = ((contact.email as string | null) ?? "").trim().toLowerCase();
+    const userId = (contact.user_id as string | null) ?? null;
+
+    if (email) {
+      await admin
+        .from("orders")
+        .update({ assigned_to: assignedTo })
+        .ilike("customer_email", email);
+    }
+    if (userId) {
+      await admin
+        .from("course_interests")
+        .update({ assigned_to: assignedTo })
+        .eq("user_id", userId);
+    }
+    await admin
+      .from("crm_deals")
+      .update({ assigned_to: assignedTo })
+      .eq("contact_id", contactId);
   }
 
   // Log assignment
@@ -477,6 +648,15 @@ export async function bulkAssignContacts(formData: FormData) {
   const now = new Date().toISOString();
   let count = 0;
 
+  // Fetch contact info for all contacts to cascade assignments
+  const { data: contacts } = await admin
+    .from("crm_contacts")
+    .select("id, email, user_id")
+    .in("id", contactIds);
+  const contactMap = new Map(
+    (contacts ?? []).map((c) => [c.id as string, c])
+  );
+
   for (const contactId of contactIds) {
     const { error } = await admin
       .from("crm_contacts")
@@ -488,6 +668,30 @@ export async function bulkAssignContacts(formData: FormData) {
       .eq("id", contactId);
 
     if (!error) {
+      // Cascade to related orders, interests, and deals
+      const contact = contactMap.get(contactId);
+      if (contact) {
+        const email = ((contact.email as string | null) ?? "").trim().toLowerCase();
+        const userId = (contact.user_id as string | null) ?? null;
+
+        if (email) {
+          await admin
+            .from("orders")
+            .update({ assigned_to: assignedTo })
+            .ilike("customer_email", email);
+        }
+        if (userId) {
+          await admin
+            .from("course_interests")
+            .update({ assigned_to: assignedTo })
+            .eq("user_id", userId);
+        }
+        await admin
+          .from("crm_deals")
+          .update({ assigned_to: assignedTo })
+          .eq("contact_id", contactId);
+      }
+
       await admin.from("crm_lead_assignment_log").insert({
         contact_id: contactId,
         assigned_to: assignedTo,
@@ -762,20 +966,28 @@ export async function syncContactsFromOrders() {
   await requireStaff();
   const admin = await createAdminClient();
 
-  // 1. Lấy tất cả email đã có trong crm_contacts
+  // 1. Lấy tất cả email đã có trong crm_contacts (with assignment info)
   const { data: existingContacts } = await admin
     .from("crm_contacts")
-    .select("email")
+    .select("id, email, assigned_to")
     .not("email", "is", null);
-  const existingEmails = new Set(
-    (existingContacts ?? []).map((c) => (c.email as string).toLowerCase())
-  );
+  const existingContactMap = new Map<
+    string,
+    { id: string; assigned_to: string | null }
+  >();
+  for (const c of existingContacts ?? []) {
+    existingContactMap.set(
+      (c.email as string).toLowerCase(),
+      { id: c.id as string, assigned_to: c.assigned_to as string | null }
+    );
+  }
 
   // 2. Lấy tất cả khách hàng từ bảng orders (unique by email)
+  //    Include assigned_to so we can propagate sale rep to new/unassigned contacts
   const { data: allOrders } = await admin
     .from("orders")
     .select(
-      "customer_name, customer_email, customer_phone, status, amount, created_at"
+      "customer_name, customer_email, customer_phone, status, amount, created_at, assigned_to"
     )
     .not("customer_email", "is", null)
     .order("created_at", { ascending: true });
@@ -788,6 +1000,7 @@ export async function syncContactsFromOrders() {
       phone: string | null;
       hasPaid: boolean;
       firstOrder: string;
+      assigned_to: string | null;
     }
   >();
   for (const o of allOrders ?? []) {
@@ -799,10 +1012,15 @@ export async function syncContactsFromOrders() {
         phone: (o.customer_phone as string) || null,
         hasPaid: o.status === "paid",
         firstOrder: o.created_at as string,
+        assigned_to: (o.assigned_to as string) || null,
       });
     } else {
       const existing = orderCustomerMap.get(email)!;
       if (o.status === "paid") existing.hasPaid = true;
+      // Keep the first non-null assigned_to (sticky: first sale wins)
+      if (!existing.assigned_to && o.assigned_to) {
+        existing.assigned_to = o.assigned_to as string;
+      }
     }
   }
 
@@ -812,7 +1030,7 @@ export async function syncContactsFromOrders() {
     .select("id, full_name, email, phone, role, created_at")
     .not("email", "is", null);
 
-  // 4. Merge: tạo danh sách cần insert
+  // 4. Merge: tạo danh sách cần insert + update unassigned existing contacts
   const toInsert: {
     full_name: string;
     email: string;
@@ -823,12 +1041,35 @@ export async function syncContactsFromOrders() {
     created_at: string;
     journey_stage: string;
     first_seen_at: string;
+    assigned_to: string | null;
+    assigned_at: string | null;
+    assignment_method: string | null;
   }[] = [];
+
+  const now = new Date().toISOString();
+  let updatedCount = 0;
 
   // Thêm từ orders
   for (const [email, customer] of orderCustomerMap) {
-    if (existingEmails.has(email)) continue;
-    existingEmails.add(email);
+    if (existingContactMap.has(email)) {
+      // Contact already exists — update assigned_to if currently unassigned
+      // and the order has a sale rep
+      const existing = existingContactMap.get(email)!;
+      if (!existing.assigned_to && customer.assigned_to) {
+        const { error: upErr } = await admin
+          .from("crm_contacts")
+          .update({
+            assigned_to: customer.assigned_to,
+            assigned_at: now,
+            assignment_method: "sync",
+          })
+          .eq("id", existing.id)
+          .is("assigned_to", null); // guard against race
+        if (!upErr) updatedCount++;
+      }
+      continue;
+    }
+    existingContactMap.set(email, { id: "", assigned_to: customer.assigned_to });
     toInsert.push({
       full_name: customer.name,
       email: customer.email,
@@ -839,18 +1080,21 @@ export async function syncContactsFromOrders() {
       created_at: customer.firstOrder,
       journey_stage: customer.hasPaid ? "customer" : "lead",
       first_seen_at: customer.firstOrder,
+      assigned_to: customer.assigned_to,
+      assigned_at: customer.assigned_to ? now : null,
+      assignment_method: customer.assigned_to ? "sync" : null,
     });
   }
 
   // Thêm từ profiles (chưa có trong orders)
   for (const p of allProfiles ?? []) {
     const email = (p.email as string).toLowerCase();
-    if (existingEmails.has(email)) continue;
+    if (existingContactMap.has(email)) continue;
     if (
       ["admin", "manager", "marketing", "sale", "support"].includes(p.role)
     )
       continue;
-    existingEmails.add(email);
+    existingContactMap.set(email, { id: "", assigned_to: null });
     toInsert.push({
       full_name: p.full_name || email.split("@")[0],
       email,
@@ -861,6 +1105,9 @@ export async function syncContactsFromOrders() {
       created_at: p.created_at as string,
       journey_stage: "lead",
       first_seen_at: p.created_at as string,
+      assigned_to: null,
+      assigned_at: null,
+      assignment_method: null,
     });
   }
 
@@ -869,5 +1116,5 @@ export async function syncContactsFromOrders() {
     await admin.from("crm_contacts").insert(toInsert);
   }
 
-  redirect(`/crm/contacts?synced=${toInsert.length}`);
+  redirect(`/crm/contacts?synced=${toInsert.length}&updated=${updatedCount}`);
 }

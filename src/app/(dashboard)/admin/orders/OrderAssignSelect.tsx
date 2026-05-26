@@ -56,16 +56,21 @@ export default function OrderAssignSelect({
     }
   }
 
+  const isUnassigned = value === "";
+
   return (
     <div className="flex flex-col gap-1">
       <select
         value={value}
         onChange={handleChange}
         disabled={submitting}
-        className="text-xs rounded-lg px-2 py-1 text-gray-200 focus:outline-none focus:border-[#D4A843] transition-colors disabled:opacity-60"
+        className="text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-[#D4A843] transition-colors disabled:opacity-60"
         style={{
-          background: "#1a1a1a",
-          border: "1px solid #2a2a2a",
+          background: isUnassigned ? "rgba(245,158,11,0.1)" : "#1a1a1a",
+          border: `1px solid ${
+            isUnassigned ? "rgba(245,158,11,0.25)" : "#2a2a2a"
+          }`,
+          color: isUnassigned ? "#f59e0b" : "#e5e7eb",
           minWidth: 140,
         }}
       >
