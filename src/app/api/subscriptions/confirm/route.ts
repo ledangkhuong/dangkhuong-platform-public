@@ -19,6 +19,12 @@ import type { BillingPeriod } from "@/lib/subscription";
  */
 export async function POST(req: NextRequest) {
   try {
+    // ── Guard: reject if INTERNAL_WEBHOOK_SECRET is not properly configured ──
+    if (!process.env.INTERNAL_WEBHOOK_SECRET || process.env.INTERNAL_WEBHOOK_SECRET === 'change-me-to-a-random-secret') {
+      console.error('INTERNAL_WEBHOOK_SECRET is not properly configured');
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 503 });
+    }
+
     // ── Auth guard: only internal webhooks or admins can call this ──
     const internalSecret = process.env.INTERNAL_WEBHOOK_SECRET;
     const authHeader = req.headers.get("authorization") || "";

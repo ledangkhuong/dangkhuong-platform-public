@@ -110,7 +110,6 @@ export async function POST(req: NextRequest) {
     let amount = baseAmount;
     let appliedCouponId: string | null = null;
     let appliedCouponCode: string | null = null;
-    let appliedCouponUsedCount: number | null = null;
 
     if (coupon_code && typeof coupon_code === "string") {
       const normalizedCode = coupon_code.trim().toUpperCase();
@@ -141,6 +140,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Đơn hàng không đạt giá trị tối thiểu để sử dụng mã này" }, { status: 400 });
       }
 
+      // Check per-user usage
+      const { count: userUsageCount } = await admin
+        .from("coupon_usages")
+        .select("id", { count: "exact", head: true })
+        .eq("coupon_id", coupon.id)
+        .eq("user_id", user.id);
+
+      if (userUsageCount && userUsageCount > 0) {
+        return NextResponse.json({ error: "Bạn đã sử dụng mã giảm giá này rồi" }, { status: 400 });
+      }
+
       // Calculate discount
       let discountAmount: number;
       if (coupon.discount_type === "percent") {
@@ -154,7 +164,6 @@ export async function POST(req: NextRequest) {
       amount = Math.max(baseAmount - discountAmount, 0);
       appliedCouponId = coupon.id;
       appliedCouponCode = normalizedCode;
-      appliedCouponUsedCount = coupon.used_count ?? 0;
     }
 
     // ── Reuse existing pending order for same user + product ──────
@@ -258,21 +267,23 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Increment coupon used_count and record usage
-    if (appliedCouponId && appliedCouponUsedCount !== null && order) {
-      await Promise.all([
-        admin
-          .from("coupons")
-          .update({ used_count: appliedCouponUsedCount + 1 })
-          .eq("id", appliedCouponId),
-        admin
-          .from("coupon_usages")
-          .insert({
-            coupon_id: appliedCouponId,
-            user_id: user.id,
-            order_id: order.id,
-          }),
-      ]);
+    // Atomically claim coupon and record usage
+    if (appliedCouponId && order) {
+      const { data: claimResult } = await admin.rpc('claim_coupon', {
+        p_coupon_id: appliedCouponId,
+        p_user_id: user.id
+      });
+      if (!claimResult?.success) {
+        console.warn(`Coupon claim post-order failed: ${JSON.stringify(claimResult)}`);
+      }
+      // Record usage for tracking
+      await admin
+        .from("coupon_usages")
+        .insert({
+          coupon_id: appliedCouponId,
+          user_id: user.id,
+          order_id: order.id,
+        });
     }
 
     // Thông tin thanh toán

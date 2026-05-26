@@ -119,7 +119,7 @@ export async function requestPayout() {
     redirect("/dashboard/affiliate?error=pending_payout");
   }
 
-  await admin.from("affiliate_payouts").insert({
+  const { error } = await admin.from("affiliate_payouts").insert({
     affiliate_id: affiliate.id,
     amount: available,
     status: "pending",
@@ -127,6 +127,15 @@ export async function requestPayout() {
     bank_account: affiliate.bank_account,
     bank_holder: affiliate.bank_holder,
   });
+
+  // Unique partial index prevents duplicate pending payouts (TOCTOU race)
+  if (error?.code === '23505') {
+    redirect("/dashboard/affiliate?error=pending_payout");
+  }
+  if (error) {
+    console.error("[Request Payout]", error);
+    redirect("/dashboard/affiliate?error=failed");
+  }
 
   redirect("/dashboard/affiliate?payout_requested=1");
 }

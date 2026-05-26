@@ -14,6 +14,12 @@ import { generateAbandonedCartEmail } from "@/lib/email/templates/abandoned-cart
  * Auth: Bearer token via CRON_SECRET env var
  */
 export async function GET(req: NextRequest) {
+  // ── Guard: reject if CRON_SECRET is not configured ─────────
+  if (!process.env.CRON_SECRET) {
+    console.error('CRON_SECRET is not configured');
+    return NextResponse.json({ error: "Server misconfigured" }, { status: 503 });
+  }
+
   // ── Auth ────────────────────────────────────────────────────
   const authHeader = req.headers.get("authorization") ?? "";
   const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;

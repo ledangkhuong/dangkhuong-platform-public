@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sanitizeSearchInput } from "@/lib/utils";
 
 // GET /api/email/subscribers — list subscribers with pagination, filtering, search
 export async function GET(req: NextRequest) {
@@ -53,10 +54,13 @@ export async function GET(req: NextRequest) {
         .eq("list_id", listId);
 
       if (search) {
-        query = query.or(
-          `email.ilike.%${search}%,full_name.ilike.%${search}%`,
-          { referencedTable: "subscribers" }
-        );
+        const safeSearch = sanitizeSearchInput(search);
+        if (safeSearch) {
+          query = query.or(
+            `email.ilike.%${safeSearch}%,full_name.ilike.%${safeSearch}%`,
+            { referencedTable: "subscribers" }
+          );
+        }
       }
       if (status) {
         query = query.eq("subscribers.status", status);
@@ -92,7 +96,10 @@ export async function GET(req: NextRequest) {
       .select("*", { count: "exact" });
 
     if (search) {
-      query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
+      const safeSearch = sanitizeSearchInput(search);
+      if (safeSearch) {
+        query = query.or(`email.ilike.%${safeSearch}%,full_name.ilike.%${safeSearch}%`);
+      }
     }
     if (status) {
       query = query.eq("status", status);

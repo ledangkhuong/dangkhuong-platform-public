@@ -47,10 +47,10 @@ export async function PATCH(req: NextRequest) {
           { status: 400 }
         );
       }
-      // Only admin can assign admin role
-      if (role === "admin" && myProfile?.role !== "admin") {
+      // Only admin can assign admin or manager roles
+      if (["admin", "manager"].includes(role) && myProfile?.role !== "admin") {
         return NextResponse.json(
-          { error: "Only admin can assign admin role" },
+          { error: "Chỉ admin mới có thể gán quyền này" },
           { status: 403 }
         );
       }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
 
 // GET /api/crm/contacts/[id] — Full 360° contact data
 export async function GET(
@@ -28,6 +29,9 @@ export async function GET(
 
   const adminClient = await createAdminClient();
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
 
   // Fetch contact
   const { data: contact, error: contactError } = await adminClient
@@ -121,6 +125,9 @@ export async function PATCH(
 
   const adminClient = await createAdminClient();
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
 
   const body = await req.json();
   const allowedFields = [
@@ -164,8 +171,10 @@ export async function PATCH(
     .select()
     .single();
 
-  if (updateError)
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) {
+    console.error("[crm/contacts PATCH]", updateError);
+    return NextResponse.json({ error: "Đã xảy ra lỗi" }, { status: 500 });
+  }
 
   // Log activity if status changed
   if (currentContact && body.status && body.status !== currentContact.status) {

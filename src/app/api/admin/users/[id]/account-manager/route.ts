@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ASSIGNABLE_ROLES } from "@/lib/sales";
 import { logAudit } from "@/lib/audit";
+import { isValidUUID } from "@/lib/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -36,8 +37,8 @@ export async function POST(
     }
 
     const { id } = await params;
-    if (!id)
-      return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+    if (!id || !isValidUUID(id))
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
 
     let body: { account_manager_id?: string | null };
     try {

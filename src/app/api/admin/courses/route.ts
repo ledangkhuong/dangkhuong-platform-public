@@ -29,11 +29,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
+    // Whitelist allowed fields to prevent mass assignment
+    const allowedFields = [
+      "title", "slug", "description", "description_html", "thumbnail",
+      "price", "sale_price", "type", "tier_required", "status",
+      "category", "sort_order", "instructor_id",
+    ] as const;
+
+    const courseData: Record<string, unknown> = {};
+    for (const key of allowedFields) {
+      if (key in body) {
+        courseData[key] = body[key];
+      }
+    }
+
     const admin = await createAdminClient();
 
     const { data, error } = await admin
       .from("products")
-      .insert(body)
+      .insert(courseData)
       .select("id")
       .single();
 

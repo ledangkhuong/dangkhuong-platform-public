@@ -15,6 +15,17 @@ export async function GET() {
 
   const adminClient = await createAdminClient();
 
+  // Verify admin or manager role
+  const { data: profile } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!["admin", "manager"].includes(profile?.role ?? "")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { data, error } = await adminClient
     .from("posts")
     .select(`*, profiles!posts_user_id_fkey(full_name, avatar_url)`)

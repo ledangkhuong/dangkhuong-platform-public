@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
 
 // GET /api/email/lists/[id] — get single list with subscriber preview
 export async function GET(
@@ -20,6 +21,9 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const supabase = await createAdminClient();
 
     // Fetch list details
@@ -81,6 +85,9 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const body = await req.json();
     const { name, description, color } = body;
 
@@ -144,6 +151,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const supabase = await createAdminClient();
 
     const { error } = await supabase

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 /**
  * POST /api/hocchuaxongtiendave/register
@@ -44,7 +45,19 @@ export async function POST(req: NextRequest) {
       email,
       phone,
       password,
+      turnstileToken,
     } = body;
+
+    // Turnstile CAPTCHA — only verify when server-side secret is configured AND client sent a token
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
+      const isHuman = await verifyTurnstile(turnstileToken);
+      if (!isHuman) {
+        return NextResponse.json(
+          { error: "Xác minh thất bại. Vui lòng thử lại." },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!email?.trim())
       return NextResponse.json(

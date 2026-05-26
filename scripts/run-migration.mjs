@@ -38,7 +38,7 @@ async function tryDirectConnection() {
     database: "postgres",
     user: "postgres",
     password: SERVICE_ROLE_KEY,
-    ssl: { rejectUnauthorized: false },
+    ssl: true,
     connectionTimeoutMillis: 10000,
   });
 
@@ -65,7 +65,7 @@ async function tryPoolerConnection(region) {
     database: "postgres",
     user: `postgres.${projectRef}`,
     password: SERVICE_ROLE_KEY,
-    ssl: { rejectUnauthorized: false },
+    ssl: true,
     connectionTimeoutMillis: 10000,
   });
 
@@ -91,7 +91,7 @@ async function trySessionPooler(region) {
     database: "postgres",
     user: `postgres.${projectRef}`,
     password: SERVICE_ROLE_KEY,
-    ssl: { rejectUnauthorized: false },
+    ssl: true,
     connectionTimeoutMillis: 10000,
   });
 

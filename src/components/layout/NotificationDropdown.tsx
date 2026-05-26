@@ -51,6 +51,16 @@ function getIcon(type: string, isBroadcast?: boolean): string {
   return TYPE_ICON[type] || "⚡";
 }
 
+/** XSS guard: only allow http(s) and relative URLs — block javascript: etc. */
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return ["http:", "https:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function NotificationDropdown() {
@@ -123,8 +133,10 @@ export default function NotificationDropdown() {
       setUnreadCount((c) => Math.max(0, c - 1));
     }
     setOpen(false);
-    // Navigate to link if available, otherwise go to notifications page
-    window.location.href = notif.link || "/notifications";
+    // Navigate to link if available and safe, otherwise go to notifications page
+    const target =
+      notif.link && isSafeUrl(notif.link) ? notif.link : "/notifications";
+    window.location.href = target;
   }
 
   const visible = notifications.slice(0, 6);

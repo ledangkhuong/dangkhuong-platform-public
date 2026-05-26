@@ -6,6 +6,7 @@ import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
 import { getPixelConfigBySlug } from "@/lib/pixel-config";
 import { syncAttributionToConversion } from "@/lib/attribution";
 import { VISITOR_COOKIE } from "@/lib/visitor-id";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 /**
  * POST /api/slowenglish/register
@@ -46,8 +47,19 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password } = body;
+    const { full_name, email, phone, password, turnstileToken } = body;
     const pkg = body.package as string;
+
+    // Turnstile CAPTCHA — only verify when server-side secret is configured AND client sent a token
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
+      const isHuman = await verifyTurnstile(turnstileToken);
+      if (!isHuman) {
+        return NextResponse.json(
+          { error: "Xác minh thất bại. Vui lòng thử lại." },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate
     if (!full_name?.trim())

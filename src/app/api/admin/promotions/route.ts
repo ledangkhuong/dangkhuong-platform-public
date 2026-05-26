@@ -3,10 +3,33 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 /**
  * GET /api/admin/promotions — list all promotions (admin) or active only (public)
+ * ?active=true is public; otherwise requires admin/manager auth.
  */
 export async function GET(req: NextRequest) {
-  const admin = await createAdminClient();
   const isPublic = req.nextUrl.searchParams.get("active") === "true";
+
+  // Non-public (full list) requires admin/manager auth
+  if (!isPublic) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || !["admin", "manager"].includes(profile.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  const admin = await createAdminClient();
 
   let query = admin
     .from("promotions")
@@ -113,15 +136,23 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { id, ...updates } = body;
+  const { id } = body;
   if (!id)
     return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+  // Whitelist allowed fields to prevent mass assignment
+  const allowed: Record<string, unknown> = {};
+  if (body.label !== undefined) allowed.label = body.label;
+  if (body.text !== undefined) allowed.text = body.text;
+  if (body.link !== undefined) allowed.link = body.link;
+  if (body.is_active !== undefined) allowed.is_active = body.is_active;
+  if (body.sort_order !== undefined) allowed.sort_order = body.sort_order;
 
   const admin = await createAdminClient();
 
   const { error } = await admin
     .from("promotions")
-    .update(updates)
+    .update(allowed)
     .eq("id", id);
 
   if (error)

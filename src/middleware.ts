@@ -52,10 +52,68 @@ function isProtectedRoute(pathname: string): boolean {
 // ---------------------------------------------------------------------------
 
 export default async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // --- Origin validation for state-changing API requests ----------------------
+  // Blocks cross-origin POST/PUT/PATCH/DELETE to API routes that are NOT
+  // external callbacks (payment webhooks, tracking pixels, cron, etc.).
+  if (pathname.startsWith("/api/")) {
+    const isStateChanging = ["POST", "PUT", "PATCH", "DELETE"].includes(
+      request.method
+    );
+    const exemptPrefixes = [
+      "/api/sepay/",
+      "/api/payos/",
+      "/api/email/webhook",
+      "/api/email/track",
+      "/api/zalo/",
+      "/api/cron/",
+      "/api/health",
+      "/api/affiliate/click",
+      "/api/analytics/",
+      "/api/capi/",
+      "/api/subscribe",
+    ];
+    const isExempt = exemptPrefixes.some((p) => pathname.startsWith(p));
+
+    if (isStateChanging && !isExempt) {
+      const origin = request.headers.get("origin");
+      const host = request.headers.get("host");
+      if (origin) {
+        const allowedOrigins = [
+          process.env.NEXT_PUBLIC_APP_URL,
+          `https://${host}`,
+          `http://${host}`, // dev
+        ].filter(Boolean);
+        if (
+          !allowedOrigins.some(
+            (ao) => origin === ao || origin.endsWith(".dangkhuong.com")
+          )
+        ) {
+          return new NextResponse(
+            JSON.stringify({ error: "Forbidden" }),
+            {
+              status: 403,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+    }
+
+    // API routes handle their own auth — skip Supabase session refresh and
+    // route protection below. Just forward with security headers.
+    const apiResponse = NextResponse.next();
+    for (const [key, value] of Object.entries(EXTRA_SECURITY_HEADERS)) {
+      apiResponse.headers.set(key, value);
+    }
+    return apiResponse;
+  }
+
   // --- 0. Forward current pathname to Server Components via request header.
   //         Used by <AutoPixel /> in root layout to look up DB-bound Pixel.
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-dk-pathname", request.nextUrl.pathname);
+  requestHeaders.set("x-dk-pathname", pathname);
 
   // --- 1. Prepare a mutable response so Supabase can write refreshed cookies ---
   let supabaseResponse = NextResponse.next({
@@ -107,8 +165,6 @@ export default async function middleware(request: NextRequest) {
 
   // --- 2. Route protection ---------------------------------------------------
 
-  const { pathname } = request.nextUrl;
-
   if (!user && isProtectedRoute(pathname)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = LOGIN_PATH;
@@ -134,12 +190,16 @@ export const config = {
   matcher: [
     /*
      * Match all request paths EXCEPT:
-     * - api           (API routes — they handle their own auth)
      * - _next/static  (static files)
      * - _next/image   (image optimisation)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - Common static asset extensions served from /public
+     *
+     * NOTE: API routes are included so the middleware can perform Origin
+     * validation on state-changing requests. The middleware early-returns
+     * for /api/ paths after the Origin check, skipping Supabase session
+     * refresh and route protection (API routes handle their own auth).
      */
-    "/((?!api|_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

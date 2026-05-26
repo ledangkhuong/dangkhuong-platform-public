@@ -1,6 +1,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sanitizeSearchInput } from "@/lib/utils";
 import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
 import OrderSearchBar from "@/components/admin/OrderSearchBar";
@@ -66,8 +67,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   let paginationCountQuery = supabase
     .from("orders")
     .select("*", { count: "exact", head: true });
-  if (query) {
-    const q = `%${query}%`;
+  const safeQuery = query ? sanitizeSearchInput(query) : "";
+  if (safeQuery) {
+    const q = `%${safeQuery}%`;
     paginationCountQuery = paginationCountQuery.or(
       `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
     );
@@ -130,8 +132,8 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     .select("*, products(title), assigned_profile:assigned_to(full_name)")
     .order("created_at", { ascending: false });
 
-  if (query) {
-    const q = `%${query}%`;
+  if (safeQuery) {
+    const q = `%${safeQuery}%`;
     dbQuery = dbQuery.or(
       `order_code.ilike.${q},customer_name.ilike.${q},customer_email.ilike.${q},customer_phone.ilike.${q}`
     );

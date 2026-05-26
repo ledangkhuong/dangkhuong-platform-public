@@ -1,5 +1,6 @@
 import TopBar from "@/components/layout/TopBar";
 import { createAdminClient } from "@/lib/supabase/server";
+import { sanitizeSearchInput } from "@/lib/utils";
 import { createContact, importContacts, syncContactsFromOrders } from "@/lib/actions/crm";
 import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
@@ -81,7 +82,10 @@ export default async function CRMContactsPage({
     query = query.eq("assigned_to", scope.userId);
   }
   if (q) {
-    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
+    const safeQ = sanitizeSearchInput(q);
+    if (safeQ) {
+      query = query.or(`full_name.ilike.%${safeQ}%,email.ilike.%${safeQ}%,phone.ilike.%${safeQ}%`);
+    }
   }
   if (statusFilter) {
     query = query.eq("status", statusFilter);

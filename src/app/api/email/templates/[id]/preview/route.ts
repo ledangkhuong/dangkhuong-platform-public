@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const SAMPLE_VARIABLES: Record<string, string> = {
   "{{name}}": "Nguyễn Văn A",
@@ -23,10 +23,22 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const supabase = await createAdminClient();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: template, error } = await supabase
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!profile || !["admin", "manager"].includes(profile.role))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const { id } = await params;
+
+    const { data: template, error } = await adminSupabase
       .from("email_templates")
       .select("html_content, subject")
       .eq("id", id)

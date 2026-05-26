@@ -227,17 +227,16 @@ export default function HocLamToolVideoLanding() {
   // Auto-detect returning customers by email
   const [emailCheck, setEmailCheck] = useState<{
     status: "idle" | "checking" | "exists" | "new";
-    fullName: string | null;
-  }>({ status: "idle", fullName: null });
+  }>({ status: "idle" });
 
   useEffect(() => {
     const email = form.email.trim();
     if (!email || !email.includes("@") || !email.includes(".")) {
-      setEmailCheck({ status: "idle", fullName: null });
+      setEmailCheck({ status: "idle" });
       return;
     }
     const handle = setTimeout(async () => {
-      setEmailCheck((s) => ({ ...s, status: "checking" }));
+      setEmailCheck({ status: "checking" });
       try {
         const res = await fetch("/api/hoclamtoolvideo/check-email", {
           method: "POST",
@@ -247,10 +246,9 @@ export default function HocLamToolVideoLanding() {
         const data = await res.json();
         setEmailCheck({
           status: data.exists ? "exists" : "new",
-          fullName: data.fullName ?? null,
         });
       } catch {
-        setEmailCheck({ status: "new", fullName: null });
+        setEmailCheck({ status: "new" });
       }
     }, 600);
     return () => clearTimeout(handle);
@@ -1170,7 +1168,7 @@ export default function HocLamToolVideoLanding() {
                 <Sparkles size={16} className="shrink-0 mt-0.5" style={{ color: "#34D399" }} />
                 <div className="leading-relaxed">
                   <div className="font-semibold" style={{ color: "#34D399" }}>
-                    Chào mừng quay lại{emailCheck.fullName ? `, ${emailCheck.fullName}` : ""}!
+                    Chào mừng quay lại!
                   </div>
                   <div className="text-[13px] mt-0.5" style={{ color: "rgba(241,245,251,0.7)" }}>
                     Email này đã có tài khoản — chỉ cần nhập đúng mật khẩu để tiếp tục.

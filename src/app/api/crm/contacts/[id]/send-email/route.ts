@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { sendEmail } from "@/lib/email/ses";
 import { logAudit } from "@/lib/audit";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * POST /api/crm/contacts/[id]/send-email
@@ -35,9 +36,9 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    if (!id) {
+    if (!id || !isValidUUID(id)) {
       return NextResponse.json(
-        { error: "Missing contact id" },
+        { error: "Invalid ID format" },
         { status: 400 }
       );
     }

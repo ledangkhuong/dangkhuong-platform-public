@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isValidUUID } from "@/lib/utils";
 
 // GET /api/community/posts/[id] — lấy 1 post cụ thể
 export async function GET(
@@ -18,7 +17,7 @@ export async function GET(
 
     const { id } = await params;
 
-    if (!UUID_REGEX.test(id)) {
+    if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
@@ -53,7 +52,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    if (!UUID_REGEX.test(id)) {
+    if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 

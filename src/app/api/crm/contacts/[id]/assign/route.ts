@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ASSIGNABLE_ROLES } from "@/lib/sales";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * POST /api/crm/contacts/[id]/assign
@@ -30,8 +31,8 @@ export async function POST(
     }
 
     const { id } = await params;
-    if (!id)
-      return NextResponse.json({ error: "Missing contact id" }, { status: 400 });
+    if (!id || !isValidUUID(id))
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
 
     let body: { assigned_to?: string | null };
     try {

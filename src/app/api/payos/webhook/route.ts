@@ -173,19 +173,23 @@ export async function POST(req: NextRequest) {
     // 5b. Handle subscription orders
     if (order.payment_method === "subscription") {
       try {
-        const confirmHeaders: Record<string, string> = { "Content-Type": "application/json" };
-        if (process.env.INTERNAL_WEBHOOK_SECRET) {
-          confirmHeaders["Authorization"] = `Bearer ${process.env.INTERNAL_WEBHOOK_SECRET}`;
-        }
-        const confirmRes = await fetch(new URL("/api/subscriptions/confirm", req.url).toString(), {
-          method: "POST",
-          headers: confirmHeaders,
-          body: JSON.stringify({ order_id: order.id }),
-        });
-        if (!confirmRes.ok) {
-          console.warn("[PayOS] Subscription confirm failed:", await confirmRes.text());
+        if (!process.env.INTERNAL_WEBHOOK_SECRET || process.env.INTERNAL_WEBHOOK_SECRET === 'change-me-to-a-random-secret') {
+          console.error('[PayOS] INTERNAL_WEBHOOK_SECRET is not properly configured, skipping subscription confirm');
         } else {
-          console.log(`[PayOS] ✅ Subscription activated for order ${order.order_code}`);
+          const confirmHeaders: Record<string, string> = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.INTERNAL_WEBHOOK_SECRET}`,
+          };
+          const confirmRes = await fetch(new URL("/api/subscriptions/confirm", req.url).toString(), {
+            method: "POST",
+            headers: confirmHeaders,
+            body: JSON.stringify({ order_id: order.id }),
+          });
+          if (!confirmRes.ok) {
+            console.warn("[PayOS] Subscription confirm failed:", await confirmRes.text());
+          } else {
+            console.log(`[PayOS] ✅ Subscription activated for order ${order.order_code}`);
+          }
         }
       } catch (subErr) {
         console.error("[PayOS] Subscription confirm error:", subErr);

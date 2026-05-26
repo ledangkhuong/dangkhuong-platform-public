@@ -93,35 +93,30 @@ export async function POST(req: NextRequest) {
       .eq("code", code.trim().toUpperCase())
       .single();
 
-    if (couponError || !coupon) {
-      return Response.json(
-        { valid: false, error: "Mã giảm giá không tồn tại" },
-        { status: 200 }
+    // Unified error message prevents coupon enumeration attacks
+    const invalidCouponResponse = () =>
+      Response.json(
+        { valid: false, error: "Mã giảm giá không hợp lệ" },
+        { status: 400 }
       );
+
+    if (couponError || !coupon) {
+      return invalidCouponResponse();
     }
 
     // Check is_active
     if (!coupon.is_active) {
-      return Response.json(
-        { valid: false, error: "Mã giảm giá đã bị vô hiệu hoá" },
-        { status: 200 }
-      );
+      return invalidCouponResponse();
     }
 
     // Check expiry
     if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      return Response.json(
-        { valid: false, error: "Mã giảm giá đã hết hạn" },
-        { status: 200 }
-      );
+      return invalidCouponResponse();
     }
 
     // Check usage limit
     if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
-      return Response.json(
-        { valid: false, error: "Mã giảm giá đã hết lượt sử dụng" },
-        { status: 200 }
-      );
+      return invalidCouponResponse();
     }
 
     // Check min order amount

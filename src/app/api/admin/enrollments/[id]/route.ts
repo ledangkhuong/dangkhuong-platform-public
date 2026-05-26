@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { logAudit } from "@/lib/audit";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * DELETE /api/admin/enrollments/[id]
@@ -11,6 +12,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: enrollmentId } = await params;
+  if (!isValidUUID(enrollmentId)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
 
   // Auth check
   const supabase = await createClient();

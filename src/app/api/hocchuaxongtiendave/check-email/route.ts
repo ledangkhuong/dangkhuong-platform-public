@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/hocchuaxongtiendave/check-email
  * Body: { email }
- * Returns: { exists: boolean, fullName?: string | null }
+ * Returns: { exists: boolean }
  *
  * Used by the landing page to auto-detect returning customers and adjust
  * the form UI (hide name/phone fields when the email already has an account).
@@ -29,7 +28,6 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmed = email.trim().toLowerCase();
-    const admin = await createAdminClient();
 
     // Look up user by email via the GoTrue admin REST API with a filter.
     // The JS client's listUsers() only returns one page and will miss users
@@ -54,19 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ exists: false });
     }
 
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("full_name")
-      .eq("id", matchedUser.id)
-      .maybeSingle();
-
-    return NextResponse.json({
-      exists: true,
-      fullName:
-        profile?.full_name ||
-        (matchedUser.user_metadata?.full_name as string | undefined) ||
-        null,
-    });
+    return NextResponse.json({ exists: true });
   } catch (err) {
     console.error("[CheckEmail Error]", err);
     return NextResponse.json({ exists: false });

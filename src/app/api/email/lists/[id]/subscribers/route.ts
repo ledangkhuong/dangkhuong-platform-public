@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // GET /api/email/lists/[id]/subscribers — list subscribers in this list
 export async function GET(
@@ -7,6 +7,18 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabaseAuth
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { id } = await params;
     const searchParams = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
@@ -78,6 +90,18 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabaseAuth
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { id } = await params;
     const body = await req.json();
     const { subscriber_ids } = body;
@@ -137,6 +161,18 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabaseAuth
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!["admin", "manager"].includes(profile?.role ?? ""))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { id } = await params;
     const body = await req.json();
     const { subscriber_ids } = body;

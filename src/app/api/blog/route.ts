@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/blog?id=xxx — fetch single blog post for editing
 export async function GET(req: NextRequest) {
@@ -47,6 +49,19 @@ export async function GET(req: NextRequest) {
 // POST /api/blog — create or update blog post
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 10 requests per minute per IP
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const rl = await rateLimit(`blog-post:${ip}`, 10, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -86,22 +101,25 @@ export async function POST(req: NextRequest) {
 
     const admin = await createAdminClient();
 
-    // Generate slug if not provided
-    const finalSlug =
-      slug?.trim() ||
-      title
-        .trim()
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .slice(0, 80);
+    // Generate slug if not provided, sanitize in all cases
+    const finalSlug = (slug?.trim() || title.trim())
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/--+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 80);
+
+    // Sanitize HTML content at storage time (defense-in-depth)
+    const sanitizedContent = content?.trim() ? sanitizeHtml(content.trim()) : null;
+    const sanitizedBody = body?.trim() ? sanitizeHtml(body.trim()) : null;
 
     const postData: Record<string, unknown> = {
       title: title.trim(),
       slug: finalSlug,
       excerpt: excerpt?.trim() || null,
-      content: content?.trim() || body?.trim() || null,
-      body: body?.trim() || content?.trim() || null,
+      content: sanitizedContent || sanitizedBody || null,
+      body: sanitizedBody || sanitizedContent || null,
       category: category?.trim() || null,
       tags: tags || null,
       status: status || "draft",
@@ -176,6 +194,19 @@ export async function POST(req: NextRequest) {
 // DELETE /api/blog?id=xxx — delete blog post
 export async function DELETE(req: NextRequest) {
   try {
+    // Rate limit: 5 requests per minute per IP
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const rl = await rateLimit(`blog-delete:${ip}`, 5, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -266,7 +297,7 @@ async function sendBlogNotificationEmail(admin: any, post: any) {
             <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2 style="color: #D4A843;">${safeTitle}</h2>
               ${safeExcerpt ? `<p style="color: #666;">${safeExcerpt}</p>` : ""}
-              <a href="${baseUrl}/blog/${post.slug}"
+              <a href="${baseUrl}/blog/${encodeURIComponent(post.slug)}"
                  style="display: inline-block; padding: 12px 24px; background: #D4A843; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
                 Đọc bài viết
               </a>

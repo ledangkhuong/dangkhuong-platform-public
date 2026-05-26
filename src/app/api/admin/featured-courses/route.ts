@@ -4,11 +4,33 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 /**
  * GET /api/admin/featured-courses
  * - ?active=true → public: returns active featured courses with product details
- * - otherwise → admin: returns all featured courses with product details
+ * - otherwise → admin: returns all featured courses with product details (requires admin/manager)
  */
 export async function GET(req: NextRequest) {
-  const admin = await createAdminClient();
   const isPublic = req.nextUrl.searchParams.get("active") === "true";
+
+  // Non-public (full list) requires admin/manager auth
+  if (!isPublic) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || !["admin", "manager"].includes(profile.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  const admin = await createAdminClient();
 
   let query = admin
     .from("featured_courses")

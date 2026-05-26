@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { isValidUUID } from "@/lib/utils";
 
 export async function POST(
   request: NextRequest,
@@ -7,6 +8,9 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
 
     // Auth check
     const supabase = await createClient();

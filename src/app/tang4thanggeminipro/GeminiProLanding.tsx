@@ -30,17 +30,17 @@ export default function GeminiProLanding() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Check existing email
-  const [emailCheck, setEmailCheck] = useState<{ status: "idle" | "checking" | "exists" | "new"; fullName: string | null }>({ status: "idle", fullName: null });
+  const [emailCheck, setEmailCheck] = useState<{ status: "idle" | "checking" | "exists" | "new" }>({ status: "idle" });
   useEffect(() => {
     const email = form.email.trim();
-    if (!email || !email.includes("@") || !email.includes(".")) { setEmailCheck({ status: "idle", fullName: null }); return; }
+    if (!email || !email.includes("@") || !email.includes(".")) { setEmailCheck({ status: "idle" }); return; }
     const handle = setTimeout(async () => {
-      setEmailCheck((s) => ({ ...s, status: "checking" }));
+      setEmailCheck({ status: "checking" });
       try {
         const res = await fetch("/api/geminipro/check-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
         const data = await res.json();
-        setEmailCheck({ status: data.exists ? "exists" : "new", fullName: data.fullName ?? null });
-      } catch { setEmailCheck({ status: "new", fullName: null }); }
+        setEmailCheck({ status: data.exists ? "exists" : "new" });
+      } catch { setEmailCheck({ status: "new" }); }
     }, 600);
     return () => clearTimeout(handle);
   }, [form.email]);
@@ -212,7 +212,7 @@ export default function GeminiProLanding() {
                 </div>
                 {emailCheck.status === "exists" && (
                   <div className="flex items-center gap-1.5 mt-1.5 text-[11px]" style={{ color: "#34A853" }}>
-                    <CheckCircle size={12} /> Chào mừng trở lại{emailCheck.fullName ? `, ${emailCheck.fullName}` : ""}!
+                    <CheckCircle size={12} /> Chào mừng trở lại!
                   </div>
                 )}
               </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
 
 const VALID_CATEGORIES = ["marketing", "transactional", "newsletter", "automation"];
 
@@ -23,6 +24,9 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
 
     const { data, error } = await adminSupabase
       .from("email_templates")
@@ -66,6 +70,9 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const body = await req.json();
     const { name, subject, html_content, text_content, category, variables, thumbnail_url, is_active } = body;
 
@@ -146,6 +153,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
 
     const { error } = await adminSupabase
       .from("email_templates")

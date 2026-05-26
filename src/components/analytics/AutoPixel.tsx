@@ -25,6 +25,14 @@ export default async function AutoPixel() {
   return (
     <>
       {pixels.map((p) => {
+        // XSS guard: pixel_id MUST be purely numeric (Facebook Pixel IDs are
+        // 15–16 digit numbers). Reject anything else to prevent script injection.
+        const safePixelId =
+          p.pixel_id && /^\d+$/.test(String(p.pixel_id))
+            ? String(p.pixel_id)
+            : null;
+        if (!safePixelId) return null;
+
         // Inline script: Meta Pixel base + auto-consent + init
         //
         // QUYẾT ĐỊNH KIẾN TRÚC: AutoPixel chỉ render khi pixel_config đã được
@@ -44,13 +52,13 @@ try {
   }
 } catch(e) {}
 
-function loadPixel${p.pixel_id}(){
-  if(window.fbq&&window.fbq.getState){var ps=window.fbq.getState().pixels||[];for(var i=0;i<ps.length;i++){if(ps[i].id==='${p.pixel_id}')return;}}
+function loadPixel${safePixelId}(){
+  if(window.fbq&&window.fbq.getState){var ps=window.fbq.getState().pixels||[];for(var i=0;i<ps.length;i++){if(ps[i].id==='${safePixelId}')return;}}
   !function(f,b,e,v,n,t,s){if(f.fbq){n=f.fbq}else{n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];if(s&&s.parentNode){s.parentNode.insertBefore(t,s)}else{b.head.appendChild(t)}}}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  window.fbq('init','${p.pixel_id}');
+  window.fbq('init','${safePixelId}');
   window.fbq('track','PageView');
 }
-loadPixel${p.pixel_id}();
+loadPixel${safePixelId}();
 })();`;
 
         return (
@@ -61,12 +69,12 @@ loadPixel${p.pixel_id}();
             />
             <noscript
               dangerouslySetInnerHTML={{
-                __html: `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${p.pixel_id}&ev=PageView&noscript=1" alt="" />`,
+                __html: `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${safePixelId}&ev=PageView&noscript=1" alt="" />`,
               }}
             />
             <PagePixelClient
               slug={p.slug}
-              pixelId={p.pixel_id}
+              pixelId={safePixelId}
               hasCapi={Boolean(p.capi_access_token)}
             />
           </span>

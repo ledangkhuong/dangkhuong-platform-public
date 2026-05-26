@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * GET /api/admin/courses/[id] — fetch a single course (bypasses RLS)
@@ -9,6 +10,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
 
   const supabase = await createClient();
   const {
@@ -54,6 +58,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
 
   const supabase = await createClient();
   const {
@@ -113,8 +120,9 @@ export async function PUT(
     .eq("id", id);
 
   if (error) {
+    console.error("[admin/courses PUT]", error);
     return NextResponse.json(
-      { error: `Lỗi khi cập nhật: ${error.message}` },
+      { error: "Đã xảy ra lỗi" },
       { status: 500 }
     );
   }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // POST /api/email/templates/[id]/duplicate — duplicate a template
 export async function POST(
@@ -7,11 +7,23 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const adminSupabase = await createAdminClient();
+    const { data: profile } = await adminSupabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!profile || !["admin", "manager"].includes(profile.role))
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
     const { id } = await params;
-    const supabase = await createAdminClient();
 
     // Fetch original template
-    const { data: original, error: fetchError } = await supabase
+    const { data: original, error: fetchError } = await adminSupabase
       .from("email_templates")
       .select("*")
       .eq("id", id)
@@ -25,7 +37,7 @@ export async function POST(
     }
 
     // Create a copy with modified name
-    const { data: duplicate, error: insertError } = await supabase
+    const { data: duplicate, error: insertError } = await adminSupabase
       .from("email_templates")
       .insert({
         name: `${original.name} (Copy)`,

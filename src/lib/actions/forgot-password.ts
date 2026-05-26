@@ -4,12 +4,19 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { sendPasswordResetEmail } from "@/lib/email/transactional";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function forgotPassword(formData: FormData) {
   const email = (formData.get("email") as string)?.trim();
 
   if (!email) {
     redirect("/forgot-password?error=" + encodeURIComponent("Vui lòng nhập email."));
+  }
+
+  // Rate limit: 3 requests per email per 15 minutes
+  const rl = await rateLimit(`forgot-password:${email.toLowerCase()}`, 3, 900);
+  if (!rl.allowed) {
+    redirect("/forgot-password?error=" + encodeURIComponent("Quá nhiều yêu cầu. Vui lòng thử lại sau."));
   }
 
   const headersList = await headers();

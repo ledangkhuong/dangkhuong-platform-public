@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
 
 // GET /api/email/automations/[id] — get single automation with full flow_definition
 export async function GET(
@@ -27,6 +28,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const admin = await createAdminClient();
 
     // Fetch the automation
@@ -114,6 +118,9 @@ export async function PUT(
     }
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const admin = await createAdminClient();
 
     // Fetch existing automation
@@ -184,8 +191,9 @@ export async function PUT(
       .single();
 
     if (updateError) {
+      console.error("[email/automations PUT]", updateError);
       return NextResponse.json(
-        { error: updateError.message },
+        { error: "Đã xảy ra lỗi" },
         { status: 500 }
       );
     }
@@ -226,6 +234,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const admin = await createAdminClient();
 
     // Verify automation exists
@@ -249,8 +260,9 @@ export async function DELETE(
       .eq("id", id);
 
     if (deleteError) {
+      console.error("[email/automations DELETE]", deleteError);
       return NextResponse.json(
-        { error: deleteError.message },
+        { error: "Đã xảy ra lỗi" },
         { status: 500 }
       );
     }

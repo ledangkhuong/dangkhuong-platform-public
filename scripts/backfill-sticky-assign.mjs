@@ -193,7 +193,7 @@ async function tryConn(label, config) {
   console.log(`\n--- ${label} ---`);
   const client = new pg.Client({
     ...config,
-    ssl: { rejectUnauthorized: false },
+    ssl: true,
     connectionTimeoutMillis: 8000,
   });
   try {

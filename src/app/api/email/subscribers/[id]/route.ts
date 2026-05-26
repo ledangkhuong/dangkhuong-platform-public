@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
 
 // GET /api/email/subscribers/[id] — get single subscriber with lists and recent sends
 export async function GET(
@@ -26,6 +27,9 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
 
     // Fetch subscriber
     const { data: subscriber, error } = await admin
@@ -103,6 +107,9 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
     const body = await req.json();
     const { full_name, phone, status, tags, metadata } = body;
 
@@ -187,6 +194,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
 
     const { error } = await admin
       .from("subscribers")

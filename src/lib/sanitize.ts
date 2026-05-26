@@ -30,7 +30,7 @@ export function sanitizeHtml(dirty: string): string {
       "details", "summary",
     ],
     allowedAttributes: {
-      "*": ["class", "id", "style", "data-*"],
+      "*": ["class", "id", "data-*"],
       a: ["href", "target", "rel", "title"],
       img: ["src", "alt", "width", "height", "loading", "srcset", "sizes"],
       iframe: ["src", "width", "height", "frameborder", "allow", "allowfullscreen", "title"],
@@ -42,6 +42,18 @@ export function sanitizeHtml(dirty: string): string {
       ol: ["start", "type"],
       col: ["span"],
       colgroup: ["span"],
+    },
+    // Only allow safe CSS properties via style attribute (sanitize-html
+    // re-adds "style" to allowedAttributes automatically when allowedStyles
+    // is provided, but restricts values to these patterns).
+    allowedStyles: {
+      "*": {
+        "text-align": [/^(left|right|center|justify)$/],
+        color: [/^#[0-9a-fA-F]{3,6}$/],
+        "background-color": [/^#[0-9a-fA-F]{3,6}$/],
+        "font-weight": [/^(bold|normal|\d{3})$/],
+        "font-size": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+      },
     },
     allowedIframeHostnames: [
       "www.youtube.com",

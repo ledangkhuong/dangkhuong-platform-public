@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CRM_JOURNEY_STAGES } from "@/lib/crm-constants";
 import { getStickyAssignment } from "@/lib/sticky-assign";
+import { rateLimit } from "@/lib/rate-limit";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,13 @@ async function requireStaff() {
 /** Tạo contact mới trong CRM */
 export async function createContact(formData: FormData) {
   const { user } = await requireStaff();
+
+  // Rate limit: 10 requests per minute per user
+  const rl = await rateLimit(`crm-create-contact:${user.id}`, 10, 60);
+  if (!rl.allowed) {
+    redirect("/crm/contacts?error=rate_limited");
+  }
+
   const admin = await createAdminClient();
 
   const fullName = (formData.get("full_name") as string || "").trim();
@@ -744,7 +752,13 @@ export async function importContacts(formData: FormData) {
 
 /** Gán contact cho sales rep (thủ công) */
 export async function assignContact(formData: FormData) {
-  const { user } = await requireStaff();
+  const { user, role } = await requireStaff();
+
+  // Chỉ admin/manager mới có thể phân công khách hàng
+  if (!["admin", "manager"].includes(role)) {
+    redirect("/crm/contacts?error=forbidden");
+  }
+
   const admin = await createAdminClient();
 
   const contactId = formData.get("contact_id") as string;
@@ -831,7 +845,19 @@ export async function assignContact(formData: FormData) {
 
 /** Gán nhiều contacts cho 1 rep */
 export async function bulkAssignContacts(formData: FormData) {
-  const { user } = await requireStaff();
+  const { user, role } = await requireStaff();
+
+  // Chỉ admin/manager mới có thể phân công khách hàng
+  if (!["admin", "manager"].includes(role)) {
+    redirect("/crm/assignments?error=forbidden");
+  }
+
+  // Rate limit: 5 requests per minute per user
+  const rl = await rateLimit(`crm-bulk-assign:${user.id}`, 5, 60);
+  if (!rl.allowed) {
+    redirect("/crm/assignments?error=rate_limited");
+  }
+
   const admin = await createAdminClient();
 
   const contactIdsRaw = (formData.get("contact_ids") as string || "").trim();
@@ -912,7 +938,13 @@ export async function bulkAssignContacts(formData: FormData) {
 
 /** Auto-assign leads theo round-robin */
 export async function autoAssignLeads(formData: FormData) {
-  const { user } = await requireStaff();
+  const { user, role } = await requireStaff();
+
+  // Chỉ admin/manager mới có thể phân công khách hàng
+  if (!["admin", "manager"].includes(role)) {
+    redirect("/crm/assignments?error=forbidden");
+  }
+
   const admin = await createAdminClient();
 
   const method = (formData.get("method") as string || "round_robin").trim();

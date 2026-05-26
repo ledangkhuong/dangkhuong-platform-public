@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { CRM_JOURNEY_STAGES } from "@/lib/crm-constants";
+import { isValidUUID } from "@/lib/utils";
 
 const ALLOWED_STAGES: readonly string[] = CRM_JOURNEY_STAGES;
 
@@ -31,6 +32,9 @@ export async function POST(
 
   const adminClient = await createAdminClient();
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
 
   const { stage } = await req.json();
 
@@ -65,8 +69,10 @@ export async function POST(
     .select()
     .single();
 
-  if (updateError)
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) {
+    console.error("[crm/contacts/journey POST]", updateError);
+    return NextResponse.json({ error: "Đã xảy ra lỗi" }, { status: 500 });
+  }
 
   // Log journey_change activity
   await adminClient.from("crm_activities").insert({

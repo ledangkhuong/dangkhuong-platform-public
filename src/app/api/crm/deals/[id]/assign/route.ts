@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { ASSIGNABLE_ROLES } from "@/lib/sales";
 import { logAudit } from "@/lib/audit";
 import { propagateToContact } from "@/lib/sticky-assign";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * POST /api/crm/deals/[id]/assign
@@ -32,8 +33,8 @@ export async function POST(
     }
 
     const { id } = await params;
-    if (!id)
-      return NextResponse.json({ error: "Missing deal id" }, { status: 400 });
+    if (!id || !isValidUUID(id))
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
 
     let body: { assigned_to?: string | null };
     try {

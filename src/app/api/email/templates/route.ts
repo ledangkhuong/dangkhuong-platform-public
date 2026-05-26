@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sanitizeSearchInput } from "@/lib/utils";
 
 const VALID_CATEGORIES = ["marketing", "transactional", "newsletter", "automation"];
 
@@ -38,9 +39,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (search) {
-      query = query.or(
-        `name.ilike.%${search}%,subject.ilike.%${search}%`
-      );
+      const safeSearch = sanitizeSearchInput(search);
+      if (safeSearch) {
+        query = query.or(
+          `name.ilike.%${safeSearch}%,subject.ilike.%${safeSearch}%`
+        );
+      }
     }
 
     const { data, error } = await query;

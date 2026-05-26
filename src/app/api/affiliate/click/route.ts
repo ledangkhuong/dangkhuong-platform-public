@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // Verify affiliate exists and is active
     const { data: affiliate } = await supabase
       .from("affiliates")
-      .select("id, status, total_clicks")
+      .select("id, status")
       .eq("ref_code", code)
       .single();
 
@@ -62,11 +62,8 @@ export async function POST(req: NextRequest) {
       referrer: referrer?.slice(0, 500) || null,
     });
 
-    // Increment click counter
-    await supabase
-      .from("affiliates")
-      .update({ total_clicks: (affiliate.total_clicks || 0) + 1, updated_at: new Date().toISOString() })
-      .eq("id", affiliate.id);
+    // Atomic increment click counter via RPC (prevents race conditions)
+    await supabase.rpc('increment_affiliate_clicks', { p_affiliate_id: affiliate.id });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
