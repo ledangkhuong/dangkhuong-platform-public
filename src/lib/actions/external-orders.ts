@@ -18,6 +18,29 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "crypto";
+
+/**
+ * Generate a DK-prefixed order code identical in shape to the one the
+ * real checkout uses in `/api/orders/create`. `orders.order_code` is
+ * NOT NULL with a unique constraint, so we must provide it or the
+ * insert blows up — that was the root cause of the first failed
+ * "Cấp khóa (đã thanh toán ngoài)" submission.
+ */
+function generateOrderCode(prefix = "DK", length = 12): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const maxValid = 256 - (256 % chars.length);
+  let result = prefix;
+  while (result.length < prefix.length + length) {
+    const bytes = randomBytes(length - (result.length - prefix.length));
+    for (const byte of bytes) {
+      if (byte < maxValid && result.length < prefix.length + length) {
+        result += chars[byte % chars.length];
+      }
+    }
+  }
+  return result;
+}
 
 const VALID_CHANNELS = [
   "facebook",
@@ -164,68 +187,96 @@ export async function createExternalOrder(formData: FormData) {
   }
 
   // ─── 5. Insert the order ──────────────────────────────────
-  // `created_at` stays = now() (when the admin recorded it). The real
-  // payment date lives in `external_paid_at`. `paid_at` is the order's
-  // canonical paid timestamp; we use `external_paid_at` (as a timestamp)
-  // so it appears in historical period KPIs. The trigger that fires on
-  // `status=paid` doesn't care about source — it advances journey_stage.
-  const now = new Date().toISOString();
-  // Promote YYYY-MM-DD to an ISO timestamp at VN noon — keeps the order
-  // inside the right VN day for the paid_at-based daily revenue buckets.
-  const paidAtTimestamp = `${externalPaidAt}T05:00:00.000Z`; // 05:00Z = 12:00 VN
+  // Mirror what `/api/orders/create` does — that's the source-of-truth
+  // for the orders schema. Key NOT NULL columns we MUST send:
+  //   - order_code (cryptographic, unique)
+  //   - user_id    (FK to auth.users — fall back to the staff recording
+  //                 the order if the buyer hasn't registered yet)
+  //   - product_id, amount, status, payment_method,
+  //     customer_name, customer_email, customer_phone
+  //
+  // We DO NOT pass `created_at` (DB default) or `updated_at` (trigger).
+  // `paid_at` we still set so the order lands in the right VN-day
+  // bucket; if the column is missing in some envs the retry below
+  // strips it.
+  // Promote YYYY-MM-DD to an ISO timestamp at VN noon.
+  const paidAtTimestamp = `${externalPaidAt}T05:00:00.000Z`;
+
+  // Buyer fallback: if we couldn't resolve the customer's auth.users id
+  // (they've paid externally but never signed up on the site), reuse
+  // the staff member's user id so the FK + NOT NULL hold. Enrolment
+  // below is still gated on a real `buyerUserId`, so we'll skip
+  // granting course access until the customer signs up — the existing
+  // contact↔user-id trigger will reconcile on signup.
+  const orderUserId = buyerUserId ?? scope.userId;
 
   const orderPayload: Record<string, unknown> = {
+    order_code: generateOrderCode(),
+    user_id: orderUserId,
     product_id: courseId,
     customer_email: contact.email ?? null,
     customer_name: contact.full_name ?? null,
     customer_phone: contact.phone ?? null,
     amount: Math.round(amountNum),
     status: "paid",
+    payment_method: "external_migrated",
     paid_at: paidAtTimestamp,
-    created_at: now,
     revenue_source: "external",
     external_paid_at: externalPaidAt,
     external_channel: channel,
     external_note: note,
     assigned_to: (contact.assigned_to as string | null) ?? null,
-    user_id: buyerUserId,
     note: `Cấp truy cập (đã thanh toán ngoài qua ${channel} ngày ${externalPaidAt})`,
   };
 
-  // Try to attach payment_method if the column exists. If the schema
-  // doesn't have it we retry without — fail-soft.
-  const tryWithPaymentMethod = await admin
+  // Try the full payload first.
+  let attempt = await admin
     .from("orders")
-    .insert({ ...orderPayload, payment_method: "external_migrated" })
+    .insert(orderPayload)
     .select("id, order_code")
     .single();
 
-  let insertedOrder = tryWithPaymentMethod.data as
+  let insertedOrder = attempt.data as
     | { id: string; order_code: string | null }
     | null;
-  let insertErr = tryWithPaymentMethod.error;
+  let insertErr = attempt.error;
 
-  if (insertErr) {
-    // PostgREST returns a column-missing error code (PGRST204 / 42703) when
-    // a column is unknown. Retry without payment_method.
+  // If a specific column is unknown in this env (PGRST204 / 42703 /
+  // "column ... does not exist"), strip the suspect optional columns
+  // one at a time and retry. We try in order of most-likely-missing.
+  const OPTIONAL_COLUMNS = [
+    "paid_at",
+    "payment_method",
+    "note",
+    "external_paid_at",
+    "external_channel",
+    "external_note",
+    "revenue_source",
+  ] as const;
+
+  for (const col of OPTIONAL_COLUMNS) {
+    if (!insertErr) break;
     const errCode =
       (insertErr as { code?: string } | null)?.code?.toString() ?? "";
     const errMsg = insertErr.message ?? "";
-    const looksLikeMissingColumn =
+    const looksLikeMissing =
       errCode === "PGRST204" ||
       errCode === "42703" ||
-      /column.*payment_method/i.test(errMsg);
-    if (looksLikeMissingColumn) {
-      const retry = await admin
-        .from("orders")
-        .insert(orderPayload)
-        .select("id, order_code")
-        .single();
-      insertedOrder = retry.data as
-        | { id: string; order_code: string | null }
-        | null;
-      insertErr = retry.error;
-    }
+      new RegExp(`column.*${col}`, "i").test(errMsg);
+    if (!looksLikeMissing) break;
+    // Drop this column from the payload and retry.
+    const slim: Record<string, unknown> = { ...orderPayload };
+    delete slim[col];
+    Object.assign(orderPayload, slim);
+    const retry = await admin
+      .from("orders")
+      .insert(slim)
+      .select("id, order_code")
+      .single();
+    insertedOrder = retry.data as
+      | { id: string; order_code: string | null }
+      | null;
+    insertErr = retry.error;
   }
 
   if (insertErr || !insertedOrder) {
