@@ -235,7 +235,14 @@ export async function createExternalOrder(formData: FormData) {
     customer_phone: contact.phone ?? null,
     amount: Math.round(amountNum),
     status: "paid",
-    payment_method: "external_migrated",
+    // payment_method has a CHECK constraint that only allows the
+    // platform's native payment values ('bank_transfer', 'coupon', ...).
+    // We use 'bank_transfer' as a safe placeholder — the real external
+    // channel is captured in `external_channel` (facebook/zalo/cash/...)
+    // and `revenue_source='external'` already flags this as not-platform
+    // cash. Adding 'external_migrated' to the CHECK is a future cleanup
+    // but would require a migration; keep this commit deploy-safe.
+    payment_method: "bank_transfer",
     paid_at: paidAtTimestamp,
     revenue_source: "external",
     external_paid_at: externalPaidAt,
