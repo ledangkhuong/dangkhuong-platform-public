@@ -1,9 +1,10 @@
 import TopBar from "@/components/layout/TopBar";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getRevenueSplit } from "@/lib/orders-revenue";
 import Link from "next/link";
 import {
   TrendingUp, ShoppingCart, Users, DollarSign,
-  BarChart2, Package, AlertCircle,
+  BarChart2, Package, AlertCircle, Gift,
   UserCheck, Target, ClipboardList, AlertTriangle, GitBranch,
 } from "lucide-react";
 
@@ -34,19 +35,45 @@ export default async function CRMPage() {
   const supabase = await createClient();
   const adminClient = await createAdminClient();
 
-  // Fetch all data in parallel
-  const [overviewRes, dailyRevenueRes, recentOrdersRes, topProductsRes] = await Promise.all([
+  // Last-30-day window (matches the legacy `daily_revenue` view's `>= now() -
+  // interval '30 days'` clause), used by the per-day chart query below.
+  const chartFrom = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+  const chartFromIso = chartFrom.toISOString();
+
+  // Fetch all data in parallel. We keep the `crm_overview` view for
+  // total_customers / pending_orders (which the split doesn't touch) but
+  // compute revenue + paid-order count ourselves via `getRevenueSplit` so
+  // external grants don't inflate the cash KPI. Same story for top products
+  // and the per-day chart — both filter to platform-only paid orders.
+  const [
+    overviewRes,
+    dailyChartRes,
+    recentOrdersRes,
+    topProductsRes,
+    lifetimeSplit,
+  ] = await Promise.all([
     supabase.from("crm_overview").select("*").single(),
-    supabase.from("daily_revenue").select("*").order("day", { ascending: true }),
+    // Per-day chart: pull every paid order in the last 30 days with its
+    // source flag, bucket client-side. Lets us draw a platform bar and a
+    // dashed external overlay without two more round-trips.
+    supabase
+      .from("orders")
+      .select("amount, paid_at, revenue_source")
+      .eq("status", "paid")
+      .gte("paid_at", chartFromIso),
     supabase
       .from("orders")
       .select("id, order_code, customer_name, customer_email, amount, status, paid_at, created_at, products(title)")
       .order("created_at", { ascending: false })
       .limit(10),
+    // Top products is "money the website earned per product" — restrict to
+    // platform cash so an external grant doesn't crown a course bestseller.
     supabase
       .from("orders")
       .select("product_id, products(title), amount")
-      .eq("status", "paid"),
+      .eq("status", "paid")
+      .or("revenue_source.is.null,revenue_source.eq.platform"),
+    getRevenueSplit(adminClient),
   ]);
 
   // CRM-specific queries
@@ -120,19 +147,76 @@ export default async function CRMPage() {
     .filter((item) => item.count > 0 || journeyStageOrder.indexOf(item.stage) < 4);
   const maxFunnelCount = Math.max(...journeyFunnel.map((f) => f.count), 1);
 
-  const overview = overviewRes.data ?? {
+  const overviewRaw = overviewRes.data ?? {
     total_orders: 0,
     total_revenue: 0,
     total_customers: 0,
     avg_order_value: 0,
     pending_orders: 0,
   };
+  // We only trust `total_customers` and `pending_orders` from the view (the
+  // view sums revenue blindly, including external grants). Cash KPIs come
+  // from `lifetimeSplit` instead.
+  const overview = {
+    total_orders: lifetimeSplit.platformCount,
+    total_revenue: lifetimeSplit.platformAmount,
+    total_customers: (overviewRaw as { total_customers?: number }).total_customers ?? 0,
+    avg_order_value:
+      lifetimeSplit.platformCount > 0
+        ? lifetimeSplit.platformAmount / lifetimeSplit.platformCount
+        : 0,
+    pending_orders: (overviewRaw as { pending_orders?: number }).pending_orders ?? 0,
+  };
+  const externalCount = lifetimeSplit.externalCount;
+  const externalAmount = lifetimeSplit.externalAmount;
 
-  const dailyRevenue = (dailyRevenueRes.data ?? []) as {
+  // Bucket the last 30 days client-side. We key by the UTC date string of
+  // `paid_at` to match the legacy view's `date_trunc('day', paid_at)::date`
+  // (which Postgres evaluates in the server's timezone — UTC for Supabase).
+  type DailyRow = {
     day: string;
     revenue: number;
+    revenue_platform: number;
+    revenue_external: number;
     orders: number;
-  }[];
+  };
+  const dailyBuckets = new Map<string, DailyRow>();
+  for (const row of (dailyChartRes.data ?? []) as Array<{
+    amount: number | null;
+    paid_at: string | null;
+    revenue_source: string | null;
+  }>) {
+    if (!row.paid_at) continue;
+    const day = row.paid_at.slice(0, 10); // ISO YYYY-MM-DD
+    let bucket = dailyBuckets.get(day);
+    if (!bucket) {
+      bucket = {
+        day,
+        revenue: 0,
+        revenue_platform: 0,
+        revenue_external: 0,
+        orders: 0,
+      };
+      dailyBuckets.set(day, bucket);
+    }
+    const amt = row.amount ?? 0;
+    const src = row.revenue_source ?? "platform";
+    bucket.orders += 1;
+    if (src === "external") {
+      bucket.revenue_external += amt;
+    } else if (src === "comp") {
+      // comp = no cash, but the order count still moved above so the tooltip
+      // matches what the operator just recorded. No revenue contribution.
+    } else {
+      bucket.revenue_platform += amt;
+    }
+    // Headline `revenue` on the chart bar = platform cash, mirroring the
+    // sale-dashboard convention (RevenueTrend.tsx).
+    bucket.revenue = bucket.revenue_platform;
+  }
+  const dailyRevenue: DailyRow[] = Array.from(dailyBuckets.values()).sort(
+    (a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0),
+  );
 
   const recentOrders = ((recentOrdersRes.data ?? []) as unknown as {
     id: string;
@@ -162,16 +246,24 @@ export default async function CRMPage() {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
 
-  // Stats cards
-  const stats = [
+  // Stats cards. The first four are platform-only cash KPIs; the fifth is
+  // the dedicated external-grant card (count + value, info only — these are
+  // sales recorded in other channels, not money the website collected).
+  const stats: Array<{
+    label: string;
+    value: string;
+    sub?: string;
+    icon: typeof DollarSign;
+    color: string;
+  }> = [
     {
-      label: "Doanh thu",
+      label: "Doanh thu (nền tảng)",
       value: formatVND(overview.total_revenue),
       icon: DollarSign,
       color: "#f59e0b",
     },
     {
-      label: "Đơn đã TT",
+      label: "Đơn đã TT (nền tảng)",
       value: String(overview.total_orders),
       sub: `${overview.pending_orders} đang chờ`,
       icon: ShoppingCart,
@@ -189,13 +281,34 @@ export default async function CRMPage() {
       icon: TrendingUp,
       color: "#3b82f6",
     },
+    {
+      label: "Doanh thu cấp khóa ngoài",
+      value: formatVND(externalAmount),
+      sub: `${externalCount} đơn cấp khóa`,
+      icon: Gift,
+      color: "#22c55e",
+    },
   ];
 
-  // Chart calculations
+  // Chart calculations. The bar height is platform cash (the headline); the
+  // dashed overlay shows external grants in the same period so they're not
+  // invisible — but they never push the bar taller.
   const maxRevenue = dailyRevenue.length > 0
-    ? Math.max(...dailyRevenue.map((d) => d.revenue))
+    ? Math.max(
+        ...dailyRevenue.map((d) =>
+          Math.max(d.revenue_platform, d.revenue_external),
+        ),
+        1,
+      )
     : 1;
-  const totalChartRevenue = dailyRevenue.reduce((sum, d) => sum + d.revenue, 0);
+  const totalChartRevenue = dailyRevenue.reduce(
+    (sum, d) => sum + d.revenue_platform,
+    0,
+  );
+  const totalChartExternal = dailyRevenue.reduce(
+    (sum, d) => sum + d.revenue_external,
+    0,
+  );
 
   // Order status breakdown for donut
   const paidCount = overview.total_orders;
@@ -312,8 +425,9 @@ export default async function CRMPage() {
           <p className="text-gray-400 text-sm">Dữ liệu cập nhật theo thời gian thực</p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Stats — 5-up at lg+ since we added the dedicated external card.
+            On md we go 3-up so the labels stay readable. */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {stats.map((s, i) => (
             <div key={i} className="stat-card">
               <div className="flex items-center justify-between mb-2">
@@ -365,28 +479,71 @@ export default async function CRMPage() {
                   <BarChart2 size={11} />
                   {dailyRevenue.length} ngày có doanh thu
                 </div>
+                {totalChartExternal > 0 && (
+                  <div className="text-[11px] text-[#22c55e] flex items-center gap-1 mt-1">
+                    <Gift size={10} />
+                    + {formatVND(totalChartExternal)} cấp khóa ngoài
+                  </div>
+                )}
+              </div>
+              {/* Inline legend so the dual stack reads correctly. */}
+              <div className="hidden sm:flex flex-col gap-1 text-[10px] text-gray-400">
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "#D4A843" }} />
+                  Nền tảng
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-sm"
+                    style={{ background: "rgba(34,197,94,0.45)", border: "1px dashed #22c55e" }}
+                  />
+                  Cấp ngoài
+                </div>
               </div>
             </div>
             {dailyRevenue.length > 0 ? (
               <div className="flex items-end gap-1 h-32 mt-4">
                 {dailyRevenue.map((d, i) => {
-                  const pct = (d.revenue / maxRevenue) * 100;
+                  const platformPct = (d.revenue_platform / maxRevenue) * 100;
+                  const externalPct = (d.revenue_external / maxRevenue) * 100;
                   const dayLabel = new Date(d.day).toLocaleDateString("vi-VN", {
                     day: "numeric",
                     month: "numeric",
                     timeZone: "Asia/Ho_Chi_Minh",
                   });
+                  const tooltip =
+                    d.revenue_external > 0
+                      ? `${dayLabel}: ${formatVND(d.revenue_platform)} nền tảng + ${formatVND(d.revenue_external)} cấp ngoài (${d.orders} đơn)`
+                      : `${dayLabel}: ${formatVND(d.revenue_platform)} (${d.orders} đơn)`;
                   return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                      <div
-                        className="w-full rounded-t transition-all hover:opacity-80"
-                        style={{
-                          height: `${pct}%`,
-                          background: "#D4A843",
-                          minHeight: 4,
-                        }}
-                        title={`${dayLabel}: ${formatVND(d.revenue)} (${d.orders} đơn)`}
-                      />
+                    <div
+                      key={i}
+                      className="flex-1 flex flex-col items-center gap-1 group relative"
+                      title={tooltip}
+                    >
+                      {/* External overlay sits ABOVE the platform bar so it
+                          reads as supplementary signal, not part of cash. */}
+                      <div className="w-full flex flex-col justify-end" style={{ height: "100%" }}>
+                        {d.revenue_external > 0 && (
+                          <div
+                            className="w-full transition-all"
+                            style={{
+                              height: `${externalPct}%`,
+                              background: "rgba(34,197,94,0.35)",
+                              borderTop: "1px dashed #22c55e",
+                              minHeight: 2,
+                            }}
+                          />
+                        )}
+                        <div
+                          className="w-full rounded-t transition-all hover:opacity-80"
+                          style={{
+                            height: `${platformPct}%`,
+                            background: "#D4A843",
+                            minHeight: d.revenue_platform > 0 ? 4 : 0,
+                          }}
+                        />
+                      </div>
                       {dailyRevenue.length <= 15 && (
                         <span className="text-[9px] text-gray-500">{dayLabel}</span>
                       )}

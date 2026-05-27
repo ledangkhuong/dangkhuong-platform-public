@@ -2,9 +2,10 @@ import TopBar from "@/components/layout/TopBar";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getRevenueSplit } from "@/lib/orders-revenue";
 import {
   Users, BookOpen, ShoppingCart, FileText, Mail,
-  TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign
+  TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign, Gift
 } from "lucide-react";
 import AnalyticsDashboard from "@/components/admin/analytics/AnalyticsDashboardWrapper";
 import UserAvatar from "@/components/admin/UserAvatar";
@@ -27,20 +28,23 @@ export default async function AdminPage() {
   // Use admin client for stats (bypasses RLS to see all data)
   const admin = await createAdminClient();
 
+  // Today's window: midnight local-machine time (legacy behaviour kept — the
+  // sale dashboards have a proper VN-tz helper; this landing page uses
+  // server-local midnight, which is what shipped before the split).
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayStartIso = todayStart.toISOString();
+
   const [
     { count: userCount },
-    { count: orderCount },
-    { count: pendingCount },
-    { data: crmData },
     { count: blogCount },
     { count: subscriberCount },
     { data: recentUsers },
     { data: recentOrders },
+    todaySplit,
+    lifetimeSplit,
   ] = await Promise.all([
     admin.from("profiles").select("id", { count: "exact", head: true }),
-    admin.from("orders").select("id", { count: "exact", head: true }).eq("status", "paid"),
-    admin.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    admin.from("crm_overview").select("*").single(),
     admin.from("blog_posts").select("id", { count: "exact", head: true }),
     admin.from("subscribers").select("id", { count: "exact", head: true }).eq("status", "active"),
     admin
@@ -53,44 +57,76 @@ export default async function AdminPage() {
       .select("order_code, amount, status, customer_name, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
+    // Today's split (paid_at ≥ midnight) — drives the "Doanh thu hôm nay" pair.
+    getRevenueSplit(admin, todayStartIso),
+    // Lifetime split — replaces the previous `crm_overview.total_revenue`,
+    // which still SUMs across every paid row (incl. external grants).
+    getRevenueSplit(admin),
   ]);
 
-  // Today's revenue
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const { data: todayOrders } = await admin
-    .from("orders")
-    .select("amount")
-    .eq("status", "paid")
-    .gte("paid_at", todayStart.toISOString());
+  // Platform cash-in (headline). External is tracked separately as a sibling
+  // mini-stat / dedicated card so it can't quietly inflate the cash KPI.
+  const todayRevenue = todaySplit.platformAmount;
+  const todayExternalRevenue = todaySplit.externalAmount;
+  const todayExternalCount = todaySplit.externalCount;
+  const todayPlatformOrderCount = todaySplit.platformCount;
+  const totalRevenue = lifetimeSplit.platformAmount;
+  const totalExternalRevenue = lifetimeSplit.externalAmount;
+  const totalExternalCount = lifetimeSplit.externalCount;
+  // The "Quản lý đơn hàng" admin card shows the paid-order count alongside
+  // platform revenue elsewhere — keep it platform-only for consistency.
+  const orderCount = lifetimeSplit.platformCount;
 
-  const todayRevenue = (todayOrders ?? []).reduce((s, o) => s + o.amount, 0);
-  const totalRevenue = (crmData as { total_revenue?: number } | null)?.total_revenue ?? 0;
-
-  const quickStats = [
+  // Quick stats. Two revenue cards (today + lifetime) carry an external
+  // mini-stat below the main number — the cash-in figure on the big line, the
+  // grant-only figure on the sub-line, so the two streams never blend.
+  const quickStats: Array<{
+    label: string;
+    value: string;
+    change: string;
+    color: string;
+    icon: typeof DollarSign;
+    subValue?: string;
+    subLabel?: string;
+  }> = [
     {
       label: "Doanh thu hôm nay",
       value: todayRevenue.toLocaleString("vi-VN") + "đ",
-      change: "Hôm nay",
+      change: "Hôm nay (nền tảng)",
       color: "#D4A843",
+      icon: DollarSign,
+      subValue: todayExternalRevenue.toLocaleString("vi-VN") + "đ",
+      subLabel: `+ ${todayExternalCount} cấp ngoài`,
     },
     {
       label: "Đơn hàng hôm nay",
-      value: String(todayOrders?.length ?? 0),
-      change: "Hôm nay",
+      value: String(todayPlatformOrderCount),
+      change: "Hôm nay (nền tảng)",
       color: "#f59e0b",
+      icon: ShoppingCart,
     },
     {
       label: "Tổng học viên",
       value: (userCount ?? 0).toLocaleString("vi-VN"),
       change: "tài khoản",
       color: "#3b82f6",
+      icon: Users,
     },
     {
       label: "Tổng doanh thu",
       value: totalRevenue.toLocaleString("vi-VN") + "đ",
-      change: "tất cả thời gian",
+      change: "tất cả thời gian (nền tảng)",
       color: "#a855f7",
+      icon: DollarSign,
+      subValue: totalExternalRevenue.toLocaleString("vi-VN") + "đ",
+      subLabel: `+ ${totalExternalCount} cấp ngoài`,
+    },
+    {
+      label: "Doanh thu cấp khóa ngoài",
+      value: totalExternalRevenue.toLocaleString("vi-VN") + "đ",
+      change: `${totalExternalCount} đơn cấp khóa`,
+      color: "#22c55e",
+      icon: Gift,
     },
   ];
 
@@ -118,7 +154,7 @@ export default async function AdminPage() {
       icon: ShoppingCart,
       title: "Quản lý đơn hàng",
       desc: "Theo dõi thanh toán, xác nhận thủ công, xuất hoá đơn",
-      count: `${(orderCount ?? 0)} đơn đã thanh toán`,
+      count: `${orderCount} đơn đã thanh toán (nền tảng)`,
       color: "#f59e0b",
       actions: ["Xem tất cả", "Xác nhận thủ công"],
     },
@@ -178,16 +214,28 @@ export default async function AdminPage() {
           </span>
         </div>
 
-        {/* Real stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Real stats. 5-up at lg+ (incl. dedicated "Cấp khóa ngoài"); falls
+            back to 2-up on phones so each card keeps a readable width. */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {quickStats.map((s) => (
             <div key={s.label} className="card-dark p-4">
               <div className="flex items-center gap-2 mb-2">
-                <DollarSign size={14} style={{ color: s.color }} />
+                <s.icon size={14} style={{ color: s.color }} />
                 <span className="text-xs text-gray-500">{s.label}</span>
               </div>
               <div className="text-xl font-bold text-white">{s.value}</div>
               <div className="text-[11px] mt-1" style={{ color: s.color }}>{s.change}</div>
+              {s.subValue && (
+                <div className="mt-2 pt-2 border-t border-[#2a2a2a] flex items-center gap-1.5">
+                  <Gift size={10} className="text-[#22c55e] shrink-0" />
+                  <span className="text-[11px] text-gray-400 truncate">
+                    {s.subValue}
+                  </span>
+                  <span className="text-[10px] text-gray-600 ml-auto shrink-0">
+                    {s.subLabel}
+                  </span>
+                </div>
+              )}
             </div>
           ))}
         </div>
