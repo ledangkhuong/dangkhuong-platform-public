@@ -32,6 +32,11 @@ export default async function AutoPixel() {
             ? String(p.pixel_id)
             : null;
         if (!safePixelId) return null;
+        // Slug cũng cần escape — chỉ chữ thường + số + gạch ngang theo schema
+        const safeSlug =
+          p.slug && /^[a-z0-9-]+$/.test(String(p.slug))
+            ? String(p.slug)
+            : "default";
 
         // Inline script: Meta Pixel base + auto-consent + init
         //
@@ -56,7 +61,36 @@ function loadPixel${safePixelId}(){
   if(window.fbq&&window.fbq.getState){var ps=window.fbq.getState().pixels||[];for(var i=0;i<ps.length;i++){if(ps[i].id==='${safePixelId}')return;}}
   !function(f,b,e,v,n,t,s){if(f.fbq){n=f.fbq}else{n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];if(s&&s.parentNode){s.parentNode.insertBefore(t,s)}else{b.head.appendChild(t)}}}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
   window.fbq('init','${safePixelId}');
-  window.fbq('track','PageView');
+
+  // PageView fire — Pixel client + CAPI server dùng cùng event_id để Meta dedupe.
+  // Không phụ thuộc React hydration (PagePixelClient có thể không hydrate trong
+  // Suspense streaming), nên relay CAPI ngay trong inline script này.
+  var pvEventId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('pv_' + Date.now() + '_' + Math.random().toString(36).slice(2,10));
+  window.fbq('track','PageView', {}, { eventID: pvEventId });
+  try {
+    var url = new URL(window.location.href);
+    var sp = url.searchParams;
+    fetch('/api/capi/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        slug: '${safeSlug}',
+        event_name: 'PageView',
+        event_id: pvEventId,
+        source_url: window.location.href,
+        attribution: {
+          utm_source: sp.get('utm_source') || undefined,
+          utm_medium: sp.get('utm_medium') || undefined,
+          utm_campaign: sp.get('utm_campaign') || undefined,
+          fbclid: sp.get('fbclid') || undefined,
+          gclid: sp.get('gclid') || undefined,
+          referrer: document.referrer || undefined,
+          landing_path: url.pathname
+        }
+      })
+    }).catch(function(){});
+  } catch(e) {}
 }
 loadPixel${safePixelId}();
 })();`;
