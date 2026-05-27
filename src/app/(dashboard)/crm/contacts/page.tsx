@@ -5,6 +5,7 @@ import { createContact, importContacts, syncContactsFromOrders } from "@/lib/act
 import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import ContactsTable, { type Contact } from "./ContactsTable";
 import SubmitAddContactButton from "./SubmitAddContactButton";
 import {
@@ -139,8 +140,9 @@ export default async function CRMContactsPage({
   const stageCounts = await Promise.all(stageCountPromises);
 
   const stats = [
-    { label: "Tổng KH", value: totalCount ?? 0, icon: Users, color: "#3b82f6" },
+    { stageKey: "", label: "Tổng KH", value: totalCount ?? 0, icon: Users, color: "#3b82f6" },
     ...journeyStages.map((s, i) => ({
+      stageKey: s.key,
       label: s.label,
       value: stageCounts[i] ?? 0,
       icon: s.icon,
@@ -257,22 +259,39 @@ export default async function CRMContactsPage({
           </div>
         ))}
 
-        {/* Stats Row */}
+        {/* Stats Row — clickable to filter by journey stage */}
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-3">
-          {stats.map((s) => (
-            <div key={s.label} className="stat-card">
-              <div className="flex items-center justify-between mb-3">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: s.color + "1F" }}
-                >
-                  <s.icon size={17} style={{ color: s.color }} />
+          {stats.map((s) => {
+            const isActive = s.stageKey === "" ? !journeyStageFilter : journeyStageFilter === s.stageKey;
+            const href = s.stageKey
+              ? `/crm/contacts?${new URLSearchParams({ ...(q ? { q } : {}), ...(statusFilter ? { status: statusFilter } : {}), journey_stage: s.stageKey }).toString()}`
+              : `/crm/contacts?${new URLSearchParams({ ...(q ? { q } : {}), ...(statusFilter ? { status: statusFilter } : {}) }).toString()}`;
+            return (
+              <Link
+                key={s.label}
+                href={href}
+                className="stat-card transition-all duration-200 hover:scale-[1.03] cursor-pointer"
+                style={{
+                  borderColor: isActive ? s.color : undefined,
+                  boxShadow: isActive ? `0 0 12px ${s.color}33` : undefined,
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: s.color + (isActive ? "40" : "1F") }}
+                  >
+                    <s.icon size={17} style={{ color: s.color }} />
+                  </div>
+                  {isActive && s.stageKey && (
+                    <div className="w-2 h-2 rounded-full" style={{ background: s.color }} />
+                  )}
                 </div>
-              </div>
-              <div className="text-2xl font-bold text-white">{s.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
-            </div>
-          ))}
+                <div className="text-2xl font-bold text-white">{s.value}</div>
+                <div className="text-xs mt-0.5" style={{ color: isActive ? s.color : "#6b7280" }}>{s.label}</div>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Search & Filters */}
