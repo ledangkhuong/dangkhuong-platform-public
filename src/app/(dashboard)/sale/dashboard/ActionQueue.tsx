@@ -115,11 +115,24 @@ function KindIcon({ kind }: { kind: ActionQueueItem["kind"] }) {
 }
 
 function ActionRow({ item }: { item: ActionQueueItem }) {
+  // Resolve the "Mở hồ sơ" link:
+  //   1. Contact row exists → open the contact detail (best UX).
+  //   2. Pending-order kind without a contact yet → open the orders page
+  //      filtered by email/phone so the rep sees the actual order.
+  //   3. Lead/follow-up kinds without a contact (rare) → search the
+  //      contacts list by whatever identifier we have.
+  //
+  // The previous fallback used the first 8 chars of the row's UUID as a
+  // search term, which never matches order_code/customer_email and made
+  // the link feel broken ("Mở hồ sơ" → empty page).
+  const searchKey = item.email || item.phone || item.full_name || "";
   const profileHref = item.contact_id
     ? `/crm/contacts/${item.contact_id}`
-    : item.kind === "pending_order_chase"
-      ? `/admin/orders?q=${encodeURIComponent(item.id.slice(0, 8))}`
-      : "/crm/contacts";
+    : item.kind === "pending_order_chase" && searchKey
+      ? `/admin/orders?q=${encodeURIComponent(searchKey)}`
+      : searchKey
+        ? `/crm/contacts?q=${encodeURIComponent(searchKey)}`
+        : "/crm/contacts";
 
   const borderStyle =
     item.kind === "overdue_followup"
