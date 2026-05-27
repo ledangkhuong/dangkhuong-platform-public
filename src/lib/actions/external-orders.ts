@@ -230,7 +230,15 @@ export async function createExternalOrder(formData: FormData) {
 
   if (insertErr || !insertedOrder) {
     console.error("[createExternalOrder] insert failed:", insertErr);
-    redirect(`/crm/contacts/${contactId}?ext_error=insert_failed`);
+    // Surface the actual error code + message in the redirect so the UI
+    // can show why the insert blew up (column missing, NOT NULL, RLS,
+    // FK violation...). Without this we lose visibility on prod.
+    const errCode =
+      (insertErr as { code?: string } | null)?.code?.toString() ?? "unknown";
+    const errMsg = (insertErr?.message ?? "").slice(0, 200);
+    redirect(
+      `/crm/contacts/${contactId}?ext_error=insert_failed&ext_code=${encodeURIComponent(errCode)}&ext_msg=${encodeURIComponent(errMsg)}`
+    );
   }
 
   // ─── 6. Auto-enroll the user ─────────────────────────────

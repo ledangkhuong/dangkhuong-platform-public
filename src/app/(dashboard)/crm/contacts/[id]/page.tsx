@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import ActivityComposer from "./ActivityComposer";
 import StatusChanger from "./StatusChanger";
 import ExternalOrderModal from "./ExternalOrderModal";
+import TagsEditor from "./TagsEditor";
 import {
   ArrowLeft,
   Mail,
@@ -268,10 +269,61 @@ function getActivityIcon(type: string) {
 
 export default async function ContactDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const sp = (await searchParams) ?? {};
+  // First-value helper — Next.js can give us string OR string[] depending
+  // on how the action redirected.
+  const spFirst = (k: string): string | null => {
+    const v = sp[k];
+    if (Array.isArray(v)) return v[0] ?? null;
+    return (v as string | undefined) ?? null;
+  };
+  const flashSuccess: string | null = (() => {
+    if (spFirst("ext_ok")) return "Đã cấp khóa và ghi nhận đơn ngoài thành công.";
+    if (spFirst("status_updated")) return "Đã đổi trạng thái khách hàng.";
+    if (spFirst("status_unchanged")) return "Trạng thái không thay đổi.";
+    if (spFirst("tags_updated")) return "Đã cập nhật nhãn.";
+    return null;
+  })();
+  const flashError: string | null = (() => {
+    const extErr = spFirst("ext_error");
+    if (extErr) {
+      const map: Record<string, string> = {
+        missing_contact: "Thiếu thông tin khách hàng.",
+        contact_not_found: "Không tìm thấy khách hàng.",
+        forbidden: "Bạn không có quyền cấp khóa cho khách này (chỉ admin/quản lý hoặc sale được gán mới cấp được).",
+        missing_course: "Vui lòng chọn khóa học.",
+        invalid_amount: "Số tiền không hợp lệ.",
+        invalid_channel: "Kênh thanh toán không hợp lệ.",
+        invalid_paid_at: "Ngày thanh toán không hợp lệ.",
+        missing_note: "Vui lòng nhập ghi chú audit.",
+        course_not_found: "Không tìm thấy khóa học.",
+        insert_failed: "Không lưu được đơn vào DB.",
+        enrollment_failed: "Đã tạo đơn nhưng KHÔNG cấp được khóa cho học viên — cần cấp thủ công.",
+      };
+      const base = map[extErr] ?? `Lỗi cấp khóa: ${extErr}`;
+      const code = spFirst("ext_code");
+      const msg = spFirst("ext_msg");
+      const detail = [code, msg].filter(Boolean).join(" — ");
+      return detail ? `${base} (${detail})` : base;
+    }
+    const stErr = spFirst("error");
+    if (stErr) {
+      const map: Record<string, string> = {
+        note_required: "Ghi chú phải dài tối thiểu 5 ký tự.",
+        invalid_status: "Trạng thái không hợp lệ.",
+        forbidden: "Bạn không có quyền chỉnh khách này.",
+        status_update_failed: "Không đổi được trạng thái.",
+      };
+      return map[stErr] ?? `Lỗi: ${stErr}`;
+    }
+    return null;
+  })();
 
   // Auth check
   const supabase = await createClient();
@@ -295,6 +347,7 @@ export default async function ContactDetailPage({
     nextActionsRes,
     dealsRes,
     coursesRes,
+    tagAggRes,
   ] = await Promise.all([
     // Contact details
     adminClient
@@ -337,6 +390,13 @@ export default async function ContactDetailPage({
       .select("id, title, price, sale_price, status")
       .in("status", ["published", "coming_soon"])
       .order("title"),
+    // Tag suggestions: union of every distinct tag in use, for the
+    // TagsEditor datalist autocomplete. Pulled in parallel so it
+    // never gates page render.
+    adminClient
+      .from("crm_contacts")
+      .select("tags")
+      .not("tags", "is", null),
   ]);
 
   if (!contactRes.data) notFound();
@@ -481,6 +541,24 @@ export default async function ContactDetailPage({
     (isAdminOrManager ||
       (scope.isSale && contact.assigned_to === scope.userId));
 
+  // canEditTags mirrors StatusChanger's gate: admin/manager OR the sale
+  // rep assigned to this contact. The server action re-checks this; the
+  // client flag is purely UX.
+  const canEditTags =
+    isAdminOrManager ||
+    (scope.isSale && contact.assigned_to === scope.userId);
+
+  // Tag autocomplete suggestions — union of every distinct tag across
+  // the contacts table. Fetched in parallel above; we fail-soft to []
+  // if the query errored or the column doesn't exist yet (pre-migration).
+  const allTags = Array.from(
+    new Set(
+      ((tagAggRes.data ?? []) as Array<{ tags: string[] | null }>).flatMap(
+        (r) => (r.tags ?? []) as string[],
+      ),
+    ),
+  ).sort();
+
   // Build purchased courses list from paid orders (fallback when enrollments table is empty)
   const paidCourses = orders
     .filter((o) => o.status === "paid" && o.products?.title)
@@ -500,6 +578,35 @@ export default async function ContactDetailPage({
       <TopBar title="Chi tiết khách hàng" subtitle={contact.full_name} />
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Flash notifications from server-action redirects (?ext_ok=1,
+            ?ext_error=..., ?status_updated=1, etc). Without this banner
+            the redirect lands silently and the user thinks nothing
+            happened — which is exactly the bug Lê Đăng Khương hit. */}
+        {flashSuccess ? (
+          <div
+            className="flex items-start gap-3 rounded-xl p-3 text-sm"
+            style={{
+              background: "rgba(34,197,94,0.08)",
+              border: "1px solid rgba(34,197,94,0.25)",
+            }}
+          >
+            <CheckCircle size={16} className="mt-0.5 shrink-0 text-green-400" />
+            <span className="text-green-300">{flashSuccess}</span>
+          </div>
+        ) : null}
+        {flashError ? (
+          <div
+            className="flex items-start gap-3 rounded-xl p-3 text-sm"
+            style={{
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.25)",
+            }}
+          >
+            <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-400" />
+            <span className="text-red-300">{flashError}</span>
+          </div>
+        ) : null}
+
         {/* Back Link + Page-level Action Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
@@ -1028,6 +1135,16 @@ export default async function ContactDetailPage({
                 </div>
               </div>
             </div>
+
+            {/* Tags Editor — freeform multi-value labels for sale workflows.
+                Distinct from status/source/journey_stage. Server action
+                re-checks auth; canEditTags is just UX. */}
+            <TagsEditor
+              contactId={contact.id}
+              initialTags={(contact.tags ?? []) as string[]}
+              canEdit={canEditTags}
+              existingTagSuggestions={allTags}
+            />
 
             {/* Orders Card */}
             <div className="card-dark p-5">
