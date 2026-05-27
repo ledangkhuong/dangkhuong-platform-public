@@ -508,6 +508,8 @@ export default async function CRMContactsPage({
           query={q}
           statusFilter={statusFilter}
           journeyFilter={journeyStageFilter}
+          viewerId={scope.userId}
+          existingSources={sourceLabels}
         />
       </div>
     </div>

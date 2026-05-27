@@ -16,7 +16,16 @@ import { redirect } from "next/navigation";
  * Inputs (FormData):
  *   - contact_id: uuid of the crm_contacts row
  *   - new_status: one of CONTACT_STATUS_VALUES
- *   - note:       required free-text justification (min 5 chars)
+ *   - note:       optional free-text justification.
+ *                   - empty/missing  → auto-filled with the default
+ *                     "Cập nhật trạng thái từ danh sách khách hàng"
+ *                     so inline edits from the contacts list work
+ *                     without forcing the user to type one.
+ *                   - 1..4 chars     → rejected as a typo (somebody
+ *                     started a real note but didn't finish). Keeps
+ *                     the existing guard for the detail-page editor,
+ *                     which still enforces minLength=5 client-side.
+ *                   - 5+ chars       → accepted as-is.
  *
  * Auth: admin/manager OR the sale rep assigned to this contact.
  *
@@ -36,7 +45,7 @@ import { redirect } from "next/navigation";
 export async function setContactStatus(formData: FormData): Promise<void> {
   const contactId = (formData.get("contact_id") as string || "").trim();
   const newStatusRaw = (formData.get("new_status") as string || "").trim();
-  const note = (formData.get("note") as string || "").trim();
+  const rawNote = (formData.get("note") as string || "").trim();
 
   if (!contactId) {
     redirect("/crm/contacts?error=missing_contact");
@@ -47,8 +56,15 @@ export async function setContactStatus(formData: FormData): Promise<void> {
   }
   const newStatus = newStatusRaw as ContactStatus;
 
-  if (note.length < 5) {
+  // Relaxed note rule: empty → default; 1..4 chars → still an error
+  // (somebody typed a partial note by mistake); 5+ → accepted.
+  let note: string;
+  if (rawNote.length === 0) {
+    note = "Cập nhật trạng thái từ danh sách khách hàng";
+  } else if (rawNote.length < 5) {
     redirect(`/crm/contacts/${contactId}?error=note_required`);
+  } else {
+    note = rawNote;
   }
 
   // ─── Auth ─────────────────────────────────────────────────────

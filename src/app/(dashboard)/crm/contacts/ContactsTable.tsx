@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { DataTable, type ColumnDef } from "@/components/ui/DataTable";
 import ContactAssignSelect from "./ContactAssignSelect";
+import StatusInlineSelect from "./StatusInlineSelect";
+import SourceInlineSelect from "./SourceInlineSelect";
 import type { SalesUser } from "@/lib/sales";
 
 /* ---------- Types ---------- */
@@ -90,43 +92,9 @@ const statusConfig: Record<
   },
 };
 
-const sourceConfig: Record<
-  string,
-  { label: string; color: string; bg: string }
-> = {
-  manual: {
-    label: "Thủ công",
-    color: "#6b7280",
-    bg: "rgba(107,114,128,0.1)",
-  },
-  import: {
-    label: "Import",
-    color: "#8b5cf6",
-    bg: "rgba(139,92,246,0.1)",
-  },
-  website: {
-    label: "Website",
-    color: "#3b82f6",
-    bg: "rgba(59,130,246,0.1)",
-  },
-  referral: {
-    label: "Giới thiệu",
-    color: "#D4A843",
-    bg: "rgba(212,168,67,0.1)",
-  },
-  ads: {
-    label: "Quảng cáo",
-    color: "#f59e0b",
-    bg: "rgba(245,158,11,0.1)",
-  },
-  social: {
-    label: "MXH",
-    color: "#ec4899",
-    bg: "rgba(236,72,153,0.1)",
-  },
-};
-
-const defaultSourceStyle = { label: "", color: "#9ca3af", bg: "rgba(156,163,175,0.1)" };
+// Note: the source pill palette used to live here, but it now lives
+// inline in `SourceInlineSelect.tsx` (the source column is rendered by
+// that client component). Kept removed to avoid two sources of truth.
 
 const journeyStageConfig: Record<
   string,
@@ -171,6 +139,10 @@ interface ContactsTableProps {
   query: string;
   statusFilter: string;
   journeyFilter: string;
+  /** Current viewer's profile id — used to gate inline editing for sales. */
+  viewerId: string | null;
+  /** Known `crm_sources.label` values to suggest in the source datalist. */
+  existingSources: string[];
 }
 
 /* ---------- Component ---------- */
@@ -185,6 +157,8 @@ export default function ContactsTable({
   query,
   statusFilter,
   journeyFilter,
+  viewerId,
+  existingSources,
 }: ContactsTableProps) {
   const columns = useMemo<ColumnDef<Contact, any>[]>(
     () => [
@@ -272,19 +246,19 @@ export default function ContactsTable({
         size: 100,
         enableSorting: true,
         cell: ({ row }) => {
-          const st =
-            statusConfig[row.original.status] || statusConfig.new;
+          const c = row.original;
+          // Admin/manager can edit any contact's status. A sale rep can
+          // only edit contacts they're assigned to. Anyone else sees a
+          // read-only badge. The server re-checks this on every write.
+          const canEdit =
+            canMutate ||
+            (!!viewerId && c.assigned_to === viewerId);
           return (
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-              style={{
-                background: st.bg,
-                color: st.color,
-                border: `1px solid ${st.border}`,
-              }}
-            >
-              {st.label}
-            </span>
+            <StatusInlineSelect
+              contactId={c.id}
+              currentStatus={c.status}
+              canEdit={canEdit}
+            />
           );
         },
       },
@@ -451,15 +425,17 @@ export default function ContactsTable({
         size: 90,
         enableSorting: true,
         cell: ({ row }) => {
-          const srcKey = row.original.source || "manual";
-          const src = sourceConfig[srcKey] || { ...defaultSourceStyle, label: srcKey };
+          const c = row.original;
+          const canEdit =
+            canMutate ||
+            (!!viewerId && c.assigned_to === viewerId);
           return (
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-              style={{ background: src.bg, color: src.color }}
-            >
-              {src.label}
-            </span>
+            <SourceInlineSelect
+              contactId={c.id}
+              currentSource={c.source}
+              canEdit={canEdit}
+              existingSources={existingSources}
+            />
           );
         },
       },
@@ -478,7 +454,7 @@ export default function ContactsTable({
         ),
       },
     ],
-    [orderMap, enrollmentMap, salesUsers, canMutate]
+    [orderMap, enrollmentMap, salesUsers, canMutate, viewerId, existingSources]
   );
 
   const hasFilters = !!(query || statusFilter || journeyFilter);
