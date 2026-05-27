@@ -16,7 +16,7 @@ import {
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
-  Video, Globe, Sparkles, Activity, Gauge,
+  Video, Globe, Sparkles, Activity, Gauge, type LucideIcon,
 } from "lucide-react";
 
 const courseSubNav = [
@@ -46,36 +46,97 @@ const instructorNav = [
   { href: "/instructor/submissions", icon: ClipboardCheck, label: "Chấm bài" },
 ];
 
-const adminNav = [
-  { href: "/sale/dashboard", icon: Gauge, label: "Dashboard của tôi", roles: ["admin", "manager", "sale"] },
-  { href: "/admin/sales-dashboard", icon: TrendingUp, label: "Tổng quan đội Sale", roles: ["admin", "manager"] },
-  { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
-  { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor", "instructor"] },
-  { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager", "sale"] },
-  { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager", "sale"] },
-  { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
-  { href: "/admin/coupons", icon: Tag, label: "Mã giảm giá", roles: ["admin", "manager"] },
-  { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager", "editor"] },
-  { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
-  { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support", "editor"] },
-  { href: "/admin/promotions", icon: Star, label: "Quảng cáo đầu trang", roles: ["admin", "manager"] },
-  { href: "/admin/featured-courses", icon: Sparkles, label: "Khoá học nổi bật", roles: ["admin", "manager"] },
-  { href: "/admin/announcements", icon: Megaphone, label: "Thông báo", roles: ["admin", "manager"] },
-  { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
-  { href: "/admin/pixel-settings", icon: Activity, label: "Pixel & CAPI", roles: ["admin", "manager", "marketing"] },
-  { href: "/admin/pixel-settings/pages", icon: Globe, label: "Gắn Pixel vào landing", roles: ["admin", "manager", "marketing"] },
-  { href: "/admin/pixel-settings/events", icon: Zap, label: "Mã sự kiện chuyển đổi", roles: ["admin", "manager", "marketing"] },
-  { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
-  { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
-  { href: "/crm/pipeline", icon: GitBranch, label: "Pipeline", roles: ["admin", "manager", "sale"] },
-  { href: "/crm/performance", icon: TrendingUp, label: "Hiệu suất Sale", roles: ["admin", "manager"] },
-  { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
-  { href: "/crm/interests", icon: Eye, label: "Khách quan tâm", roles: ["admin", "manager", "sale", "support"] },
-  { href: "/crm/moderation", icon: Shield, label: "Kiểm duyệt", roles: ["admin", "manager", "support"] },
-  { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
-  { href: "/admin/subscriptions", icon: CreditCard, label: "Quản lý Gói", roles: ["admin", "manager"] },
-  { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
-  { href: "/admin/zalo", icon: MessageCircle, label: "Zalo OA", roles: ["admin"] },
+interface AdminNavItem {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  roles: string[];
+  subNav?: { href: string; icon: LucideIcon; label: string; roles: string[] }[];
+}
+
+interface AdminNavGroup {
+  key: string;
+  label: string;
+  color: string;
+  items: AdminNavItem[];
+}
+
+const adminNavGroups: AdminNavGroup[] = [
+  {
+    key: "overview",
+    label: "Tổng quan",
+    color: "#f59e0b",
+    items: [
+      { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
+      { href: "/sale/dashboard", icon: Gauge, label: "Dashboard của tôi", roles: ["admin", "manager", "sale"] },
+      { href: "/admin/sales-dashboard", icon: TrendingUp, label: "Tổng quan đội Sale", roles: ["admin", "manager"] },
+    ],
+  },
+  {
+    key: "content",
+    label: "Nội dung",
+    color: "#8b5cf6",
+    items: [
+      { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor", "instructor"] },
+      { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager", "sale"] },
+      { href: "/admin/quizzes", icon: ClipboardCheck, label: "Quản lý Quiz", roles: ["admin", "manager", "editor"] },
+      { href: "/admin/blog", icon: FileText, label: "Quản lý Blog", roles: ["admin", "manager", "marketing"] },
+      { href: "/admin/questions", icon: MessageSquare, label: "Câu hỏi học viên", roles: ["admin", "manager", "support", "editor"] },
+    ],
+  },
+  {
+    key: "sales",
+    label: "Bán hàng",
+    color: "#22c55e",
+    items: [
+      { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
+      { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager", "sale"] },
+      { href: "/admin/coupons", icon: Tag, label: "Mã giảm giá", roles: ["admin", "manager"] },
+      { href: "/admin/subscriptions", icon: CreditCard, label: "Quản lý Gói", roles: ["admin", "manager"] },
+      { href: "/admin/affiliates", icon: Zap, label: "Quản lý Affiliate", roles: ["admin", "manager"] },
+    ],
+  },
+  {
+    key: "marketing",
+    label: "Marketing",
+    color: "#3b82f6",
+    items: [
+      { href: "/admin/promotions", icon: Star, label: "Quảng cáo đầu trang", roles: ["admin", "manager"] },
+      { href: "/admin/featured-courses", icon: Sparkles, label: "Khoá học nổi bật", roles: ["admin", "manager"] },
+      { href: "/admin/announcements", icon: Megaphone, label: "Thông báo", roles: ["admin", "manager"] },
+      { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
+      {
+        href: "/admin/pixel-settings", icon: Activity, label: "Pixel & CAPI", roles: ["admin", "manager", "marketing"],
+        subNav: [
+          { href: "/admin/pixel-settings/pages", icon: Globe, label: "Gắn Pixel vào landing", roles: ["admin", "manager", "marketing"] },
+          { href: "/admin/pixel-settings/events", icon: Zap, label: "Mã sự kiện chuyển đổi", roles: ["admin", "manager", "marketing"] },
+        ],
+      },
+    ],
+  },
+  {
+    key: "crm",
+    label: "CRM & Chăm sóc",
+    color: "#ec4899",
+    items: [
+      { href: "/crm", icon: BarChart3, label: "CRM Doanh số", roles: ["admin", "manager", "sale"] },
+      { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
+      { href: "/crm/pipeline", icon: GitBranch, label: "Pipeline", roles: ["admin", "manager", "sale"] },
+      { href: "/crm/performance", icon: TrendingUp, label: "Hiệu suất Sale", roles: ["admin", "manager"] },
+      { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
+      { href: "/crm/interests", icon: Eye, label: "Khách quan tâm", roles: ["admin", "manager", "sale", "support"] },
+      { href: "/crm/moderation", icon: Shield, label: "Kiểm duyệt", roles: ["admin", "manager", "support"] },
+      { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
+    ],
+  },
+  {
+    key: "system",
+    label: "Kết nối & Hệ thống",
+    color: "#6b7280",
+    items: [
+      { href: "/admin/zalo", icon: MessageCircle, label: "Zalo OA", roles: ["admin"] },
+    ],
+  },
 ];
 
 const settingsNav = [
@@ -101,6 +162,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string>("");
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const { isOpen: mobileOpen, close: closeMobile } = useMobileSidebar();
 
   // Auto-expand courses submenu when on courses page
@@ -301,34 +363,104 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </div>
         )}
 
-        {/* Staff nav */}
-        {isStaff && (
-          <div className="mt-6">
-            {!isCompact && (
-              <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#f59e0b]">
-                {isAdmin ? "Admin" : "Quản lý"}
-              </div>
-            )}
-            {adminNav
-              .filter((item) => item.roles.includes(userRole))
-              .map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href.length > 1 && pathname.startsWith(item.href) && item.href !== "/admin");
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
-                    title={isCompact ? item.label : undefined}
+        {/* Staff nav — grouped */}
+        {isStaff && adminNavGroups.map((group) => {
+          const visibleItems = group.items.filter((item) => item.roles.includes(userRole));
+          if (visibleItems.length === 0) return null;
+
+          const isGroupCollapsed = collapsedGroups[group.key] ?? false;
+          const toggleGroup = () => setCollapsedGroups((prev) => ({ ...prev, [group.key]: !prev[group.key] }));
+
+          return (
+            <div key={group.key} className="mt-4 first:mt-6">
+              {!isCompact ? (
+                <button
+                  onClick={toggleGroup}
+                  className="w-full flex items-center justify-between px-3 mb-1 group cursor-pointer"
+                >
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-widest"
+                    style={{ color: group.color }}
                   >
-                    <item.icon size={18} className="shrink-0" />
-                    {!isCompact && <span>{item.label}</span>}
-                  </Link>
-                );
-              })}
-          </div>
-        )}
+                    {group.label}
+                  </span>
+                  <ChevronDown
+                    size={12}
+                    className="transition-transform duration-200 opacity-0 group-hover:opacity-100"
+                    style={{ color: group.color, transform: isGroupCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+                  />
+                </button>
+              ) : (
+                <div className="mx-auto mb-1 w-5 border-t" style={{ borderColor: group.color + "40" }} />
+              )}
+              <div
+                className="overflow-hidden transition-all duration-200"
+                style={{ maxHeight: isGroupCollapsed && !isCompact ? 0 : 2000, opacity: isGroupCollapsed && !isCompact ? 0 : 1 }}
+              >
+                {visibleItems.map((item) => {
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href.length > 1 && pathname.startsWith(item.href) && item.href !== "/admin");
+                  const hasSubNav = item.subNav && item.subNav.length > 0;
+                  const subVisible = hasSubNav ? item.subNav!.filter((s) => s.roles.includes(userRole)) : [];
+                  const isSubExpanded = expandedMenu === item.href;
+
+                  if (hasSubNav && subVisible.length > 0 && !isCompact) {
+                    return (
+                      <div key={item.href}>
+                        <div
+                          className={`sidebar-nav-item cursor-pointer ${isActive ? "active" : ""}`}
+                          onClick={() => setExpandedMenu(isSubExpanded ? null : item.href)}
+                        >
+                          <Link href={item.href} className="flex items-center gap-2.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                            <item.icon size={18} className="shrink-0" />
+                            <span>{item.label}</span>
+                          </Link>
+                          <ChevronDown
+                            size={14}
+                            className={`shrink-0 text-gray-500 transition-transform duration-200 ${isSubExpanded ? "rotate-180" : ""}`}
+                          />
+                        </div>
+                        <div
+                          className="overflow-hidden transition-all duration-200"
+                          style={{ maxHeight: isSubExpanded ? `${subVisible.length * 36 + 8}px` : "0px" }}
+                        >
+                          <div className="pl-4 py-1 space-y-0.5">
+                            {subVisible.map((sub) => {
+                              const isSubActive = pathname === sub.href || pathname.startsWith(sub.href);
+                              return (
+                                <Link
+                                  key={sub.href}
+                                  href={sub.href}
+                                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${isSubActive ? "text-white bg-[#1a1a1a]" : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"}`}
+                                >
+                                  <sub.icon size={13} className="shrink-0" />
+                                  <span className="truncate">{sub.label}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompact ? "justify-center px-2" : ""}`}
+                      title={isCompact ? item.label : undefined}
+                    >
+                      <item.icon size={18} className="shrink-0" />
+                      {!isCompact && <span>{item.label}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
 
         {/* Settings */}
         <div className={isStaff ? "mt-2" : "mt-6"}>
