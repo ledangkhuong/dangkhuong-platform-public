@@ -97,3 +97,59 @@ export async function setSaleTarget(formData: FormData): Promise<void> {
   revalidatePath(`/admin/sales-dashboard/${saleUserId}`);
   redirect("/admin/sales-dashboard?target_saved=1");
 }
+
+/**
+ * Upsert sale_targets for ALL sale reps in a single request — used by the
+ * SetTargetForm "Lưu tất cả" submit button so the admin doesn't have to save
+ * one row at a time.
+ *
+ * Form fields:
+ *   - sale_ids                 : comma-separated UUIDs (the set of rows)
+ *   - month                    : YYYY-MM-DD (first-of-month)
+ *   - revenue_<saleId>         : bigint VND per row
+ *   - orders_<saleId>          : int per row
+ *
+ * Rows missing both numbers (or stuck at 0) are still upserted with zero
+ * values — that's the simplest way to let an admin clear a target.
+ */
+export async function setSaleTargetsBulk(formData: FormData): Promise<void> {
+  const { userId } = await requireAdminOrManager();
+
+  const monthRaw = String(formData.get("month") || "").trim();
+  const month = /^\d{4}-\d{2}-\d{2}$/.test(monthRaw) ? monthRaw : currentMonthKey();
+
+  const idsRaw = String(formData.get("sale_ids") || "").trim();
+  if (!idsRaw) {
+    redirect("/admin/sales-dashboard?target_error=missing_sale_ids");
+  }
+  const saleIds = idsRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (saleIds.length === 0) {
+    redirect("/admin/sales-dashboard?target_error=missing_sale_ids");
+  }
+
+  const rows = saleIds.map((id) => ({
+    sale_user_id: id,
+    month,
+    revenue_target: parseNumber(formData.get(`revenue_${id}`)),
+    orders_target: parseNumber(formData.get(`orders_${id}`)),
+    set_by: userId,
+  }));
+
+  const admin = await createAdminClient();
+  const { error } = await admin
+    .from("sale_targets")
+    .upsert(rows, { onConflict: "sale_user_id,month" });
+
+  if (error) {
+    redirect(
+      `/admin/sales-dashboard?target_error=${encodeURIComponent(error.code || "bulk_upsert_failed")}`
+    );
+  }
+
+  revalidatePath("/admin/sales-dashboard");
+  for (const id of saleIds) revalidatePath(`/admin/sales-dashboard/${id}`);
+  redirect(`/admin/sales-dashboard?targets_saved=${rows.length}`);
+}

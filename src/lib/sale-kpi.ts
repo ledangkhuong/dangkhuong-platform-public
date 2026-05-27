@@ -26,6 +26,14 @@ export type SaleKPI = {
   revenue: number;
   revenue_target: number | null;
   revenue_pct: number | null; // 0-100, null if no target
+  /**
+   * Per-day slice of the monthly target — current month's `revenue_target`
+   * divided by the number of days in the current VN month. Only populated
+   * when `period === 'today'`; null for every other period.
+   */
+  daily_revenue_target: number | null;
+  /** revenue / daily_revenue_target × 100, when both are available. */
+  daily_pct: number | null;
   orders_paid: number;
   orders_pending: number;
   pending_value: number; // total amount pending
@@ -155,6 +163,18 @@ function currentMonthKey(): string {
   const m = vn.getUTCMonth();
   const mm = String(m + 1).padStart(2, "0");
   return `${y}-${mm}-01`;
+}
+
+/**
+ * Number of days in the current VN month (28..31). Used to derive the
+ * `daily_revenue_target` from the monthly target.
+ */
+function daysInCurrentVnMonth(): number {
+  const vn = vnNow();
+  const y = vn.getUTCFullYear();
+  const m = vn.getUTCMonth();
+  // Day 0 of the next month = last day of this month
+  return new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
 }
 
 // ────────────────────────────────────────────────────────────
@@ -301,6 +321,21 @@ export async function getSaleKPI(opts: {
       ? Math.round((revenue / revenue_target) * 10000) / 100
       : null;
 
+  // ─── Daily revenue target (today only) ────────────────────
+  // The monthly target sliced evenly across VN days in the current month.
+  // Team-mode already summed all sale_targets for the month above, so we
+  // can just divide either branch here.
+  let daily_revenue_target: number | null = null;
+  let daily_pct: number | null = null;
+  if (period === "today" && revenue_target !== null && revenue_target > 0) {
+    const days = daysInCurrentVnMonth();
+    daily_revenue_target = Math.round(revenue_target / days);
+    if (daily_revenue_target > 0) {
+      daily_pct =
+        Math.round((revenue / daily_revenue_target) * 10000) / 100;
+    }
+  }
+
   return {
     sale_user_id: saleId,
     full_name: fullName,
@@ -308,6 +343,8 @@ export async function getSaleKPI(opts: {
     revenue,
     revenue_target,
     revenue_pct,
+    daily_revenue_target,
+    daily_pct,
     orders_paid,
     orders_pending,
     pending_value,

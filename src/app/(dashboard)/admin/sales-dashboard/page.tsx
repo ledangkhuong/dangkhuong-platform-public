@@ -138,7 +138,11 @@ function TipCard({ tip }: { tip: StrategyTip }) {
 export default async function AdminSalesDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ target_saved?: string; target_error?: string }>;
+  searchParams: Promise<{
+    target_saved?: string;
+    target_error?: string;
+    targets_saved?: string;
+  }>;
 }) {
   const scope = await getViewerScope();
   if (!scope.canView) redirect("/dashboard");
@@ -148,30 +152,44 @@ export default async function AdminSalesDashboardPage({
   }
 
   const sp = await searchParams;
-  const savedFlag = sp.target_saved === "1";
+  // Two flavours of "saved" flag: legacy singular `target_saved=1` from the
+  // per-row form, and the bulk `targets_saved=<N>` from setSaleTargetsBulk.
+  const bulkSavedCount = sp.targets_saved
+    ? Math.max(0, Math.floor(Number(sp.targets_saved) || 0))
+    : 0;
+  const savedFlag = sp.target_saved === "1" || bulkSavedCount > 0;
   const errorCode = sp.target_error || null;
 
   const month = currentMonthKey();
   const admin = await createAdminClient();
 
   // Parallel data fetch
-  const [teamKpi, leaderboard, funnel, tips, daily, salesProfilesRes, targetsRes] =
-    await Promise.all([
-      getSaleKPI({ saleId: null, period: "mtd" }),
-      getTeamLeaderboard({ period: "mtd" }),
-      getFunnel({ saleId: null }),
-      getStrategyTips({ saleId: null }),
-      getDailyRevenue({ saleId: null, days: 30 }),
-      admin
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .eq("role", "sale")
-        .order("full_name", { ascending: true }),
-      admin
-        .from("sale_targets")
-        .select("sale_user_id, revenue_target, orders_target")
-        .eq("month", month),
-    ]);
+  const [
+    teamKpi,
+    teamTodayKpi,
+    leaderboard,
+    funnel,
+    tips,
+    daily,
+    salesProfilesRes,
+    targetsRes,
+  ] = await Promise.all([
+    getSaleKPI({ saleId: null, period: "mtd" }),
+    getSaleKPI({ saleId: null, period: "today" }),
+    getTeamLeaderboard({ period: "mtd" }),
+    getFunnel({ saleId: null }),
+    getStrategyTips({ saleId: null }),
+    getDailyRevenue({ saleId: null, days: 30 }),
+    admin
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .eq("role", "sale")
+      .order("full_name", { ascending: true }),
+    admin
+      .from("sale_targets")
+      .select("sale_user_id, revenue_target, orders_target")
+      .eq("month", month),
+  ]);
 
   const salesProfiles =
     (salesProfilesRes.data ?? []) as Array<{
@@ -216,6 +234,11 @@ export default async function AdminSalesDashboardPage({
   const teamDelta = deltaBadge(teamKpi.revenue, teamKpi.prev_period_revenue);
   const topSale = leaderboard[0] && leaderboard[0].revenue > 0 ? leaderboard[0] : null;
 
+  // Today line — only meaningful when a team daily target exists
+  const hasTeamDailyTarget =
+    teamTodayKpi.daily_revenue_target !== null &&
+    teamTodayKpi.daily_revenue_target > 0;
+
   // Alerts grouped by severity
   const critical = tips.filter((t) => t.severity === "critical");
   const warning = tips.filter((t) => t.severity === "warning");
@@ -229,6 +252,12 @@ export default async function AdminSalesDashboardPage({
       />
 
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+        {bulkSavedCount > 0 ? (
+          <div className="rounded-md border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-300">
+            Đã lưu {bulkSavedCount} mục tiêu.
+          </div>
+        ) : null}
+
         {/* ═══════════ HERO ═══════════ */}
         <div className="card-dark overflow-hidden">
           <div
@@ -284,6 +313,21 @@ export default async function AdminSalesDashboardPage({
                   }}
                 />
               </div>
+            ) : null}
+
+            {hasTeamDailyTarget ? (
+              <p className="mt-2 text-xs text-gray-400">
+                Hôm nay:{" "}
+                <span className="font-semibold text-white">
+                  {formatVnd(teamTodayKpi.revenue)}
+                </span>{" "}
+                /{" "}
+                {formatVnd(teamTodayKpi.daily_revenue_target as number)} daily
+                target{" "}
+                <span className="font-semibold text-[#D4A843]">
+                  ({(teamTodayKpi.daily_pct ?? 0).toFixed(0)}%)
+                </span>
+              </p>
             ) : null}
 
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -417,6 +461,7 @@ export default async function AdminSalesDashboardPage({
           rows={targetRows}
           month={month}
           saved={savedFlag}
+          savedCount={bulkSavedCount}
           errorCode={errorCode}
         />
 

@@ -331,10 +331,10 @@ export default async function SaleDashboardPage() {
 
   // Hero numbers
   const todayRevenueLabel = todayKpi.revenue > 0 ? formatVnd(todayKpi.revenue) : "0đ";
-  const todayPctLabel =
-    todayKpi.revenue_pct !== null
-      ? `${todayKpi.revenue_pct.toFixed(0)}% target tháng`
-      : "Chưa đặt target";
+  // Caption preference: when a daily target exists, render "X / Y hôm nay (Z%)";
+  // otherwise fall back to the legacy "Chưa đặt target / 0% target tháng" text.
+  const hasDailyTarget =
+    todayKpi.daily_revenue_target !== null && todayKpi.daily_revenue_target > 0;
   const totalActions = actionQueue.length;
   const overdueCount = overdue.length;
 
@@ -371,7 +371,20 @@ export default async function SaleDashboardPage() {
                   {todayRevenueLabel}
                 </div>
                 <div className="mt-1 text-[11px] text-gray-500">
-                  {todayPctLabel}
+                  {hasDailyTarget ? (
+                    <>
+                      {formatVnd(todayKpi.revenue)} /{" "}
+                      {formatVnd(todayKpi.daily_revenue_target as number)} hôm
+                      nay{" "}
+                      <span className="font-semibold text-[#D4A843]">
+                        ({(todayKpi.daily_pct ?? 0).toFixed(0)}%)
+                      </span>
+                    </>
+                  ) : todayKpi.revenue_pct !== null ? (
+                    `${todayKpi.revenue_pct.toFixed(0)}% target tháng`
+                  ) : (
+                    "Chưa đặt target"
+                  )}
                 </div>
               </div>
 
