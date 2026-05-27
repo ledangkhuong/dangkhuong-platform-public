@@ -7,14 +7,19 @@
  * Data is fetched server-side via getDailyRevenue({ saleId: null }) and
  * passed in as a static prop — this component does NOT fetch.
  *
- * Renders the area for revenue (primary axis) and a faint line for order
- * count on a secondary axis, matching the dark + brand-gold theme used
- * across the dashboard.
+ * Three series:
+ *   - Platform revenue (gold area, primary axis) — real cash via web.
+ *   - External revenue (light-gray dashed line, same axis) — paid via
+ *     Facebook / Zalo / bank / cash before being granted access here.
+ *   - Order count (blue dashed line, secondary axis) — unchanged.
+ *
+ * Matches the dark + brand-gold theme used across the dashboard.
  */
 import {
   Area,
   AreaChart,
   CartesianGrid,
+  Legend,
   Line,
   ResponsiveContainer,
   Tooltip,
@@ -22,7 +27,13 @@ import {
   YAxis,
 } from "recharts";
 
-type Point = { date: string; revenue: number; orders: number };
+type Point = {
+  date: string;
+  revenue: number;
+  revenue_platform?: number;
+  revenue_external?: number;
+  orders: number;
+};
 
 interface TrendChartProps {
   data: Point[];
@@ -50,6 +61,8 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0]?.payload;
+  const platform = p?.revenue_platform ?? p?.revenue ?? 0;
+  const external = p?.revenue_external ?? 0;
   return (
     <div
       className="rounded-lg border px-3 py-2 shadow-lg"
@@ -59,17 +72,38 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         Ngày {label ? formatDate(label) : ""}
       </p>
       <p className="text-xs" style={{ color: "#D4A843" }}>
-        Doanh thu: {(p?.revenue ?? 0).toLocaleString("vi-VN")}đ
+        Doanh thu nền tảng: {platform.toLocaleString("vi-VN")}đ
       </p>
+      {external > 0 ? (
+        <p className="text-xs text-gray-400">
+          Thanh toán ngoài: {external.toLocaleString("vi-VN")}đ
+        </p>
+      ) : null}
       <p className="text-xs text-gray-400">Số đơn: {p?.orders ?? 0}</p>
     </div>
   );
 }
 
 export default function TrendChart({ data }: TrendChartProps) {
-  const totalRevenue = data.reduce((s, p) => s + (p.revenue || 0), 0);
-  const totalOrders = data.reduce((s, p) => s + (p.orders || 0), 0);
-  const avg = data.length > 0 ? Math.round(totalRevenue / data.length) : 0;
+  // Backwards-compat for cached payloads that lack the split fields.
+  const normalized = data.map((p) => ({
+    ...p,
+    revenue_platform: p.revenue_platform ?? p.revenue ?? 0,
+    revenue_external: p.revenue_external ?? 0,
+  }));
+
+  const totalPlatform = normalized.reduce(
+    (s, p) => s + (p.revenue_platform || 0),
+    0
+  );
+  const totalExternal = normalized.reduce(
+    (s, p) => s + (p.revenue_external || 0),
+    0
+  );
+  const totalOrders = normalized.reduce((s, p) => s + (p.orders || 0), 0);
+  const avg =
+    normalized.length > 0 ? Math.round(totalPlatform / normalized.length) : 0;
+  const hasExternal = totalExternal > 0;
 
   return (
     <div className="card-dark p-5">
@@ -79,8 +113,16 @@ export default function TrendChart({ data }: TrendChartProps) {
             Doanh thu toàn đội — {data.length} ngày gần nhất
           </h3>
           <p className="text-xs text-gray-400">
-            Tổng {totalRevenue.toLocaleString("vi-VN")}đ • {totalOrders} đơn paid
-            {data.length > 0 ? (
+            Nền tảng: {totalPlatform.toLocaleString("vi-VN")}đ
+            {hasExternal ? (
+              <>
+                {" • "}Thanh toán ngoài:{" "}
+                {totalExternal.toLocaleString("vi-VN")}đ
+              </>
+            ) : null}
+            {" • "}
+            {totalOrders} đơn paid
+            {normalized.length > 0 ? (
               <>
                 {" • "}TB {avg.toLocaleString("vi-VN")}đ/ngày
               </>
@@ -92,7 +134,7 @@ export default function TrendChart({ data }: TrendChartProps) {
       <div className="h-[280px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={data}
+            data={normalized}
             margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
           >
             <defs>
@@ -128,18 +170,39 @@ export default function TrendChart({ data }: TrendChartProps) {
               allowDecimals={false}
             />
             <Tooltip content={<CustomTooltip />} />
+            {hasExternal ? (
+              <Legend
+                verticalAlign="top"
+                height={24}
+                wrapperStyle={{ fontSize: 11, color: "#9ca3af" }}
+              />
+            ) : null}
             <Area
               yAxisId="rev"
               type="monotone"
-              dataKey="revenue"
+              dataKey="revenue_platform"
+              name="Doanh thu nền tảng"
               stroke="#D4A843"
               strokeWidth={2}
               fill="url(#adminTrendFill)"
             />
+            {hasExternal ? (
+              <Line
+                yAxisId="rev"
+                type="monotone"
+                dataKey="revenue_external"
+                name="Thanh toán ngoài"
+                stroke="#9ca3af"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                dot={false}
+              />
+            ) : null}
             <Line
               yAxisId="ord"
               type="monotone"
               dataKey="orders"
+              name="Số đơn"
               stroke="#3b82f6"
               strokeWidth={1.5}
               dot={false}

@@ -386,6 +386,12 @@ export default async function SaleDashboardPage() {
                     "Chưa đặt target"
                   )}
                 </div>
+                {todayKpi.revenue_external > 0 ? (
+                  <div className="mt-1 text-[11px] text-gray-500">
+                    + {formatVnd(todayKpi.revenue_external)} từ khách đã thanh
+                    toán ngoài
+                  </div>
+                ) : null}
               </div>
 
               <div className="rounded-xl border border-[#2a2a2a] bg-[#141414] p-4">

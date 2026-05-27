@@ -330,6 +330,13 @@ export default async function AdminSalesDashboardPage({
               </p>
             ) : null}
 
+            {teamKpi.revenue_external > 0 ? (
+              <p className="mt-1 text-xs text-gray-500">
+                + {formatVnd(teamKpi.revenue_external)} từ khách đã thanh toán
+                ngoài (không tính vào doanh thu nền tảng)
+              </p>
+            ) : null}
+
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-[#2a2a2a] bg-[#141414] p-4">
                 <div className="text-xs text-gray-400">vs tháng trước</div>

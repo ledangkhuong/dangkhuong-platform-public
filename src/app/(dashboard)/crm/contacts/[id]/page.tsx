@@ -3,6 +3,8 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
 import ActivityComposer from "./ActivityComposer";
+import StatusChanger from "./StatusChanger";
+import ExternalOrderModal from "./ExternalOrderModal";
 import {
   ArrowLeft,
   Mail,
@@ -292,6 +294,7 @@ export default async function ContactDetailPage({
     recommendationsRes,
     nextActionsRes,
     dealsRes,
+    coursesRes,
   ] = await Promise.all([
     // Contact details
     adminClient
@@ -326,6 +329,14 @@ export default async function ContactDetailPage({
       .select("id, title, stage, amount")
       .eq("contact_id", id)
       .order("created_at", { ascending: false }),
+    // All sellable courses — for the "Cấp khóa (đã thanh toán ngoài)" modal.
+    // Include both published & coming_soon so admins can grant access to
+    // pre-orders too. Drafts are excluded.
+    adminClient
+      .from("products")
+      .select("id, title, price, sale_price, status")
+      .in("status", ["published", "coming_soon"])
+      .order("title"),
   ]);
 
   if (!contactRes.data) notFound();
@@ -339,6 +350,28 @@ export default async function ContactDetailPage({
   const recommendations = (recommendationsRes.data ?? []) as unknown as CourseRecommendation[];
   const nextActions = (nextActionsRes.data ?? []) as unknown as NextAction[];
   const deals = (dealsRes.data ?? []) as unknown as Deal[];
+  // Course list for the external-order modal. We keep the shape narrow so
+  // the modal client component doesn't ship extra fields over the wire.
+  const sellableCourses = ((coursesRes.data ?? []) as Array<{
+    id: string;
+    title: string;
+    price: number | null;
+    sale_price: number | null;
+  }>).map((c) => ({
+    id: c.id,
+    title: c.title,
+    price: c.price,
+    sale_price: c.sale_price,
+  }));
+
+  // Only admin/manager OR the sale rep this contact is assigned to may
+  // grant external access. Reuses the same auth gate the server action
+  // enforces — keeping the button hidden when it would error.
+  const isAdminOrManagerForExt =
+    scope.role === "admin" || scope.role === "manager";
+  const canCreateExternalOrder =
+    isAdminOrManagerForExt ||
+    (scope.isSale && contact.assigned_to === scope.userId);
 
   // ─── Fetch course interests (courses the user viewed but hasn't purchased) ──
   let courseInterests: CourseInterest[] = [];
@@ -467,14 +500,23 @@ export default async function ContactDetailPage({
       <TopBar title="Chi tiết khách hàng" subtitle={contact.full_name} />
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Back Link */}
-        <Link
-          href="/crm/contacts"
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft size={16} />
-          Quay lại danh sách
-        </Link>
+        {/* Back Link + Page-level Action Buttons */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/crm/contacts"
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Quay lại danh sách
+          </Link>
+          {canCreateExternalOrder ? (
+            <ExternalOrderModal
+              contactId={contact.id}
+              contactName={contact.full_name}
+              courses={sellableCourses}
+            />
+          ) : null}
+        </div>
 
         {/* ═══════════ HEADER SECTION ═══════════ */}
         <div className="card-dark p-6">
@@ -547,6 +589,16 @@ export default async function ContactDetailPage({
                   <Target size={12} />
                   {JOURNEY_STAGES.find((s) => s.key === journeyStage)?.label || journeyStage}
                 </span>
+
+                {/* Pipeline Status Badge (clickable dropdown) */}
+                <StatusChanger
+                  contactId={contact.id}
+                  currentStatus={contact.status}
+                  canEdit={
+                    isAdminOrManager ||
+                    (scope.isSale && contact.assigned_to === scope.userId)
+                  }
+                />
 
                 {/* Lead Score Badge */}
                 {leadScore > 0 && (

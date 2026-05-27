@@ -7,6 +7,13 @@
  * tooltips, hover). Data is fetched server-side via getDailyRevenue() and
  * passed in as a static prop — this component does NOT fetch.
  *
+ * Two series:
+ *   - Platform revenue (primary, brand gold area) — real cash via Stripe /
+ *     VNPay / PayOS / Sepay. This is the cash KPI rep should watch.
+ *   - External revenue (lighter gray, dashed line) — money collected via
+ *     Facebook / Zalo / bank / cash before the customer was granted course
+ *     access on-platform. Counted for LTV and audit, NOT for daily cash.
+ *
  * Today is highlighted with a ReferenceDot so the rep can immediately see
  * where the cumulative bar stands relative to the trailing fortnight.
  */
@@ -15,6 +22,8 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Legend,
+  Line,
   ReferenceDot,
   ResponsiveContainer,
   Tooltip,
@@ -22,7 +31,13 @@ import {
   YAxis,
 } from "recharts";
 
-type Point = { date: string; revenue: number; orders: number };
+type Point = {
+  date: string;
+  revenue: number;
+  revenue_platform?: number;
+  revenue_external?: number;
+  orders: number;
+};
 
 interface RevenueTrendProps {
   data: Point[];
@@ -57,6 +72,8 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0]?.payload;
+  const platform = p?.revenue_platform ?? p?.revenue ?? 0;
+  const external = p?.revenue_external ?? 0;
   return (
     <div
       className="rounded-lg border px-3 py-2 shadow-lg"
@@ -66,11 +83,14 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         Ngày {label ? formatDate(label) : ""}
       </p>
       <p className="text-xs" style={{ color: "#D4A843" }}>
-        Doanh thu: {(p?.revenue ?? 0).toLocaleString("vi-VN")}đ
+        Doanh thu nền tảng: {platform.toLocaleString("vi-VN")}đ
       </p>
-      <p className="text-xs text-gray-400">
-        Số đơn: {p?.orders ?? 0}
-      </p>
+      {external > 0 ? (
+        <p className="text-xs text-gray-400">
+          Thanh toán ngoài: {external.toLocaleString("vi-VN")}đ
+        </p>
+      ) : null}
+      <p className="text-xs text-gray-400">Số đơn: {p?.orders ?? 0}</p>
     </div>
   );
 }
@@ -78,8 +98,27 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 export default function RevenueTrend({ data }: RevenueTrendProps) {
   const today = data[data.length - 1];
 
-  const totalRevenue = data.reduce((s, p) => s + (p.revenue || 0), 0);
-  const totalOrders = data.reduce((s, p) => s + (p.orders || 0), 0);
+  // Backwards-compat: fall back to `revenue` when the new split fields
+  // aren't present (e.g. cached SSR from before the migration shipped).
+  const normalized = data.map((p) => ({
+    ...p,
+    revenue_platform: p.revenue_platform ?? p.revenue ?? 0,
+    revenue_external: p.revenue_external ?? 0,
+  }));
+
+  const totalPlatform = normalized.reduce(
+    (s, p) => s + (p.revenue_platform || 0),
+    0
+  );
+  const totalExternal = normalized.reduce(
+    (s, p) => s + (p.revenue_external || 0),
+    0
+  );
+  const totalOrders = normalized.reduce((s, p) => s + (p.orders || 0), 0);
+  const todayPlatform = today
+    ? today.revenue_platform ?? today.revenue ?? 0
+    : 0;
+  const hasExternal = totalExternal > 0;
 
   return (
     <div className="card-dark p-5">
@@ -89,13 +128,21 @@ export default function RevenueTrend({ data }: RevenueTrendProps) {
             Xu hướng doanh thu {data.length} ngày gần nhất
           </h3>
           <p className="text-xs text-gray-400">
-            Tổng {totalRevenue.toLocaleString("vi-VN")}đ • {totalOrders} đơn paid
+            Nền tảng: {totalPlatform.toLocaleString("vi-VN")}đ
+            {hasExternal ? (
+              <>
+                {" • "}Thanh toán ngoài:{" "}
+                {totalExternal.toLocaleString("vi-VN")}đ
+              </>
+            ) : null}
+            {" • "}
+            {totalOrders} đơn paid
           </p>
         </div>
         <div className="text-xs text-gray-400">
           Hôm nay:{" "}
           <span className="font-semibold text-[#D4A843]">
-            {(today?.revenue ?? 0).toLocaleString("vi-VN")}đ
+            {todayPlatform.toLocaleString("vi-VN")}đ
           </span>
         </div>
       </div>
@@ -103,7 +150,7 @@ export default function RevenueTrend({ data }: RevenueTrendProps) {
       <div className="h-[260px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={data}
+            data={normalized}
             margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
           >
             <defs>
@@ -133,17 +180,36 @@ export default function RevenueTrend({ data }: RevenueTrendProps) {
               width={50}
             />
             <Tooltip content={<CustomTooltip />} />
+            {hasExternal ? (
+              <Legend
+                verticalAlign="top"
+                height={24}
+                wrapperStyle={{ fontSize: 11, color: "#9ca3af" }}
+              />
+            ) : null}
             <Area
               type="monotone"
-              dataKey="revenue"
+              dataKey="revenue_platform"
+              name="Doanh thu nền tảng"
               stroke="#D4A843"
               strokeWidth={2}
               fill="url(#revFill)"
             />
+            {hasExternal ? (
+              <Line
+                type="monotone"
+                dataKey="revenue_external"
+                name="Thanh toán ngoài"
+                stroke="#9ca3af"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                dot={false}
+              />
+            ) : null}
             {today ? (
               <ReferenceDot
                 x={today.date}
-                y={today.revenue}
+                y={todayPlatform}
                 r={5}
                 fill="#D4A843"
                 stroke="#0a0a0a"

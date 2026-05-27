@@ -23,7 +23,22 @@ export type SaleKPI = {
   sale_user_id: string | null; // null = whole team
   full_name: string | null;
   period: SalePeriod;
+  /**
+   * Headline revenue = revenue_platform. Cash that actually flowed through
+   * the website (Stripe/VNPay/PayOS/Sepay). Existing UI keeps using this.
+   */
   revenue: number;
+  /**
+   * Cash that flowed through the web (revenue_source = 'platform' or
+   * legacy NULL rows from before the migration). Mirrors `revenue`.
+   */
+  revenue_platform: number;
+  /**
+   * Revenue from customers who paid in another channel (Facebook, Zalo,
+   * bank transfer, cash, prior platform) and were granted access here.
+   * Tracked for LTV and audit — does NOT count toward platform cash KPIs.
+   */
+  revenue_external: number;
   revenue_target: number | null;
   revenue_pct: number | null; // 0-100, null if no target
   /**
@@ -221,18 +236,37 @@ export async function getSaleKPI(opts: {
   }
 
   // ─── Paid orders inside period ────────────────────────────
+  // Pull revenue_source so we can split platform vs external. NULL / missing
+  // value (e.g. rows created before the 20260527 migration) is treated as
+  // 'platform' so the historical KPI doesn't shift the day the column lands.
+  // 'comp' rows are paid but represent zero cash — excluded from revenue
+  // entirely while still counted toward orders_paid (a conversion is a win).
   let paidQ = supabase
     .from("orders")
-    .select("id, amount, paid_at, created_at", { count: "exact" })
+    .select("id, amount, paid_at, created_at, revenue_source", {
+      count: "exact",
+    })
     .eq("status", "paid")
     .gte("paid_at", range.start.toISOString())
     .lt("paid_at", range.end.toISOString());
   if (saleId) paidQ = paidQ.eq("assigned_to", saleId);
   const { data: paidOrders, count: paidCount } = await paidQ;
 
-  let revenue = 0;
-  for (const o of paidOrders ?? []) revenue += n((o as { amount: unknown }).amount);
+  let revenue_platform = 0;
+  let revenue_external = 0;
+  for (const o of paidOrders ?? []) {
+    const row = o as { amount: unknown; revenue_source?: string | null };
+    const amt = n(row.amount);
+    const src = row.revenue_source ?? "platform";
+    if (src === "external") revenue_external += amt;
+    else if (src === "comp") {
+      /* comp = free, contributes nothing to revenue */
+    } else revenue_platform += amt;
+  }
+  const revenue = revenue_platform; // headline KPI = real cash
   const orders_paid = paidCount ?? (paidOrders?.length ?? 0);
+  // AOV uses platform-cash only — including external would distort the
+  // "average money the website is collecting" metric the sale rep watches.
   const avg_order_value = orders_paid > 0 ? Math.round(revenue / orders_paid) : 0;
 
   // ─── Pending orders (all-time pending, not period-bound) ──
@@ -249,17 +283,23 @@ export async function getSaleKPI(opts: {
   const orders_pending = pendingCount ?? (pendingOrders?.length ?? 0);
 
   // ─── Previous period revenue ──────────────────────────────
+  // Compare like-for-like with current `revenue` (= platform cash), so the
+  // delta badge isn't muddied by external migrations. External orders are
+  // excluded here for the same reason.
   let prevQ = supabase
     .from("orders")
-    .select("amount")
+    .select("amount, revenue_source")
     .eq("status", "paid")
     .gte("paid_at", prevRange.start.toISOString())
     .lt("paid_at", prevRange.end.toISOString());
   if (saleId) prevQ = prevQ.eq("assigned_to", saleId);
   const { data: prevOrders } = await prevQ;
   let prev_period_revenue = 0;
-  for (const o of prevOrders ?? [])
-    prev_period_revenue += n((o as { amount: unknown }).amount);
+  for (const o of prevOrders ?? []) {
+    const row = o as { amount: unknown; revenue_source?: string | null };
+    const src = row.revenue_source ?? "platform";
+    if (src === "platform") prev_period_revenue += n(row.amount);
+  }
 
   // ─── Contacts ─────────────────────────────────────────────
   let cTotalQ = supabase
@@ -341,6 +381,8 @@ export async function getSaleKPI(opts: {
     full_name: fullName,
     period,
     revenue,
+    revenue_platform,
+    revenue_external,
     revenue_target,
     revenue_pct,
     daily_revenue_target,
@@ -774,10 +816,33 @@ export async function getStrategyTips(opts: {
 // 5. getDailyRevenue — last N days bucketed by VN day
 // ────────────────────────────────────────────────────────────
 
+/**
+ * Per-day revenue point used by the dashboard line charts.
+ *
+ * Fields:
+ *   - revenue          legacy alias = revenue_platform (existing chart UI
+ *                      keeps reading `revenue` without code changes)
+ *   - revenue_platform real cash that flowed through the web that day
+ *   - revenue_external sum of `external`-source paid orders that day
+ *                      (paid_at is when the admin recorded it; charts
+ *                      may also show by external_paid_at but the simple
+ *                      v1 here keys by paid_at for parity with `revenue`)
+ *   - orders           total paid orders (any source, excl. `comp` is a
+ *                      design tradeoff — kept inclusive so the "+1 đơn"
+ *                      tooltip matches what the sale just logged)
+ */
+export type DailyRevenuePoint = {
+  date: string;
+  revenue: number;
+  revenue_platform: number;
+  revenue_external: number;
+  orders: number;
+};
+
 export async function getDailyRevenue(opts: {
   saleId: string | null;
   days: number;
-}): Promise<Array<{ date: string; revenue: number; orders: number }>> {
+}): Promise<DailyRevenuePoint[]> {
   const { saleId } = opts;
   const days = Math.max(1, Math.min(opts.days || 30, 365));
   const supabase = await createAdminClient();
@@ -794,7 +859,7 @@ export async function getDailyRevenue(opts: {
 
   let q = supabase
     .from("orders")
-    .select("amount, paid_at")
+    .select("amount, paid_at, revenue_source")
     .eq("status", "paid")
     .gte("paid_at", start.toISOString())
     .lt("paid_at", end.toISOString());
@@ -802,27 +867,42 @@ export async function getDailyRevenue(opts: {
   const { data } = await q;
 
   // Bucket by VN day
-  const buckets = new Map<string, { revenue: number; orders: number }>();
+  const buckets = new Map<
+    string,
+    { revenue_platform: number; revenue_external: number; orders: number }
+  >();
   for (let i = 0; i < days; i++) {
     const dayVn = new Date(Date.UTC(y, m, d - (days - 1) + i, 0, 0, 0));
     const key = `${dayVn.getUTCFullYear()}-${String(dayVn.getUTCMonth() + 1).padStart(2, "0")}-${String(dayVn.getUTCDate()).padStart(2, "0")}`;
-    buckets.set(key, { revenue: 0, orders: 0 });
+    buckets.set(key, { revenue_platform: 0, revenue_external: 0, orders: 0 });
   }
 
   for (const row of data ?? []) {
-    const r = row as { amount: unknown; paid_at: string | null };
+    const r = row as {
+      amount: unknown;
+      paid_at: string | null;
+      revenue_source?: string | null;
+    };
     if (!r.paid_at) continue;
     const vnAt = new Date(new Date(r.paid_at).getTime() + VN_OFFSET_HOURS * 3600 * 1000);
     const key = `${vnAt.getUTCFullYear()}-${String(vnAt.getUTCMonth() + 1).padStart(2, "0")}-${String(vnAt.getUTCDate()).padStart(2, "0")}`;
     const b = buckets.get(key);
     if (!b) continue;
-    b.revenue += n(r.amount);
+    const amt = n(r.amount);
+    const src = r.revenue_source ?? "platform";
+    if (src === "external") b.revenue_external += amt;
+    else if (src === "comp") {
+      /* comp = no cash; still counts toward orders below */
+    } else b.revenue_platform += amt;
     b.orders += 1;
   }
 
   return Array.from(buckets.entries()).map(([date, v]) => ({
     date,
-    revenue: v.revenue,
+    // Legacy alias — existing chart code reading `revenue` keeps working.
+    revenue: v.revenue_platform,
+    revenue_platform: v.revenue_platform,
+    revenue_external: v.revenue_external,
     orders: v.orders,
   }));
 }
