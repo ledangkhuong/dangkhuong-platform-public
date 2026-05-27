@@ -2,54 +2,13 @@
 
 import { createAdminClient } from "@/lib/supabase/server";
 import { getViewerScope } from "@/lib/viewer-scope";
+import {
+  CONTACT_STATUS_VALUES,
+  type ContactStatus,
+  getContactStatusLabel,
+} from "@/lib/contact-status";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-/**
- * Allowed pipeline-status values for crm_contacts.status.
- *
- * Kept in sync with the CHECK constraint in
- *   supabase/migrations/20260527_002_extend_contact_status.sql
- * which extends the original set with 'paused' and 'cold'.
- *
- * Note: 'churned' is intentionally NOT exposed in the UI — it's
- * legacy and we let updateContact still write it if a row already
- * has it, but new mutations through setContactStatus must pick
- * from this whitelist.
- */
-export const CONTACT_STATUS_VALUES = [
-  "new",
-  "contacted",
-  "qualified",
-  "negotiation",
-  "won",
-  "lost",
-  "paused",
-  "cold",
-] as const;
-
-export type ContactStatus = (typeof CONTACT_STATUS_VALUES)[number];
-
-const STATUS_LABELS: Record<ContactStatus, string> = {
-  new: "Khách mới",
-  contacted: "Đã liên hệ",
-  qualified: "Đủ điều kiện",
-  negotiation: "Đàm phán",
-  won: "Chốt thành công",
-  lost: "Mất khách",
-  paused: "Tạm dừng",
-  cold: "Khách nguội",
-};
-
-/** Public helper so the client component shares the same labels. */
-export function getContactStatusLabel(status: string): string {
-  if ((CONTACT_STATUS_VALUES as readonly string[]).includes(status)) {
-    return STATUS_LABELS[status as ContactStatus];
-  }
-  // Backward-compat for legacy 'churned' rows
-  if (status === "churned") return "Rời bỏ";
-  return status;
-}
 
 /**
  * Change a contact's pipeline status with an accountability note.
@@ -69,6 +28,10 @@ export function getContactStatusLabel(status: string): string {
  *
  * Errors redirect back to the contact page with ?error=... so the
  * existing toast/alert pattern in the dashboard surfaces them.
+ *
+ * NOTE: pure constants/types/labels live in `@/lib/contact-status` —
+ * "use server" files cannot export non-async functions or const, so we
+ * keep this module strictly to the async action.
  */
 export async function setContactStatus(formData: FormData): Promise<void> {
   const contactId = (formData.get("contact_id") as string || "").trim();
