@@ -41,9 +41,25 @@ function genId(prefix){
   return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,10);
 }
 
+// EMQ Boost B helper — đọc user_data đã cache trong sessionStorage,
+// merge với userData passed-in để CAPI hash + gửi Meta
+function getCachedUserData() {
+  try {
+    return JSON.parse(sessionStorage.getItem('dk_user_data') || '{}');
+  } catch(e) { return {}; }
+}
+
 function fire(eventName, customData, userData) {
   var eventId = genId(eventName.toLowerCase());
   customData = customData || {};
+
+  // Merge cached user_data → mọi event tự kèm email/phone (nếu user đã nhập)
+  var mergedUserData = userData || {};
+  var cached = getCachedUserData();
+  if (cached.email && !mergedUserData.email) mergedUserData.email = cached.email;
+  if (cached.phone && !mergedUserData.phone) mergedUserData.phone = cached.phone;
+  if (cached.name && !mergedUserData.name) mergedUserData.name = cached.name;
+  var hasUserData = mergedUserData.email || mergedUserData.phone || mergedUserData.name;
 
   // 1) Client Pixel — Standard hoặc Custom
   try {
@@ -74,7 +90,7 @@ function fire(eventName, customData, userData) {
         slug: slug,
         event_name: eventName,
         event_id: eventId,
-        user_data: userData || undefined,
+        user_data: hasUserData ? mergedUserData : undefined,
         custom_data: customData,
         source_url: window.location.href,
         attribution: attribution
@@ -172,32 +188,52 @@ function setupVideoTracking() {
 
 // ══════════════════════════════════════════════════════════════
 // #3 FormStart tracking — focus input lần đầu (intent signal)
+//    + EMQ Boost B: cache email/phone/name vào sessionStorage để các
+//    event sau đó (Pixel + CAPI) tự kèm user_data → Match Quality tăng
 // ══════════════════════════════════════════════════════════════
 var formsFiredStart = new WeakSet();
 
-document.addEventListener('focusin', function(e) {
-  var target = e.target;
-  if (!target || target.nodeType !== 1) return;
+function isLeadField(target) {
+  if (!target || target.nodeType !== 1) return null;
   var tag = target.tagName;
-  if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
-
+  if (tag !== 'INPUT' && tag !== 'TEXTAREA') return null;
   var name = (target.name || '').toLowerCase();
   var type = (target.type || '').toLowerCase();
-  // Chỉ track input email/phone/name (intent signal cho lead form)
-  var isLeadField = name === 'email' || name === 'phone' || name === 'name' ||
-                    name === 'full_name' || name === 'fullname' ||
-                    type === 'email' || type === 'tel';
-  if (!isLeadField) return;
+  if (name === 'email' || type === 'email') return 'email';
+  if (name === 'phone' || type === 'tel') return 'phone';
+  if (name === 'name' || name === 'full_name' || name === 'fullname') return 'name';
+  return null;
+}
 
-  var form = target.closest('form');
+// FormStart event — fire 1 lần khi user focus
+document.addEventListener('focusin', function(e) {
+  var field = isLeadField(e.target);
+  if (!field) return;
+  var form = e.target.closest('form');
   if (!form || formsFiredStart.has(form)) return;
   formsFiredStart.add(form);
-
   fire('FormStart', {
     content_name: 'Form started',
     page_path: window.location.pathname,
-    first_field: name || type
+    first_field: field
   });
+}, true);
+
+// EMQ Boost B — listen 'input' event lưu giá trị vào sessionStorage
+// → mọi event Pixel/CAPI sau đó tự kèm hashed user_data → EMQ ++
+document.addEventListener('input', function(e) {
+  var field = isLeadField(e.target);
+  if (!field) return;
+  var val = e.target.value ? String(e.target.value).trim() : '';
+  if (!val || val.length < 2) return;
+  try {
+    var cached = JSON.parse(sessionStorage.getItem('dk_user_data') || '{}');
+    // Validate sơ bộ trước khi cache
+    if (field === 'email' && val.indexOf('@') === -1) return;
+    if (field === 'phone') val = val.replace(/[^0-9+]/g, '');
+    cached[field] = val;
+    sessionStorage.setItem('dk_user_data', JSON.stringify(cached));
+  } catch(err) {}
 }, true);
 
 // ══════════════════════════════════════════════════════════════

@@ -70,6 +70,10 @@ function loadPixel${safePixelId}(){
   try {
     var url = new URL(window.location.href);
     var sp = url.searchParams;
+    // EMQ Boost B — merge cached user_data từ sessionStorage
+    var cachedUd = {};
+    try { cachedUd = JSON.parse(sessionStorage.getItem('dk_user_data') || '{}'); } catch(e) {}
+    var hasUd = cachedUd.email || cachedUd.phone || cachedUd.name;
     fetch('/api/capi/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -78,6 +82,7 @@ function loadPixel${safePixelId}(){
         slug: '${safeSlug}',
         event_name: 'PageView',
         event_id: pvEventId,
+        user_data: hasUd ? cachedUd : undefined,
         source_url: window.location.href,
         attribution: {
           utm_source: sp.get('utm_source') || undefined,

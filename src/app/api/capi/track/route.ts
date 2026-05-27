@@ -113,6 +113,11 @@ export async function POST(req: NextRequest) {
   const userAgent = req.headers.get("user-agent") || undefined;
   const cookies = parseCookies(req.headers.get("cookie"));
 
+  // EMQ Boost A — auto-set external_id từ visitor_id cookie (dk_vid) khi
+  // client không gửi userId. Visitor_id duy nhất xuyên suốt 2 năm → Meta
+  // link được các event của cùng visitor → tăng Event Match Quality +2-3 điểm.
+  const visitorIdCookie = cookies.dk_vid;
+
   const userData = {
     email: body.user_data?.email,
     phone: body.user_data?.phone,
@@ -122,7 +127,7 @@ export async function POST(req: NextRequest) {
     userAgent,
     fbc: cookies._fbc,
     fbp: cookies._fbp,
-    externalId: body.user_data?.userId,
+    externalId: body.user_data?.userId || visitorIdCookie || undefined,
   };
 
   // Merge attribution context vào custom_data (Meta nhận utm_*, fbclid, ...)

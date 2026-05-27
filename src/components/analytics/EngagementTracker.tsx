@@ -81,6 +81,10 @@ function fireEvent(eventName, customData) {
       referrer: document.referrer || undefined,
       landing_path: url.pathname
     };
+    // EMQ Boost B — merge cached user_data từ sessionStorage
+    var cachedUd = {};
+    try { cachedUd = JSON.parse(sessionStorage.getItem('dk_user_data') || '{}'); } catch(e) {}
+    var hasUd = cachedUd.email || cachedUd.phone || cachedUd.name;
     fetch('/api/capi/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -89,6 +93,7 @@ function fireEvent(eventName, customData) {
         slug: cfg.slug,
         event_name: eventName,
         event_id: eventId,
+        user_data: hasUd ? cachedUd : undefined,
         custom_data: customData,
         source_url: window.location.href,
         attribution: attribution
