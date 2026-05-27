@@ -16,7 +16,7 @@ import {
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
-  Video, Globe, Sparkles, Activity,
+  Video, Globe, Sparkles, Activity, Gauge,
 } from "lucide-react";
 
 const courseSubNav = [
@@ -47,6 +47,8 @@ const instructorNav = [
 ];
 
 const adminNav = [
+  { href: "/sale/dashboard", icon: Gauge, label: "Dashboard của tôi", roles: ["admin", "manager", "sale"] },
+  { href: "/admin/sales-dashboard", icon: TrendingUp, label: "Tổng quan đội Sale", roles: ["admin", "manager"] },
   { href: "/admin", icon: ShieldCheck, label: "Admin Panel", roles: ["admin"] },
   { href: "/admin/courses", icon: BookOpen, label: "Quản lý Khoá học", roles: ["admin", "manager", "editor", "instructor"] },
   { href: "/admin/enrollments", icon: UserPlus, label: "Cấp khoá học", roles: ["admin", "manager", "sale"] },
