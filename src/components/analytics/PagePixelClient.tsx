@@ -36,34 +36,13 @@ export default function PagePixelClient({
     const tryInitAndFire = (): boolean => {
       if (!hasCookieConsent("marketing")) return false;
 
-      // Init pixel (once per pixelId)
+      // KHÔNG init lại pixel ở đây — AutoPixel inline script đã init đúng
+      // pixelId qua base code (cùng ID này) ở HTML parse time. Gọi
+      // fbq('init', pixelId) lần nữa sẽ làm Meta SDK log warning:
+      //   "[Meta Pixel] - Duplicate Pixel ID: ..."
+      // → Pixel Helper nhận state lạ → báo dị thường. Chỉ cần đánh dấu init
+      // = true để các nhánh khác (nếu có) bỏ qua.
       if (!initialized.current) {
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-          if (!f.fbq) {
-            n = f.fbq = function () {
-              // eslint-disable-next-line prefer-rest-params
-              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-            };
-            if (!f._fbq) f._fbq = n;
-            n.push = n;
-            n.loaded = !0;
-            n.version = "2.0";
-            n.queue = [];
-            t = b.createElement(e);
-            t.async = !0;
-            t.src = v;
-            s = b.getElementsByTagName(e)[0];
-            if (s && s.parentNode) {
-              s.parentNode.insertBefore(t, s);
-            } else {
-              document.head.appendChild(t);
-            }
-          }
-        })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-        /* eslint-enable */
-
-        (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("init", pixelId);
         initialized.current = true;
       }
 
