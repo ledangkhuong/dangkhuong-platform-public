@@ -50,10 +50,13 @@ function fire(eventName, customData, userData) {
   if (!eventName) return;
   var eventId = genId(eventName.toLowerCase());
 
-  // 1) Client Pixel
+  // 1) Client Pixel — phân biệt Standard vs Custom (AutoEvent dropdown chỉ
+  // cho chọn Standard, nhưng vẫn dùng helper để consistent với các tracker khác)
   try {
     if (typeof window.fbq === 'function') {
-      window.fbq('track', eventName, customData || {}, { eventID: eventId });
+      var STANDARD_EVENTS = ['AddPaymentInfo','AddToCart','AddToWishlist','CompleteRegistration','Contact','CustomizeProduct','Donate','FindLocation','InitiateCheckout','Lead','Purchase','Schedule','Search','StartTrial','SubmitApplication','Subscribe','ViewContent','PageView'];
+      var method = STANDARD_EVENTS.indexOf(eventName) > -1 ? 'track' : 'trackCustom';
+      window.fbq(method, eventName, customData || {}, { eventID: eventId });
     }
   } catch(e) {}
 

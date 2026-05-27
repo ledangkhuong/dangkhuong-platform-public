@@ -57,10 +57,14 @@ function fireEvent(eventName, customData) {
   var eventId = genId(eventName.toLowerCase());
   customData = customData || {};
 
-  // 1) Client Pixel — dùng track (Meta tự handle cả custom)
+  // 1) Client Pixel — phân biệt Standard vs Custom Event
+  // Standard: fbq('track', ...). Custom: fbq('trackCustom', ...).
+  // Pixel Helper extension chỉ detect đúng khi gọi đúng API.
   try {
     if (typeof window.fbq === 'function') {
-      window.fbq('track', eventName, customData, { eventID: eventId });
+      var STANDARD_EVENTS = ['AddPaymentInfo','AddToCart','AddToWishlist','CompleteRegistration','Contact','CustomizeProduct','Donate','FindLocation','InitiateCheckout','Lead','Purchase','Schedule','Search','StartTrial','SubmitApplication','Subscribe','ViewContent','PageView'];
+      var method = STANDARD_EVENTS.indexOf(eventName) > -1 ? 'track' : 'trackCustom';
+      window.fbq(method, eventName, customData, { eventID: eventId });
     }
   } catch(e) {}
 

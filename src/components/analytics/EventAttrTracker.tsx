@@ -76,10 +76,12 @@ function fire(el) {
   var userData = getUserData(el);
   var eventId = genId(eventName.toLowerCase());
 
-  // 1) Client Pixel
+  // 1) Client Pixel — phân biệt Standard vs Custom Event
   try {
     if (typeof window.fbq === 'function') {
-      window.fbq('track', eventName, hasCustom ? customData : {}, { eventID: eventId });
+      var STANDARD_EVENTS = ['AddPaymentInfo','AddToCart','AddToWishlist','CompleteRegistration','Contact','CustomizeProduct','Donate','FindLocation','InitiateCheckout','Lead','Purchase','Schedule','Search','StartTrial','SubmitApplication','Subscribe','ViewContent','PageView'];
+      var method = STANDARD_EVENTS.indexOf(eventName) > -1 ? 'track' : 'trackCustom';
+      window.fbq(method, eventName, hasCustom ? customData : {}, { eventID: eventId });
     }
   } catch(e) {}
 
