@@ -22,7 +22,11 @@ export default function PagePixelClient({
 }) {
   const pathname = usePathname();
   const initialized = useRef(false);
-  const lastFiredPath = useRef<string | null>(null);
+  // QUAN TRỌNG: Khởi tạo bằng pathname hiện tại → SKIP initial PageView vì
+  // AutoPixel inline script đã fire rồi (HTML parse time, trước hydration).
+  // PagePixelClient chỉ fire PageView khi pathname THAY ĐỔI (SPA navigation).
+  // Tránh duplicate PageView event với 2 eventID khác nhau → Meta dedupe fail.
+  const lastFiredPath = useRef<string | null>(pathname);
 
   // Init Pixel + fire PageView. 1 useEffect duy nhất, không phụ thuộc state.
   // Re-run mỗi khi pathname đổi để fire PageView trên SPA navigation.

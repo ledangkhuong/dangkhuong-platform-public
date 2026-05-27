@@ -210,7 +210,15 @@ const COURSE_URL =
   "/courses/lo-trinh-thiet-ke-website-all-in-one-bang-ai-agent";
 
 /* ---- Component ---- */
-export default function WebAllInOneLanding() {
+interface WebAllInOneLandingProps {
+  /**
+   * Slug của pixel_config (lấy từ DB server-side) — EventAttrTracker đọc từ
+   * data-dk-default-slug để route CAPI event sang đúng pixel access_token.
+   */
+  pixelSlug?: string;
+}
+
+export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOneLandingProps = {}) {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -298,7 +306,10 @@ export default function WebAllInOneLanding() {
   const gold = "#D4A843";
 
   return (
-    <div className="min-h-screen bg-[#050913] text-white">
+    <div
+      className="min-h-screen bg-[#050913] text-white"
+      data-dk-default-slug={pixelSlug}
+    >
       {/* ═══ NAVBAR ═══ */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-8 py-3 flex items-center justify-between"
@@ -359,6 +370,10 @@ export default function WebAllInOneLanding() {
           <button
             onClick={scrollToForm}
             className="btn-green text-sm sm:text-base py-3.5 px-8"
+            data-dk-track="Lead"
+            data-dk-content="Mời Sinh Tố CTA — Hero"
+            data-dk-value="100000"
+            data-dk-currency="VND"
           >
             Mời Sinh Tố & Vào Phòng Zoom <ArrowRight size={16} />
           </button>
@@ -778,6 +793,10 @@ export default function WebAllInOneLanding() {
             <button
               onClick={scrollToForm}
               className="btn-green text-sm sm:text-base py-3.5 px-8"
+              data-dk-track="Lead"
+              data-dk-content="Mời Sinh Tố CTA — Mid"
+              data-dk-value="100000"
+              data-dk-currency="VND"
             >
               Mời Sinh Tố & Vào Phòng Zoom &mdash; 100K{" "}
               <ArrowRight size={16} />
@@ -1138,6 +1157,10 @@ export default function WebAllInOneLanding() {
           <button
             onClick={scrollToForm}
             className="btn-green text-sm sm:text-base py-3.5 px-8"
+            data-dk-track="Lead"
+            data-dk-content="Mời Sinh Tố CTA — Final"
+            data-dk-value="100000"
+            data-dk-currency="VND"
           >
             <Coffee size={16} /> Mời Sinh Tố & Vào Phòng Zoom &mdash; 100K{" "}
             <ArrowRight size={16} />

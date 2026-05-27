@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import PageTracker from "@/components/analytics/PageTracker";
-import FacebookPixel from "@/components/analytics/FacebookPixel";
+// FacebookPixel (env-based legacy) removed — bị thay thế hoàn toàn bởi AutoPixel
+// (per-page slug từ DB + eventID + CAPI dedupe). Việc render song song khiến
+// PageView fire 2-3 lần (1 lần không eventID) → Pixel Helper báo dị thường.
 import AutoPixel from "@/components/analytics/AutoPixel";
 import AutoEvent from "@/components/analytics/AutoEvent";
 import EngagementTracker from "@/components/analytics/EngagementTracker";
@@ -89,7 +91,6 @@ export default function RootLayout({
         </a>
         <Suspense fallback={null}>
           <PageTracker />
-          <FacebookPixel />
           <AutoPixel />
           <AutoEvent />
           <EngagementTracker />

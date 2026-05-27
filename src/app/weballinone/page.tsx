@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import WebAllInOneLanding from "./WebAllInOneLanding";
+import { getLandingEventConfig, getPixelsForPathname } from "@/lib/landing-pages";
 
 export const metadata: Metadata = {
   title:
@@ -27,6 +28,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function WebAllInOnePage() {
-  return <WebAllInOneLanding />;
+// Resolve pixel slug server-side để EventAttrTracker route CAPI đúng pixel
+// config. Ưu tiên slug từ landing event config; fallback sang pixel attached
+// đầu tiên; cuối cùng fallback 'default' (route sẽ 404 nếu không có config).
+async function resolvePixelSlug(): Promise<string> {
+  const cfg = await getLandingEventConfig("/weballinone");
+  if (cfg?.slug) return cfg.slug;
+  const pixels = await getPixelsForPathname("/weballinone");
+  return pixels[0]?.slug || "default";
+}
+
+export default async function WebAllInOnePage() {
+  const pixelSlug = await resolvePixelSlug();
+  return <WebAllInOneLanding pixelSlug={pixelSlug} />;
 }
