@@ -286,7 +286,12 @@ export default async function ContactDetailPage({
   };
   const flashSuccess: string | null = (() => {
     if (spFirst("ext_ok")) return "Đã cấp khóa và ghi nhận đơn ngoài thành công.";
-    if (spFirst("grant_ok")) return "Đã cấp khóa trực tiếp cho khách.";
+    if (spFirst("grant_ok")) {
+      const e = spFirst("grant_email");
+      return e
+        ? `Đã cấp khóa cho tài khoản ${e}. Khách phải đăng nhập đúng email này mới thấy khóa trong "Khóa học của tôi".`
+        : "Đã cấp khóa trực tiếp cho khách.";
+    }
     if (spFirst("status_updated")) return "Đã đổi trạng thái khách hàng.";
     if (spFirst("status_unchanged")) return "Trạng thái không thay đổi.";
     if (spFirst("tags_updated")) return "Đã cập nhật nhãn.";

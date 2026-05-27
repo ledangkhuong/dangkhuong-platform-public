@@ -185,8 +185,25 @@ export async function createDirectEnrollment(formData: FormData): Promise<void> 
     },
   });
 
+  // ─── Resolve the actual email the enrollment went to (for the UX) ──
+  // Helps the admin verify they granted to the right account — the
+  // common confusion is the contact email vs the user's signup email.
+  let grantedEmail: string | null = emailLower || null;
+  try {
+    const { data: prof } = await admin
+      .from("profiles")
+      .select("email")
+      .eq("id", buyerUserId)
+      .maybeSingle();
+    if (prof?.email) grantedEmail = prof.email as string;
+  } catch {
+    // best-effort only
+  }
+
   // ─── Revalidate ───────────────────────────────────────────
   revalidatePath(`/crm/contacts/${contactId}`);
 
-  redirect(`/crm/contacts/${contactId}?grant_ok=1`);
+  redirect(
+    `/crm/contacts/${contactId}?grant_ok=1${grantedEmail ? `&grant_email=${encodeURIComponent(grantedEmail)}` : ""}`
+  );
 }
