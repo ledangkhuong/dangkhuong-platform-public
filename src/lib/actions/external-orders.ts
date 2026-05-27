@@ -210,8 +210,24 @@ export async function createExternalOrder(formData: FormData) {
   // contact↔user-id trigger will reconcile on signup.
   const orderUserId = buyerUserId ?? scope.userId;
 
+  // Defensive: re-generate order_code one more time right before INSERT
+  // and assert non-empty. If the first call ever returned "" (shouldn't,
+  // but the bug we're chasing presents as a NULL order_code at INSERT
+  // time), we want to fail loudly with a diagnostic redirect rather than
+  // let Postgres reject it with 23502.
+  const orderCode = generateOrderCode();
+  if (!orderCode || typeof orderCode !== "string" || orderCode.length < 4) {
+    console.error(
+      "[createExternalOrder] generateOrderCode returned invalid:",
+      JSON.stringify({ orderCode, type: typeof orderCode })
+    );
+    redirect(
+      `/crm/contacts/${contactId}?ext_error=insert_failed&ext_code=GEN&ext_msg=${encodeURIComponent("generateOrderCode failed — unable to create order_code")}`
+    );
+  }
+
   const orderPayload: Record<string, unknown> = {
-    order_code: generateOrderCode(),
+    order_code: orderCode,
     user_id: orderUserId,
     product_id: courseId,
     customer_email: contact.email ?? null,
@@ -228,6 +244,16 @@ export async function createExternalOrder(formData: FormData) {
     assigned_to: (contact.assigned_to as string | null) ?? null,
     note: `Cấp truy cập (đã thanh toán ngoài qua ${channel} ngày ${externalPaidAt})`,
   };
+
+  // Log the keys we're about to insert so prod logs show conclusively
+  // whether order_code is in the payload at INSERT time. Helps us bisect
+  // build-cache vs trigger vs PostgREST issues without another deploy.
+  console.error(
+    "[createExternalOrder] inserting order with keys:",
+    Object.keys(orderPayload).sort().join(","),
+    "order_code length:",
+    orderCode.length
+  );
 
   // Try the full payload first.
   let attempt = await admin
