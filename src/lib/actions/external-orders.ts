@@ -331,21 +331,52 @@ export async function createExternalOrder(formData: FormData) {
   // not in a DB trigger. Replicate the same upsert here so external buyers
   // get immediate access.
   if (buyerUserId) {
-    const { error: enrollErr } = await admin.from("enrollments").upsert(
-      {
-        user_id: buyerUserId,
-        product_id: courseId,
-        order_id: insertedOrder.id,
-        source: "external",
-      },
-      { onConflict: "user_id,product_id", ignoreDuplicates: true }
-    );
-    if (enrollErr) {
-      console.error("[createExternalOrder] enroll failed:", enrollErr);
-      // Order was created — surface as a partial-success warning so the
-      // admin knows to grant access manually if needed.
+    // `source` has a CHECK constraint in some envs — the platform uses
+    // 'purchase' for paid-order enrolments (see /api/admin/orders/confirm).
+    // Our previous 'external' value was rejected silently. Use 'purchase'
+    // and fall back to omitting the column if some other source value is
+    // demanded by the schema.
+    const enrollPayload: Record<string, unknown> = {
+      user_id: buyerUserId,
+      product_id: courseId,
+      order_id: insertedOrder.id,
+      source: "purchase",
+    };
+    let enrollRes = await admin
+      .from("enrollments")
+      .upsert(enrollPayload, {
+        onConflict: "user_id,product_id",
+        ignoreDuplicates: true,
+      });
+    if (enrollRes.error) {
+      const code =
+        (enrollRes.error as { code?: string } | null)?.code?.toString() ?? "";
+      const msg = enrollRes.error.message ?? "";
+      // CHECK violation (23514) or unknown column → retry without `source`.
+      if (
+        code === "23514" ||
+        code === "PGRST204" ||
+        code === "42703" ||
+        /source/i.test(msg)
+      ) {
+        const slim = { ...enrollPayload };
+        delete slim.source;
+        enrollRes = await admin
+          .from("enrollments")
+          .upsert(slim, {
+            onConflict: "user_id,product_id",
+            ignoreDuplicates: true,
+          });
+      }
+    }
+    if (enrollRes.error) {
+      console.error("[createExternalOrder] enroll failed:", enrollRes.error);
+      const code =
+        (enrollRes.error as { code?: string } | null)?.code?.toString() ??
+        "unknown";
+      const msg = (enrollRes.error.message ?? "").slice(0, 200);
       redirect(
-        `/crm/contacts/${contactId}?ext_error=enrollment_failed&order=${insertedOrder.id}`
+        `/crm/contacts/${contactId}?ext_error=enrollment_failed&order=${insertedOrder.id}&ext_code=${encodeURIComponent(code)}&ext_msg=${encodeURIComponent(msg)}`
       );
     }
   }

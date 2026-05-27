@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import ActivityComposer from "./ActivityComposer";
 import StatusChanger from "./StatusChanger";
 import ExternalOrderModal from "./ExternalOrderModal";
+import DirectGrantModal from "./DirectGrantModal";
 import TagsEditor from "./TagsEditor";
 import {
   ArrowLeft,
@@ -285,6 +286,7 @@ export default async function ContactDetailPage({
   };
   const flashSuccess: string | null = (() => {
     if (spFirst("ext_ok")) return "Đã cấp khóa và ghi nhận đơn ngoài thành công.";
+    if (spFirst("grant_ok")) return "Đã cấp khóa trực tiếp cho khách.";
     if (spFirst("status_updated")) return "Đã đổi trạng thái khách hàng.";
     if (spFirst("status_unchanged")) return "Trạng thái không thay đổi.";
     if (spFirst("tags_updated")) return "Đã cập nhật nhãn.";
@@ -310,6 +312,24 @@ export default async function ContactDetailPage({
       const code = spFirst("ext_code");
       const msg = spFirst("ext_msg");
       const detail = [code, msg].filter(Boolean).join(" — ");
+      return detail ? `${base} (${detail})` : base;
+    }
+    const grantErr = spFirst("grant_error");
+    if (grantErr) {
+      const gmap: Record<string, string> = {
+        missing_contact: "Thiếu thông tin khách hàng.",
+        contact_not_found: "Không tìm thấy khách hàng.",
+        forbidden: "Bạn không có quyền cấp khóa cho khách này.",
+        missing_course: "Vui lòng chọn khóa học.",
+        missing_note: "Vui lòng nhập lý do cấp.",
+        course_not_found: "Không tìm thấy khóa học.",
+        no_user_account: "Khách chưa có tài khoản trên web — vui lòng dùng \"Cấp khóa (đã thanh toán ngoài)\" thay thế (cho phép cấp khi chưa đăng ký).",
+        enroll_failed: "Không cấp được khóa.",
+      };
+      const base = gmap[grantErr] ?? `Lỗi cấp khóa: ${grantErr}`;
+      const gcode = spFirst("grant_code");
+      const gmsg = spFirst("grant_msg");
+      const detail = [gcode, gmsg].filter(Boolean).join(" — ");
       return detail ? `${base} (${detail})` : base;
     }
     const stErr = spFirst("error");
@@ -617,11 +637,18 @@ export default async function ContactDetailPage({
             Quay lại danh sách
           </Link>
           {canCreateExternalOrder ? (
-            <ExternalOrderModal
-              contactId={contact.id}
-              contactName={contact.full_name}
-              courses={sellableCourses}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <DirectGrantModal
+                contactId={contact.id}
+                contactName={contact.full_name}
+                courses={sellableCourses}
+              />
+              <ExternalOrderModal
+                contactId={contact.id}
+                contactName={contact.full_name}
+                courses={sellableCourses}
+              />
+            </div>
           ) : null}
         </div>
 
