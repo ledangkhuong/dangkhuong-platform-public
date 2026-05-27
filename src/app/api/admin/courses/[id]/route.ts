@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 /**
  * GET /api/admin/courses/[id] — fetch a single course (bypasses RLS)
@@ -112,6 +113,11 @@ export async function PUT(
     if (key in body) {
       payload[key] = body[key];
     }
+  }
+
+  // Sanitize HTML content before storing to prevent stored XSS
+  if (typeof payload.description_html === "string") {
+    payload.description_html = sanitizeHtml(payload.description_html);
   }
 
   const { error } = await admin

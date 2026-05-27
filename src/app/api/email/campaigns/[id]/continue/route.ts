@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { rateLimit } from "@/lib/rate-limit";
 
 const BATCH_SIZE = 50;
 const SEND_DELAY_MS = 80; // ~12 emails/s, safely under SES 14/s limit
@@ -78,6 +79,15 @@ export async function POST(
       .single();
     if (!["admin", "manager"].includes(profile?.role ?? ""))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    // Rate limit: 3 per minute per user
+    const rl = await rateLimit(`campaign-continue:${user.id}`, 3, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
 
     const { id } = await params;
     const admin = await createAdminClient();

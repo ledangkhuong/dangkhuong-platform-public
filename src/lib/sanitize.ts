@@ -1,6 +1,27 @@
 import sanitize from "sanitize-html";
 
 /**
+ * Strip `data:` URIs that aren't `data:image/*` from the `src` attribute.
+ * This prevents XSS via `data:text/html`, `data:application/javascript`, etc.
+ * while still allowing inline base64 images.
+ */
+function filterDataUri(
+  tagName: string,
+  attribs: sanitize.Attributes,
+): sanitize.Tag {
+  const src = attribs.src;
+  if (
+    src &&
+    src.trimStart().toLowerCase().startsWith("data:") &&
+    !src.trimStart().toLowerCase().startsWith("data:image/")
+  ) {
+    // Non-image data URI — remove the src entirely
+    delete attribs.src;
+  }
+  return { tagName, attribs };
+}
+
+/**
  * Sanitize HTML content for safe rendering.
  * Uses sanitize-html (pure JS, no jsdom dependency) so it works
  * reliably on both local dev and Vercel serverless environments.
@@ -61,10 +82,18 @@ export function sanitizeHtml(dirty: string): string {
       "player.vimeo.com",
       "drive.google.com",
     ],
-    // Allow data URIs for images (base64 embedded images)
-    allowedSchemes: ["http", "https", "data", "mailto"],
-    // Preserve YouTube embeds
+    // Block non-image data: URIs on img/source tags (defence in depth)
+    transformTags: {
+      img: filterDataUri,
+      source: filterDataUri,
+    },
+    // Only allow safe URL schemes globally (no data: — see allowedSchemesByTag)
+    allowedSchemes: ["http", "https", "mailto"],
     allowedSchemesByTag: {
+      // Allow data:image/* URIs only on image-related tags (inline base64 images)
+      img: ["http", "https", "data"],
+      source: ["http", "https", "data"],
+      // Preserve YouTube embeds — https only
       iframe: ["https"],
     },
   });

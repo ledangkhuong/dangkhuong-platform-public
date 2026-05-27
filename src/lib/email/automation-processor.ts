@@ -363,13 +363,16 @@ async function handleEnd(
     })
     .eq("id", enrollment.id);
 
-  // Update automation completed_count
-  await adminClient.rpc("increment_field", {
-    table_name: "email_automations",
-    row_id: enrollment.automation_id,
-    field_name: "completed_count",
-    increment_by: 1,
-  });
+  // Update automation completed_count (direct update, no generic RPC)
+  const { data: currentAutomation } = await adminClient
+    .from("email_automations")
+    .select("completed_count")
+    .eq("id", enrollment.automation_id)
+    .single();
+  await adminClient
+    .from("email_automations")
+    .update({ completed_count: (currentAutomation?.completed_count || 0) + 1 })
+    .eq("id", enrollment.automation_id);
 
   // Log the action
   await adminClient.from("email_automation_logs").insert({
@@ -507,12 +510,16 @@ export async function advanceToNextStep(
       })
       .eq("id", enrollment.id);
 
-    await adminClient.rpc("increment_field", {
-      table_name: "email_automations",
-      row_id: enrollment.automation_id,
-      field_name: "completed_count",
-      increment_by: 1,
-    });
+    // Update automation completed_count (direct update, no generic RPC)
+    const { data: currentAuto } = await adminClient
+      .from("email_automations")
+      .select("completed_count")
+      .eq("id", enrollment.automation_id)
+      .single();
+    await adminClient
+      .from("email_automations")
+      .update({ completed_count: (currentAuto?.completed_count || 0) + 1 })
+      .eq("id", enrollment.automation_id);
 
     await adminClient.from("email_automation_logs").insert({
       enrollment_id: enrollment.id,

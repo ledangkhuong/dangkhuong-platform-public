@@ -63,7 +63,7 @@ export default async function middleware(request: NextRequest) {
     );
     const exemptPrefixes = [
       "/api/sepay/",
-      "/api/payos/",
+      "/api/payos/webhook",
       "/api/email/webhook",
       "/api/email/track",
       "/api/zalo/",
@@ -72,16 +72,16 @@ export default async function middleware(request: NextRequest) {
       "/api/affiliate/click",
       "/api/analytics/",
       "/api/capi/",
-      "/api/subscribe",
     ];
     const isExempt = exemptPrefixes.some((p) => pathname.startsWith(p));
 
     if (isStateChanging && !isExempt) {
       const origin = request.headers.get("origin");
       const host = request.headers.get("host");
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL;
       if (origin) {
         const allowedOrigins = [
-          process.env.NEXT_PUBLIC_APP_URL,
+          appUrl,
           `https://${host}`,
           `http://${host}`, // dev
         ].filter(Boolean);
@@ -90,6 +90,48 @@ export default async function middleware(request: NextRequest) {
             (ao) => origin === ao || origin.endsWith(".dangkhuong.com")
           )
         ) {
+          return new NextResponse(
+            JSON.stringify({ error: "Forbidden" }),
+            {
+              status: 403,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      } else {
+        // Fallback: validate Referer when Origin header is absent.
+        // Browsers omit Origin on same-origin navigations and some
+        // redirects; Referer is almost always present. If both are
+        // missing on a state-changing API request, reject it.
+        const referer = request.headers.get("referer");
+        if (referer) {
+          try {
+            const refOrigin = new URL(referer).origin;
+            if (
+              refOrigin !== appUrl &&
+              refOrigin !== `https://${host}` &&
+              refOrigin !== `http://${host}` &&
+              !refOrigin.endsWith(".dangkhuong.com")
+            ) {
+              return new NextResponse(
+                JSON.stringify({ error: "Forbidden" }),
+                {
+                  status: 403,
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+            }
+          } catch {
+            return new NextResponse(
+              JSON.stringify({ error: "Forbidden" }),
+              {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+        } else {
+          // Neither Origin nor Referer — reject state-changing request
           return new NextResponse(
             JSON.stringify({ error: "Forbidden" }),
             {

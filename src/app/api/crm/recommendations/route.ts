@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getViewerScope } from "@/lib/viewer-scope";
 
 // GET /api/crm/recommendations — Get recommendations for a contact
 export async function GET(req: NextRequest) {
@@ -34,6 +35,19 @@ export async function GET(req: NextRequest) {
         { error: "contact_id is required" },
         { status: 400 }
       );
+    }
+
+    // Sale-scoping: sale users can only view recommendations for their assigned contacts
+    const scope = await getViewerScope();
+    if (scope.isSale) {
+      const { data: contactCheck } = await adminClient
+        .from("crm_contacts")
+        .select("assigned_to")
+        .eq("id", contact_id)
+        .single();
+      if (contactCheck?.assigned_to !== scope.userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const { data, error } = await adminClient
@@ -86,6 +100,19 @@ export async function POST(req: NextRequest) {
       { error: "contact_id is required" },
       { status: 400 }
     );
+  }
+
+  // Sale-scoping: sale users can only generate recommendations for their assigned contacts
+  const scope = await getViewerScope();
+  if (scope.isSale) {
+    const { data: contactCheck } = await adminClient
+      .from("crm_contacts")
+      .select("assigned_to")
+      .eq("id", contact_id)
+      .single();
+    if (contactCheck?.assigned_to !== scope.userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   // Get contact email

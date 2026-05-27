@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { CRM_JOURNEY_STAGES } from "@/lib/crm-constants";
 import { isValidUUID } from "@/lib/utils";
+import { getViewerScope } from "@/lib/viewer-scope";
 
 const ALLOWED_STAGES: readonly string[] = CRM_JOURNEY_STAGES;
 
@@ -34,6 +35,19 @@ export async function POST(
   const { id } = await params;
   if (!isValidUUID(id)) {
     return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
+
+  // Sale-scoping: sale users can only update journey for their assigned contacts
+  const scope = await getViewerScope();
+  if (scope.isSale) {
+    const { data: contactCheck } = await adminClient
+      .from("crm_contacts")
+      .select("assigned_to")
+      .eq("id", id)
+      .single();
+    if (contactCheck?.assigned_to !== scope.userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const { stage } = await req.json();

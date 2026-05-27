@@ -164,6 +164,73 @@ export async function POST(req: NextRequest) {
       amount = Math.max(baseAmount - discountAmount, 0);
       appliedCouponId = coupon.id;
       appliedCouponCode = normalizedCode;
+
+      // ── Claim coupon BEFORE creating the order (prevents TOCTOU race) ──
+      const { data: claimResult } = await admin.rpc('claim_coupon', {
+        p_coupon_id: appliedCouponId,
+        p_user_id: user.id
+      });
+      if (!claimResult?.success) {
+        const claimError = claimResult?.error;
+        if (claimError === 'already_used') {
+          return NextResponse.json({ error: "Bạn đã sử dụng mã giảm giá này rồi" }, { status: 400 });
+        }
+        if (claimError === 'exhausted') {
+          return NextResponse.json({ error: "Mã giảm giá đã hết lượt sử dụng" }, { status: 400 });
+        }
+        return NextResponse.json({ error: "Không thể áp dụng mã giảm giá. Vui lòng thử lại." }, { status: 500 });
+      }
+    }
+
+    // Đọc affiliate ref_code từ cookie dk_ref (needed before zero-amount path)
+    let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
+
+    // Prevent self-referral
+    if (refCode) {
+      const { data: affiliate } = await admin
+        .from("affiliates")
+        .select("user_id")
+        .eq("ref_code", refCode)
+        .eq("status", "active")
+        .single();
+      if (affiliate?.user_id === user.id) {
+        refCode = null; // Don't allow self-referral
+      }
+    }
+
+    // ── Coupon reduced amount to 0 → auto-enroll (same as free product path) ──
+    if (amount === 0 && appliedCouponId) {
+      await admin.from("enrollments").upsert({
+        user_id: user.id,
+        product_id,
+        source: "coupon"
+      }, { onConflict: "user_id,product_id" });
+
+      // Record coupon usage with a "paid" order for audit trail
+      const { data: freeOrder } = await admin.from("orders").insert({
+        order_code: orderCode,
+        user_id: user.id,
+        product_id,
+        amount: 0,
+        status: "paid",
+        payment_method: "coupon",
+        customer_name: customer_name || user.email,
+        customer_email: customer_email || user.email,
+        customer_phone: customer_phone || null,
+        ref_code: refCode,
+        coupon_code: appliedCouponCode!,
+      }).select().single();
+
+      // Record coupon usage for tracking
+      if (freeOrder) {
+        await admin.from("coupon_usages").insert({
+          coupon_id: appliedCouponId,
+          user_id: user.id,
+          order_id: freeOrder.id,
+        });
+      }
+
+      return NextResponse.json({ success: true, free: true, order: freeOrder });
     }
 
     // ── Reuse existing pending order for same user + product ──────
@@ -213,22 +280,6 @@ export async function POST(req: NextRequest) {
         .eq("id", existingOrder.id);
     }
 
-    // Đọc affiliate ref_code từ cookie dk_ref
-    let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
-
-    // Prevent self-referral
-    if (refCode) {
-      const { data: affiliate } = await admin
-        .from("affiliates")
-        .select("user_id")
-        .eq("ref_code", refCode)
-        .eq("status", "active")
-        .single();
-      if (affiliate?.user_id === user.id) {
-        refCode = null; // Don't allow self-referral
-      }
-    }
-
     // Sticky sale assignment — inherit assigned_to from the customer's CRM
     // contact (if any) so a buyer always reaches the same sale rep. Fail-soft.
     let stickyAssignedTo: string | null = null;
@@ -267,16 +318,8 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Atomically claim coupon and record usage
+    // Record coupon usage for tracking (claim already happened before order creation)
     if (appliedCouponId && order) {
-      const { data: claimResult } = await admin.rpc('claim_coupon', {
-        p_coupon_id: appliedCouponId,
-        p_user_id: user.id
-      });
-      if (!claimResult?.success) {
-        console.warn(`Coupon claim post-order failed: ${JSON.stringify(claimResult)}`);
-      }
-      // Record usage for tracking
       await admin
         .from("coupon_usages")
         .insert({

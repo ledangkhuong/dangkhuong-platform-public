@@ -98,11 +98,15 @@ export async function POST(req: NextRequest) {
 
         // Try to match by phone number if available
         if (info?.phone) {
-          const normalizedPhone = info.phone.replace(/\D/g, "");
+          // Sanitize phone: strip everything except digits and +
+          const safePhone = info.phone.replace(/[^0-9+]/g, '');
+          if (safePhone.length === 0 || safePhone.length > 20) break;
+
+          const normalizedPhone = safePhone.replace(/\D/g, "");
           const { data: matchedProfile } = await supabase
             .from("profiles")
             .select("id, zalo_user_id")
-            .or(`phone.eq.${info.phone},phone.eq.${normalizedPhone},phone.eq.+84${normalizedPhone.slice(-9)}`)
+            .or(`phone.eq.${safePhone},phone.eq.${normalizedPhone},phone.eq.+84${normalizedPhone.slice(-9)}`)
             .is("zalo_user_id", null)
             .limit(1)
             .single();

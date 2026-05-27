@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/email/subscribers/bulk — bulk actions on subscribers
 export async function POST(req: NextRequest) {
@@ -22,6 +23,15 @@ export async function POST(req: NextRequest) {
     if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    // Rate limit: 10 bulk operations per minute per user
+    const rl = await rateLimit(`bulk-sub:${user.id}`, 10, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     const body = await req.json();
     const { action, subscriber_ids, list_id, status, tags } = body;
 
@@ -35,6 +45,14 @@ export async function POST(req: NextRequest) {
     if (!subscriber_ids || !Array.isArray(subscriber_ids) || subscriber_ids.length === 0) {
       return NextResponse.json(
         { error: "subscriber_ids must be a non-empty array" },
+        { status: 400 }
+      );
+    }
+
+    // Cap subscriber_ids to prevent abuse with excessively large payloads
+    if (subscriber_ids.length > 500) {
+      return NextResponse.json(
+        { error: "subscriber_ids cannot exceed 500 items per request" },
         { status: 400 }
       );
     }

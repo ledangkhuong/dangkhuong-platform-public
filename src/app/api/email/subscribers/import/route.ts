@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/email/subscribers/import — bulk import subscribers from CSV
 export async function POST(req: NextRequest) {
@@ -21,6 +22,15 @@ export async function POST(req: NextRequest) {
       .single();
     if (!profile || !["admin", "manager"].includes(profile.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    // Rate limit: 3 imports per 5 min per user
+    const rl = await rateLimit(`import:${user.id}`, 3, 300);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

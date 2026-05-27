@@ -4,6 +4,7 @@ import { getViewerScope } from "@/lib/viewer-scope";
 import { sendEmail } from "@/lib/email/ses";
 import { logAudit } from "@/lib/audit";
 import { isValidUUID } from "@/lib/utils";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/crm/contacts/[id]/send-email
@@ -52,6 +53,15 @@ export async function POST(
     const isSale = scope.isSale;
     if (!isAdminOrManager && !isSale) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // ── Rate limit: 20 emails/hour per user ─────────────────────────────
+    const rl = await rateLimit(`crm-email:${scope.userId}`, 20, 3600);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
     }
 
     // ── Parse body ───────────────────────────────────────────────────────

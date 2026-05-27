@@ -26,12 +26,15 @@ export default async function AutoEvent() {
     customData.currency = cfg.currency || "VND";
   }
 
+  // Escape closing script tags to prevent XSS breakout from user-controlled data.
+  // JSON.stringify does NOT escape "</script>" — replace "</" with "<\/" so the
+  // browser's HTML parser cannot see a closing tag inside the script block.
   const jsonCfg = JSON.stringify({
     pageEvent: cfg.pageEvent,
     formSubmitEvent: cfg.formSubmitEvent,
     customData,
     slug: cfg.slug || "default",
-  });
+  }).replace(/</g, "\\u003c");
 
   const script = `(function(){
 if (window.__dkAutoEventBound) return;

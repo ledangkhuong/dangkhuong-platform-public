@@ -57,6 +57,16 @@ function timeAgo(dateStr: string) {
   return `${months} tháng trước`;
 }
 
+/** XSS guard: only allow http(s) and relative URLs — block javascript: etc. */
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return ["http:", "https:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
 function formatFullDate(dateStr: string) {
   return new Date(dateStr).toLocaleString("vi-VN", {
     weekday: "long",
@@ -290,8 +300,8 @@ export default function NotificationsPage() {
                           )}
                         </div>
 
-                        {/* Link button */}
-                        {n.link && (
+                        {/* Link button — only render safe URLs (http/https) */}
+                        {n.link && isSafeUrl(n.link) && (
                           <a
                             href={n.link}
                             className="inline-flex items-center gap-1.5 text-xs font-medium text-[#D4A843] hover:underline mt-1"

@@ -42,14 +42,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { full_name, email, phone, password, turnstileToken } = body;
 
-    // Turnstile CAPTCHA — only verify when server-side secret is configured AND client sent a token
-    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
+    // Turnstile CAPTCHA verification
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        return NextResponse.json({ error: "Vui lòng xác minh CAPTCHA" }, { status: 400 });
+      }
       const isHuman = await verifyTurnstile(turnstileToken);
       if (!isHuman) {
-        return NextResponse.json(
-          { error: "Xác minh thất bại. Vui lòng thử lại." },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Xác minh CAPTCHA thất bại" }, { status: 403 });
       }
     }
 
@@ -57,6 +57,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Vui lòng nhập email" }, { status: 400 });
     if (!password)
       return NextResponse.json({ error: "Vui lòng nhập mật khẩu" }, { status: 400 });
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Mật khẩu phải có ít nhất 8 ký tự" }, { status: 400 });
+    }
+    if (!full_name?.trim()) {
+      return NextResponse.json({ error: "Vui lòng nhập họ tên" }, { status: 400 });
+    }
+    if (!phone?.trim()) {
+      return NextResponse.json({ error: "Vui lòng nhập số điện thoại" }, { status: 400 });
+    }
 
     if (phone?.trim()) {
       const cleanPhone = phone.trim().replace(/[\s\-().]/g, "");
@@ -116,18 +125,6 @@ export async function POST(req: NextRequest) {
     } else {
       if (!signUpData.user?.id) {
         return NextResponse.json({ error: "Không thể tạo tài khoản" }, { status: 500 });
-      }
-      if (password.length < 8) {
-        await admin.auth.admin.deleteUser(signUpData.user.id);
-        return NextResponse.json({ error: "Mật khẩu phải có ít nhất 8 ký tự" }, { status: 400 });
-      }
-      if (!full_name?.trim()) {
-        await admin.auth.admin.deleteUser(signUpData.user.id);
-        return NextResponse.json({ error: "Vui lòng nhập họ tên" }, { status: 400 });
-      }
-      if (!phone?.trim()) {
-        await admin.auth.admin.deleteUser(signUpData.user.id);
-        return NextResponse.json({ error: "Vui lòng nhập số điện thoại" }, { status: 400 });
       }
       userId = signUpData.user.id;
     }

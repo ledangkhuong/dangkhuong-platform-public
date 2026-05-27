@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(
   request: NextRequest,
@@ -25,6 +26,15 @@ export async function POST(
 
     if (!profile || !["admin", "manager"].includes(profile.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Rate limit: 5 enrollments per 5 min per user
+    const rl = await rateLimit(`auto-enroll:${user.id}`, 5, 300);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
     }
 
     const admin = await createAdminClient();

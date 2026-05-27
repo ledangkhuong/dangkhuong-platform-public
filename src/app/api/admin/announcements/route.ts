@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/ses";
 import { announcementEmailHtml } from "@/lib/email/templates/announcement";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/admin/announcements — list announcements
 export async function GET() {
@@ -63,6 +64,15 @@ export async function POST(req: NextRequest) {
 
   if (!["admin", "manager"].includes(profile?.role ?? "")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Rate limit: 2 announcements per hour per user
+  const rl = await rateLimit(`announcement:${user.id}`, 2, 3600);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    );
   }
 
   let body;

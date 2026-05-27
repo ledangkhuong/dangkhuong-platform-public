@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getViewerScope } from "@/lib/viewer-scope";
 
 // GET /api/crm/sales-performance — Sales performance data
 export async function GET(req: NextRequest) {
@@ -107,8 +108,29 @@ export async function GET(req: NextRequest) {
     };
   }
 
+  // Sale-scoping: sale users only see their own performance data
+  const scope = await getViewerScope();
+  let filteredReps = reps ?? [];
+  if (scope.isSale) {
+    filteredReps = filteredReps.filter(
+      (r: Record<string, unknown>) => r.user_id === scope.userId
+    );
+    if (periodStats) {
+      // Filter period stats to only this sale's data
+      const myWon = periodStats.won_by_rep?.[scope.userId!] ?? 0;
+      const myActivities = periodStats.activities_by_rep?.[scope.userId!] ?? 0;
+      periodStats = {
+        total_revenue: filteredReps.reduce((sum: number, r: Record<string, unknown>) => sum + ((r.total_revenue as number) || 0), 0),
+        total_won: myWon,
+        avg_conversion: periodStats.avg_conversion,
+        won_by_rep: scope.userId ? { [scope.userId]: myWon } : {},
+        activities_by_rep: scope.userId ? { [scope.userId]: myActivities } : {},
+      };
+    }
+  }
+
   return NextResponse.json({
-    reps: reps ?? [],
+    reps: filteredReps,
     period_stats: periodStats || {
       total_revenue: 0,
       total_won: 0,

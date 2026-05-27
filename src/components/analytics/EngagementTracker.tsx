@@ -34,11 +34,14 @@ export default async function EngagementTracker() {
   const cfg = await getLandingEventConfig(pathname);
   const slug = cfg?.slug || pixels[0]?.slug || "default";
 
+  // Escape "<" to prevent </script> breakout from any user-controlled data.
+  // JSON.stringify does NOT escape "</script>" — use Unicode escape so the
+  // browser's HTML parser cannot see a closing tag inside the script block.
   const config = JSON.stringify({
     slug,
     scrollThresholds: SCROLL_THRESHOLDS,
     timeThresholds: TIME_THRESHOLDS,
-  });
+  }).replace(/</g, "\\u003c");
 
   const script = `(function(){
 if (window.__dkEngagementBound) return;

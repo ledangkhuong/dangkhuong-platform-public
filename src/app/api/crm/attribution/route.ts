@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest) {
     .single();
   if (
     !profile ||
-    !["admin", "manager", "sale", "support", "marketing"].includes(
+    !["admin", "manager", "marketing"].includes(
       profile.role
     )
   )

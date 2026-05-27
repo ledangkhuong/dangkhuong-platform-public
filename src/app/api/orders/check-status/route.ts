@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * GET /api/orders/check-status?order_code=XXX
@@ -9,6 +10,17 @@ import { createAdminClient } from "@/lib/supabase/server";
  */
 export async function GET(req: NextRequest) {
   try {
+    // Rate limit: 30 checks per minute per IP (public/unauthenticated endpoint)
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = await rateLimit(`order-check:${ip}`, 30, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     const orderCode = req.nextUrl.searchParams.get("order_code");
     if (!orderCode) {
       return NextResponse.json({ error: "order_code required" }, { status: 400 });

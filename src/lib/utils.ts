@@ -30,6 +30,8 @@ export function isValidUUID(id: string): boolean {
 export function sanitizeSearchInput(input: string): string {
   return input
     .replace(/[(),*\\]/g, '')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
     .trim()
     .slice(0, 200);
 }

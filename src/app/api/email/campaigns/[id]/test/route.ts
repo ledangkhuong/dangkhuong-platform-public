@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { sendEmailWithParams } from "@/lib/email/ses";
 import { renderTemplate } from "@/lib/email/template-renderer";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/email/campaigns/[id]/test — send a test email
 export async function POST(
@@ -24,6 +25,15 @@ export async function POST(
       .single();
     if (!["admin", "manager"].includes(profile?.role ?? ""))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    // Rate limit: 5 test emails per 5 min per user
+    const rl = await rateLimit(`campaign-test:${user.id}`, 5, 300);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
 
     const { id } = await params;
     const body = await req.json();

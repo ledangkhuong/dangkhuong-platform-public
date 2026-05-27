@@ -4,12 +4,9 @@ import { rateLimit } from "@/lib/rate-limit";
 /**
  * POST /api/hocchuaxongtiendave/check-email
  * Body: { email }
- * Returns: { exists: boolean }
  *
- * Used by the landing page to auto-detect returning customers and adjust
- * the form UI (hide name/phone fields when the email already has an account).
- *
- * Heavy rate-limit to prevent user enumeration abuse.
+ * Returns a constant 200 response regardless of whether the email exists
+ * to prevent user-enumeration attacks.
  */
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -24,17 +21,17 @@ export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
     if (!email || typeof email !== "string" || !email.includes("@")) {
-      return NextResponse.json({ exists: false });
+      return NextResponse.json({ message: "If an account exists, you will receive instructions." });
     }
 
     const trimmed = email.trim().toLowerCase();
 
-    // Look up user by email via the GoTrue admin REST API with a filter.
-    // The JS client's listUsers() only returns one page and will miss users
-    // once the system grows past that page size.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const lookupRes = await fetch(
+
+    // Still perform the lookup internally (for any side effects or logging),
+    // but never reveal the result to the caller.
+    await fetch(
       `${supabaseUrl}/auth/v1/admin/users?filter=${encodeURIComponent(trimmed)}&page=1&per_page=5`,
       {
         headers: {
@@ -43,18 +40,10 @@ export async function POST(req: NextRequest) {
         },
       }
     );
-    const lookupBody = await lookupRes.json();
-    // The GoTrue filter is a substring match — verify exact email equality
-    const matchedUser = (lookupBody?.users as Array<{ id: string; email?: string; user_metadata?: Record<string, unknown> }> | undefined)
-      ?.find((u) => u.email?.toLowerCase() === trimmed);
 
-    if (!matchedUser) {
-      return NextResponse.json({ exists: false });
-    }
-
-    return NextResponse.json({ exists: true });
+    return NextResponse.json({ message: "If an account exists, you will receive instructions." });
   } catch (err) {
     console.error("[CheckEmail Error]", err);
-    return NextResponse.json({ exists: false });
+    return NextResponse.json({ message: "If an account exists, you will receive instructions." });
   }
 }

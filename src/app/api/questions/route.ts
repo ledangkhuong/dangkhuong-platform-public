@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     .from("posts")
     .select(
       `id, content, tags, created_at, user_id,
-       profiles!posts_user_id_fkey(full_name, avatar_url, phone),
+       profiles!posts_user_id_fkey(full_name, avatar_url),
        comments(id, content, created_at, user_id, profiles!comments_user_id_fkey(full_name, avatar_url))`
     )
     .contains("tags", tagFilter)

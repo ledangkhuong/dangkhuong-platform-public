@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getViewerScope } from "@/lib/viewer-scope";
 
 // GET /api/crm/next-actions — List next actions
 export async function GET(req: NextRequest) {
@@ -41,6 +42,12 @@ export async function GET(req: NextRequest) {
 
     if (contact_id) query = query.eq("contact_id", contact_id);
     if (assigned_to) query = query.eq("assigned_to", assigned_to);
+
+    // Sale-scoping: sale users only see actions for their assigned contacts
+    const scope = await getViewerScope();
+    if (scope.isSale) {
+      query = query.eq("assigned_to", scope.userId!);
+    }
 
     const { data, error } = await query;
 
@@ -89,6 +96,19 @@ export async function POST(req: NextRequest) {
         { error: "contact_id, type, and title are required" },
         { status: 400 }
       );
+    }
+
+    // Sale-scoping: sale users can only create actions for their assigned contacts
+    const scope = await getViewerScope();
+    if (scope.isSale) {
+      const { data: contactCheck } = await adminClient
+        .from("crm_contacts")
+        .select("assigned_to")
+        .eq("id", contact_id)
+        .single();
+      if (contactCheck?.assigned_to !== scope.userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const { data, error } = await adminClient
@@ -153,6 +173,26 @@ export async function PATCH(req: NextRequest) {
         { error: "id and status are required" },
         { status: 400 }
       );
+    }
+
+    // Sale-scoping: sale users can only update actions for their assigned contacts
+    const scope = await getViewerScope();
+    if (scope.isSale) {
+      const { data: actionCheck } = await adminClient
+        .from("crm_next_actions")
+        .select("contact_id")
+        .eq("id", id)
+        .single();
+      if (actionCheck) {
+        const { data: contactCheck } = await adminClient
+          .from("crm_contacts")
+          .select("assigned_to")
+          .eq("id", actionCheck.contact_id)
+          .single();
+        if (contactCheck?.assigned_to !== scope.userId) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+      }
     }
 
     const updatePayload: Record<string, unknown> = { status };

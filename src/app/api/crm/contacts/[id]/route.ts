@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/utils";
+import { getViewerScope } from "@/lib/viewer-scope";
 
 // GET /api/crm/contacts/[id] — Full 360° contact data
 export async function GET(
@@ -31,6 +32,19 @@ export async function GET(
   const { id } = await params;
   if (!isValidUUID(id)) {
     return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
+
+  // Sale-scoping: sale users can only access their assigned contacts
+  const scope = await getViewerScope();
+  if (scope.isSale) {
+    const { data: contactCheck } = await adminClient
+      .from("crm_contacts")
+      .select("assigned_to")
+      .eq("id", id)
+      .single();
+    if (contactCheck?.assigned_to !== scope.userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   // Fetch contact
@@ -127,6 +141,19 @@ export async function PATCH(
   const { id } = await params;
   if (!isValidUUID(id)) {
     return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
+
+  // Sale-scoping: sale users can only update their assigned contacts
+  const scope = await getViewerScope();
+  if (scope.isSale) {
+    const { data: contactCheck } = await adminClient
+      .from("crm_contacts")
+      .select("assigned_to")
+      .eq("id", id)
+      .single();
+    if (contactCheck?.assigned_to !== scope.userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const body = await req.json();

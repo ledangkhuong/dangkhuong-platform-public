@@ -50,14 +50,14 @@ export async function POST(req: NextRequest) {
     const { full_name, email, phone, password, turnstileToken } = body;
     const pkg = body.package as string;
 
-    // Turnstile CAPTCHA — only verify when server-side secret is configured AND client sent a token
-    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
+    // Turnstile CAPTCHA verification
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        return NextResponse.json({ error: "Vui lòng xác minh CAPTCHA" }, { status: 400 });
+      }
       const isHuman = await verifyTurnstile(turnstileToken);
       if (!isHuman) {
-        return NextResponse.json(
-          { error: "Xác minh thất bại. Vui lòng thử lại." },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Xác minh CAPTCHA thất bại" }, { status: 403 });
       }
     }
 

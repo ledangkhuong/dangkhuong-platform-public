@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 // POST /api/admin/courses — create a new course (bypasses RLS)
 export async function POST(req: NextRequest) {
@@ -41,6 +42,11 @@ export async function POST(req: NextRequest) {
       if (key in body) {
         courseData[key] = body[key];
       }
+    }
+
+    // Sanitize HTML content before storing to prevent stored XSS
+    if (typeof courseData.description_html === "string") {
+      courseData.description_html = sanitizeHtml(courseData.description_html);
     }
 
     const admin = await createAdminClient();

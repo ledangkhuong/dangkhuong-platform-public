@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/email/sync-users — sync all registered auth users into the subscribers table
 export async function POST() {
@@ -23,6 +24,15 @@ export async function POST() {
 
     if (!profile || profile.role !== "admin") {
       return NextResponse.json({ error: "Forbidden: admin role required" }, { status: 403 });
+    }
+
+    // Rate limit: 1 sync per hour per user
+    const rl = await rateLimit(`sync-users:${user.id}`, 1, 3600);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterSec: rl.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
     }
 
     // 2. Use admin client to list all auth users
