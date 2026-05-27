@@ -15,11 +15,26 @@ import type { SalesUser } from "@/lib/sales";
 import {
   CreditCard,
   Calendar,
+  Gift,
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type OrderStatus = "pending" | "paid" | "cancelled" | "refunded";
+
+// Mirrors the CHECK constraint on orders.revenue_source. NULL is treated as
+// 'platform' for legacy rows from before the 20260527 migration.
+type RevenueSource = "platform" | "external" | "comp" | null;
+
+// Mirrors the CHECK on orders.external_channel.
+type ExternalChannel =
+  | "facebook"
+  | "zalo"
+  | "bank_transfer"
+  | "cash"
+  | "other_platform"
+  | "other"
+  | null;
 
 export interface OrderRow {
   id: string;
@@ -35,6 +50,10 @@ export interface OrderRow {
   assigned_to: string | null;
   assigned_profile: { full_name: string | null } | null;
   products: { title: string } | null;
+  // Optional — present after migration 20260527_001. Cells fall back to
+  // legacy "platform" treatment when these are undefined or null.
+  revenue_source?: RevenueSource;
+  external_channel?: ExternalChannel;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -86,7 +105,70 @@ const STATUS_CONFIG: Record<
   },
 };
 
-function StatusBadge({ status }: { status: OrderStatus }) {
+// Short label shown under the badge for external orders. Maps the channel
+// values stored in `orders.external_channel` to the abbreviations the owner
+// asked for ("fb", "ck", "platform cũ"...).
+const CHANNEL_LABEL: Record<NonNullable<ExternalChannel> & string, string> = {
+  facebook: "fb",
+  zalo: "zalo",
+  bank_transfer: "ck",
+  cash: "cash",
+  other_platform: "platform cũ",
+  other: "khác",
+};
+
+function StatusBadge({
+  status,
+  revenueSource,
+  externalChannel,
+}: {
+  status: OrderStatus;
+  revenueSource?: RevenueSource;
+  externalChannel?: ExternalChannel;
+}) {
+  // External / comp orders override the normal paid badge so they're visually
+  // distinct from real cash-in. Anything else (pending, cancelled, refunded,
+  // or paid+platform/null) falls through to STATUS_CONFIG unchanged.
+  if (status === "paid" && revenueSource === "external") {
+    return (
+      <div className="flex flex-col gap-0.5">
+        <span
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit"
+          style={{
+            background: "rgba(34,197,94,0.1)",
+            color: "#22c55e",
+            border: "1px solid rgba(34,197,94,0.25)",
+          }}
+          title="Khách đã thanh toán ngoài web — không tính vào cash-in nền tảng"
+        >
+          <Gift size={11} />
+          Cấp khóa (ngoài)
+        </span>
+        {externalChannel && CHANNEL_LABEL[externalChannel] && (
+          <span className="text-[10px] text-gray-500 pl-1">
+            {CHANNEL_LABEL[externalChannel]}
+          </span>
+        )}
+      </div>
+    );
+  }
+  if (status === "paid" && revenueSource === "comp") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+        style={{
+          background: "rgba(148,163,184,0.1)",
+          color: "#94a3b8",
+          border: "1px solid rgba(148,163,184,0.25)",
+        }}
+        title="Tặng / comp — zero cash-in"
+      >
+        <Gift size={11} />
+        Tặng / Comp
+      </span>
+    );
+  }
+
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
   return (
     <span
@@ -189,9 +271,18 @@ function buildColumns({
     // Trạng thái
     columnHelper.accessor("status", {
       header: "Trạng thái",
-      size: 130,
+      size: 150,
       enableSorting: true,
-      cell: (info) => <StatusBadge status={info.getValue()} />,
+      cell: (info) => {
+        const o = info.row.original;
+        return (
+          <StatusBadge
+            status={info.getValue()}
+            revenueSource={o.revenue_source}
+            externalChannel={o.external_channel}
+          />
+        );
+      },
     }),
 
     // Sale

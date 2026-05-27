@@ -5,6 +5,9 @@ import { sanitizeSearchInput } from "@/lib/utils";
 import { getSalesUsers } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
 import OrderSearchBar from "@/components/admin/OrderSearchBar";
+import OrderSourceFilter, {
+  type SourceFilter,
+} from "@/components/admin/OrderSourceFilter";
 import BulkDeleteOrders from "@/components/admin/BulkDeleteOrders";
 import OrdersTable from "./OrdersTable";
 import type { OrderRow } from "./OrdersTable";
@@ -13,6 +16,7 @@ import {
   TrendingUp,
   CheckCircle,
   Clock,
+  Gift,
 } from "lucide-react";
 import { Suspense } from "react";
 
@@ -24,16 +28,30 @@ function formatCurrency(amount: number): string {
   return amount.toLocaleString("vi-VN") + "đ";
 }
 
+// `source` query param → set of revenue_source values it represents.
+// 'platform' includes legacy NULL rows. We can't `IN (..., NULL)` cleanly in
+// PostgREST, so platform filtering is done with an `.or()` clause below.
+const VALID_SOURCES: ReadonlyArray<SourceFilter> = [
+  "all",
+  "platform",
+  "external",
+  "comp",
+];
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; source?: string }>;
 }
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
   const query = (resolvedParams.q ?? "").trim();
   const currentPage = Math.max(1, parseInt(resolvedParams.page ?? "1", 10) || 1);
+  const sourceRaw = (resolvedParams.source ?? "all").trim() as SourceFilter;
+  const source: SourceFilter = VALID_SOURCES.includes(sourceRaw)
+    ? sourceRaw
+    : "all";
 
   // Auth check
   const authClient = await createClient();
@@ -63,6 +81,23 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   // Fetch orders with product title (bypass RLS)
   const supabase = await createAdminClient();
 
+  // Helper: apply the `source` filter to any query builder. We have to handle
+  // 'platform' specially because legacy rows have revenue_source = NULL and
+  // PostgREST .in() doesn't match NULL.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function applySourceFilter<T extends { eq: any; or: any; in: any }>(q: T): T {
+    if (source === "platform") {
+      return q.or("revenue_source.is.null,revenue_source.eq.platform");
+    }
+    if (source === "external") {
+      return q.eq("revenue_source", "external");
+    }
+    if (source === "comp") {
+      return q.eq("revenue_source", "comp");
+    }
+    return q;
+  }
+
   // ── Compute stats and pagination count in parallel ──
   let paginationCountQuery = supabase
     .from("orders")
@@ -77,46 +112,74 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   if (scope.isSale) {
     paginationCountQuery = paginationCountQuery.eq("assigned_to", scope.userId);
   }
+  paginationCountQuery = applySourceFilter(paginationCountQuery);
 
   // Stat-card queries: scope to current sale rep when applicable.
+  // KPIs ignore the `source` filter — they're a fixed overview of the orders
+  // book regardless of which chip is selected, otherwise the "Tổng đơn hàng"
+  // card stops meaning what it says.
   let totalCountQuery = supabase
     .from("orders")
     .select("*", { count: "exact", head: true });
-  let paidCountQuery = supabase
+  // "Đã thanh toán platform" = paid AND (revenue_source = 'platform' OR NULL).
+  let paidPlatformCountQuery = supabase
     .from("orders")
     .select("*", { count: "exact", head: true })
-    .eq("status", "paid");
+    .eq("status", "paid")
+    .or("revenue_source.is.null,revenue_source.eq.platform");
   let pendingCountQuery = supabase
     .from("orders")
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
-  let revenueQuery = supabase
+  // Platform revenue sum: paid + platform/null only.
+  let platformRevenueQuery = supabase
     .from("orders")
     .select("amount")
-    .eq("status", "paid");
+    .eq("status", "paid")
+    .or("revenue_source.is.null,revenue_source.eq.platform");
+  // External/comp grant orders — count + sum of nominal amount (info only).
+  let externalGrantQuery = supabase
+    .from("orders")
+    .select("amount", { count: "exact" })
+    .eq("status", "paid")
+    .in("revenue_source", ["external", "comp"]);
+
   if (scope.isSale) {
     totalCountQuery = totalCountQuery.eq("assigned_to", scope.userId);
-    paidCountQuery = paidCountQuery.eq("assigned_to", scope.userId);
+    paidPlatformCountQuery = paidPlatformCountQuery.eq(
+      "assigned_to",
+      scope.userId
+    );
     pendingCountQuery = pendingCountQuery.eq("assigned_to", scope.userId);
-    revenueQuery = revenueQuery.eq("assigned_to", scope.userId);
+    platformRevenueQuery = platformRevenueQuery.eq(
+      "assigned_to",
+      scope.userId
+    );
+    externalGrantQuery = externalGrantQuery.eq("assigned_to", scope.userId);
   }
 
   const [
     { count: totalCount },
-    { count: paidCount },
+    { count: paidPlatformCount },
     { count: pendingCount },
-    { data: revenueData },
+    { data: platformRevenueData },
+    { count: externalGrantCount, data: externalGrantData },
     { count: filteredCount },
   ] = await Promise.all([
     totalCountQuery,
-    paidCountQuery,
+    paidPlatformCountQuery,
     pendingCountQuery,
-    revenueQuery,
+    platformRevenueQuery,
+    externalGrantQuery,
     paginationCountQuery,
   ]);
 
-  const totalRevenue = (revenueData ?? []).reduce(
+  const totalPlatformRevenue = (platformRevenueData ?? []).reduce(
     (sum: number, o: { amount: number }) => sum + o.amount,
+    0
+  );
+  const externalGrantValue = (externalGrantData ?? []).reduce(
+    (sum: number, o: { amount: number }) => sum + (o.amount ?? 0),
     0
   );
   const totalFilteredOrders = filteredCount ?? 0;
@@ -126,10 +189,15 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   // Fetch sales users for assignment dropdown
   const salesUsers = await getSalesUsers(supabase);
 
-  // Fetch paginated orders
+  // Fetch paginated orders. Select revenue_source + external_channel so the
+  // table cell can render the right badge. The migration is applied to prod
+  // (20260527_001), and Supabase silently returns undefined for unknown
+  // columns rather than failing, so no try/catch fallback is needed here.
   let dbQuery = supabase
     .from("orders")
-    .select("*, products(title), assigned_profile:assigned_to(full_name)")
+    .select(
+      "*, revenue_source, external_channel, products(title), assigned_profile:assigned_to(full_name)"
+    )
     .order("created_at", { ascending: false });
 
   if (safeQuery) {
@@ -141,6 +209,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   if (scope.isSale) {
     dbQuery = dbQuery.eq("assigned_to", scope.userId);
   }
+  dbQuery = applySourceFilter(dbQuery);
 
   const from = (safePage - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -151,8 +220,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const rows: OrderRow[] = (orders ?? []) as unknown as OrderRow[];
 
   const totalOrders = totalCount ?? 0;
-  const paidOrders = paidCount ?? 0;
+  const paidPlatformOrders = paidPlatformCount ?? 0;
   const pendingOrders = pendingCount ?? 0;
+  const externalGrantOrders = externalGrantCount ?? 0;
 
   return (
     <div>
@@ -163,7 +233,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         {/* ── Stats row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* Total orders */}
           <div className="stat-card">
             <div className="flex items-center justify-between mb-3">
@@ -178,7 +248,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             <div className="text-xs text-gray-500 mt-0.5">Tổng đơn hàng</div>
           </div>
 
-          {/* Paid orders */}
+          {/* Paid platform orders */}
           <div className="stat-card">
             <div className="flex items-center justify-between mb-3">
               <div
@@ -188,8 +258,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 <CheckCircle size={17} className="text-[#D4A843]" />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white">{paidOrders}</div>
-            <div className="text-xs text-gray-500 mt-0.5">Đã thanh toán</div>
+            <div className="text-2xl font-bold text-white">
+              {paidPlatformOrders}
+            </div>
+            <div className="text-xs text-gray-500 mt-0.5">
+              Đã thanh toán platform
+            </div>
           </div>
 
           {/* Pending orders */}
@@ -206,7 +280,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             <div className="text-xs text-gray-500 mt-0.5">Chờ thanh toán</div>
           </div>
 
-          {/* Total revenue */}
+          {/* Platform revenue */}
           <div className="stat-card">
             <div className="flex items-center justify-between mb-3">
               <div
@@ -217,16 +291,42 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               </div>
             </div>
             <div className="text-2xl font-bold text-white">
-              {formatCurrency(totalRevenue)}
+              {formatCurrency(totalPlatformRevenue)}
             </div>
-            <div className="text-xs text-gray-500 mt-0.5">Doanh thu (đã thanh toán)</div>
+            <div className="text-xs text-gray-500 mt-0.5">
+              Doanh thu nền tảng
+            </div>
+          </div>
+
+          {/* External / comp grants (informational, not cash-in) */}
+          <div className="stat-card">
+            <div className="flex items-center justify-between mb-3">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(34,197,94,0.12)" }}
+              >
+                <Gift size={17} className="text-[#22c55e]" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {externalGrantOrders}
+            </div>
+            <div className="text-xs text-gray-500 mt-0.5">Cấp khóa ngoài</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">
+              ≈ {formatCurrency(externalGrantValue)} giá trị
+            </div>
           </div>
         </div>
 
-        {/* ── Search bar ── */}
-        <Suspense fallback={null}>
-          <OrderSearchBar />
-        </Suspense>
+        {/* ── Search + source filter ── */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <Suspense fallback={null}>
+            <OrderSearchBar />
+          </Suspense>
+          <Suspense fallback={null}>
+            <OrderSourceFilter />
+          </Suspense>
+        </div>
 
         {/* ── Bulk delete ── */}
         {canWrite && (
