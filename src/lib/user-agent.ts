@@ -101,6 +101,53 @@ function detectBrowser(ua: string): string {
   return "Unknown";
 }
 
+// ── In-app browser detection ──────────────────────────────────────────
+// Google blocks OAuth from embedded WebViews (403 disallowed_useragent).
+// Common in-app browsers: Zalo, Facebook, Messenger, Instagram, LINE,
+// TikTok, Snapchat, WeChat, Twitter/X, Threads, etc.
+const IN_APP_RE =
+  /FBAN|FBAV|FB_IAB|Messenger|Instagram|Zalo|ZaloTheme|Line\/|LIFF|MicroMessenger|WeChat|musical_ly|TikTok|Snapchat|Twitter|Threads/i;
+
+/**
+ * Detect if the current User-Agent belongs to an in-app browser
+ * (e.g. opening links inside Zalo, Facebook, Instagram app).
+ * These browsers trigger Google OAuth 403 disallowed_useragent.
+ */
+export function isInAppBrowser(ua?: string | null): boolean {
+  if (!ua) {
+    if (typeof navigator !== "undefined") {
+      ua = navigator.userAgent;
+    } else {
+      return false;
+    }
+  }
+  return IN_APP_RE.test(ua);
+}
+
+/**
+ * Get a human-readable name for the detected in-app browser.
+ */
+export function getInAppBrowserName(ua?: string | null): string | null {
+  if (!ua) {
+    if (typeof navigator !== "undefined") {
+      ua = navigator.userAgent;
+    } else {
+      return null;
+    }
+  }
+  if (/Zalo|ZaloTheme/i.test(ua)) return "Zalo";
+  if (/FBAN|FBAV|FB_IAB/i.test(ua)) return "Facebook";
+  if (/Messenger/i.test(ua)) return "Messenger";
+  if (/Instagram/i.test(ua)) return "Instagram";
+  if (/Line\/|LIFF/i.test(ua)) return "LINE";
+  if (/MicroMessenger|WeChat/i.test(ua)) return "WeChat";
+  if (/musical_ly|TikTok/i.test(ua)) return "TikTok";
+  if (/Twitter/i.test(ua)) return "Twitter/X";
+  if (/Threads/i.test(ua)) return "Threads";
+  if (/Snapchat/i.test(ua)) return "Snapchat";
+  return null;
+}
+
 export function parseUserAgent(ua: string | null | undefined): ParsedUA {
   if (!ua || typeof ua !== "string" || ua.trim() === "") {
     return { ...EMPTY_RESULT };

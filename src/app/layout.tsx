@@ -12,6 +12,7 @@ import EnhancedTracker from "@/components/analytics/EnhancedTracker";
 import EventAttrTracker from "@/components/analytics/EventAttrTracker";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
 import CookieConsent from "@/components/CookieConsent";
+import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
 import TrackingProvider from "@/components/TrackingProvider";
 import WebsiteJsonLd from "@/components/seo/WebsiteJsonLd";
@@ -103,6 +104,7 @@ export default function RootLayout({
             <main id="main-content">{children}</main>
           </TrackingProvider>
         </ErrorBoundary>
+        <InAppBrowserBanner />
         <CookieConsent />
         <WebsiteJsonLd />
       </body>

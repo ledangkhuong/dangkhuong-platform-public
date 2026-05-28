@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isInAppBrowser, getInAppBrowserName } from "@/lib/user-agent";
 
 export default function SocialLoginButtons() {
   const [loading, setLoading] = useState<"google" | "facebook" | null>(null);
+  const [inApp, setInApp] = useState(false);
+  const [appName, setAppName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isInAppBrowser()) {
+      setInApp(true);
+      setAppName(getInAppBrowserName());
+    }
+  }, []);
 
   async function handleSocialLogin(provider: "google" | "facebook") {
+    if (inApp) return; // Block OAuth in in-app browsers
     setLoading(provider);
     const supabase = createClient();
 
@@ -32,12 +43,27 @@ export default function SocialLoginButtons() {
         <div className="flex-1 h-px bg-[#2a2a2a]" />
       </div>
 
+      {/* In-app browser warning */}
+      {inApp && (
+        <div className="p-3 rounded-lg bg-amber-900/30 border border-amber-700/50 text-amber-200 text-xs leading-relaxed">
+          <p className="font-semibold text-amber-100">
+            {appName
+              ? `Dang nhap Google/Facebook khong kha dung trong ${appName}`
+              : "Dang nhap Google/Facebook khong kha dung"}
+          </p>
+          <p className="mt-1 opacity-80">
+            Hay mo trang nay bang Chrome hoac Safari de dang nhap bang Google/Facebook.
+            Hoac dung email va mat khau o tren.
+          </p>
+        </div>
+      )}
+
       {/* Google */}
       <button
         type="button"
         onClick={() => handleSocialLogin("google")}
-        disabled={loading !== null}
-        className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-[#333] hover:border-[#555] bg-[#1a1a1a] hover:bg-[#222] text-white"
+        disabled={loading !== null || inApp}
+        className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-[#333] hover:border-[#555] bg-[#1a1a1a] hover:bg-[#222] text-white ${inApp ? "opacity-40 pointer-events-none" : ""}`}
       >
         {loading === "google" ? (
           <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -59,8 +85,8 @@ export default function SocialLoginButtons() {
       <button
         type="button"
         onClick={() => handleSocialLogin("facebook")}
-        disabled={loading !== null}
-        className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-[#333] hover:border-[#555] bg-[#1a1a1a] hover:bg-[#222] text-white"
+        disabled={loading !== null || inApp}
+        className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-[#333] hover:border-[#555] bg-[#1a1a1a] hover:bg-[#222] text-white ${inApp ? "opacity-40 pointer-events-none" : ""}`}
       >
         {loading === "facebook" ? (
           <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
