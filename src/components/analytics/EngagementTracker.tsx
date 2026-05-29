@@ -146,10 +146,22 @@ if (document.readyState === 'loading') {
 }
 
 // ── TimeOnPage tracking ──
+// Track *visible* time — pause khi tab hidden, resume khi visible.
 var timeFired = {};
 var timeTimers = [];
+var visibleMs = 0;            // tổng ms user thực sự xem trang
+var lastVisibleAt = Date.now(); // mốc bắt đầu visible hiện tại (0 = đang hidden)
+
 function setupTimeTimers() {
+  // Clear any existing timers trước khi tạo mới
+  timeTimers.forEach(function(t){ clearTimeout(t); });
+  timeTimers = [];
+
+  var elapsed = visibleMs; // visible time tích lũy tới hiện tại
   cfg.timeThresholds.forEach(function(sec) {
+    if (timeFired[sec]) return;
+    var remainMs = (sec * 1000) - elapsed;
+    if (remainMs <= 0) return;
     var timer = setTimeout(function(){
       if (!timeFired[sec] && document.visibilityState !== 'hidden') {
         timeFired[sec] = true;
@@ -158,16 +170,26 @@ function setupTimeTimers() {
           page_path: window.location.pathname
         });
       }
-    }, sec * 1000);
+    }, remainMs);
     timeTimers.push(timer);
   });
 }
 setupTimeTimers();
 
-// Cleanup timers khi user rời tab (tránh fire khi không còn xem)
+// Pause / resume timers theo visibility — tránh fire khi user không xem
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'hidden') {
+    // Tích lũy khoảng visible vừa qua
+    if (lastVisibleAt > 0) {
+      visibleMs += Date.now() - lastVisibleAt;
+      lastVisibleAt = 0;
+    }
     timeTimers.forEach(function(t){ clearTimeout(t); });
+    timeTimers = [];
+  } else if (document.visibilityState === 'visible') {
+    // Resume — restart timers với thời gian còn lại
+    lastVisibleAt = Date.now();
+    setupTimeTimers();
   }
 });
 })();`;
