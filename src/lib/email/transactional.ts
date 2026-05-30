@@ -83,14 +83,15 @@ export async function sendWelcomeEmail(to: string, name: string) {
     baseTemplate(`
       <h1>Chào mừng bạn, ${escapeHtml(name)}! 🚀</h1>
       <p>Tôi là <span class="highlight">Lê Đăng Khương</span> — và tôi rất vui khi bạn tham gia cộng đồng.</p>
-      <p>Đây là những gì bạn có thể làm ngay:</p>
+      <p>Đăng nhập vào <span class="highlight">dangkhuong.com</span> với tài khoản là <strong>Email</strong> và <strong>mật khẩu</strong> bạn vừa đăng ký để bắt đầu học ngay.</p>
+      <p>Đây là những gì bạn có thể làm:</p>
       <ul style="color:#9ca3af; font-size:14px; line-height:2; padding-left:20px; margin:0 0 20px;">
-        <li>📚 Bắt đầu khoá học miễn phí</li>
+        <li>📚 Vào khóa học và xem video bài giảng</li>
         <li>💬 Tham gia cộng đồng thảo luận</li>
         <li>🏆 Tích điểm XP và leo bảng xếp hạng</li>
         <li>📬 Nhận newsletter hàng tuần</li>
       </ul>
-      <a href="${getBaseUrl()}/courses" class="btn">Bắt đầu học ngay →</a>
+      <a href="${getBaseUrl()}/login" class="btn">Đăng nhập học ngay →</a>
       <div class="divider"></div>
       <p style="margin:0;">Nếu bạn có bất kỳ câu hỏi nào, chỉ cần reply email này — tôi đọc tất cả.</p>
       <p style="margin:8px 0 0; color:#6b7280; font-size:13px;">— Lê Đăng Khương</p>

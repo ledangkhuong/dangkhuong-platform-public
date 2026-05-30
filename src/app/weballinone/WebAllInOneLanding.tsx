@@ -357,13 +357,13 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
               Website All-In-One
             </span>
             <br />
-            108 Triệu Doanh Thu Trong 30 Ngày
+            108 Triệu Doanh Số Thật Trong 10 Ngày
           </h1>
 
           <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto mb-8 leading-relaxed">
             Tôi dùng AI Agent xây một hệ thống website All-In-One cho
-            dangkhuong.com &mdash; và nó tạo ra <strong className="text-white">108,7 triệu doanh thu</strong> chỉ
-            trong 30 ngày đầu. Thứ 6 này tôi lên Zoom chia sẻ trực tiếp toàn bộ
+            dangkhuong.com &mdash; và nó tạo ra <strong className="text-white">108,7 triệu doanh số thật</strong> chỉ
+            trong 10 ngày đầu. Thứ 6 này tôi lên Zoom chia sẻ trực tiếp toàn bộ
             tư duy hệ thống và cách triển khai từ A đến Z. Kèm theo: bộ tài liệu
             & quy trình + video gửi lại qua email sau buổi live.
           </p>
@@ -445,7 +445,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
             Bằng Chứng Thật &mdash; Không Phải Lý Thuyết
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            108 Triệu Trong 30 Ngày &mdash; Đây Là Dashboard Thật
+            108 Triệu Doanh Số Thật Trong 10 Ngày &mdash; Đây Là Dashboard Thật
           </h2>
           <p className="text-sm text-gray-400 max-w-lg mx-auto mb-8 leading-relaxed">
             Không lý thuyết, không photoshop. Dashboard này tôi sẽ mở ra trực tiếp
@@ -996,7 +996,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
 
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                  Mật khẩu * (tối thiểu 8 ký tự)
+                  Mật khẩu để tạo tài khoản * (tối thiểu 8 ký tự)
                 </label>
                 <div className="relative">
                   <Lock
