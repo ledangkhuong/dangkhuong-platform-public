@@ -187,9 +187,9 @@ export default function HomePage() {
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   const navLinks = [
-    { label: "Khoá học", href: "#courses" },
     { label: "Lộ trình", href: "#roadmap" },
     { label: "Học viên", href: "#testimonials" },
+    { label: "Nhận quà", href: "#free-offer" },
     { label: "Blog", href: "/blog" },
     { label: "Cộng đồng", href: "/community" },
   ];
@@ -489,8 +489,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ SECTION 6: KHOÁ HỌC (dynamic from DB) ═══ */}
-      <section id="courses" className="py-12 sm:py-24 px-4 sm:px-6">
+      {/* ═══ SECTION 6: KHOÁ HỌC — HIDDEN (ẩn để tập trung thu data) ═══ */}
+      <section id="courses" className="py-12 sm:py-24 px-4 sm:px-6" style={{ display: "none" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">
