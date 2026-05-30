@@ -47,10 +47,10 @@ interface PaymentInfo {
 /* ---- Data ---- */
 
 const STATS = [
-  { value: "64,4tr", label: "Tổng doanh thu ghi nhận", color: "#D4A843" },
-  { value: "381", label: "Tài khoản học viên", color: "#3b82f6" },
-  { value: "99", label: "Đơn hàng trong kỳ", color: "#f59e0b" },
-  { value: "12.3", label: "Học viên mới mỗi ngày", color: "#a855f7" },
+  { value: "108,7tr", label: "Tổng doanh thu ghi nhận", color: "#D4A843" },
+  { value: "421", label: "Tài khoản học viên", color: "#3b82f6" },
+  { value: "149", label: "Đơn hàng trong kỳ", color: "#f59e0b" },
+  { value: "14", label: "Học viên mới mỗi ngày", color: "#a855f7" },
 ];
 
 const PAIN_POINTS = [
@@ -173,11 +173,11 @@ const OFFER_ITEMS = [
 const FAQ_DATA = [
   {
     q: "Buổi Zoom diễn ra khi nào và bao lâu?",
-    a: "Tối nay 22.05.2026, từ 20h00 đến 22h00, trực tiếp trên Zoom. Sau khi đăng ký bạn nhận được link khóa học qua email và được mời vào nhóm Zalo để trao đổi trực tiếp.",
+    a: "Thứ 6, ngày 05/06/2026, từ 20h00 đến 22h00, trực tiếp trên Zoom. Sau khi đăng ký bạn nhận được link khóa học qua email và được mời vào nhóm Zalo để trao đổi trực tiếp.",
   },
   {
-    q: "Tôi bận tối nay, có xem lại được không?",
-    a: "Được. Sau buổi live, video sẽ được gửi lại cho anh em đã đăng ký — đưa vào khu vực khóa học để bạn xem lại bất cứ lúc nào.",
+    q: "Tôi bận hôm đó, có xem lại được không?",
+    a: "Được. Sau buổi live, video và tài liệu sẽ được gửi vào email và đăng trong khu vực khóa học — bạn đăng nhập vào để học lại bất cứ lúc nào.",
   },
   {
     q: "100K mua sinh tố hay mua buổi chia sẻ?",
@@ -185,7 +185,7 @@ const FAQ_DATA = [
   },
   {
     q: "Tài liệu tặng kèm là gì và nhận khi nào?",
-    a: "Là bộ quy trình dùng AI Agent + checklist xây hệ thống All-In-One, ở dạng PDF. Bạn nhận qua email sau buổi Zoom để có thể bắt tay làm ngay.",
+    a: "Là bộ quy trình dùng AI Agent + checklist xây hệ thống All-In-One, ở dạng PDF. Bạn nhận qua email sau buổi Zoom để có thể bắt tay làm ngay. Video cũng được gửi lại qua email và đăng trong khóa học.",
   },
   {
     q: "Tôi chưa biết gì về AI Agent, có theo được không?",
@@ -345,26 +345,27 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
               color: accent,
             }}
           >
-            <Video size={13} /> Zoom Live &middot; 20h&ndash;22h &middot; Tối
-            nay 22.05.2026
+            <Video size={13} /> Zoom Live &middot; 20h&ndash;22h &middot; Thứ
+            6, 05/06/2026
           </div>
 
           <p className="text-base sm:text-lg text-gray-400 mb-4 font-medium">
-            Mời tôi ly sinh tố 100K &mdash; tôi chia sẻ cách xây
+            421 học viên đã vào hệ thống &mdash; bạn thì sao?
           </p>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.2] sm:leading-[1.15] mb-8">
             <span style={{ color: accent }}>
               Website All-In-One
             </span>
             <br />
-            Tạo Ra Thu Nhập Thực Sự
+            108 Triệu Doanh Thu Trong 30 Ngày
           </h1>
 
           <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto mb-8 leading-relaxed">
-            10 ngày qua, tôi để AI Agent chạy thử một hệ thống website
-            All-In-One cho dangkhuong.com. Tối nay tôi lên Zoom chia sẻ trực
-            tiếp tư duy hệ thống và cách tôi đang triển khai &mdash; từ A đến Z.
-            Kèm theo: bộ tài liệu & quy trình để bạn mang về làm ngay.
+            Tôi dùng AI Agent xây một hệ thống website All-In-One cho
+            dangkhuong.com &mdash; và nó tạo ra <strong className="text-white">108,7 triệu doanh thu</strong> chỉ
+            trong 30 ngày đầu. Thứ 6 này tôi lên Zoom chia sẻ trực tiếp toàn bộ
+            tư duy hệ thống và cách triển khai từ A đến Z. Kèm theo: bộ tài liệu
+            & quy trình + video gửi lại qua email sau buổi live.
           </p>
 
           <button
@@ -390,7 +391,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
               ))}
               <span className="ml-1">4.9/5</span>
             </span>
-            <span>1.200+ học viên</span>
+            <span>421+ học viên đã đăng ký</span>
             <span>Lê Đăng Khương Academy</span>
           </div>
 
@@ -444,11 +445,11 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
             Bằng Chứng Thật &mdash; Không Phải Lý Thuyết
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Dashboard Hệ Thống Thử Nghiệm
+            108 Triệu Trong 30 Ngày &mdash; Đây Là Dashboard Thật
           </h2>
           <p className="text-sm text-gray-400 max-w-lg mx-auto mb-8 leading-relaxed">
-            Toàn bộ doanh thu, đơn hàng và học viên được ghi nhận ngay trong hệ
-            thống &mdash; đây chính là dashboard tôi sẽ mở ra giải thích tối nay.
+            Không lý thuyết, không photoshop. Dashboard này tôi sẽ mở ra trực tiếp
+            trên Zoom và giải thích từng con số &mdash; bạn thấy gì, hỏi được luôn.
           </p>
           <div
             className="rounded-2xl overflow-hidden border"
@@ -464,9 +465,8 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
             />
           </div>
           <p className="text-xs text-gray-500 mt-4">
-            Doanh thu 64.473.000đ &middot; 381 học viên &middot; 99 đơn hàng
-            &middot; 12.3 học viên mới/ngày &mdash; số liệu thật từ 30 ngày thử
-            nghiệm.
+            Doanh thu 108.673.000đ &middot; 421 học viên &middot; 149 đơn hàng
+            &middot; 14 học viên mới/ngày &mdash; số liệu thật, cập nhật liên tục.
           </p>
         </div>
       </section>
@@ -623,12 +623,15 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
             Quà tặng kèm khi bạn vào Zoom
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Không chỉ nghe &mdash; bạn mang về tay bộ tài liệu & quy trình
+            Đăng ký xong &mdash; nhận ngay qua email & vào học luôn
           </h2>
+          <p className="text-sm text-gray-400 max-w-lg mx-auto leading-relaxed mb-4">
+            Sau buổi live, <strong className="text-white">video + bộ tài liệu</strong> sẽ được gửi vào email
+            của bạn. Bạn cũng có thể đăng nhập vào hệ thống để học lại bất cứ lúc nào.
+          </p>
           <p className="text-sm text-gray-400 max-w-lg mx-auto leading-relaxed">
-            Sau buổi chia sẻ, bạn nhận trọn bộ quy trình dùng AI Agent để thiết
-            kế luồng, ra yêu cầu và kiểm soát sản phẩm &mdash; kèm checklist hệ
-            thống All-In-One để bắt tay làm ngay.
+            Nội dung tặng kèm: bộ quy trình dùng AI Agent để thiết kế luồng, ra yêu cầu
+            và kiểm soát sản phẩm &mdash; kèm checklist hệ thống All-In-One để bắt tay làm ngay.
           </p>
         </div>
       </section>
@@ -721,7 +724,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
       <section className="py-10 sm:py-14 px-4">
         <div className="max-w-lg mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">
-            Tối Nay Bạn Nhận Được <Coffee size={20} className="inline" /> +{" "}
+            Thứ 6 Này Bạn Nhận Được <Coffee size={20} className="inline" /> +{" "}
             <Gift size={20} className="inline" />
           </h2>
 
@@ -763,7 +766,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
               style={{ background: "rgba(59,130,246,0.08)" }}
             >
               <p className="text-sm text-gray-400 mb-2">
-                Tối nay bạn chỉ cần mời tôi:
+                Thứ 6 này bạn chỉ cần mời tôi:
               </p>
               <p className="text-4xl font-black" style={{ color: accent }}>
                 100K
@@ -777,7 +780,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
           <div className="flex items-center justify-center gap-4 mt-6 text-[11px] text-gray-500 flex-wrap">
             <span>
               <Clock size={11} className="inline mr-1" />
-              20h&ndash;22h &middot; 22.05.2026
+              20h&ndash;22h &middot; Thứ 6, 05/06/2026
             </span>
             <span>
               <MessageCircle size={11} className="inline mr-1" />
@@ -785,7 +788,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
             </span>
             <span>
               <Video size={11} className="inline mr-1" />
-              Có bản ghi gửi lại
+              Video + tài liệu gửi email sau buổi live
             </span>
           </div>
 
@@ -888,9 +891,19 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
               </h2>
               <p className="text-xs text-gray-400 leading-relaxed">
                 Điền thông tin để tạo tài khoản, nhận link Zoom
-                (20h&ndash;22h tối nay), lời mời vào nhóm Zalo và bộ tài liệu
+                (20h&ndash;22h Thứ 6, 05/06), lời mời vào nhóm Zalo và bộ tài liệu
                 tặng kèm.
               </p>
+              <div
+                className="mt-3 p-2.5 rounded-lg text-[11px] text-gray-400 leading-relaxed"
+                style={{
+                  background: "rgba(34,197,94,0.06)",
+                  border: "1px solid rgba(34,197,94,0.15)",
+                }}
+              >
+                <Gift size={11} className="inline mr-1 text-green-400" />
+                Sau khi đăng ký: <strong className="text-green-400">video + tài liệu</strong> sẽ được gửi vào email. Bạn cũng có thể đăng nhập vào hệ thống để học luôn.
+              </div>
             </div>
 
             {error && (
@@ -1142,8 +1155,8 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
               <p className="text-sm text-gray-300 leading-relaxed mt-4">
                 Mời một ly sinh tố{" "}
                 <strong style={{ color: accent }}>100K</strong> &mdash; vào
-                Zoom 20h&ndash;22h tối nay, vào nhóm Zalo, nhận bản ghi xem
-                lại &mdash; hiểu tư duy hệ thống All-In-One và cách dùng AI
+                Zoom 20h&ndash;22h Thứ 6 (05/06), vào nhóm Zalo, nhận video + tài liệu
+                qua email &mdash; hiểu tư duy hệ thống All-In-One và cách dùng AI
                 Agent để xây trụ sở kinh doanh số.
               </p>
             </div>
@@ -1235,7 +1248,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
                 </h3>
                 <p className="text-sm text-gray-400 leading-relaxed mb-5">
                   Chúc mừng bạn đã đăng ký thành công! Dưới đây là thông tin
-                  buổi Zoom tối nay.
+                  buổi Zoom Thứ 6, 05/06. Video + tài liệu sẽ gửi vào email sau buổi live.
                 </p>
 
                 {/* Zoom Info Card */}
@@ -1247,7 +1260,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
                   }}
                 >
                   <p className="text-xs font-semibold mb-3 flex items-center gap-1.5" style={{ color: accent }}>
-                    <Video size={13} /> Zoom Live &middot; 20h&ndash;22h tối nay
+                    <Video size={13} /> Zoom Live &middot; 20h&ndash;22h Thứ 6, 05/06/2026
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -1358,11 +1371,51 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
                     Đăng Ký Thành Công!
                   </h3>
                   <p className="text-sm text-gray-400 leading-relaxed">
-                    Tài khoản của bạn đã được tạo.
+                    Tài khoản của bạn đã được tạo. Video + tài liệu sẽ được gửi vào email sau buổi live.
                   </p>
                 </div>
 
                 <div className="p-6 sm:p-8">
+                  {/* Zalo group + email invite */}
+                  <div className="mb-5 space-y-2.5">
+                    <a
+                      href={ZALO_GROUP}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] w-full justify-center"
+                      style={{
+                        background: "rgba(0,104,255,0.12)",
+                        color: "#3b82f6",
+                        border: "1px solid rgba(0,104,255,0.25)",
+                      }}
+                    >
+                      <MessageCircle size={16} />
+                      Vào Nhóm Zalo Trao Đổi Ngay
+                    </a>
+                    <a
+                      href={COURSE_URL}
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] w-full justify-center"
+                      style={{
+                        background: "rgba(34,197,94,0.08)",
+                        color: "#22c55e",
+                        border: "1px solid rgba(34,197,94,0.2)",
+                      }}
+                    >
+                      <Monitor size={16} />
+                      Đăng Nhập Vào Khóa Học
+                    </a>
+                    <div
+                      className="p-3 rounded-lg text-xs text-gray-400 leading-relaxed"
+                      style={{
+                        background: "rgba(59,130,246,0.05)",
+                        border: "1px solid rgba(59,130,246,0.1)",
+                      }}
+                    >
+                      <Mail size={12} className="inline mr-1" style={{ color: accent }} />
+                      Check email &mdash; video + tài liệu sẽ gửi lại sau buổi live. Kiểm tra cả Spam/Junk.
+                    </div>
+                  </div>
+
                   {paymentInfo?.qr_url && (
                     <div className="mb-8">
                       <p className="text-sm sm:text-base font-semibold text-white mb-4 text-center leading-relaxed">
