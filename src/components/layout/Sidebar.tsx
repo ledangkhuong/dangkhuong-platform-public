@@ -16,7 +16,8 @@ import {
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
-  Video, Globe, Sparkles, Activity, Gauge, type LucideIcon,
+  Video, Globe, Sparkles, Activity, Gauge, Filter, Layout, Link,
+  type LucideIcon,
 } from "lucide-react";
 
 const courseSubNav = [
@@ -105,6 +106,13 @@ const adminNavGroups: AdminNavGroup[] = [
       { href: "/admin/featured-courses", icon: Sparkles, label: "Khoá học nổi bật", roles: ["admin", "manager"] },
       { href: "/admin/announcements", icon: Megaphone, label: "Thông báo", roles: ["admin", "manager"] },
       { href: "/email", icon: Mail, label: "Email Marketing", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/overview", icon: BarChart3, label: "Tổng quan", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/channels", icon: Globe, label: "Kênh marketing", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/campaigns", icon: Megaphone, label: "Chiến dịch", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/funnel", icon: Filter, label: "Phễu chuyển đổi", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/landing-pages", icon: Layout, label: "Landing pages", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/utm-builder", icon: Link, label: "Tạo link UTM", roles: ["admin", "manager", "marketing", "sale"] },
       {
         href: "/admin/pixel-settings", icon: Activity, label: "Pixel & CAPI", roles: ["admin", "manager", "marketing"],
         subNav: [
@@ -123,7 +131,6 @@ const adminNavGroups: AdminNavGroup[] = [
       { href: "/crm/contacts", icon: Contact, label: "Khách hàng", roles: ["admin", "manager", "sale", "support"] },
       { href: "/crm/pipeline", icon: GitBranch, label: "Pipeline", roles: ["admin", "manager", "sale"] },
       { href: "/crm/performance", icon: TrendingUp, label: "Hiệu suất Sale", roles: ["admin", "manager"] },
-      { href: "/crm/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
       { href: "/crm/interests", icon: Eye, label: "Khách quan tâm", roles: ["admin", "manager", "sale", "support"] },
       { href: "/crm/moderation", icon: Shield, label: "Kiểm duyệt", roles: ["admin", "manager", "support"] },
       { href: "/crm/assignments", icon: UserCheck, label: "Phân công", roles: ["admin", "manager"] },
