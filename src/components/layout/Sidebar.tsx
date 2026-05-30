@@ -16,7 +16,7 @@ import {
   Star, ShieldCheck, Zap, X, UserPlus, Contact, GitBranch,
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
-  Video, Globe, Sparkles, Activity, Gauge, Filter, Layout, Link,
+  Video, Globe, Sparkles, Activity, Gauge, Filter, Layout, Link2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -112,7 +112,7 @@ const adminNavGroups: AdminNavGroup[] = [
       { href: "/marketing/funnel", icon: Filter, label: "Phễu chuyển đổi", roles: ["admin", "manager", "marketing"] },
       { href: "/marketing/landing-pages", icon: Layout, label: "Landing pages", roles: ["admin", "manager", "marketing"] },
       { href: "/marketing/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
-      { href: "/marketing/utm-builder", icon: Link, label: "Tạo link UTM", roles: ["admin", "manager", "marketing", "sale"] },
+      { href: "/marketing/utm-builder", icon: Link2, label: "Tạo link UTM", roles: ["admin", "manager", "marketing", "sale"] },
       {
         href: "/admin/pixel-settings", icon: Activity, label: "Pixel & CAPI", roles: ["admin", "manager", "marketing"],
         subNav: [
