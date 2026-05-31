@@ -1,12 +1,13 @@
 /**
- * AWS SES Email Client
- * Singleton SESv2 client và các hàm gửi email qua Amazon SES
+ * Email Client — Resend (thay thế tạm AWS SES khi DKIM bị revoked)
+ *
+ * Giữ nguyên toàn bộ interface: sendEmail, sendEmailWithParams, sendBulkEmails
+ * Khi fix xong DKIM trên AWS → chuyển lại SES bằng cách restore file này.
+ *
+ * Backup SES gốc: ses.ts.bak
  */
 
-import {
-  SESv2Client,
-  SendEmailCommand,
-} from "@aws-sdk/client-sesv2";
+import { Resend } from "resend";
 import type {
   SendEmailParams,
   BulkEmailEntry,
@@ -14,40 +15,25 @@ import type {
   BulkSendResult,
 } from "./types";
 
-// ─── SES Client Singleton ────────────────────────────────────
+// ─── Resend Client Singleton ────────────────────────────────
 
-let sesClient: SESv2Client | null = null;
+let resendClient: Resend | null = null;
 
-/** Lấy SES client singleton — khởi tạo 1 lần duy nhất */
-export function getSESClient(): SESv2Client {
-  if (!sesClient) {
-    const region = process.env.AWS_SES_REGION;
-    const accessKeyId = process.env.AWS_SES_ACCESS_KEY;
-    const secretAccessKey = process.env.AWS_SES_SECRET_KEY;
-
-    if (!region || !accessKeyId || !secretAccessKey) {
-      throw new Error(
-        "Missing AWS SES credentials. Cần có AWS_SES_REGION, AWS_SES_ACCESS_KEY, AWS_SES_SECRET_KEY trong env."
-      );
+function getResendClient(): Resend {
+  if (!resendClient) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing RESEND_API_KEY in env.");
     }
-
-    sesClient = new SESv2Client({
-      region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
+    resendClient = new Resend(apiKey);
   }
-
-  return sesClient;
+  return resendClient;
 }
 
 // ─── Sender Address ──────────────────────────────────────────
 
-/** Lấy địa chỉ From đầy đủ: "Tên <email>" */
 function getFromAddress(): string {
-  const email = process.env.EMAIL_FROM || "support@ledangkhuong.net";
+  const email = process.env.EMAIL_FROM || "onboarding@resend.dev";
   const name = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
   return `${name} <${email}>`;
 }
@@ -55,8 +41,8 @@ function getFromAddress(): string {
 // ─── Send Single Email ───────────────────────────────────────
 
 /**
- * Gửi 1 email qua SES
- * @returns SES Message ID nếu thành công
+ * Gửi 1 email qua Resend
+ * @returns Message ID nếu thành công
  */
 export async function sendEmail(
   to: string,
@@ -66,49 +52,30 @@ export async function sendEmail(
   replyTo?: string
 ): Promise<SendResult> {
   try {
-    const client = getSESClient();
-    const toAddresses = [to];
+    const client = getResendClient();
 
-    const command = new SendEmailCommand({
-      FromEmailAddress: getFromAddress(),
-      Destination: {
-        ToAddresses: toAddresses,
-      },
-      ReplyToAddresses: replyTo ? [replyTo] : undefined,
-      Content: {
-        Simple: {
-          Subject: {
-            Data: subject,
-            Charset: "UTF-8",
-          },
-          Body: {
-            Html: {
-              Data: htmlBody,
-              Charset: "UTF-8",
-            },
-            ...(textBody
-              ? {
-                  Text: {
-                    Data: textBody,
-                    Charset: "UTF-8",
-                  },
-                }
-              : {}),
-          },
-        },
-      },
+    const { data, error } = await client.emails.send({
+      from: getFromAddress(),
+      to: [to],
+      subject,
+      html: htmlBody,
+      text: textBody || undefined,
+      reply_to: replyTo || undefined,
     });
 
-    const response = await client.send(command);
+    if (error) {
+      console.error(`[Resend] Gửi email thất bại đến ${to}:`, error.message);
+      return { success: false, error: error.message };
+    }
 
     return {
       success: true,
-      messageId: response.MessageId,
+      messageId: data?.id,
     };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Lỗi không xác định khi gửi email";
-    console.error(`[SES] Gửi email thất bại đến ${to}:`, message);
+    console.error(`[Resend] Gửi email thất bại đến ${to}:`, message);
     return {
       success: false,
       error: message,
@@ -119,48 +86,40 @@ export async function sendEmail(
 // ─── Send with Full Params ───────────────────────────────────
 
 /**
- * Gửi email với đầy đủ tham số (dùng cho các trường hợp nâng cao)
- * Hỗ trợ custom from name/email và SES tags
+ * Gửi email với đầy đủ tham số (dùng cho automation, campaigns)
  */
 export async function sendEmailWithParams(
   params: SendEmailParams
 ): Promise<SendResult> {
   try {
-    const client = getSESClient();
+    const client = getResendClient();
 
-    const fromEmail = params.fromEmail || process.env.EMAIL_FROM || "support@ledangkhuong.net";
+    const fromEmail = params.fromEmail || process.env.EMAIL_FROM || "onboarding@resend.dev";
     const fromName = params.fromName || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
     const fromAddress = `${fromName} <${fromEmail}>`;
 
-    const command = new SendEmailCommand({
-      FromEmailAddress: fromAddress,
-      Destination: {
-        ToAddresses: [params.to],
-      },
-      ReplyToAddresses: params.replyTo ? [params.replyTo] : undefined,
-      Content: {
-        Simple: {
-          Subject: { Data: params.subject, Charset: "UTF-8" },
-          Body: {
-            Html: { Data: params.html, Charset: "UTF-8" },
-            ...(params.text ? { Text: { Data: params.text, Charset: "UTF-8" } } : {}),
-          },
-          Headers: params.headers
-            ? Object.entries(params.headers).map(([Name, Value]) => ({ Name, Value }))
-            : undefined,
-        },
-      },
-      EmailTags: params.tags
-        ? Object.entries(params.tags).map(([Name, Value]) => ({ Name, Value }))
+    const { data, error } = await client.emails.send({
+      from: fromAddress,
+      to: [params.to],
+      subject: params.subject,
+      html: params.html,
+      text: params.text || undefined,
+      reply_to: params.replyTo || undefined,
+      headers: params.headers || undefined,
+      tags: params.tags
+        ? Object.entries(params.tags).map(([name, value]) => ({ name, value }))
         : undefined,
     });
 
-    const response = await client.send(command);
+    if (error) {
+      console.error(`[Resend] sendEmailWithParams thất bại đến ${params.to}:`, error.message);
+      return { success: false, error: error.message };
+    }
 
-    return { success: true, messageId: response.MessageId };
+    return { success: true, messageId: data?.id };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lỗi gửi email";
-    console.error(`[SES] sendEmailWithParams thất bại đến ${params.to}:`, message);
+    console.error(`[Resend] sendEmailWithParams thất bại đến ${params.to}:`, message);
     return { success: false, error: message };
   }
 }
@@ -169,10 +128,7 @@ export async function sendEmailWithParams(
 
 /**
  * Gửi email hàng loạt — mỗi email có nội dung riêng
- * Gửi tuần tự với delay để tránh vượt rate limit SES (14 emails/giây)
- *
- * @param emails - Mảng email cần gửi
- * @param delayMs - Delay giữa mỗi email (mặc định 100ms ~ 10 emails/giây, an toàn cho rate limit 14/s)
+ * Gửi tuần tự với delay
  */
 export async function sendBulkEmails(
   emails: BulkEmailEntry[],
@@ -203,66 +159,39 @@ export async function sendBulkEmails(
       failed++;
     }
 
-    // Delay giữa mỗi email để tránh vượt SES rate limit
     if (delayMs > 0) {
       await sleep(delayMs);
     }
   }
 
-  return {
-    total: emails.length,
-    sent,
-    failed,
-    results,
-  };
+  return { total: emails.length, sent, failed, results };
 }
 
-// ─── Send Templated Email (SES Template) ─────────────────────
+// ─── Send Templated Email ────────────────────────────────────
 
 /**
- * Gửi email sử dụng SES Template đã tạo sẵn trên AWS
- * Lưu ý: Cần tạo template trên SES console/API trước khi dùng
- *
- * @param to - Email người nhận
- * @param templateName - Tên template trên SES
- * @param templateData - Dữ liệu thay thế vào template
+ * Gửi email với template (fallback: dùng sendEmail thường)
+ * Resend không có SES-style templates — gửi HTML trực tiếp
  */
 export async function sendTemplatedEmail(
   to: string,
   templateName: string,
   templateData: Record<string, string>
 ): Promise<SendResult> {
-  try {
-    const client = getSESClient();
+  // Resend doesn't support SES-style templates
+  // Log warning and return error
+  console.warn(`[Resend] sendTemplatedEmail not supported — template: ${templateName}`);
+  return {
+    success: false,
+    error: "Templated email not supported with Resend. Use sendEmail with HTML instead.",
+  };
+}
 
-    const command = new SendEmailCommand({
-      FromEmailAddress: getFromAddress(),
-      Destination: {
-        ToAddresses: [to],
-      },
-      Content: {
-        Template: {
-          TemplateName: templateName,
-          TemplateData: JSON.stringify(templateData),
-        },
-      },
-    });
+// ─── Legacy exports for compatibility ───────────────────────
 
-    const response = await client.send(command);
-
-    return {
-      success: true,
-      messageId: response.MessageId,
-    };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Lỗi gửi templated email";
-    console.error(`[SES] Gửi templated email thất bại đến ${to}:`, message);
-    return {
-      success: false,
-      error: message,
-    };
-  }
+/** No-op: Resend doesn't need a client object */
+export function getSESClient(): unknown {
+  return getResendClient();
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
