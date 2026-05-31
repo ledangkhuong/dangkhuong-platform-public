@@ -40,7 +40,7 @@ export default function RegisterForm() {
       });
       const data = await res.json();
       if (data.success) {
-        router.push("/register/verify?email=" + encodeURIComponent(email));
+        router.push("/login?registered=1");
       } else {
         setError(data.error || "Có lỗi xảy ra");
       }

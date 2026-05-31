@@ -92,8 +92,16 @@ export default function LoginForm() {
     }
   }
 
+  const justRegistered = searchParams.get("registered") === "1";
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {justRegistered && (
+        <div className="p-3 rounded-lg text-sm text-green-400 border border-green-400/20"
+          style={{ background: "rgba(34,197,94,0.08)" }}>
+          Đăng ký thành công! Đăng nhập bằng email và mật khẩu vừa tạo.
+        </div>
+      )}
       {error && (
         <div
           role="alert"
