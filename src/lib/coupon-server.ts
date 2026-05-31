@@ -89,32 +89,31 @@ export async function claimCoupon(
   });
 
   if (rpcError) {
-    // Fallback: manual increment + insert
-    await admin
-      .from("coupons")
-      .update({ used_count: admin.rpc("increment_used_count", { coupon_id: couponId }) as unknown as number })
-      .eq("id", couponId)
-      .catch(() => {
-        // Last resort: raw increment
-        admin
+    // Fallback: manual increment
+    try {
+      const { data } = await admin
+        .from("coupons")
+        .select("used_count")
+        .eq("id", couponId)
+        .single();
+      if (data) {
+        await admin
           .from("coupons")
-          .select("used_count")
-          .eq("id", couponId)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              admin
-                .from("coupons")
-                .update({ used_count: (data.used_count || 0) + 1 })
-                .eq("id", couponId);
-            }
-          });
-      });
+          .update({ used_count: (data.used_count || 0) + 1 })
+          .eq("id", couponId);
+      }
+    } catch {
+      // Non-critical
+    }
 
-    await admin.from("coupon_usages").insert({
-      coupon_id: couponId,
-      user_id: userId,
-      order_id: orderId,
-    }).catch(() => {});
+    try {
+      await admin.from("coupon_usages").insert({
+        coupon_id: couponId,
+        user_id: userId,
+        order_id: orderId,
+      });
+    } catch {
+      // Non-critical
+    }
   }
 }
