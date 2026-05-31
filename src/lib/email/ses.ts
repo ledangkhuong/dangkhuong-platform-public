@@ -33,7 +33,7 @@ function getResendClient(): Resend {
 // ─── Sender Address ──────────────────────────────────────────
 
 function getFromAddress(): string {
-  const email = process.env.EMAIL_FROM || "onboarding@resend.dev";
+  const email = process.env.EMAIL_FROM || "support@dangkhuong.com";
   const name = process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
   return `${name} <${email}>`;
 }
@@ -94,7 +94,7 @@ export async function sendEmailWithParams(
   try {
     const client = getResendClient();
 
-    const fromEmail = params.fromEmail || process.env.EMAIL_FROM || "onboarding@resend.dev";
+    const fromEmail = params.fromEmail || process.env.EMAIL_FROM || "support@dangkhuong.com";
     const fromName = params.fromName || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy";
     const fromAddress = `${fromName} <${fromEmail}>`;
 
