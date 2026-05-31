@@ -268,7 +268,7 @@ export async function POST(req: NextRequest) {
         product_id: product.id,
         order_id: order.id,
         source: "purchase",
-      }, { onConflict: "user_id,product_id", ignoreDuplicates: true }).catch(() => {});
+      }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
     }
 
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
