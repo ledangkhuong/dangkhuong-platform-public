@@ -5,8 +5,7 @@
  * and List-Unsubscribe headers.
  */
 
-import { SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { getSESClient } from "./ses";
+import { sendEmailWithParams } from "./ses";
 import type {
   SendEmailParams,
   EmailCampaign,
@@ -46,62 +45,14 @@ function getAppUrl(): string {
 export async function sendSingleEmail(
   params: SendEmailParams
 ): Promise<{ messageId: string; success: true }> {
-  const client = getSESClient();
+  const result = await sendEmailWithParams(params);
 
-  const fromEmail = params.fromEmail || process.env.EMAIL_FROM || DEFAULT_FROM_EMAIL;
-  const fromName = params.fromName || process.env.EMAIL_FROM_NAME || DEFAULT_FROM_NAME;
-  const fromAddress = `${fromName} <${fromEmail}>`;
-
-  // Build SES message tags from params.tags
-  const messageTags = params.tags
-    ? Object.entries(params.tags).map(([Name, Value]) => ({ Name, Value }))
-    : undefined;
-
-  // Build extra headers list
-  const headers = params.headers
-    ? Object.entries(params.headers).map(([Name, Value]) => ({ Name, Value }))
-    : undefined;
-
-  const command = new SendEmailCommand({
-    FromEmailAddress: fromAddress,
-    Destination: {
-      ToAddresses: [params.to],
-    },
-    ReplyToAddresses: params.replyTo ? [params.replyTo] : undefined,
-    Content: {
-      Simple: {
-        Subject: {
-          Data: params.subject,
-          Charset: "UTF-8",
-        },
-        Body: {
-          Html: {
-            Data: params.html,
-            Charset: "UTF-8",
-          },
-          ...(params.text
-            ? {
-                Text: {
-                  Data: params.text,
-                  Charset: "UTF-8",
-                },
-              }
-            : {}),
-        },
-        Headers: headers,
-      },
-    },
-    EmailTags: messageTags,
-  });
-
-  const response = await client.send(command);
-
-  if (!response.MessageId) {
-    throw new Error("SES did not return a MessageId");
+  if (!result.success || !result.messageId) {
+    throw new Error(result.error || "Email send failed — no messageId returned");
   }
 
   return {
-    messageId: response.MessageId,
+    messageId: result.messageId,
     success: true,
   };
 }
