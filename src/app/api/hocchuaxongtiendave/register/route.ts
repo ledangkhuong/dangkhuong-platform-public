@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
-import { verifyTurnstile } from "@/lib/turnstile";
-
 /**
  * POST /api/hocchuaxongtiendave/register
  * Đăng ký tài khoản + tạo đơn hàng cho landing page /hocchuaxongtiendave
@@ -40,24 +38,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const {
-      full_name,
-      email,
-      phone,
-      password,
-      turnstileToken,
-    } = body;
-
-    // Turnstile CAPTCHA verification
-    if (process.env.TURNSTILE_SECRET_KEY) {
-      if (!turnstileToken) {
-        return NextResponse.json({ error: "Vui lòng xác minh CAPTCHA" }, { status: 400 });
-      }
-      const isHuman = await verifyTurnstile(turnstileToken);
-      if (!isHuman) {
-        return NextResponse.json({ error: "Xác minh CAPTCHA thất bại" }, { status: 403 });
-      }
-    }
+    const { full_name, email, phone, password } = body;
 
     if (!email?.trim())
       return NextResponse.json(
