@@ -60,7 +60,7 @@ export async function sendEmail(
       subject,
       html: htmlBody,
       text: textBody || undefined,
-      reply_to: replyTo || undefined,
+      replyTo: replyTo || undefined,
     });
 
     if (error) {
@@ -104,7 +104,7 @@ export async function sendEmailWithParams(
       subject: params.subject,
       html: params.html,
       text: params.text || undefined,
-      reply_to: params.replyTo || undefined,
+      replyTo: params.replyTo || undefined,
       headers: params.headers || undefined,
       tags: params.tags
         ? Object.entries(params.tags).map(([name, value]) => ({ name, value }))
