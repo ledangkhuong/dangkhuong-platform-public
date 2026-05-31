@@ -28,6 +28,7 @@ export default function GeminiProLanding() {
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
 
   // Check existing email
   const [emailCheck, setEmailCheck] = useState<{ status: "idle" | "checking" | "exists" | "new" }>({ status: "idle" });
@@ -58,7 +59,7 @@ export default function GeminiProLanding() {
     if (!isReturningUser && form.password.length < 8) { setError("Mật khẩu tối thiểu 8 ký tự"); return; }
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/geminipro/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form }) });
+      const res = await fetch("/api/geminipro/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }) });
       const data = await res.json();
       if (data.success) { setShowSuccess(true); }
       else { setError(data.error || "Có lỗi xảy ra, vui lòng thử lại"); }
@@ -254,6 +255,19 @@ export default function GeminiProLanding() {
                   <AlertCircle size={14} /> {error}
                 </div>
               )}
+
+              {/* Mã giảm giá */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "rgba(241,245,251,0.5)" }}>Mã giảm giá (nếu có)</label>
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className="w-full pl-4 pr-4 py-3 rounded-lg text-sm text-white placeholder-gray-600 outline-none uppercase"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(66,133,244,0.2)" }}
+                  placeholder="Nhập mã giảm giá"
+                />
+              </div>
 
               <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-bold cursor-pointer transition-all hover:scale-[1.01] disabled:opacity-50" style={{ background: "linear-gradient(135deg, #34A853 0%, #1E8E3E 100%)", color: "#fff", boxShadow: "0 6px 24px rgba(52,168,83,0.3)" }}>
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Đang xử lý...</> : <><Gift size={16} /> Nhận Miễn Phí <ArrowRight size={16} /></>}

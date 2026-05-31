@@ -86,6 +86,7 @@ export default function HocChuaXongLanding() {
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">("pending");
 
   // Poll order status every 5s when payment modal is open
@@ -168,7 +169,7 @@ export default function HocChuaXongLanding() {
       const res = await fetch("/api/hocchuaxongtiendave/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form }),
+        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }),
       });
       const data = await res.json();
       if (data.success) {
@@ -497,6 +498,28 @@ export default function HocChuaXongLanding() {
                   </Link>
                 </div>
               )}
+            </div>
+
+            {/* Mã giảm giá */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "rgba(241,245,251,0.7)" }}>
+                Mã giảm giá (nếu có)
+              </label>
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                className="w-full rounded-lg outline-none text-white uppercase"
+                style={{
+                  background: "#050913",
+                  border: "1px solid rgba(229,182,99,0.15)",
+                  paddingLeft: "1rem",
+                  paddingRight: "1rem",
+                  paddingTop: "0.85rem",
+                  paddingBottom: "0.85rem",
+                }}
+                placeholder="Nhập mã giảm giá"
+              />
             </div>
 
             <button

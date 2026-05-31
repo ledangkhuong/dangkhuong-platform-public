@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
+import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 
 /**
  * POST /api/sanphamso/register
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password } = body;
+    const { full_name, email, phone, password, coupon_code } = body;
 
 
     // Validate
@@ -138,12 +139,23 @@ export async function POST(req: NextRequest) {
       .eq("slug", PRODUCT_SLUG)
       .single();
 
-    const amount = product?.sale_price || product?.price || PRODUCT_PRICE;
+    const baseAmount = product?.sale_price || product?.price || PRODUCT_PRICE;
     const productTitle =
       product?.title || "Lộ Trình Kiếm Tiền Từ Sản Phẩm Số 2026";
 
     // 4. Create order
     const orderCode = generateOrderCode();
+
+    let finalAmount = baseAmount;
+    let couponResult: Awaited<ReturnType<typeof validateCoupon>> | null = null;
+
+    if (coupon_code?.trim()) {
+      couponResult = await validateCoupon(admin, coupon_code.trim(), baseAmount);
+      if (!couponResult.valid) {
+        return NextResponse.json({ error: couponResult.error }, { status: 400 });
+      }
+      finalAmount = couponResult.final_amount!;
+    }
 
     // Read affiliate ref_code from cookie
     let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
@@ -164,14 +176,17 @@ export async function POST(req: NextRequest) {
     const orderData: Record<string, unknown> = {
       order_code: orderCode,
       user_id: userId,
-      amount,
-      status: "pending",
+      amount: finalAmount,
+      status: finalAmount === 0 ? "paid" : "pending",
       payment_method: "bank_transfer",
       customer_name: full_name.trim(),
       customer_email: email.trim(),
       customer_phone: phone?.trim() || null,
       ref_code: refCode,
     };
+    if (coupon_code?.trim()) {
+      orderData.coupon_code = coupon_code.trim().toUpperCase();
+    }
 
     // Only set product_id if product exists in DB
     if (product?.id) {
@@ -192,11 +207,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Claim coupon after order created
+    if (couponResult?.valid && couponResult.coupon_id && order?.id) {
+      await claimCoupon(admin, couponResult.coupon_id, userId, order.id).catch(() => {});
+    }
+
+    // If coupon makes it free -> auto-enroll
+    if (finalAmount === 0 && order?.id && product?.id) {
+      await admin.from("enrollments").upsert({
+        user_id: userId,
+        product_id: product.id,
+        order_id: order.id,
+        source: "purchase",
+      }, { onConflict: "user_id,product_id", ignoreDuplicates: true }).catch(() => {});
+    }
+
     // 5. Payment info
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
     const bankCode = process.env.SEPAY_BANK_CODE;
     const hasSepay = bankAccount && bankCode && !bankAccount.includes("your-");
 
+    const amount = finalAmount;
     const paymentInfo = {
       order_code: orderCode,
       amount,
@@ -257,6 +288,11 @@ export async function POST(req: NextRequest) {
       order,
       paymentInfo,
       productName: productTitle,
+      coupon: couponResult?.valid ? {
+        code: coupon_code?.trim().toUpperCase(),
+        discount_amount: couponResult.discount_amount,
+        original_amount: baseAmount,
+      } : null,
     });
   } catch (err) {
     console.error("[SanPhamSo Register Error]", err);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
+import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 
 
 /**
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password } = body;
+    const { full_name, email, phone, password, coupon_code } = body;
 
     if (!full_name?.trim())
       return NextResponse.json(
@@ -145,23 +146,39 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 4. Create order
+    // 4. Create order (with optional coupon)
     const orderCode = generateOrderCode();
-    const amount = product.sale_price || product.price || 100000;
+    const baseAmount = product.sale_price || product.price || 100000;
+
+    let finalAmount = baseAmount;
+    let couponResult: Awaited<ReturnType<typeof validateCoupon>> | null = null;
+
+    if (coupon_code?.trim()) {
+      couponResult = await validateCoupon(admin, coupon_code.trim(), baseAmount);
+      if (!couponResult.valid) {
+        return NextResponse.json({ error: couponResult.error }, { status: 400 });
+      }
+      finalAmount = couponResult.final_amount!;
+    }
+
+    const orderData: Record<string, unknown> = {
+      order_code: orderCode,
+      user_id: userId,
+      product_id: product.id,
+      amount: finalAmount,
+      status: finalAmount === 0 ? "paid" : "pending",
+      payment_method: "bank_transfer",
+      customer_name: full_name.trim(),
+      customer_email: email.trim(),
+      customer_phone: phone?.trim() || null,
+    };
+    if (coupon_code?.trim()) {
+      orderData.coupon_code = coupon_code.trim().toUpperCase();
+    }
 
     const { data: order, error: orderError } = await admin
       .from("orders")
-      .insert({
-        order_code: orderCode,
-        user_id: userId,
-        product_id: product.id,
-        amount,
-        status: "pending",
-        payment_method: "bank_transfer",
-        customer_name: full_name.trim(),
-        customer_email: email.trim(),
-        customer_phone: phone?.trim() || null,
-      })
+      .insert(orderData)
       .select()
       .single();
 
@@ -173,11 +190,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 4b. Claim coupon after order created
+    if (couponResult?.valid && couponResult.coupon_id && order?.id) {
+      await claimCoupon(admin, couponResult.coupon_id, userId, order.id).catch(() => {});
+    }
+
+    // 4c. If coupon makes it free → auto-enroll
+    if (finalAmount === 0 && order?.id) {
+      await admin.from("enrollments").upsert({
+        user_id: userId,
+        product_id: product.id,
+        order_id: order.id,
+        source: "purchase",
+      }, { onConflict: "user_id,product_id", ignoreDuplicates: true }).catch(() => {});
+    }
+
     // 5. Payment info
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;
     const bankCode = process.env.SEPAY_BANK_CODE;
     const hasSepay = bankAccount && bankCode && !bankAccount.includes("your-");
 
+    const amount = finalAmount;
     const paymentInfo = {
       order_code: orderCode,
       amount,
@@ -209,7 +242,16 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
-    return NextResponse.json({ success: true, order, paymentInfo });
+    return NextResponse.json({
+      success: true,
+      order,
+      paymentInfo,
+      coupon: couponResult?.valid ? {
+        code: coupon_code?.trim().toUpperCase(),
+        discount_amount: couponResult.discount_amount,
+        original_amount: baseAmount,
+      } : null,
+    });
   } catch (err) {
     console.error("[WebAllInOne Register Error]", err);
     return NextResponse.json({ error: "Lỗi hệ thống" }, { status: 500 });

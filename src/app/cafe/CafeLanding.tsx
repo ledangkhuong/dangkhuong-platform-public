@@ -185,6 +185,7 @@ export default function CafeLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">("pending");
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -226,7 +227,7 @@ export default function CafeLanding() {
       const res = await fetch("/api/cafe/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form }),
+        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }),
       });
       const data = await res.json();
       if (data.success) {
@@ -882,6 +883,28 @@ export default function CafeLanding() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+            </div>
+
+            {/* Mã giảm giá */}
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">
+                Mã giảm giá (nếu có)
+              </label>
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                className="w-full rounded-lg outline-none text-white uppercase"
+                style={{
+                  background: "#111",
+                  border: "1px solid rgba(212,168,67,0.15)",
+                  paddingLeft: "1rem",
+                  paddingRight: "1rem",
+                  paddingTop: "0.85rem",
+                  paddingBottom: "0.85rem",
+                }}
+                placeholder="Nhập mã giảm giá"
+              />
             </div>
 
             <button

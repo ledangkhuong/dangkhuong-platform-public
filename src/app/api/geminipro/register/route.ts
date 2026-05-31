@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
+import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 
 /**
  * POST /api/geminipro/register
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password } = body;
+    const { full_name, email, phone, password, coupon_code } = body;
 
 
     if (!email?.trim())
@@ -147,10 +148,21 @@ export async function POST(req: NextRequest) {
       .eq("slug", PRODUCT_SLUG)
       .single();
 
-    const amount = product?.sale_price || product?.price || PRODUCT_PRICE;
+    const baseAmount = product?.sale_price || product?.price || PRODUCT_PRICE;
     const productTitle = product?.title || "Google Tặng 4 Tháng Gemini Pro";
 
     const orderCode = generateOrderCode();
+
+    let finalAmount = baseAmount;
+    let couponResult: Awaited<ReturnType<typeof validateCoupon>> | null = null;
+
+    if (coupon_code?.trim()) {
+      couponResult = await validateCoupon(admin, coupon_code.trim(), baseAmount);
+      if (!couponResult.valid) {
+        return NextResponse.json({ error: couponResult.error }, { status: 400 });
+      }
+      finalAmount = couponResult.final_amount!;
+    }
 
     let refCode = req.cookies.get("dk_ref")?.value?.toUpperCase() || null;
     if (refCode) {
@@ -175,11 +187,11 @@ export async function POST(req: NextRequest) {
       if (!orderPhone && profile?.phone) orderPhone = profile.phone;
     }
 
-    const isFree = amount === 0;
+    const isFree = finalAmount === 0;
     const orderData: Record<string, unknown> = {
       order_code: orderCode,
       user_id: userId,
-      amount,
+      amount: finalAmount,
       status: isFree ? "paid" : "pending",
       payment_method: isFree ? "free" : "bank_transfer",
       customer_name: orderName,
@@ -188,6 +200,9 @@ export async function POST(req: NextRequest) {
       ref_code: refCode,
       ...(isFree ? { paid_at: new Date().toISOString() } : {}),
     };
+    if (coupon_code?.trim()) {
+      orderData.coupon_code = coupon_code.trim().toUpperCase();
+    }
 
     if (product?.id) {
       orderData.product_id = product.id;
@@ -205,6 +220,21 @@ export async function POST(req: NextRequest) {
         { error: "Lỗi tạo đơn hàng. Vui lòng thử lại sau." },
         { status: 500 }
       );
+    }
+
+    // Claim coupon after order created
+    if (couponResult?.valid && couponResult.coupon_id && order?.id) {
+      await claimCoupon(admin, couponResult.coupon_id, userId, order.id).catch(() => {});
+    }
+
+    // If free (product free or coupon) -> auto-enroll
+    if (isFree && order?.id && product?.id) {
+      await admin.from("enrollments").upsert({
+        user_id: userId,
+        product_id: product.id,
+        order_id: order.id,
+        source: "purchase",
+      }, { onConflict: "user_id,product_id", ignoreDuplicates: true }).catch(() => {});
     }
 
     if (!isExistingUser) {
@@ -246,6 +276,11 @@ export async function POST(req: NextRequest) {
       success: true,
       order,
       productName: productTitle,
+      coupon: couponResult?.valid ? {
+        code: coupon_code?.trim().toUpperCase(),
+        discount_amount: couponResult.discount_amount,
+        original_amount: baseAmount,
+      } : null,
     });
   } catch (err) {
     console.error("[GeminiPro Register Error]", err);

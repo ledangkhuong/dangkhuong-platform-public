@@ -232,6 +232,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [copied, setCopied] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">(
     "pending",
   );
@@ -278,7 +279,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
       const res = await fetch("/api/weballinone/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form }),
+        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }),
       });
       const data = await res.json();
       if (data.success) {
@@ -1023,6 +1024,26 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
                   >
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
+                </div>
+              </div>
+
+              {/* Mã giảm giá */}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Mã giảm giá (nếu có)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm text-white placeholder-gray-600 outline-none uppercase"
+                    style={{
+                      background: "#0A1020",
+                      border: "1px solid rgba(59,130,246,0.15)",
+                    }}
+                    placeholder="Nhập mã giảm giá"
+                  />
                 </div>
               </div>
 
