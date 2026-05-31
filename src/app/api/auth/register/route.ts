@@ -119,26 +119,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Send verification email
+    // Send welcome email (account is auto-confirmed, no verification needed)
     let emailSent = false;
     try {
-      const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-        type: "signup",
-        email,
-        password,
-      });
-
-      if (linkError) {
-        console.error("[Register] generateLink error:", linkError.message);
-      } else if (linkData) {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
-        const confirmUrl = `${baseUrl}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=signup&next=/dashboard`;
-        const { sendVerificationEmail } = await import("@/lib/email/transactional");
-        await sendVerificationEmail(email, full_name, confirmUrl);
-        emailSent = true;
-      }
+      const { sendWelcomeEmail } = await import("@/lib/email/transactional");
+      await sendWelcomeEmail(email.trim(), full_name.trim());
+      emailSent = true;
     } catch (emailErr) {
-      console.error("[Register] Email send failed:", emailErr instanceof Error ? emailErr.message : emailErr);
+      console.error("[Register] Welcome email failed:", emailErr instanceof Error ? emailErr.message : emailErr);
     }
 
     return NextResponse.json({ success: true, emailSent });
