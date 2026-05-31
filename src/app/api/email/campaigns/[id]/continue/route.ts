@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { sendEmailWithParams } from "@/lib/email/ses";
 import { rateLimit } from "@/lib/rate-limit";
 
 const BATCH_SIZE = 50;
 const SEND_DELAY_MS = 80; // ~12 emails/s, safely under SES 14/s limit
-
-function createSESClient() {
-  return new SESv2Client({
-    region: process.env.AWS_SES_REGION || "us-east-1",
-    credentials: {
-      accessKeyId: process.env.AWS_SES_ACCESS_KEY!,
-      secretAccessKey: process.env.AWS_SES_SECRET_KEY!,
-    },
-  });
-}
 
 function escapeHtml(str: string): string {
   return str
@@ -220,7 +210,6 @@ export async function POST(
       (subscribers || []).map((s: { id: string; email: string; full_name?: string }) => [s.id, s])
     );
 
-    const sesClient = createSESClient();
     let sentCount = 0;
 
     for (const send of claimedSends) {
@@ -264,32 +253,27 @@ export async function POST(
         // Rewrite links for click tracking
         renderedHtml = rewriteLinksForTracking(renderedHtml, send.id);
 
-        // Send via SES
-        const command = new SendEmailCommand({
-          FromEmailAddress: `${campaign.from_name || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy"} <${campaign.from_email || process.env.EMAIL_FROM || "support@ledangkhuong.net"}>`,
-          Destination: { ToAddresses: [send.email] },
-          Content: {
-            Simple: {
-              Subject: { Data: campaign.subject, Charset: "UTF-8" },
-              Body: {
-                Html: { Data: renderedHtml, Charset: "UTF-8" },
-                Text: { Data: campaign.text_content || "", Charset: "UTF-8" },
-              },
-            },
-          },
-          ReplyToAddresses: campaign.reply_to
-            ? [campaign.reply_to]
-            : undefined,
+        // Send via Resend
+        const result = await sendEmailWithParams({
+          to: send.email,
+          subject: campaign.subject,
+          html: renderedHtml,
+          text: campaign.text_content || undefined,
+          fromName: campaign.from_name || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy",
+          fromEmail: campaign.from_email || process.env.EMAIL_FROM || "support@ledangkhuong.net",
+          replyTo: campaign.reply_to || undefined,
         });
 
-        const result = await sesClient.send(command);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to send email");
+        }
 
         // Update send status to "sent"
         await admin
           .from("email_sends")
           .update({
             status: "sent",
-            ses_message_id: result.MessageId || null,
+            ses_message_id: result.messageId || null,
             sent_at: new Date().toISOString(),
           })
           .eq("id", send.id);

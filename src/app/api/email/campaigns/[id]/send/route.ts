@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { sendEmailWithParams } from "@/lib/email/ses";
 import { rateLimit } from "@/lib/rate-limit";
 
 const BATCH_SIZE = 50;
@@ -17,16 +17,6 @@ function escapeHtml(str: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-function createSESClient() {
-  return new SESv2Client({
-    region: process.env.AWS_SES_REGION || "us-east-1",
-    credentials: {
-      accessKeyId: process.env.AWS_SES_ACCESS_KEY!,
-      secretAccessKey: process.env.AWS_SES_SECRET_KEY!,
-    },
-  });
 }
 
 function renderTemplate(
@@ -58,36 +48,6 @@ function rewriteLinksForTracking(html: string, sendId: string): string {
       return `href="${trackingUrl}"`;
     }
   );
-}
-
-async function sendEmail(
-  sesClient: SESv2Client,
-  options: {
-    fromName: string;
-    fromEmail: string;
-    replyTo?: string;
-    toEmail: string;
-    subject: string;
-    htmlContent: string;
-    textContent?: string;
-  }
-) {
-  const command = new SendEmailCommand({
-    FromEmailAddress: `${options.fromName} <${options.fromEmail}>`,
-    Destination: { ToAddresses: [options.toEmail] },
-    Content: {
-      Simple: {
-        Subject: { Data: options.subject, Charset: "UTF-8" },
-        Body: {
-          Html: { Data: options.htmlContent, Charset: "UTF-8" },
-          Text: { Data: options.textContent || "", Charset: "UTF-8" },
-        },
-      },
-    },
-    ReplyToAddresses: options.replyTo ? [options.replyTo] : undefined,
-  });
-
-  return sesClient.send(command);
 }
 
 // POST /api/email/campaigns/[id]/send — trigger sending a campaign
@@ -297,7 +257,6 @@ export async function POST(
       );
     }
 
-    const sesClient = createSESClient();
     let sentCount = 0;
 
     // Build a subscriber map for template rendering
@@ -325,23 +284,27 @@ export async function POST(
         // Rewrite links for click tracking
         renderedHtml = rewriteLinksForTracking(renderedHtml, send.id);
 
-        // Send via SES
-        const result = await sendEmail(sesClient, {
+        // Send via Resend
+        const result = await sendEmailWithParams({
+          to: send.email,
+          subject: campaign.subject,
+          html: renderedHtml,
+          text: campaign.text_content || undefined,
           fromName: campaign.from_name || process.env.EMAIL_FROM_NAME || "Lê Đăng Khương Academy",
           fromEmail: campaign.from_email || process.env.EMAIL_FROM || "support@ledangkhuong.net",
           replyTo: campaign.reply_to || undefined,
-          toEmail: send.email,
-          subject: campaign.subject,
-          htmlContent: renderedHtml,
-          textContent: campaign.text_content || undefined,
         });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to send email");
+        }
 
         // Update send status
         await admin
           .from("email_sends")
           .update({
             status: "sent",
-            ses_message_id: result.MessageId || null,
+            ses_message_id: result.messageId || null,
             sent_at: new Date().toISOString(),
           })
           .eq("id", send.id);
