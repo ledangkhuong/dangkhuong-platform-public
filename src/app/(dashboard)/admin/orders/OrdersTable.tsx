@@ -210,7 +210,7 @@ function buildColumns({
     // Mã đơn
     columnHelper.accessor("order_code", {
       header: "Mã đơn",
-      size: 140,
+      size: 110,
       enableSorting: true,
       cell: (info) => (
         <span className="font-mono text-xs text-gray-400 whitespace-nowrap">
@@ -223,7 +223,7 @@ function buildColumns({
     columnHelper.display({
       id: "customer",
       header: "Khách hàng",
-      size: 200,
+      size: 170,
       enableSorting: false,
       cell: ({ row }) => {
         const o = row.original;
@@ -251,7 +251,7 @@ function buildColumns({
     columnHelper.display({
       id: "product",
       header: "Sản phẩm",
-      size: 180,
+      size: 140,
       enableSorting: false,
       cell: ({ row }) => (
         <span className="text-gray-300 text-sm">
@@ -263,7 +263,7 @@ function buildColumns({
     // Số tiền
     columnHelper.accessor("amount", {
       header: "Số tiền",
-      size: 120,
+      size: 100,
       enableSorting: true,
       cell: (info) => (
         <span className="font-bold text-white whitespace-nowrap">
@@ -276,7 +276,7 @@ function buildColumns({
     // Trạng thái
     columnHelper.accessor("status", {
       header: "Trạng thái",
-      size: 150,
+      size: 110,
       enableSorting: true,
       cell: (info) => {
         const o = info.row.original;
@@ -294,7 +294,7 @@ function buildColumns({
     columnHelper.display({
       id: "utm_source",
       header: "Nguồn",
-      size: 120,
+      size: 100,
       enableSorting: false,
       cell: ({ row }) => {
         const o = row.original;
@@ -335,7 +335,7 @@ function buildColumns({
     columnHelper.display({
       id: "sale",
       header: "Sale",
-      size: 160,
+      size: 130,
       enableSorting: false,
       cell: ({ row }) => {
         const o = row.original;
@@ -374,7 +374,7 @@ function buildColumns({
     columnHelper.display({
       id: "payment",
       header: "Thanh toán",
-      size: 150,
+      size: 130,
       enableSorting: false,
       cell: ({ row }) => {
         const o = row.original;
@@ -413,7 +413,7 @@ function buildColumns({
     // Ngày tạo
     columnHelper.accessor("created_at", {
       header: "Ngày tạo",
-      size: 140,
+      size: 110,
       enableSorting: true,
       cell: (info) => (
         <span className="text-xs text-gray-500 whitespace-nowrap">
