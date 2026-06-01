@@ -446,9 +446,8 @@ export default async function ContactDetailPage({
     sale_price: c.sale_price,
   }));
 
-  // Only admin/manager OR the sale rep this contact is assigned to may
-  // grant external access. Reuses the same auth gate the server action
-  // enforces — keeping the button hidden when it would error.
+  const isAdminOrManager = scope.role === "admin" || scope.role === "manager";
+
   const canCreateExternalOrder =
     isAdminOrManager || scope.isSale;
 
@@ -554,7 +553,6 @@ export default async function ContactDetailPage({
   // email contacts assigned to them. Aligns with the auth check in the
   // /api/crm/contacts/[id]/send-email route.
   const hasEmail = !!(contact.email && contact.email.trim().length > 0);
-  const isAdminOrManager = scope.role === "admin" || scope.role === "manager";
   const canEmail = hasEmail && (isAdminOrManager || scope.isSale);
 
   // Sale can edit tags on any contact
