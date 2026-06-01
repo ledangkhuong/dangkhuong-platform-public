@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
+import { syncUtmToContact } from "@/lib/utm-sync";
 
 
 /**
@@ -236,6 +237,13 @@ export async function POST(req: NextRequest) {
         });
       } catch {}
     }
+
+    // 6b. Sync UTM to crm_contacts
+    await syncUtmToContact(admin, userId, full_name.trim(), email.trim(), phone?.trim() || null, {
+      utm_source: utm_source || "direct",
+      utm_medium: utm_medium || "none",
+      utm_campaign,
+    });
 
     // 7. Welcome email (new users only)
     if (!isExistingUser) {

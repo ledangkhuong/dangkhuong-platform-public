@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
+import { syncUtmToContact } from "@/lib/utm-sync";
 
 /**
  * POST /api/hoclamtoolvideo/register
@@ -281,6 +282,13 @@ export async function POST(req: NextRequest) {
         });
       }
     } catch { /* Non-critical */ }
+
+    // Sync UTM to crm_contacts
+    await syncUtmToContact(admin, userId, orderName, email.trim(), orderPhone, {
+      utm_source: utm_source || "direct",
+      utm_medium: utm_medium || "none",
+      utm_campaign,
+    });
 
     if (!isExistingUser) {
       try {
