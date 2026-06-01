@@ -442,23 +442,7 @@ export async function addActivity(formData: FormData) {
     }
   }
 
-  // ── Ownership check for sale role ──────────────────────────────────────
-  // Sale reps can only log activities on contacts assigned to them.
-  // Admin/manager/marketing/support are not restricted here.
-  if (role === "sale") {
-    const { data: contactOwner } = await admin
-      .from("crm_contacts")
-      .select("assigned_to, full_name")
-      .eq("id", contactId)
-      .maybeSingle();
-
-    if (!contactOwner) {
-      redirect(`/crm/contacts?error=contact_not_found`);
-    }
-    if ((contactOwner.assigned_to as string | null) !== user.id) {
-      redirect(`/crm/contacts/${contactId}?error=forbidden`);
-    }
-  }
+  // Sale can log activities on any contact (removed ownership restriction)
 
   // ── Build activity metadata payload ────────────────────────────────────
   const metadata: Record<string, unknown> = {};
