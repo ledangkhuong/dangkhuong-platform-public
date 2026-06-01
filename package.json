@@ -54,7 +54,7 @@
     "@types/sanitize-html": "^2.16.1",
     "adm-zip": "^0.5.17",
     "docx": "^9.6.1",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.2.6",
     "pg": "^8.20.0",
     "tailwindcss": "^4",
