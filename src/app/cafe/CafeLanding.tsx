@@ -189,6 +189,18 @@ export default function CafeLanding() {
   const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">("pending");
   const formRef = useRef<HTMLDivElement>(null);
 
+  // Capture UTM from URL
+  const [utmParams] = useState(() => {
+    if (typeof window === "undefined") return {};
+    const sp = new URLSearchParams(window.location.search);
+    const params: Record<string, string> = {};
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const val = sp.get(key);
+      if (val) params[key] = val;
+    }
+    return params;
+  });
+
   // Poll order status every 5s when payment modal is open
   useEffect(() => {
     if (!showModal || !paymentInfo?.order_code || paymentStatus === "paid") return;
@@ -227,7 +239,7 @@ export default function CafeLanding() {
       const res = await fetch("/api/cafe/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }),
+        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
       });
       const data = await res.json();
       if (data.success) {

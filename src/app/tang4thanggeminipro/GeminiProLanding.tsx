@@ -30,6 +30,18 @@ export default function GeminiProLanding() {
   const [showPassword, setShowPassword] = useState(false);
   const [couponCode, setCouponCode] = useState("");
 
+  // Capture UTM from URL
+  const [utmParams] = useState(() => {
+    if (typeof window === "undefined") return {};
+    const sp = new URLSearchParams(window.location.search);
+    const params: Record<string, string> = {};
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const val = sp.get(key);
+      if (val) params[key] = val;
+    }
+    return params;
+  });
+
   // Check existing email
   const [emailCheck, setEmailCheck] = useState<{ status: "idle" | "checking" | "exists" | "new" }>({ status: "idle" });
   useEffect(() => {
@@ -59,7 +71,7 @@ export default function GeminiProLanding() {
     if (!isReturningUser && form.password.length < 8) { setError("Mật khẩu tối thiểu 8 ký tự"); return; }
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/geminipro/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }) });
+      const res = await fetch("/api/geminipro/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }) });
       const data = await res.json();
       if (data.success) { setShowSuccess(true); }
       else { setError(data.error || "Có lỗi xảy ra, vui lòng thử lại"); }

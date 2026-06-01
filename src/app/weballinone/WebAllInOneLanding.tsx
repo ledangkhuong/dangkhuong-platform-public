@@ -238,6 +238,18 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
   );
   const formRef = useRef<HTMLDivElement>(null);
 
+  // Capture UTM from URL
+  const [utmParams] = useState(() => {
+    if (typeof window === "undefined") return {};
+    const sp = new URLSearchParams(window.location.search);
+    const params: Record<string, string> = {};
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const val = sp.get(key);
+      if (val) params[key] = val;
+    }
+    return params;
+  });
+
   // Poll payment status
   useEffect(() => {
     if (!showModal || !paymentInfo?.order_code || paymentStatus === "paid")
@@ -279,7 +291,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
       const res = await fetch("/api/weballinone/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined }),
+        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
       });
       const data = await res.json();
       if (data.success) {
