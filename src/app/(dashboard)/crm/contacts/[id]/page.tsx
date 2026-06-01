@@ -427,10 +427,7 @@ export default async function ContactDetailPage({
   if (!contactRes.data) notFound();
   const contact = contactRes.data as unknown as Contact;
 
-  // Sale viewers can only see contacts assigned to themselves
-  if (scope.isSale && contact.assigned_to !== scope.userId) {
-    notFound();
-  }
+  // Sale can view any contact (removed ownership restriction)
   const activities = (activitiesRes.data ?? []) as unknown as Activity[];
   const recommendations = (recommendationsRes.data ?? []) as unknown as CourseRecommendation[];
   const nextActions = (nextActionsRes.data ?? []) as unknown as NextAction[];
@@ -452,11 +449,8 @@ export default async function ContactDetailPage({
   // Only admin/manager OR the sale rep this contact is assigned to may
   // grant external access. Reuses the same auth gate the server action
   // enforces — keeping the button hidden when it would error.
-  const isAdminOrManagerForExt =
-    scope.role === "admin" || scope.role === "manager";
   const canCreateExternalOrder =
-    isAdminOrManagerForExt ||
-    (scope.isSale && contact.assigned_to === scope.userId);
+    isAdminOrManager || scope.isSale;
 
   // ─── Fetch course interests (courses the user viewed but hasn't purchased) ──
   let courseInterests: CourseInterest[] = [];
@@ -561,17 +555,10 @@ export default async function ContactDetailPage({
   // /api/crm/contacts/[id]/send-email route.
   const hasEmail = !!(contact.email && contact.email.trim().length > 0);
   const isAdminOrManager = scope.role === "admin" || scope.role === "manager";
-  const canEmail =
-    hasEmail &&
-    (isAdminOrManager ||
-      (scope.isSale && contact.assigned_to === scope.userId));
+  const canEmail = hasEmail && (isAdminOrManager || scope.isSale);
 
-  // canEditTags mirrors StatusChanger's gate: admin/manager OR the sale
-  // rep assigned to this contact. The server action re-checks this; the
-  // client flag is purely UX.
-  const canEditTags =
-    isAdminOrManager ||
-    (scope.isSale && contact.assigned_to === scope.userId);
+  // Sale can edit tags on any contact
+  const canEditTags = isAdminOrManager || scope.isSale;
 
   // Tag autocomplete suggestions — union of every distinct tag across
   // the contacts table. Fetched in parallel above; we fail-soft to []
@@ -742,10 +729,7 @@ export default async function ContactDetailPage({
                 <StatusChanger
                   contactId={contact.id}
                   currentStatus={contact.status}
-                  canEdit={
-                    isAdminOrManager ||
-                    (scope.isSale && contact.assigned_to === scope.userId)
-                  }
+                  canEdit={isAdminOrManager || scope.isSale}
                 />
 
                 {/* Lead Score Badge */}

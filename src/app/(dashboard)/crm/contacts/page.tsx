@@ -79,9 +79,7 @@ export default async function CRMContactsPage({
     .order("created_at", { ascending: false })
     .limit(200);
 
-  if (scope.isSale) {
-    query = query.eq("assigned_to", scope.userId);
-  }
+  // Sale can see all contacts (removed ownership filter)
   if (q) {
     const safeQ = sanitizeSearchInput(q);
     if (safeQ) {
@@ -122,17 +120,12 @@ export default async function CRMContactsPage({
   let totalQuery = admin
     .from("crm_contacts")
     .select("*", { count: "exact", head: true });
-  if (scope.isSale) {
-    totalQuery = totalQuery.eq("assigned_to", scope.userId);
-  }
-
-  // Build per-stage count queries
+  // Build per-stage count queries (sale sees all contacts)
   const stageCountPromises = journeyStages.map((s) => {
-    let q = admin
+    const q = admin
       .from("crm_contacts")
       .select("*", { count: "exact", head: true })
       .eq("journey_stage", s.key);
-    if (scope.isSale) q = q.eq("assigned_to", scope.userId);
     return q.then(({ count }) => count ?? 0);
   });
 
