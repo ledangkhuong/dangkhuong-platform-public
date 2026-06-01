@@ -54,6 +54,11 @@ export interface OrderRow {
   // legacy "platform" treatment when these are undefined or null.
   revenue_source?: RevenueSource;
   external_channel?: ExternalChannel;
+  // Marketing attribution (utm) — may be null when the order was created
+  // without tracking params.
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -281,6 +286,47 @@ function buildColumns({
             revenueSource={o.revenue_source}
             externalChannel={o.external_channel}
           />
+        );
+      },
+    }),
+
+    // Nguồn (marketing source)
+    columnHelper.display({
+      id: "utm_source",
+      header: "Nguồn",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const o = row.original;
+        const UTM_COLORS: Record<string, { bg: string; color: string }> = {
+          facebook: { bg: "rgba(24,119,242,0.15)", color: "#1877F2" },
+          google: { bg: "rgba(234,67,53,0.15)", color: "#EA4335" },
+          zalo: { bg: "rgba(0,104,255,0.15)", color: "#0068FF" },
+          email: { bg: "rgba(245,158,11,0.15)", color: "#f59e0b" },
+          youtube: { bg: "rgba(255,0,0,0.15)", color: "#FF0000" },
+        };
+        const src = o.utm_source;
+        if (!src) {
+          return <span className="text-xs text-gray-600">—</span>;
+        }
+        const palette = UTM_COLORS[src] ?? {
+          bg: "rgba(107,114,128,0.15)",
+          color: "#6b7280",
+        };
+        return (
+          <div>
+            <span
+              className="text-xs font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: palette.bg, color: palette.color }}
+            >
+              {src.charAt(0).toUpperCase() + src.slice(1)}
+            </span>
+            {o.utm_campaign && (
+              <div className="text-[10px] text-gray-500 mt-0.5">
+                {o.utm_campaign}
+              </div>
+            )}
+          </div>
         );
       },
     }),
