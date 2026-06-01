@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, coupon_code } = body;
+    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
 
 
     if (!email?.trim())
@@ -203,6 +203,9 @@ export async function POST(req: NextRequest) {
     if (coupon_code?.trim()) {
       orderData.coupon_code = coupon_code.trim().toUpperCase();
     }
+    if (utm_source) orderData.utm_source = utm_source;
+    if (utm_medium) orderData.utm_medium = utm_medium;
+    if (utm_campaign) orderData.utm_campaign = utm_campaign;
 
     if (product?.id) {
       orderData.product_id = product.id;
