@@ -202,8 +202,8 @@ export async function POST(req: NextRequest) {
     if (coupon_code?.trim()) {
       orderData.coupon_code = coupon_code.trim().toUpperCase();
     }
-    if (utm_source) orderData.utm_source = utm_source;
-    if (utm_medium) orderData.utm_medium = utm_medium;
+    orderData.utm_source = utm_source || "direct";
+    orderData.utm_medium = utm_medium || "none";
     if (utm_campaign) orderData.utm_campaign = utm_campaign;
 
     if (product?.id) {
