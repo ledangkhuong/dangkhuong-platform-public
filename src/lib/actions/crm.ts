@@ -58,26 +58,29 @@ export async function createContact(formData: FormData) {
   const email = (formData.get("email") as string || "").trim() || null;
   const phoneCheck = (formData.get("phone") as string || "").trim() || null;
 
-  // ─── Anti double-submit guard ────────────────────────────────────
-  // If THIS staff member just created a contact with the same name
-  // (and same phone, when one was supplied) in the last 30 seconds,
-  // treat the new submission as a duplicate and bounce back instead
-  // of inserting a copy. Pairs with the disabled-while-pending submit
-  // button on the form.
-  const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
-  let dupQuery = admin
-    .from("crm_contacts")
-    .select("id")
-    .eq("full_name", fullName)
-    .eq("created_by", user.id)
-    .gte("created_at", thirtySecondsAgo)
-    .limit(1);
+  // ─── Dedup: check if contact already exists by phone or email ─────
+  // If found, redirect to existing contact instead of creating duplicate.
+  let existingId: string | null = null;
   if (phoneCheck) {
-    dupQuery = dupQuery.eq("phone", phoneCheck);
+    const { data: byPhone } = await admin
+      .from("crm_contacts")
+      .select("id")
+      .eq("phone", phoneCheck)
+      .limit(1)
+      .maybeSingle();
+    if (byPhone) existingId = byPhone.id;
   }
-  const { data: recentDup } = await dupQuery;
-  if (recentDup && recentDup.length > 0) {
-    redirect(`/crm/contacts?error=duplicate&dup=${recentDup[0].id}`);
+  if (!existingId && email) {
+    const { data: byEmail } = await admin
+      .from("crm_contacts")
+      .select("id")
+      .eq("email", email)
+      .limit(1)
+      .maybeSingle();
+    if (byEmail) existingId = byEmail.id;
+  }
+  if (existingId) {
+    redirect(`/crm/contacts/${existingId}?info=already_exists`);
   }
 
   const courseIds = (formData.getAll("course_ids") as string[]).filter(Boolean);
