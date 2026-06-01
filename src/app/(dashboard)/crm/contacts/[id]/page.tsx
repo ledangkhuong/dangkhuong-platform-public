@@ -715,6 +715,15 @@ export default async function ContactDetailPage({
                 )}
               </div>
 
+              {/* Notes */}
+              {contact.notes && (
+                <div className="mt-3 p-3 rounded-lg text-sm text-gray-300 leading-relaxed"
+                  style={{ background: "rgba(107,114,128,0.08)", border: "1px solid rgba(107,114,128,0.15)" }}>
+                  <span className="text-xs text-gray-500 font-medium">Ghi chú:</span>{" "}
+                  {contact.notes}
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center gap-3 mt-2.5">
                 {/* Journey Stage Badge */}
                 <span
