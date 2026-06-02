@@ -184,6 +184,16 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
     setLoading(true);
     setErrorMsg("");
     try {
+      // Capture UTM from URL
+      const utm: Record<string, string> = {};
+      if (typeof window !== "undefined") {
+        const sp = new URLSearchParams(window.location.search);
+        for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+          const v = sp.get(k);
+          if (v) utm[k] = v;
+        }
+      }
+
       const res = await fetch("/api/orders/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -193,6 +203,7 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
           customer_email: email,
           customer_phone: phone,
           ...(couponApplied ? { coupon_code: couponApplied.code } : {}),
+          ...utm,
         }),
       });
       const data = await res.json();

@@ -219,6 +219,9 @@ export async function POST(req: NextRequest) {
         customer_phone: customer_phone || null,
         ref_code: refCode,
         coupon_code: appliedCouponCode!,
+        utm_source: body.utm_source || "direct",
+        utm_medium: body.utm_medium || "none",
+        ...(body.utm_campaign ? { utm_campaign: body.utm_campaign } : {}),
       }).select().single();
 
       // Record coupon usage for tracking
@@ -307,6 +310,9 @@ export async function POST(req: NextRequest) {
       customer_email: customer_email || user.email,
       customer_phone: customer_phone || null,
       ref_code: refCode,
+      utm_source: body.utm_source || "direct",
+      utm_medium: body.utm_medium || "none",
+      ...(body.utm_campaign ? { utm_campaign: body.utm_campaign } : {}),
       ...(appliedCouponCode ? { coupon_code: appliedCouponCode } : {}),
       ...(stickyAssignedTo ? { assigned_to: stickyAssignedTo } : {}),
     }).select().single();
