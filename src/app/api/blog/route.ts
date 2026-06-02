@@ -94,6 +94,8 @@ export async function POST(req: NextRequest) {
       focus_keyword,
       author_name,
       author_avatar,
+      author_bio,
+      author_facebook,
     } = await req.json();
 
     if (!title?.trim())
@@ -127,6 +129,8 @@ export async function POST(req: NextRequest) {
       focus_keyword: focus_keyword?.trim() || null,
       author_name: author_name?.trim() || null,
       author_avatar: author_avatar?.trim() || null,
+      author_bio: author_bio?.trim() || null,
+      author_facebook: author_facebook?.trim() || null,
     };
 
     // Only set published_at when first publishing

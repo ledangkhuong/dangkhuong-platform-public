@@ -344,6 +344,10 @@ export default function NewBlogPostPage() {
           status,
           sendEmail,
           focus_keyword: focusKeyword.trim() || null,
+          author_name: authorName,
+          author_avatar: authorAvatar,
+          author_bio: authorBio,
+          author_facebook: authorFacebook,
         }),
       });
 

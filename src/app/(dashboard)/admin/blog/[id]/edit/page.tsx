@@ -286,6 +286,10 @@ export default function EditBlogPostPage() {
           category, tags: tagList.length > 0 ? tagList : null,
           thumbnail: thumbnail || null, status, sendEmail,
           focus_keyword: focusKeyword.trim() || null,
+          author_name: authorName,
+          author_avatar: authorAvatar,
+          author_bio: authorBio,
+          author_facebook: authorFacebook,
         }),
       });
       const json = await res.json();
