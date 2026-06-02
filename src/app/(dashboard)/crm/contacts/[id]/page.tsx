@@ -427,7 +427,10 @@ export default async function ContactDetailPage({
   if (!contactRes.data) notFound();
   const contact = contactRes.data as unknown as Contact;
 
-  // Sale can view any contact (removed ownership restriction)
+  // Sale can only view contacts assigned to them
+  if (scope.isSale && contact.assigned_to !== scope.userId) {
+    notFound();
+  }
   const activities = (activitiesRes.data ?? []) as unknown as Activity[];
   const recommendations = (recommendationsRes.data ?? []) as unknown as CourseRecommendation[];
   const nextActions = (nextActionsRes.data ?? []) as unknown as NextAction[];
