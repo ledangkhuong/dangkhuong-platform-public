@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Send verification email via Resend (not Supabase built-in SMTP)
+    // Send verification email via AWS SES (not Supabase built-in SMTP)
     let emailSent = false;
     try {
       const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({

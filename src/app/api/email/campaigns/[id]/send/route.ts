@@ -284,7 +284,7 @@ export async function POST(
         // Rewrite links for click tracking
         renderedHtml = rewriteLinksForTracking(renderedHtml, send.id);
 
-        // Send via Resend
+        // Send via AWS SES
         const result = await sendEmailWithParams({
           to: send.email,
           subject: campaign.subject,

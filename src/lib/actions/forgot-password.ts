@@ -46,7 +46,7 @@ export async function forgotPassword(formData: FormData) {
       );
     }
 
-    // Send custom email via Resend
+    // Send custom email via AWS SES
     if (data?.properties?.action_link) {
       // Extract token_hash from Supabase's action_link and build custom reset URL
       // This bypasses Supabase's /verify redirect (which uses implicit flow with hash fragments)
