@@ -32,7 +32,7 @@ async function requireStaff() {
 
 /** Tạo contact mới trong CRM */
 export async function createContact(formData: FormData) {
-  const { user } = await requireStaff();
+  const { user, role } = await requireStaff();
 
   // Rate limit: 10 requests per minute per user
   const rl = await rateLimit(`crm-create-contact:${user.id}`, 10, 60);
@@ -100,6 +100,10 @@ export async function createContact(formData: FormData) {
       );
       assignedTo = null;
     }
+  }
+  // Auto-assign to current sale if still unassigned
+  if (!assignedTo && role === "sale") {
+    assignedTo = user.id;
   }
 
   const now = new Date().toISOString();
