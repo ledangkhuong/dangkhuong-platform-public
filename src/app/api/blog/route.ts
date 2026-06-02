@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendBulkEmails, type BulkEmailEntry } from "@/lib/email/ses";
 
 // GET /api/blog?id=xxx — fetch single blog post for editing
 export async function GET(req: NextRequest) {
@@ -259,12 +260,10 @@ function escapeHtml(str: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function sendBlogNotificationEmail(admin: any, post: any) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || "no-reply@dangkhuong.com";
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
   const siteDomain = (() => { try { return new URL(baseUrl).hostname; } catch { return "dangkhuong.com"; } })();
 
-  if (!apiKey || apiKey.startsWith("re_your")) return;
+  if (!process.env.AWS_SES_ACCESS_KEY) return;
 
   // Get all user emails
   const { data: authUsers } = await admin.auth.admin.listUsers({ perPage: 500 });
@@ -276,28 +275,10 @@ async function sendBlogNotificationEmail(admin: any, post: any) {
 
   if (emails.length === 0) return;
 
-  // Send via Resend batch (max 50 per batch)
-  const batches = [];
-  for (let i = 0; i < emails.length; i += 50) {
-    batches.push(emails.slice(i, i + 50));
-  }
-
-  for (const batch of batches) {
-    await fetch("https://api.resend.com/emails/batch", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(
-        batch.map((email: string) => {
-          const safeTitle = escapeHtml(post.title);
-          const safeExcerpt = post.excerpt ? escapeHtml(post.excerpt) : "";
-          return {
-          from: fromEmail,
-          to: email,
-          subject: `Bài viết mới: ${post.title}`,
-          html: `
+  const safeTitle = escapeHtml(post.title);
+  const safeExcerpt = post.excerpt ? escapeHtml(post.excerpt) : "";
+  const subject = `Bài viết mới: ${post.title}`;
+  const html = `
             <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2 style="color: #D4A843;">${safeTitle}</h2>
               ${safeExcerpt ? `<p style="color: #666;">${safeExcerpt}</p>` : ""}
@@ -310,9 +291,13 @@ async function sendBlogNotificationEmail(admin: any, post: any) {
                 Bạn nhận email này vì đã đăng ký tài khoản tại ${siteDomain}
               </p>
             </div>
-          `,
-        };})
-      ),
-    });
-  }
+          `;
+
+  const entries: BulkEmailEntry[] = emails.map((email: string) => ({
+    to: email,
+    subject,
+    html,
+  }));
+
+  await sendBulkEmails(entries, 100);
 }
