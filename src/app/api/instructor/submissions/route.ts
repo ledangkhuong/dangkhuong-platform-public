@@ -12,14 +12,16 @@ export async function GET(req: NextRequest) {
 
   const adminClient = await createAdminClient();
 
-  // Verify instructor role
+  // Verify role — instructor (own courses) or admin/manager (all courses)
   const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
+  const role = profile?.role ?? "";
+  const isStaffViewer = role === "admin" || role === "manager";
+  if (role !== "instructor" && !isStaffViewer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -29,11 +31,12 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-  // Get instructor's course IDs
-  const { data: instructorCourses, error: coursesError } = await adminClient
-    .from("products")
-    .select("id")
-    .eq("instructor_id", user.id);
+  // Get accessible course IDs — all for admin/manager, assigned-only for instructor
+  let coursesQuery = adminClient.from("products").select("id");
+  if (!isStaffViewer) {
+    coursesQuery = coursesQuery.eq("instructor_id", user.id);
+  }
+  const { data: instructorCourses, error: coursesError } = await coursesQuery;
 
   if (coursesError) {
     console.error("[Instructor Submissions GET] Courses error:", coursesError);
@@ -48,11 +51,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ submissions: [], total: 0 });
   }
 
-  // Build query for submissions
+  // Build query for submissions.
+  // NOTE: user_id has no FK to public.profiles (it references auth.users), so we
+  // cannot embed profiles via PostgREST — student names are resolved separately below.
   let query = adminClient
     .from("lesson_submissions")
     .select(
-      "id, user_id, lesson_id, product_id, content, links, status, feedback, score, reviewed_by, reviewed_at, created_at, updated_at, profiles!lesson_submissions_user_id_fkey(full_name), lessons!lesson_submissions_lesson_id_fkey(title)",
+      "id, user_id, lesson_id, product_id, content, links, status, feedback, score, reviewed_by, reviewed_at, created_at, updated_at, lessons!lesson_submissions_lesson_id_fkey(title)",
       { count: "exact" }
     );
 
@@ -79,6 +84,19 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // Resolve student names separately (no FK from user_id to profiles).
+  const userIds = [
+    ...new Set((submissions ?? []).map((s) => (s as { user_id: string }).user_id)),
+  ];
+  const nameMap: Record<string, string | null> = {};
+  if (userIds.length > 0) {
+    const { data: profs } = await adminClient
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
+    for (const p of profs ?? []) nameMap[p.id] = p.full_name;
+  }
+
   // Flatten joined data for cleaner response
   const formatted = (submissions ?? []).map((s) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -97,7 +115,7 @@ export async function GET(req: NextRequest) {
       reviewed_at: raw.reviewed_at,
       created_at: raw.created_at,
       updated_at: raw.updated_at,
-      student_name: raw.profiles?.full_name ?? null,
+      student_name: nameMap[raw.user_id] ?? null,
       lesson_title: raw.lessons?.title ?? null,
     };
   });
@@ -116,14 +134,16 @@ export async function PATCH(req: NextRequest) {
 
   const adminClient = await createAdminClient();
 
-  // Verify instructor role
+  // Verify role — instructor (own courses) or admin/manager (all courses)
   const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
+  const role = profile?.role ?? "";
+  const isStaffViewer = role === "admin" || role === "manager";
+  if (role !== "instructor" && !isStaffViewer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -152,19 +172,21 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  // Verify the submission's course belongs to this instructor
-  const { data: course } = await adminClient
-    .from("products")
-    .select("id")
-    .eq("id", submission.product_id)
-    .eq("instructor_id", user.id)
-    .single();
+  // Admin/manager can grade any course; instructors only their own
+  if (!isStaffViewer) {
+    const { data: course } = await adminClient
+      .from("products")
+      .select("id")
+      .eq("id", submission.product_id)
+      .eq("instructor_id", user.id)
+      .single();
 
-  if (!course) {
-    return NextResponse.json(
-      { error: "Không có quyền chấm bài nộp này." },
-      { status: 403 }
-    );
+    if (!course) {
+      return NextResponse.json(
+        { error: "Không có quyền chấm bài nộp này." },
+        { status: 403 }
+      );
+    }
   }
 
   // Build update data

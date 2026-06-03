@@ -43,8 +43,14 @@ const instructorNav = [
   { href: "/instructor", icon: GraduationCap, label: "Giảng viên" },
   { href: "/instructor/courses", icon: BookOpen, label: "Khóa học của tôi" },
   { href: "/instructor/students", icon: Users, label: "Tiến trình học viên" },
-  { href: "/instructor/questions", icon: MessageSquare, label: "Câu hỏi học viên" },
+  { href: "/instructor/questions", icon: MessageSquare, label: "Câu hỏi trong bài học" },
   { href: "/instructor/submissions", icon: ClipboardCheck, label: "Chấm bài" },
+];
+
+// Items in the instructor area that admin/manager can also access (review across all courses)
+const STAFF_VIEWABLE_INSTRUCTOR_HREFS = [
+  "/instructor/questions",
+  "/instructor/submissions",
 ];
 
 interface AdminNavItem {
@@ -211,6 +217,8 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const userRole = profile?.role ?? "student";
   const isAdmin = userRole === "admin";
   const isInstructor = userRole === "instructor";
+  // Admin/manager can also review submissions & lesson questions (across all courses)
+  const isStaffViewer = userRole === "admin" || userRole === "manager";
   const isEditor = userRole === "editor";
   const isStaff = ["admin", "manager", "marketing", "sale", "support", "editor", "instructor"].includes(userRole);
 
@@ -343,15 +351,21 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           })}
         </div>
 
-        {/* Instructor nav */}
-        {isInstructor && (
+        {/* Instructor nav — full for instructors, review-only subset for admin/manager */}
+        {(isInstructor || isStaffViewer) && (
           <div className="mt-6">
             {!isCompact && (
               <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#8b5cf6]">
-                Giảng viên
+                {isInstructor ? "Giảng viên" : "Chấm bài & Hỏi đáp"}
               </div>
             )}
-            {instructorNav.map((item) => {
+            {instructorNav
+              .filter(
+                (item) =>
+                  isInstructor ||
+                  STAFF_VIEWABLE_INSTRUCTOR_HREFS.includes(item.href)
+              )
+              .map((item) => {
               const isActive =
                 pathname === item.href ||
                 (item.href.length > 1 && pathname.startsWith(item.href) && item.href !== "/instructor");

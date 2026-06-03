@@ -12,14 +12,16 @@ export async function GET(req: NextRequest) {
 
   const adminClient = await createAdminClient();
 
-  // Verify instructor role
+  // Verify role — instructor (own courses) or admin/manager (all courses)
   const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
+  const role = profile?.role ?? "";
+  const isStaffViewer = role === "admin" || role === "manager";
+  if (role !== "instructor" && !isStaffViewer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -29,11 +31,53 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-  // Get instructor's course IDs
-  const { data: instructorCourses, error: coursesError } = await adminClient
-    .from("products")
-    .select("id, title")
-    .eq("instructor_id", user.id);
+  // --- Replies mode: return the threaded replies for a single question ---
+  const wantReplies = searchParams.get("replies");
+  const replyDiscussionId = searchParams.get("discussion_id");
+  if (wantReplies && replyDiscussionId) {
+    const { data: replyRows, error: replyErr } = await adminClient
+      .from("lesson_discussions")
+      .select("id, user_id, content, created_at")
+      .eq("parent_id", replyDiscussionId)
+      .order("created_at", { ascending: true });
+
+    if (replyErr) {
+      console.error("[Instructor Questions GET replies] Error:", replyErr);
+      return NextResponse.json(
+        { error: "Co loi xay ra khi tai tra loi." },
+        { status: 500 }
+      );
+    }
+
+    const replyUserIds = [...new Set((replyRows ?? []).map((r) => r.user_id))];
+    const replyAuthorMap: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
+    if (replyUserIds.length > 0) {
+      const { data: profs } = await adminClient
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", replyUserIds);
+      for (const p of profs ?? [])
+        replyAuthorMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+    }
+
+    const formattedReplies = (replyRows ?? []).map((r) => ({
+      id: r.id,
+      user_id: r.user_id,
+      content: r.content,
+      created_at: r.created_at,
+      user_name: replyAuthorMap[r.user_id]?.full_name ?? null,
+      user_avatar: replyAuthorMap[r.user_id]?.avatar_url ?? null,
+    }));
+
+    return NextResponse.json({ replies: formattedReplies });
+  }
+
+  // Get accessible course IDs — all for admin/manager, assigned-only for instructor
+  let coursesQuery = adminClient.from("products").select("id, title");
+  if (!isStaffViewer) {
+    coursesQuery = coursesQuery.eq("instructor_id", user.id);
+  }
+  const { data: instructorCourses, error: coursesError } = await coursesQuery;
 
   if (coursesError) {
     console.error("[Instructor Questions GET] Courses error:", coursesError);
@@ -86,11 +130,13 @@ export async function GET(req: NextRequest) {
     lessonMap[l.id] = { title: l.title, product_id: l.product_id };
   }
 
-  // Query top-level questions (parent_id IS NULL) from lesson_discussions
+  // Query top-level questions (parent_id IS NULL) from lesson_discussions.
+  // NOTE: user_id has no FK to public.profiles, so student names/avatars are
+  // resolved separately below rather than embedded via PostgREST.
   let query = adminClient
     .from("lesson_discussions")
     .select(
-      "id, lesson_id, user_id, content, is_resolved, is_pinned, created_at, profiles!lesson_discussions_user_id_fkey(full_name, avatar_url)",
+      "id, lesson_id, user_id, content, is_resolved, is_pinned, created_at",
       { count: "exact" }
     )
     .in("lesson_id", lessonIds)
@@ -133,6 +179,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Resolve student names/avatars separately (no FK from user_id to profiles).
+  const qUserIds = [...new Set((questions ?? []).map((q) => q.user_id))];
+  const authorMap: Record<string, { full_name: string | null; avatar_url: string | null }> = {};
+  if (qUserIds.length > 0) {
+    const { data: profs } = await adminClient
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", qUserIds);
+    for (const p of profs ?? [])
+      authorMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+  }
+
   // Flatten joined data for cleaner response
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatted = (questions ?? []).map((q: any) => {
@@ -144,8 +202,8 @@ export async function GET(req: NextRequest) {
       course_title: lesson ? (courseMap[lesson.product_id] ?? null) : null,
       product_id: lesson?.product_id ?? null,
       user_id: q.user_id,
-      student_name: q.profiles?.full_name ?? null,
-      student_avatar: q.profiles?.avatar_url ?? null,
+      student_name: authorMap[q.user_id]?.full_name ?? null,
+      student_avatar: authorMap[q.user_id]?.avatar_url ?? null,
       content: q.content,
       is_resolved: q.is_resolved,
       is_pinned: q.is_pinned,
@@ -168,14 +226,16 @@ export async function POST(req: NextRequest) {
 
   const adminClient = await createAdminClient();
 
-  // Verify instructor role
+  // Verify role — instructor (own courses) or admin/manager (all courses)
   const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
+  const role = profile?.role ?? "";
+  const isStaffViewer = role === "admin" || role === "manager";
+  if (role !== "instructor" && !isStaffViewer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -229,18 +289,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data: course } = await adminClient
-    .from("products")
-    .select("id")
-    .eq("id", lesson.product_id)
-    .eq("instructor_id", user.id)
-    .single();
+  // Admin/manager can reply on any course; instructors only their own
+  if (!isStaffViewer) {
+    const { data: course } = await adminClient
+      .from("products")
+      .select("id")
+      .eq("id", lesson.product_id)
+      .eq("instructor_id", user.id)
+      .single();
 
-  if (!course) {
-    return NextResponse.json(
-      { error: "Khong co quyen tra loi cau hoi nay." },
-      { status: 403 }
-    );
+    if (!course) {
+      return NextResponse.json(
+        { error: "Khong co quyen tra loi cau hoi nay." },
+        { status: 403 }
+      );
+    }
   }
 
   // Insert the reply
@@ -252,9 +315,7 @@ export async function POST(req: NextRequest) {
       parent_id: discussion_id,
       content: content.trim(),
     })
-    .select(
-      "*, profiles!lesson_discussions_user_id_fkey(full_name, avatar_url)"
-    )
+    .select("*")
     .single();
 
   if (error) {
@@ -279,14 +340,16 @@ export async function PATCH(req: NextRequest) {
 
   const adminClient = await createAdminClient();
 
-  // Verify instructor role
+  // Verify role — instructor (own courses) or admin/manager (all courses)
   const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
+  const role = profile?.role ?? "";
+  const isStaffViewer = role === "admin" || role === "manager";
+  if (role !== "instructor" && !isStaffViewer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -341,18 +404,21 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  const { data: course } = await adminClient
-    .from("products")
-    .select("id")
-    .eq("id", lesson.product_id)
-    .eq("instructor_id", user.id)
-    .single();
+  // Admin/manager can update any course's questions; instructors only their own
+  if (!isStaffViewer) {
+    const { data: course } = await adminClient
+      .from("products")
+      .select("id")
+      .eq("id", lesson.product_id)
+      .eq("instructor_id", user.id)
+      .single();
 
-  if (!course) {
-    return NextResponse.json(
-      { error: "Khong co quyen cap nhat cau hoi nay." },
-      { status: 403 }
-    );
+    if (!course) {
+      return NextResponse.json(
+        { error: "Khong co quyen cap nhat cau hoi nay." },
+        { status: 403 }
+      );
+    }
   }
 
   // Build update data

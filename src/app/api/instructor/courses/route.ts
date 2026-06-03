@@ -12,23 +12,28 @@ export async function GET(req: NextRequest) {
 
   const adminClient = await createAdminClient();
 
-  // Verify instructor role
+  // Verify role — instructors see their own courses; admin/manager see all
   const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
+  const role = profile?.role ?? "";
+  const isStaffViewer = role === "admin" || role === "manager";
+  if (role !== "instructor" && !isStaffViewer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Fetch courses assigned to this instructor
-  const { data: courses, error } = await adminClient
+  // Fetch courses — instructor sees assigned courses; admin/manager see all
+  let coursesQuery = adminClient
     .from("products")
     .select("id, title, thumbnail, slug, price, sale_price, created_at")
-    .eq("instructor_id", user.id)
     .order("created_at", { ascending: false });
+  if (!isStaffViewer) {
+    coursesQuery = coursesQuery.eq("instructor_id", user.id);
+  }
+  const { data: courses, error } = await coursesQuery;
 
   if (error) {
     console.error("[Instructor Courses GET] Error:", error);
