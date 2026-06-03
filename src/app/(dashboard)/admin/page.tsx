@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getRevenueSplit } from "@/lib/orders-revenue";
+import { vnDayKey, vnDayStartUtc } from "@/lib/vn-time";
 import {
   Users, BookOpen, ShoppingCart, FileText, Mail,
   TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign, Gift
@@ -28,12 +29,11 @@ export default async function AdminPage() {
   // Use admin client for stats (bypasses RLS to see all data)
   const admin = await createAdminClient();
 
-  // Today's window: midnight local-machine time (legacy behaviour kept — the
-  // sale dashboards have a proper VN-tz helper; this landing page uses
-  // server-local midnight, which is what shipped before the split).
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayStartIso = todayStart.toISOString();
+  // Today's window starts at VN midnight (00:00 Asia/Ho_Chi_Minh) so the
+  // "Doanh thu hôm nay" card matches the calendar day a VN admin sees on the
+  // wall — early-morning (00:00–07:00 VN) sales count toward today, not
+  // yesterday (which server-local/UTC midnight would do on Vercel).
+  const todayStartIso = vnDayStartUtc(vnDayKey(Date.now())).toISOString();
 
   const [
     { count: userCount },

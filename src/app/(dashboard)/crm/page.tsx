@@ -1,6 +1,7 @@
 import TopBar from "@/components/layout/TopBar";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getRevenueSplit } from "@/lib/orders-revenue";
+import { vnDayKey } from "@/lib/vn-time";
 import Link from "next/link";
 import {
   TrendingUp, ShoppingCart, Users, DollarSign,
@@ -170,9 +171,9 @@ export default async function CRMPage() {
   const externalCount = lifetimeSplit.externalCount;
   const externalAmount = lifetimeSplit.externalAmount;
 
-  // Bucket the last 30 days client-side. We key by the UTC date string of
-  // `paid_at` to match the legacy view's `date_trunc('day', paid_at)::date`
-  // (which Postgres evaluates in the server's timezone — UTC for Supabase).
+  // Bucket the last 30 days client-side, keyed by the VN-local day (00:00–24:00
+  // Asia/Ho_Chi_Minh) of `paid_at` so each bar matches the calendar day a VN
+  // admin sees — not the UTC day (which rolls over at 07:00 VN).
   type DailyRow = {
     day: string;
     revenue: number;
@@ -187,7 +188,7 @@ export default async function CRMPage() {
     revenue_source: string | null;
   }>) {
     if (!row.paid_at) continue;
-    const day = row.paid_at.slice(0, 10); // ISO YYYY-MM-DD
+    const day = vnDayKey(row.paid_at); // VN-local day (00:00–24:00 ICT)
     let bucket = dailyBuckets.get(day);
     if (!bucket) {
       bucket = {
