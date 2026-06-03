@@ -48,7 +48,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      coupon_code,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      event_id_lead,
+      event_id_initiate_checkout,
+    } = body;
     const pkg = body.package as string;
 
 
@@ -261,11 +274,15 @@ export async function POST(req: NextRequest) {
       };
 
       // Lead event — user submitted the registration form
+      // Dedup Pixel↔CAPI: ưu tiên eventId từ client; fallback deterministic
+      // theo order.id để retry không nhân đôi event.
       trackLead({
         ...capiBase,
         value: finalAmount,
         currency: "VND",
-        eventId: `lead_${order.id}`,
+        eventId:
+          (typeof event_id_lead === "string" && event_id_lead) ||
+          `lead_${order.id}`,
       }).catch(() => {});
 
       // InitiateCheckout — order created, payment pending
@@ -274,7 +291,10 @@ export async function POST(req: NextRequest) {
         value: finalAmount,
         currency: "VND",
         contentName: product.title,
-        eventId: `checkout_${order.id}`,
+        eventId:
+          (typeof event_id_initiate_checkout === "string" &&
+            event_id_initiate_checkout) ||
+          `checkout_${order.id}`,
       }).catch(() => {});
     }
 

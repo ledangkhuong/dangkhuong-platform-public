@@ -287,11 +287,52 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
     }
     setLoading(true);
     setError("");
+
+    // Generate eventId riêng cho mỗi event để dedupe Pixel↔CAPI (cùng id ở 2 nơi).
+    const genId = () => {
+      if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+        return crypto.randomUUID();
+      }
+      return `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    };
+    const leadEventId = genId();
+    const checkoutEventId = genId();
+
+    // Fire Pixel với cùng eventID — server sẽ fire CAPI với chính id này → Meta dedupe.
+    try {
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        const leadCustomData = {
+          content_name: "WebAllInOne — Mời Sinh Tố",
+          value: 100000,
+          currency: "VND",
+        };
+        fbq("track", "Lead", leadCustomData, { eventID: leadEventId });
+
+        const checkoutCustomData = {
+          content_name: "WebAllInOne — Mời Sinh Tố",
+          value: 100000,
+          currency: "VND",
+        };
+        fbq("track", "InitiateCheckout", checkoutCustomData, {
+          eventID: checkoutEventId,
+        });
+      }
+    } catch {
+      /* analytics fail không được block UX */
+    }
+
     try {
       const res = await fetch("/api/weballinone/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {

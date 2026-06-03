@@ -130,11 +130,57 @@ export default function SanPhamSoLanding() {
     }
     setLoading(true);
     setError("");
+
+    // Dedup Pixel <> CAPI: generate 1 eventId riêng cho Lead, 1 riêng cho InitiateCheckout.
+    // Fire Pixel ngay ở client với eventID đó, đồng thời gửi qua body để server dùng
+    // cùng eventId khi gọi CAPI -> Meta sẽ dedupe.
+    const leadEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `lead_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const checkoutEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `checkout_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    try {
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Lead",
+          {
+            content_name: "Lộ Trình Kiếm Tiền Từ Sản Phẩm Số 2026",
+            currency: "VND",
+          },
+          { eventID: leadEventId }
+        );
+        fbq(
+          "track",
+          "InitiateCheckout",
+          {
+            content_name: "Lộ Trình Kiếm Tiền Từ Sản Phẩm Số 2026",
+            currency: "VND",
+            value: 100000,
+          },
+          { eventID: checkoutEventId }
+        );
+      }
+    } catch {
+      /* analytics never blocks UX */
+    }
+
     try {
       const res = await fetch("/api/sanphamso/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {

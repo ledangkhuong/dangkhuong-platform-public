@@ -100,7 +100,19 @@ export default function CheckoutModal({ product, onClose, onSuccess }: CheckoutM
       if (data.status === "paid") {
         setPaymentStatus("success");
         setStep("success");
-        fbEvent("Purchase", { value: order.amount, currency: "VND" });
+        // IMPORTANT: eventID must match server-side CAPI (`purchase_${order.id}`)
+        // so Meta can dedupe browser Pixel + server CAPI Purchase events.
+        // fbq 4th arg accepts { eventID } for deduplication.
+        if (typeof window !== "undefined" && window.fbq) {
+          window.fbq(
+            "track",
+            "Purchase",
+            { value: order.amount, currency: "VND" },
+            { eventID: `purchase_${order.id}` },
+          );
+        } else {
+          fbEvent("Purchase", { value: order.amount, currency: "VND" });
+        }
         onSuccess();
       }
     } catch {

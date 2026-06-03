@@ -70,8 +70,49 @@ export default function GeminiProLanding() {
     if (!isReturningUser && (!form.full_name.trim() || !form.phone.trim())) { setError("Vui lòng điền đầy đủ thông tin bắt buộc"); return; }
     if (!isReturningUser && form.password.length < 8) { setError("Mật khẩu tối thiểu 8 ký tự"); return; }
     setLoading(true); setError("");
+
+    // Generate eventId cho Lead + InitiateCheckout — dùng chung cho cả Pixel
+    // (client-side, fire ngay bên dưới) lẫn CAPI (server-side, fire trong
+    // /api/geminipro/register). Trùng eventId ⇒ Meta dedupe 2 nguồn.
+    const genEventId = () =>
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const leadEventId = genEventId();
+    const checkoutEventId = genEventId();
+
+    // Fire Pixel client-side với eventID (chỉ Pixel, KHÔNG fire CAPI ở đây —
+    // CAPI sẽ do server-side route trigger để có IP + user-agent + fbc/fbp).
     try {
-      const res = await fetch("/api/geminipro/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }) });
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Lead",
+          { content_name: "GeminiPro Registration" },
+          { eventID: leadEventId },
+        );
+        fbq(
+          "track",
+          "InitiateCheckout",
+          { content_name: "GeminiPro Checkout", currency: "VND", value: 0 },
+          { eventID: checkoutEventId },
+        );
+      }
+    } catch { /* analytics never blocks UX */ }
+
+    try {
+      const res = await fetch("/api/geminipro/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
+      });
       const data = await res.json();
       if (data.success) { setShowSuccess(true); }
       else { setError(data.error || "Có lỗi xảy ra, vui lòng thử lại"); }

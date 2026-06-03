@@ -4,6 +4,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 import { syncUtmToContact } from "@/lib/utm-sync";
+import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
+import { getPixelConfigBySlug } from "@/lib/pixel-config";
 
 /**
  * POST /api/updateveo31/register
@@ -41,7 +43,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      coupon_code,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      event_id_lead,
+      event_id_initiate_checkout,
+    } = body;
 
 
     if (!email?.trim())
@@ -238,6 +253,53 @@ export async function POST(req: NextRequest) {
         order_id: order.id,
         source: "purchase",
       }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
+    }
+
+    // Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking).
+    // Dedup: ưu tiên eventId do client gửi (đã fire Pixel với cùng id);
+    // fallback deterministic theo order.id để retry không nhân đôi.
+    if (order?.id) {
+      const pixelConfig = await getPixelConfigBySlug("updateveo31");
+      const pixelOverride = pixelConfig?.capi_access_token
+        ? {
+            pixelId: pixelConfig.pixel_id,
+            accessToken: pixelConfig.capi_access_token,
+            testEventCode: pixelConfig.test_event_code,
+          }
+        : undefined;
+
+      const capiBase = {
+        email: email.trim(),
+        phone: orderPhone || undefined,
+        name: orderName || undefined,
+        ip,
+        userAgent: req.headers.get("user-agent") || undefined,
+        fbc: req.cookies.get("_fbc")?.value,
+        fbp: req.cookies.get("_fbp")?.value,
+        userId,
+        sourceUrl: "https://dangkhuong.com/updateveo3.1",
+        config: pixelOverride,
+      };
+
+      trackLead({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        eventId:
+          (typeof event_id_lead === "string" && event_id_lead.trim()) ||
+          `lead_${order.id}`,
+      }).catch(() => {});
+
+      trackInitiateCheckout({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        contentName: productTitle,
+        eventId:
+          (typeof event_id_initiate_checkout === "string" &&
+            event_id_initiate_checkout.trim()) ||
+          `checkout_${order.id}`,
+      }).catch(() => {});
     }
 
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;

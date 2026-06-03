@@ -126,11 +126,27 @@ export default function SlowEnglishLanding() {
     }
     setLoading(true);
     setError("");
+
+    // Generate eventIds upfront → dùng chung cho cả Pixel (client) và CAPI (server).
+    // Mỗi event Lead / InitiateCheckout có 1 eventId riêng để Meta dedup chính xác.
+    const genId = (): string =>
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const leadEventId = genId();
+    const checkoutEventId = genId();
+
     try {
       const res = await fetch("/api/slowenglish/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -138,20 +154,40 @@ export default function SlowEnglishLanding() {
         if (data.productName) setProductName(data.productName);
         setShowModal(true);
 
-        // Facebook Pixel — client-side Lead + InitiateCheckout (deduplication via eventID with CAPI)
+        // Facebook Pixel — client-side Lead + InitiateCheckout với eventID
+        // khớp eventId mà server đã gửi qua CAPI → Meta dedup Pixel ↔ CAPI.
         const amount = data.paymentInfo?.amount || 0;
         const orderId = data.order?.id || "";
-        fbEvent("Lead", {
-          content_name: "SlowEnglish Registration",
-          value: amount,
-          currency: "VND",
-        });
-        fbEvent("InitiateCheckout", {
-          content_name: data.productName || "SlowEnglish",
-          value: amount,
-          currency: "VND",
-          content_ids: [orderId],
-        });
+        try {
+          const fbq = (window as unknown as {
+            fbq?: (...args: unknown[]) => void;
+          }).fbq;
+          if (typeof fbq === "function") {
+            fbq(
+              "track",
+              "Lead",
+              {
+                content_name: "SlowEnglish Registration",
+                value: amount,
+                currency: "VND",
+              },
+              { eventID: leadEventId }
+            );
+            fbq(
+              "track",
+              "InitiateCheckout",
+              {
+                content_name: data.productName || "SlowEnglish",
+                value: amount,
+                currency: "VND",
+                content_ids: [orderId],
+              },
+              { eventID: checkoutEventId }
+            );
+          }
+        } catch {
+          /* Pixel errors must never block UX */
+        }
       } else {
         setError(data.error || "Có lỗi xảy ra, vui lòng thử lại");
       }

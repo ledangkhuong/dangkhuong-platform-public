@@ -177,11 +177,54 @@ export default function HocChuaXongLanding() {
     }
     setLoading(true);
     setError("");
+
+    // Generate 1 eventId per event (Lead + InitiateCheckout). Same id used cho
+    // cả Pixel client (fbq) lẫn server CAPI để Meta dedup.
+    const leadEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `lead_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const checkoutEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `checkout_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    // Fire client-side Pixel với cùng eventID — CAPI server sẽ dedup.
+    try {
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Lead",
+          { content_name: "Hoc Chua Xong Tien Da Ve - Early Bird", currency: "VND" },
+          { eventID: leadEventId },
+        );
+        fbq(
+          "track",
+          "InitiateCheckout",
+          {
+            content_name: "Hoc Chua Xong Tien Da Ve - Early Bird",
+            currency: "VND",
+            value: 10000000,
+          },
+          { eventID: checkoutEventId },
+        );
+      }
+    } catch {
+      /* analytics fail không block UX */
+    }
+
     try {
       const res = await fetch("/api/hocchuaxongtiendave/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {

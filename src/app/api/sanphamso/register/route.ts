@@ -4,6 +4,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 import { syncUtmToContact } from "@/lib/utm-sync";
+import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
+import { getPixelConfigBySlug } from "@/lib/pixel-config";
 
 /**
  * POST /api/sanphamso/register
@@ -42,7 +44,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      coupon_code,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      event_id_lead,
+      event_id_initiate_checkout,
+    } = body;
 
 
     // Validate
@@ -224,6 +239,58 @@ export async function POST(req: NextRequest) {
         order_id: order.id,
         source: "purchase",
       }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
+    }
+
+    // 4b. Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking)
+    //     Dedup với Pixel client-side qua eventID:
+    //     - Client gửi event_id_lead / event_id_initiate_checkout (UUID đã fire bằng fbq)
+    //     - Fallback deterministic theo order.id để retry không nhân đôi
+    if (order?.id) {
+      const pixelConfig = await getPixelConfigBySlug("sanphamso").catch(() => null);
+      const pixelOverride = pixelConfig?.capi_access_token
+        ? {
+            pixelId: pixelConfig.pixel_id,
+            accessToken: pixelConfig.capi_access_token,
+            testEventCode: pixelConfig.test_event_code,
+          }
+        : undefined;
+
+      const capiBase = {
+        email: email.trim(),
+        phone: phone?.trim(),
+        name: full_name.trim(),
+        ip,
+        userAgent: req.headers.get("user-agent") || undefined,
+        fbc: req.cookies.get("_fbc")?.value,
+        fbp: req.cookies.get("_fbp")?.value,
+        userId,
+        sourceUrl: "https://dangkhuong.com/sanphamso",
+        config: pixelOverride,
+      };
+
+      // Lead — user submitted the registration form
+      trackLead({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        contentName: productTitle,
+        eventId:
+          typeof event_id_lead === "string" && event_id_lead
+            ? event_id_lead
+            : `lead_${order.id}`,
+      }).catch(() => {});
+
+      // InitiateCheckout — order created, payment pending
+      trackInitiateCheckout({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        contentName: productTitle,
+        eventId:
+          typeof event_id_initiate_checkout === "string" && event_id_initiate_checkout
+            ? event_id_initiate_checkout
+            : `checkout_${order.id}`,
+      }).catch(() => {});
     }
 
     // 5. Payment info

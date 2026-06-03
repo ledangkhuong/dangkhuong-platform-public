@@ -4,6 +4,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 import { syncUtmToContact } from "@/lib/utm-sync";
+import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
+import { getPixelConfigBySlug } from "@/lib/pixel-config";
 /**
  * POST /api/hocchuaxongtiendave/register
  * Đăng ký tài khoản + tạo đơn hàng cho landing page /hocchuaxongtiendave
@@ -40,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content, event_id_lead, event_id_initiate_checkout } = body;
 
     if (!email?.trim())
       return NextResponse.json(
@@ -273,6 +275,49 @@ export async function POST(req: NextRequest) {
         order_id: order.id,
         source: "purchase",
       }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
+    }
+
+    // Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking).
+    // Dedup với Pixel client qua eventId: client gửi event_id_lead /
+    // event_id_initiate_checkout (UUID đã dùng cho fbq); nếu không có thì
+    // fallback deterministic theo order.id để retry không nhân đôi.
+    {
+      const pixelConfig = await getPixelConfigBySlug("hocchuaxongtiendave");
+      const pixelOverride = pixelConfig?.capi_access_token
+        ? {
+            pixelId: pixelConfig.pixel_id,
+            accessToken: pixelConfig.capi_access_token,
+            testEventCode: pixelConfig.test_event_code,
+          }
+        : undefined;
+
+      const capiBase = {
+        email: email.trim(),
+        phone: orderPhone || undefined,
+        name: orderName,
+        ip,
+        userAgent: req.headers.get("user-agent") || undefined,
+        fbc: req.cookies.get("_fbc")?.value,
+        fbp: req.cookies.get("_fbp")?.value,
+        userId,
+        sourceUrl: "https://dangkhuong.com/hocchuaxongtiendave",
+        config: pixelOverride,
+      };
+
+      trackLead({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        eventId: event_id_lead || `lead_${order.id}`,
+      }).catch(() => {});
+
+      trackInitiateCheckout({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        contentName: productTitle,
+        eventId: event_id_initiate_checkout || `checkout_${order.id}`,
+      }).catch(() => {});
     }
 
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT;

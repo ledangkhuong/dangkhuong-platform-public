@@ -235,15 +235,67 @@ export default function CafeLanding() {
     }
     setLoading(true);
     setError("");
+
+    // Generate dedup event IDs (1 cho Lead, 1 cho InitiateCheckout — KHÁC nhau).
+    // Cùng eventId được dùng cho cả Pixel (client) và CAPI (server) để Meta gộp.
+    const leadEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `lead_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const checkoutEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `checkout_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    // Fire Pixel Lead với eventID (CAPI Lead sẽ được server fire với cùng id)
+    try {
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Lead",
+          { content_name: "Cafe 99K Registration", currency: "VND", value: 99000 },
+          { eventID: leadEventId },
+        );
+      }
+    } catch {
+      /* analytics fail không block UX */
+    }
+
     try {
       const res = await fetch("/api/cafe/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         if (data.paymentInfo) setPaymentInfo(data.paymentInfo);
+        // Fire Pixel InitiateCheckout với checkoutEventId — CAPI side đã được
+        // server fire với cùng id, Meta sẽ dedup.
+        try {
+          const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+          if (typeof fbq === "function") {
+            fbq(
+              "track",
+              "InitiateCheckout",
+              {
+                content_name: "Cafe 99K Registration",
+                currency: "VND",
+                value: data.paymentInfo?.amount ?? 99000,
+              },
+              { eventID: checkoutEventId },
+            );
+          }
+        } catch {
+          /* swallow */
+        }
         setShowModal(true);
       } else {
         setError(data.error || "Có lỗi xảy ra, vui lòng thử lại");

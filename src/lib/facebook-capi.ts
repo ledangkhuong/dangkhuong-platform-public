@@ -41,10 +41,13 @@ function hashUserData(params: {
 
   if (params.email) ud.em = sha256(params.email);
   if (params.phone) {
-    // Normalise Vietnamese phone: 0xxx → +84xxx
-    let phone = params.phone.replace(/[\s\-()]/g, "");
-    if (phone.startsWith("0")) phone = "+84" + phone.slice(1);
-    else if (!phone.startsWith("+")) phone = "+" + phone;
+    // Meta spec: phone must be DIGITS-ONLY before hashing (no '+', spaces, dashes, parens)
+    let phone = params.phone.replace(/[^0-9]/g, "");
+    // Normalise Vietnamese phone: leading 0 → country code 84
+    if (phone.startsWith("0")) phone = "84" + phone.slice(1);
+    // If missing country code (9-10 digit local number) → prepend 84 (VN)
+    else if (phone.length === 9 || phone.length === 10) phone = "84" + phone.replace(/^84/, "");
+    // Otherwise (already starts with 84 or other country code) → keep as-is
     ud.ph = sha256(phone);
   }
   if (params.firstName) ud.fn = sha256(params.firstName);

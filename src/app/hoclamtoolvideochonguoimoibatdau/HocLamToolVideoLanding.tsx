@@ -293,10 +293,52 @@ export default function HocLamToolVideoLanding() {
     setLoading(true);
     setError("");
     try {
+      // Generate eventIds for Pixel/CAPI dedup — fire Pixel client-side with
+      // these IDs, then pass to server so CAPI dùng cùng eventId (dedup).
+      const leadEventId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `lead_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      const checkoutEventId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `checkout_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+      // Fire Pixel events client-side với eventID để dedup với CAPI
+      try {
+        const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void })
+          .fbq;
+        if (typeof fbq === "function") {
+          fbq(
+            "track",
+            "Lead",
+            { content_name: "Hoc Lam Tool Video — Đăng ký", currency: "VND" },
+            { eventID: leadEventId },
+          );
+          fbq(
+            "track",
+            "InitiateCheckout",
+            {
+              content_name: "Hoc Lam Tool Video — Checkout",
+              currency: "VND",
+            },
+            { eventID: checkoutEventId },
+          );
+        }
+      } catch {
+        /* swallow — analytics must not block UX */
+      }
+
       const res = await fetch("/api/hoclamtoolvideo/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {

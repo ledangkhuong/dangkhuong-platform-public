@@ -4,6 +4,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
 import { validateCoupon, claimCoupon } from "@/lib/coupon-server";
 import { syncUtmToContact } from "@/lib/utm-sync";
+import { trackLead, trackInitiateCheckout } from "@/lib/facebook-capi";
+import { getPixelConfigBySlug } from "@/lib/pixel-config";
 
 
 /**
@@ -42,7 +44,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { full_name, email, phone, password, coupon_code, utm_source, utm_medium, utm_campaign, utm_term, utm_content } = body;
+    const {
+      full_name,
+      email,
+      phone,
+      password,
+      coupon_code,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      event_id_lead,
+      event_id_initiate_checkout,
+    } = body;
 
     if (!full_name?.trim())
       return NextResponse.json(
@@ -207,6 +222,48 @@ export async function POST(req: NextRequest) {
         order_id: order.id,
         source: "purchase",
       }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
+    }
+
+    // 4d. Facebook CAPI — Lead + InitiateCheckout (server-side, non-blocking)
+    // EventId được client gửi lên (đã fire Pixel với cùng id) để dedupe Pixel↔CAPI.
+    // Fallback deterministic theo order.id để retry không nhân đôi.
+    {
+      const pixelConfig = await getPixelConfigBySlug("weballinone");
+      const pixelOverride = pixelConfig?.capi_access_token
+        ? {
+            pixelId: pixelConfig.pixel_id,
+            accessToken: pixelConfig.capi_access_token,
+            testEventCode: pixelConfig.test_event_code,
+          }
+        : undefined;
+
+      const capiBase = {
+        email: email.trim(),
+        phone: phone?.trim(),
+        name: full_name.trim(),
+        ip,
+        userAgent: req.headers.get("user-agent") || undefined,
+        fbc: req.cookies.get("_fbc")?.value,
+        fbp: req.cookies.get("_fbp")?.value,
+        userId,
+        sourceUrl: "https://dangkhuong.com/weballinone",
+        config: pixelOverride,
+      };
+
+      trackLead({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        eventId: event_id_lead || `lead_${order.id}`,
+      }).catch(() => {});
+
+      trackInitiateCheckout({
+        ...capiBase,
+        value: finalAmount,
+        currency: "VND",
+        contentName: product.title,
+        eventId: event_id_initiate_checkout || `checkout_${order.id}`,
+      }).catch(() => {});
     }
 
     // 5. Payment info

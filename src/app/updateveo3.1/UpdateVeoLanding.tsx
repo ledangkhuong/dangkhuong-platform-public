@@ -295,11 +295,50 @@ export default function UpdateVeoLanding() {
     }
     setLoading(true);
     setError("");
+
+    // Dedup Pixel <-> CAPI: generate 1 eventId cho Lead, 1 eventId cho InitiateCheckout,
+    // fire Pixel với eventID đó rồi gửi cùng eventId cho server -> CAPI dùng lại
+    // cùng id để Meta tự dedup.
+    const leadEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `lead_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const checkoutEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `checkout_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    try {
+      const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void }).fbq;
+      if (typeof fbq === "function") {
+        fbq(
+          "track",
+          "Lead",
+          { content_name: "Update VEO 3.1 → Gemini Omni Flash", currency: "VND" },
+          { eventID: leadEventId },
+        );
+        fbq(
+          "track",
+          "InitiateCheckout",
+          { content_name: "Update VEO 3.1 → Gemini Omni Flash", currency: "VND" },
+          { eventID: checkoutEventId },
+        );
+      }
+    } catch {
+      /* analytics never block UX */
+    }
+
     try {
       const res = await fetch("/api/updateveo31/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon_code: couponCode.trim() || undefined, ...utmParams }),
+        body: JSON.stringify({
+          ...form,
+          coupon_code: couponCode.trim() || undefined,
+          ...utmParams,
+          event_id_lead: leadEventId,
+          event_id_initiate_checkout: checkoutEventId,
+        }),
       });
       const data = await res.json();
       if (data.success) {
