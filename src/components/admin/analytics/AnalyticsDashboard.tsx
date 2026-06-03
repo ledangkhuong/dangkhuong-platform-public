@@ -33,6 +33,8 @@ interface OverviewData {
 interface RevenueItem {
   date: string;
   revenue: number;
+  revenue_platform?: number;
+  revenue_external?: number;
   orders: number;
 }
 

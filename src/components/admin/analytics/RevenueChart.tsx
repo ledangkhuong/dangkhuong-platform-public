@@ -14,10 +14,23 @@ import {
 } from 'recharts';
 
 interface RevenueChartProps {
-  data: Array<{ date: string; revenue: number; orders: number }>;
+  data: Array<{
+    date: string;
+    revenue: number;
+    revenue_platform?: number;
+    revenue_external?: number;
+    orders: number;
+  }>;
   groupBy: 'day' | 'month';
   loading?: boolean;
 }
+
+const SERIES_LABELS: Record<string, string> = {
+  revenue: 'Doanh thu',
+  revenue_platform: 'Doanh thu nền tảng',
+  revenue_external: 'Doanh thu cấp ngoài',
+  orders: 'Đơn hàng',
+};
 
 function formatAbbreviatedVND(value: number): string {
   if (value >= 1_000_000_000) {
@@ -58,6 +71,10 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
+  const revenueTotal = payload
+    .filter((e) => e.name.startsWith('revenue'))
+    .reduce((s, e) => s + (e.value || 0), 0);
+
   return (
     <div
       className="rounded-lg border px-4 py-3 shadow-lg"
@@ -69,12 +86,15 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       <p className="mb-2 text-sm font-medium text-white">{label}</p>
       {payload.map((entry, index) => (
         <p key={index} className="text-sm" style={{ color: entry.color }}>
-          {entry.name === 'revenue' ? 'Doanh thu' : 'Đơn hàng'}:{' '}
-          {entry.name === 'revenue'
-            ? entry.value.toLocaleString('vi-VN') + 'đ'
-            : entry.value}
+          {SERIES_LABELS[entry.name] ?? entry.name}:{' '}
+          {entry.name === 'orders'
+            ? entry.value
+            : entry.value.toLocaleString('vi-VN') + 'đ'}
         </p>
       ))}
+      <p className="mt-1.5 border-t border-[#2a2a2a] pt-1.5 text-sm font-semibold text-white">
+        Tổng doanh thu: {revenueTotal.toLocaleString('vi-VN')}đ
+      </p>
     </div>
   );
 }
@@ -138,15 +158,22 @@ export default function RevenueChart({ data, groupBy, loading }: RevenueChartPro
             <Tooltip content={<CustomTooltip />} />
             <Legend
               wrapperStyle={{ color: '#6b7280', fontSize: 12, paddingTop: 8 }}
-              formatter={(value) =>
-                value === 'revenue' ? 'Doanh thu' : 'Đơn hàng'
-              }
+              formatter={(value) => SERIES_LABELS[value] ?? value}
             />
             <Bar
               yAxisId="left"
-              dataKey="revenue"
-              name="revenue"
+              dataKey="revenue_platform"
+              name="revenue_platform"
+              stackId="rev"
               fill="#D4A843"
+              barSize={groupBy === 'day' ? 20 : 40}
+            />
+            <Bar
+              yAxisId="left"
+              dataKey="revenue_external"
+              name="revenue_external"
+              stackId="rev"
+              fill="#22c55e"
               radius={[4, 4, 0, 0]}
               barSize={groupBy === 'day' ? 20 : 40}
             />
