@@ -465,15 +465,6 @@ export default async function CourseDetailPage({
                 </span>
                 .
               </p>
-              <a
-                href="/pricing"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium text-black transition-all hover:scale-[1.02]"
-                style={{
-                  background: "linear-gradient(135deg, #FFD814, #FFA41C)",
-                }}
-              >
-                Nâng cấp ngay
-              </a>
             </div>
           </div>
         )}
