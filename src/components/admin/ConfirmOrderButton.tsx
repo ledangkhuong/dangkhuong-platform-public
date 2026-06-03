@@ -16,7 +16,12 @@ export default function ConfirmOrderButton({
   amount,
 }: Props) {
   const router = useRouter();
+  // Today's date in Asia/Ho_Chi_Minh ("YYYY-MM-DD") — default actual-payment day.
+  const todayVn = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
   const [showConfirm, setShowConfirm] = useState(false);
+  const [paidDate, setPaidDate] = useState(todayVn);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
@@ -31,7 +36,7 @@ export default function ConfirmOrderButton({
       const res = await fetch("/api/admin/orders/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_code: orderCode }),
+        body: JSON.stringify({ order_code: orderCode, paid_at_date: paidDate }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -159,6 +164,23 @@ export default function ConfirmOrderButton({
                       {amount.toLocaleString("vi-VN")}đ
                     </span>
                   </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-xs text-gray-400 mb-1.5">
+                    Ngày thanh toán thực tế
+                  </label>
+                  <input
+                    type="date"
+                    value={paidDate}
+                    max={todayVn}
+                    onChange={(e) => setPaidDate(e.target.value)}
+                    className="w-full bg-[#151515] border border-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500/50 transition-colors"
+                  />
+                  <p className="text-[11px] text-gray-600 mt-1">
+                    Mặc định hôm nay. Chọn đúng ngày khách thực sự chuyển tiền nếu
+                    khác, để doanh số ghi nhận đúng ngày.
+                  </p>
                 </div>
 
                 <p className="text-xs text-gray-500 mb-4">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import { vnDayKey } from "@/lib/vn-time";
 
 /**
  * POST /api/admin/orders/confirm
@@ -29,9 +30,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let order_code;
+    let order_code, paid_at_date;
     try {
-      ({ order_code } = await req.json());
+      ({ order_code, paid_at_date } = await req.json());
     } catch {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
@@ -40,6 +41,25 @@ export async function POST(req: NextRequest) {
         { error: "order_code is required" },
         { status: 400 }
       );
+    }
+
+    // Actual payment date: the admin may record the real day the customer paid
+    // (e.g. a bank transfer received earlier), not the moment they click confirm.
+    // Stored at 12:00 Asia/Ho_Chi_Minh so daily revenue stats bucket it on the
+    // correct VN day. A future date is rejected; "today" keeps the exact moment.
+    const todayVn = vnDayKey(Date.now());
+    let paidAtIso = new Date().toISOString();
+    if (typeof paid_at_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(paid_at_date)) {
+      if (paid_at_date > todayVn) {
+        return NextResponse.json(
+          { error: "Ngày thanh toán không được ở tương lai." },
+          { status: 400 }
+        );
+      }
+      paidAtIso =
+        paid_at_date === todayVn
+          ? new Date().toISOString() // today → keep the exact confirm moment
+          : `${paid_at_date}T05:00:00.000Z`; // past day → 12:00 VN
     }
 
     const admin = await createAdminClient();
@@ -88,7 +108,7 @@ export async function POST(req: NextRequest) {
       .from("orders")
       .update({
         status: "paid",
-        paid_at: new Date().toISOString(),
+        paid_at: paidAtIso,
         note: `Xác nhận thủ công bởi admin ${user.email}`,
         updated_at: new Date().toISOString(),
       })
@@ -260,7 +280,7 @@ export async function POST(req: NextRequest) {
       action: "order.confirm",
       target_type: "order",
       target_id: order.id as string,
-      details: { order_code: order.order_code, amount: order.amount },
+      details: { order_code: order.order_code, amount: order.amount, paid_at: paidAtIso },
       ip_address: ip,
     });
 
