@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { vnDayKey, vnMonthKey, vnRangeToUtc } from "@/lib/vn-time";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -27,15 +28,12 @@ export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const groupBy = searchParams.get("groupBy") || "day";
 
-  const now = new Date();
-  const defaultFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  // `from`/`to` are VN calendar days ("YYYY-MM-DD").
+  const from = searchParams.get("from") || vnDayKey(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const to = searchParams.get("to") || vnDayKey(Date.now());
 
-  const rawFrom = searchParams.get("from") || defaultFrom.toISOString();
-  const rawTo = searchParams.get("to") || now.toISOString();
-
-  // Normalize date range: ensure full day coverage
-  const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
-  const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
+  // VN day window: [from 00:00, to 24:00) in Asia/Ho_Chi_Minh, as UTC instants.
+  const { startUtc, endUtc } = vnRangeToUtc(from, to);
 
   // Query orders with adminClient (bypasses RLS)
   const adminClient = await createAdminClient();
@@ -44,8 +42,8 @@ export async function GET(req: NextRequest) {
     .from("orders")
     .select("paid_at, amount")
     .eq("status", "paid")
-    .gte("paid_at", fromISO)
-    .lte("paid_at", toISO)
+    .gte("paid_at", startUtc)
+    .lt("paid_at", endUtc)
     .order("paid_at", { ascending: true });
 
   if (queryError) {
@@ -59,19 +57,9 @@ export async function GET(req: NextRequest) {
   const grouped = new Map<string, { revenue: number; orders: number }>();
 
   for (const order of orders || []) {
-    const date = new Date(order.paid_at);
-    let key: string;
-
-    if (groupBy === "month") {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      key = `${year}-${month}`;
-    } else {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      key = `${year}-${month}-${day}`;
-    }
+    // Bucket by VN day/month (00:00 → 24:00 Asia/Ho_Chi_Minh).
+    const key =
+      groupBy === "month" ? vnMonthKey(order.paid_at) : vnDayKey(order.paid_at);
 
     const existing = grouped.get(key) || { revenue: 0, orders: 0 };
     existing.revenue += order.amount || 0;

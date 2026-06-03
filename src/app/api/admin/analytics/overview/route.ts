@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { vnDayKey, vnRangeToUtc } from "@/lib/vn-time";
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,31 +25,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse date range from query params
+    // Parse date range from query params. `from`/`to` are VN calendar days.
     const { searchParams } = new URL(req.url);
-    const now = new Date();
-    const defaultTo = now.toISOString();
-    const defaultFrom = new Date(
-      now.getTime() - 30 * 24 * 60 * 60 * 1000
-    ).toISOString();
+    const from = searchParams.get("from") || vnDayKey(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const to = searchParams.get("to") || vnDayKey(Date.now());
 
-    const rawTo = searchParams.get("to") || defaultTo;
-    const rawFrom = searchParams.get("from") || defaultFrom;
+    // Current VN day window [from 00:00, to 24:00) as UTC instants (half-open).
+    const { startUtc, endUtc } = vnRangeToUtc(from, to);
 
-    // Normalize date range: ensure full day coverage
-    // Frontend sends "yyyy-MM-dd", DB stores full ISO timestamps
-    const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
-    const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
-
-    // Calculate previous period of the same length
-    const fromDate = new Date(fromISO);
-    const toDate = new Date(toISO);
-    const periodLength = toDate.getTime() - fromDate.getTime();
-
-    const prevToDate = new Date(fromDate.getTime() - 1); // 1ms before current period
-    const prevFromDate = new Date(prevToDate.getTime() - periodLength);
-    const prevTo = prevToDate.toISOString();
-    const prevFrom = prevFromDate.toISOString();
+    // Previous period of the same length, ending where the current one starts.
+    const startMs = new Date(startUtc).getTime();
+    const periodLength = new Date(endUtc).getTime() - startMs;
+    const prevFrom = new Date(startMs - periodLength).toISOString();
+    const prevTo = startUtc; // exclusive end = current window's start
 
     // Use admin client to bypass RLS for data queries
     const adminClient = await createAdminClient();
@@ -58,8 +47,8 @@ export async function GET(req: NextRequest) {
       .from("orders")
       .select("amount")
       .eq("status", "paid")
-      .gte("paid_at", fromISO)
-      .lte("paid_at", toISO);
+      .gte("paid_at", startUtc)
+      .lt("paid_at", endUtc);
 
     const totalRevenue = (revenueData || []).reduce(
       (sum, order) => sum + (order.amount || 0),
@@ -73,7 +62,7 @@ export async function GET(req: NextRequest) {
       .select("amount")
       .eq("status", "paid")
       .gte("paid_at", prevFrom)
-      .lte("paid_at", prevTo);
+      .lt("paid_at", prevTo);
 
     const prevRevenue = (prevRevenueData || []).reduce(
       (sum, order) => sum + (order.amount || 0),
@@ -85,15 +74,15 @@ export async function GET(req: NextRequest) {
     const { count: newUsers } = await adminClient
       .from("profiles")
       .select("*", { count: "exact", head: true })
-      .gte("created_at", fromISO)
-      .lte("created_at", toISO);
+      .gte("created_at", startUtc)
+      .lt("created_at", endUtc);
 
     // Previous period: new users
     const { count: prevUsers } = await adminClient
       .from("profiles")
       .select("*", { count: "exact", head: true })
       .gte("created_at", prevFrom)
-      .lte("created_at", prevTo);
+      .lt("created_at", prevTo);
 
     // Average order value
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;

@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import {
+  vnDayKey,
+  vnMonthKey,
+  vnRangeToUtc,
+  vnDayKeysInRange,
+  vnMonthKeysInRange,
+} from "@/lib/vn-time";
 
 export async function GET(req: NextRequest) {
   try {
@@ -26,19 +33,13 @@ export async function GET(req: NextRequest) {
 
     // Parse query params
     const { searchParams } = new URL(req.url);
-    const now = new Date();
-    const defaultTo = now.toISOString();
-    const defaultFrom = new Date(
-      now.getTime() - 30 * 24 * 60 * 60 * 1000
-    ).toISOString();
-
-    const rawFrom = searchParams.get("from") || defaultFrom;
-    const rawTo = searchParams.get("to") || defaultTo;
+    // `from`/`to` are VN calendar days ("YYYY-MM-DD").
+    const from = searchParams.get("from") || vnDayKey(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const to = searchParams.get("to") || vnDayKey(Date.now());
     const groupBy = searchParams.get("groupBy") || "day";
 
-    // Normalize date range: ensure full day coverage
-    const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
-    const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
+    // VN day window [from 00:00, to 24:00) in Asia/Ho_Chi_Minh, as UTC instants.
+    const { startUtc, endUtc } = vnRangeToUtc(from, to);
 
     // Use admin client to bypass RLS
     const adminClient = await createAdminClient();
@@ -47,50 +48,29 @@ export async function GET(req: NextRequest) {
     const { data: profiles } = await adminClient
       .from("profiles")
       .select("created_at")
-      .gte("created_at", fromISO)
-      .lte("created_at", toISO);
+      .gte("created_at", startUtc)
+      .lt("created_at", endUtc);
 
     // Fetch new enrollments in range
     const { data: enrollments } = await adminClient
       .from("enrollments")
       .select("created_at")
-      .gte("created_at", fromISO)
-      .lte("created_at", toISO);
+      .gte("created_at", startUtc)
+      .lt("created_at", endUtc);
 
-    // Group by day or month
-    const formatDate = (dateStr: string): string => {
-      const date = new Date(dateStr);
-      if (groupBy === "month") {
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-      }
-      return date.toISOString().split("T")[0];
-    };
+    // Group by VN day or VN month (00:00 → 24:00 Asia/Ho_Chi_Minh).
+    const formatDate = (dateStr: string): string =>
+      groupBy === "month" ? vnMonthKey(dateStr) : vnDayKey(dateStr);
 
-    // Build a map of all dates in the range
+    // Build a map of all VN date/month keys in the range (zero-filled).
     const dateMap: Record<string, { newUsers: number; newEnrollments: number }> =
       {};
-
-    // Generate all date keys in range
-    const startDate = new Date(fromISO);
-    const endDate = new Date(toISO);
-
-    if (groupBy === "month") {
-      const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-      while (current <= endDate) {
-        const key = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`;
-        dateMap[key] = { newUsers: 0, newEnrollments: 0 };
-        current.setMonth(current.getMonth() + 1);
-      }
-    } else {
-      const current = new Date(startDate);
-      current.setHours(0, 0, 0, 0);
-      const end = new Date(endDate);
-      end.setHours(0, 0, 0, 0);
-      while (current <= end) {
-        const key = current.toISOString().split("T")[0];
-        dateMap[key] = { newUsers: 0, newEnrollments: 0 };
-        current.setDate(current.getDate() + 1);
-      }
+    const keys =
+      groupBy === "month"
+        ? vnMonthKeysInRange(from, to)
+        : vnDayKeysInRange(from, to);
+    for (const key of keys) {
+      dateMap[key] = { newUsers: 0, newEnrollments: 0 };
     }
 
     // Count users per date

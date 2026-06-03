@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { vnDayKey, vnRangeToUtc } from "@/lib/vn-time";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -23,24 +24,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Parse query params
+  // Parse query params. `from`/`to` are VN calendar days ("YYYY-MM-DD").
   const { searchParams } = new URL(req.url);
-  const now = new Date();
-  const defaultFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
-  const defaultTo = now.toISOString().split("T")[0];
+  const from = searchParams.get("from") || vnDayKey(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const to = searchParams.get("to") || vnDayKey(Date.now());
 
-  const from = searchParams.get("from") || defaultFrom;
-  const to = searchParams.get("to") || defaultTo;
+  // VN day window: [from 00:00, to 24:00) in Asia/Ho_Chi_Minh, as UTC instants.
+  const { startUtc, endUtc } = vnRangeToUtc(from, to);
 
   // Query orders using admin client
   const adminClient = await createAdminClient();
   const { data: orders, error: ordersError } = await adminClient
     .from("orders")
     .select("*")
-    .gte("created_at", `${from}T00:00:00.000Z`)
-    .lte("created_at", `${to}T23:59:59.999Z`);
+    .gte("created_at", startUtc)
+    .lt("created_at", endUtc);
 
   if (ordersError) {
     return NextResponse.json(
@@ -67,7 +65,7 @@ export async function GET(req: NextRequest) {
   > = {};
 
   for (const order of orders) {
-    const date = order.created_at.split("T")[0];
+    const date = vnDayKey(order.created_at);
     if (!dailyMap[date]) {
       dailyMap[date] = { paid: 0, pending: 0, cancelled: 0, refunded: 0, total: 0 };
     }

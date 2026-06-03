@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { vnDayKey, vnRangeToUtc } from "@/lib/vn-time";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -23,15 +24,12 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const now = new Date();
-    const defaultFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // `from`/`to` are VN calendar days ("YYYY-MM-DD").
+    const from = searchParams.get("from") || vnDayKey(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const to = searchParams.get("to") || vnDayKey(Date.now());
 
-    const rawFrom = searchParams.get("from") || defaultFrom.toISOString();
-    const rawTo = searchParams.get("to") || now.toISOString();
-
-    // Normalize date range: ensure full day coverage
-    const fromISO = rawFrom.includes("T") ? rawFrom : `${rawFrom}T00:00:00.000Z`;
-    const toISO = rawTo.includes("T") ? rawTo : `${rawTo}T23:59:59.999Z`;
+    // VN day window [from 00:00, to 24:00) in Asia/Ho_Chi_Minh, as UTC instants.
+    const { startUtc, endUtc } = vnRangeToUtc(from, to);
 
     const adminClient = await createAdminClient();
 
@@ -39,8 +37,8 @@ export async function GET(req: NextRequest) {
       .from("orders")
       .select("amount, product_id, products(title, thumbnail)")
       .eq("status", "paid")
-      .gte("paid_at", fromISO)
-      .lte("paid_at", toISO);
+      .gte("paid_at", startUtc)
+      .lt("paid_at", endUtc);
 
     if (error) {
       console.error("[Analytics Products] Error:", error);
