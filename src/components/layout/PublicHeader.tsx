@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import UserAvatar from "@/components/admin/UserAvatar";
 
 interface PublicHeaderProps {
@@ -10,9 +11,15 @@ interface PublicHeaderProps {
     avatar_url?: string;
     full_name?: string;
   } | null;
+  /**
+   * Slot cho CartIcon (Server Component) — caller bọc <CartIconWrapper />
+   * và pass xuống đây. Tách slot để PublicHeader giữ nguyên "use client"
+   * nhưng badge giỏ hàng vẫn được render từ server (fetch live count).
+   */
+  cartSlot?: ReactNode;
 }
 
-export default function PublicHeader({ user }: PublicHeaderProps) {
+export default function PublicHeader({ user, cartSlot }: PublicHeaderProps) {
   const initials = user?.full_name
     ? user.full_name
         .split(" ")
@@ -74,6 +81,7 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          {cartSlot}
           {user ? (
             <>
               {/* Avatar */}

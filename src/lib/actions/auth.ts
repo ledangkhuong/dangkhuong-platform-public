@@ -189,6 +189,20 @@ export async function signIn(formData: FormData) {
     if ((loginXpToday ?? 0) < 1) {
       await admin.from("xp_events").insert({ user_id: userId, action: "login", xp_amount: 10 });
     }
+
+    // Merge guest cart (matching dk_cart_id cookie) → user cart. Best-effort:
+    // log nhưng không block login nếu merge fail (cart vẫn còn ở cookie cũ,
+    // user có thể thử lại bằng cách add tiếp). Import lười để tránh kéo
+    // module cart vào auth bundle khi không có cookie.
+    try {
+      const { mergeGuestCartToUser } = await import("@/lib/actions/cart");
+      const mergeResult = await mergeGuestCartToUser(userId);
+      if (!mergeResult.ok) {
+        console.error("[auth] mergeGuestCartToUser failed:", mergeResult.error);
+      }
+    } catch (mergeErr) {
+      console.error("[auth] mergeGuestCartToUser threw:", mergeErr);
+    }
   }
   redirect("/dashboard");
 }

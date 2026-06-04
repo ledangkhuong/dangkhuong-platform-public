@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { siteConfig, getBaseUrl } from "@/lib/site-config";
 import SalesPageTemplate from "@/components/sales/SalesPageTemplate";
 import PublicHeader from "@/components/layout/PublicHeader";
+import CartIconWrapper from "@/components/cart/CartIconWrapper";
 
 export const revalidate = 3600;
 
@@ -148,7 +149,7 @@ export default async function SalesPage({
 
   return (
     <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
-      <PublicHeader />
+      <PublicHeader cartSlot={<CartIconWrapper />} />
       <SalesPageTemplate
         product={{
           id: product.id,

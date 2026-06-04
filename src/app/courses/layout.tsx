@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import CoursesLayoutShell from "./CoursesLayoutShell";
 import PublicHeader from "@/components/layout/PublicHeader";
+import CartIconWrapper from "@/components/cart/CartIconWrapper";
 
 export default async function CoursesLayout({
   children,
@@ -20,7 +21,7 @@ export default async function CoursesLayout({
   /* ── Public → lightweight header ── */
   return (
     <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
-      <PublicHeader />
+      <PublicHeader cartSlot={<CartIconWrapper />} />
       <main>{children}</main>
     </div>
   );
