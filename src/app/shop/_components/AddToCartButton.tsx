@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { ShoppingCart, Loader2 } from "lucide-react";
 
 import { addItem } from "@/lib/actions/cart";
+import { trackPageEvent } from "@/lib/pixel-tracker";
 import { cn } from "@/lib/utils";
 
 export interface AddToCartButtonProps {
@@ -30,6 +31,10 @@ export interface AddToCartButtonProps {
   /** Label tuỳ chỉnh (default "Thêm vào giỏ"). */
   label?: string;
   className?: string;
+  /** Tên sản phẩm — dùng cho Pixel/CAPI AddToCart (content_name). */
+  productName?: string;
+  /** Giá hiển thị (VND) — dùng cho Pixel/CAPI AddToCart (value). */
+  price?: number;
 }
 
 /**
@@ -66,6 +71,8 @@ export default function AddToCartButton({
   disabled = false,
   label = "Thêm vào giỏ",
   className,
+  productName,
+  price,
 }: AddToCartButtonProps) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -83,6 +90,27 @@ export default function AddToCartButton({
 
       if (result.ok) {
         toast("success", "Đã thêm vào giỏ hàng");
+
+        // Fire Pixel + CAPI AddToCart (dedup qua eventId). Không block UX
+        // nếu tracking fail — trackPageEvent đã swallow lỗi nội bộ, ta wrap
+        // thêm try/catch defensive ở đây phòng module import lỗi runtime.
+        try {
+          trackPageEvent({
+            slug: "shop",
+            eventName: "AddToCart",
+            customData: {
+              content_ids: [productId],
+              content_type: "product",
+              content_name: productName,
+              value: price,
+              currency: "VND",
+              num_items: safeQty,
+            },
+          });
+        } catch {
+          /* swallow — analytics không bao giờ block UX */
+        }
+
         // Refresh để CartIconWrapper (Server Component) lấy count mới.
         router.refresh();
       } else {

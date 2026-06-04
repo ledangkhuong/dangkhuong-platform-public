@@ -12,6 +12,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("slug, updated_at")
     .eq("status", "published");
 
+  // Fetch active shop products (status='active' — ecommerce module convention)
+  const { data: shopProducts } = await supabase
+    .from("products")
+    .select("slug, updated_at")
+    .eq("status", "active")
+    .limit(1000);
+
   // Fetch all published blog posts
   const { data: blogPosts } = await supabase
     .from("blog_posts")
@@ -74,6 +81,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${BASE_URL}/shop`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/orders/track`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
   ];
 
   // Dynamic course pages
@@ -84,6 +103,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  // Dynamic shop product pages (PDP)
+  const shopPages: MetadataRoute.Sitemap = (shopProducts ?? []).map(
+    (product) => ({
+      url: `${BASE_URL}/shop/${product.slug}`,
+      lastModified: product.updated_at
+        ? new Date(product.updated_at)
+        : new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    })
+  );
+
   // Dynamic blog post pages
   const blogPages: MetadataRoute.Sitemap = (blogPosts ?? []).map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
@@ -92,5 +123,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...coursePages, ...blogPages];
+  return [...staticPages, ...coursePages, ...shopPages, ...blogPages];
 }

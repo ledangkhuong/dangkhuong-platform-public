@@ -48,8 +48,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Storefront luôn dùng dữ liệu mới nhất (catalog có thể đổi bất cứ lúc nào).
-export const dynamic = "force-dynamic";
+// Storefront catalog: ISR 5 phút.
+// - Catalog đổi không thường xuyên (admin thêm/sửa product vài lần/ngày).
+// - 5 phút đủ tươi cho user, đồng thời giảm tải DB đáng kể với traffic cao.
+// - Nếu cần refresh ngay (sau khi publish product mới) → gọi `revalidatePath("/shop")`
+//   trong server action của admin form.
+export const revalidate = 300;
 
 // ---------------------------------------------------------------------------
 // Constants

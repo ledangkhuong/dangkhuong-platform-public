@@ -36,6 +36,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
+import CheckoutTracker from "./CheckoutTracker";
 import AddressStep from "@/components/checkout/AddressStep";
 import ShippingStep from "@/components/checkout/ShippingStep";
 import PaymentStep from "@/components/checkout/PaymentStep";
@@ -510,6 +511,14 @@ export default function CheckoutFlow({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8 lg:py-10">
+      {/* Analytics — fire InitiateCheckout đúng 1 lần khi mount.
+          Đặt ngoài <header> để không ảnh hưởng a11y tree (component
+          return null nên không render DOM). */}
+      <CheckoutTracker
+        cartSubtotal={initialCart.computedSubtotal}
+        itemCount={initialCart.totalQuantity}
+      />
+
       {/* Header + Stepper */}
       <header className="mb-6 lg:mb-8">
         <h1 className="mb-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">

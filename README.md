@@ -27,6 +27,24 @@ This platform ships with **14 integrated modules** out of the box:
 
 ---
 
+## E-commerce Module
+
+Cửa hàng bán sản phẩm vật lý (sách, merch) song song với khoá học.
+
+**Features:**
+- Catalog với variants + categories
+- Cart cộng dồn (guest + user, auto-merge khi login)
+- Checkout multi-step với địa chỉ VN (tỉnh/xã)
+- GHN shipping integration (phí ship realtime + tracking)
+- Payment: Sepay / PayOS / COD
+- Mixed orders (khoá học + sách trong cùng 1 đơn)
+- Admin order management với inventory deduction
+- FB Pixel + CAPI tracking (ViewContent, AddToCart, InitiateCheckout, Purchase)
+
+Xem [docs/ecommerce-setup.md](docs/ecommerce-setup.md) cho hướng dẫn setup.
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |

@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 
 import { createAdminClient } from "@/lib/supabase/server";
+import PurchaseTracker from "./PurchaseTracker";
 import SepayQrPanel from "./SepayQrPanel";
 
 // ---------------------------------------------------------------------------
@@ -182,6 +183,33 @@ async function fetchOrderSummary(
   }
 }
 
+/** Fetch order items tối thiểu cho Purchase event (Pixel + CAPI). */
+async function fetchPurchaseItems(
+  orderId: string,
+): Promise<Array<{ id: string; quantity: number }>> {
+  try {
+    const supabase = await createAdminClient();
+    const { data, error } = await supabase
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", orderId);
+    if (error) {
+      console.error("[checkout/success] fetchPurchaseItems failed", error);
+      return [];
+    }
+    if (!data) return [];
+    return data
+      .map((row) => ({
+        id: String((row as { product_id: string | null }).product_id ?? ""),
+        quantity: Number((row as { quantity: number | null }).quantity ?? 0),
+      }))
+      .filter((it) => it.id.length > 0);
+  } catch (err) {
+    console.error("[checkout/success] fetchPurchaseItems exception", err);
+    return [];
+  }
+}
+
 /** Resolve ward + province names cho display block. Trả null nếu fail. */
 async function fetchAddressLabels(
   wardCode: string | null,
@@ -277,6 +305,9 @@ export default async function CheckoutSuccessPage({
       )
     : { ward: null, province: null };
 
+  // Purchase event items (cho Meta Pixel + CAPI). Chỉ fetch khi có order row.
+  const purchaseItems = summary ? await fetchPurchaseItems(summary.orderId) : [];
+
   // Sepay QR url — chỉ build khi method=sepay + có amount.
   const sepayQrUrl =
     effectiveMethod === "sepay" && summary?.amount
@@ -285,6 +316,16 @@ export default async function CheckoutSuccessPage({
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-neutral-100">
+      {/* Meta Pixel + CAPI Purchase event (deterministic eventId, mount once). */}
+      {summary && summary.amount !== null && summary.amount !== undefined && (
+        <PurchaseTracker
+          orderCode={summary.orderCode}
+          value={Number(summary.amount)}
+          currency="VND"
+          items={purchaseItems}
+        />
+      )}
+
       <div className="mx-auto flex min-h-[80vh] max-w-2xl flex-col items-center px-4 py-12 text-center lg:px-8 lg:py-16">
         {/* Big checkmark */}
         <div

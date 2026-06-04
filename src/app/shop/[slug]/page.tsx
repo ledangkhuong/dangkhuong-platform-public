@@ -25,8 +25,16 @@ import { getProductBySlug } from "@/lib/ecommerce/queries";
 import type { ProductVariant } from "@/types/ecommerce";
 
 import AddToCartButton from "../_components/AddToCartButton";
+import ProductViewTracker from "../_components/ProductViewTracker";
 
-export const dynamic = "force-dynamic";
+// PDP: ISR 10 phút.
+// - Giá / tồn kho ít thay đổi đột ngột; nếu cần realtime stock, client tự refetch.
+// - Sau khi admin sửa product hoặc khi đơn hàng tiêu thụ stock đáng kể,
+//   server action gọi `revalidatePath("/shop/" + slug)` để bust cache ngay.
+// - Lưu ý: `viewerIsStaff()` đọc cookies (auth.getUser) — Next sẽ tự bail-out
+//   thành dynamic render khi phát hiện request-time API, nên ISR chỉ áp dụng
+//   cho viewer ẩn danh / không có cookie auth. Đó là hành vi mong muốn.
+export const revalidate = 600;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -334,6 +342,8 @@ export default async function ProductDetailPage(
                   ? "Hết hàng"
                   : "Thêm vào giỏ"
               }
+              productName={product.name}
+              price={displayPrice}
             />
 
             {/* Tags */}
@@ -398,6 +408,15 @@ export default async function ProductDetailPage(
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* FB Pixel + CAPI ViewContent (client, dedup qua eventID) */}
+      <ProductViewTracker
+        productId={product.id}
+        productName={product.name}
+        price={displayPrice}
+        currency="VND"
+        slug={product.slug}
       />
     </div>
   );
