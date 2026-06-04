@@ -1,0 +1,432 @@
+/* ─── Novel Editor - Dark Theme ────────────────────────────────────────────── */
+
+.novel-editor-wrapper {
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  background: #141414;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.novel-editor-wrapper:focus-within {
+  border-color: #D4A84340;
+}
+
+/* ─── Editor content area ─────────────────────────────────────────────────── */
+
+.novel-editor-content {
+  min-height: 450px;
+}
+
+.novel-prose {
+  padding: 1.25rem 1.5rem;
+  min-height: 450px;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+/* Headings */
+.novel-prose h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.3;
+}
+
+.novel-prose h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 1.75rem 0 0.6rem;
+  line-height: 1.35;
+}
+
+.novel-prose h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  margin: 1.5rem 0 0.5rem;
+  line-height: 1.4;
+}
+
+.novel-prose h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin: 1.25rem 0 0.4rem;
+}
+
+/* Paragraphs */
+.novel-prose p {
+  margin: 0.6rem 0;
+  color: #d1d5db;
+}
+
+.novel-prose p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #4b5563;
+  pointer-events: none;
+  height: 0;
+}
+
+/* ─── Lists ───────────────────────────────────────────────────────────────── */
+
+.novel-prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.novel-prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.novel-prose li {
+  margin: 0.25rem 0;
+  color: #d1d5db;
+}
+
+.novel-prose li p {
+  margin: 0.15rem 0;
+}
+
+.novel-prose li::marker {
+  color: #6b7280;
+}
+
+/* Task lists */
+.novel-prose ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+
+.novel-prose ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.novel-prose ul[data-type="taskList"] li label {
+  display: flex;
+  align-items: center;
+  margin-top: 0.3rem;
+}
+
+.novel-prose ul[data-type="taskList"] li label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #D4A843;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.novel-prose ul[data-type="taskList"] li div {
+  flex: 1;
+}
+
+/* ─── Blockquote ──────────────────────────────────────────────────────────── */
+
+.novel-prose blockquote {
+  border-left: 3px solid #D4A843;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #9ca3af;
+  font-style: italic;
+  background: rgba(212, 168, 67, 0.04);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+}
+
+/* ─── Code ────────────────────────────────────────────────────────────────── */
+
+.novel-prose code {
+  background: #1f1f1f;
+  color: #D4A843;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  border: 1px solid #2a2a2a;
+}
+
+.novel-prose pre {
+  background: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.novel-prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* ─── Links ───────────────────────────────────────────────────────────────── */
+
+.novel-prose a {
+  color: #D4A843;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.novel-prose a:hover {
+  color: #B8922E;
+}
+
+/* ─── Images ──────────────────────────────────────────────────────────────── */
+
+.novel-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+
+.novel-prose .ProseMirror-selectednode {
+  outline: 2px solid #D4A843;
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ─── Horizontal rule ─────────────────────────────────────────────────────── */
+
+.novel-prose hr {
+  border: none;
+  border-top: 1px solid #2a2a2a;
+  margin: 1.5rem 0;
+}
+
+/* ─── Highlight ───────────────────────────────────────────────────────────── */
+
+.novel-prose mark {
+  background: rgba(250, 204, 21, 0.25);
+  color: inherit;
+  padding: 0.1em 0.2em;
+  border-radius: 3px;
+}
+
+/* ─── YouTube embed ───────────────────────────────────────────────────────── */
+
+.novel-prose iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  margin: 1rem 0;
+  border: 1px solid #2a2a2a;
+}
+
+/* ─── Strong / Bold ───────────────────────────────────────────────────────── */
+
+.novel-prose strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ─── Strikethrough ───────────────────────────────────────────────────────── */
+
+.novel-prose s {
+  color: #6b7280;
+}
+
+/* ─── Table (if extended later) ───────────────────────────────────────────── */
+
+.novel-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.novel-prose th,
+.novel-prose td {
+  border: 1px solid #2a2a2a;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.novel-prose th {
+  background: #1a1a1a;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+/* ─── Placeholder ─────────────────────────────────────────────────────────── */
+
+.novel-prose .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #4b5563;
+  pointer-events: none;
+  height: 0;
+}
+
+/* ─── Bubble menu ─────────────────────────────────────────────────────────── */
+
+.novel-bubble-menu {
+  animation: fadeIn 0.15s ease-out;
+}
+
+.novel-bubble-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.novel-bubble-btn:hover {
+  background: #252525;
+  color: #fff;
+}
+
+.novel-bubble-btn.active,
+.novel-bubble-btn[data-active="true"] {
+  background: rgba(212, 168, 67, 0.15);
+  color: #D4A843;
+}
+
+/* ─── Command menu (slash commands) ───────────────────────────────────────── */
+
+.novel-command-menu {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.novel-command-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.novel-command-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.novel-command-menu::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Image placeholder ──────────────────────────────────────────────────── */
+
+.img-placeholder {
+  position: relative;
+  width: 100%;
+}
+
+.img-placeholder img {
+  opacity: 0.3;
+  filter: blur(2px);
+}
+
+.img-placeholder::after {
+  content: "Uploading...";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+/* ─── Static Toolbar ─────────────────────────────────────────────────────── */
+
+.novel-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #181818;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.novel-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.novel-toolbar-btn:hover {
+  background: #252525;
+  color: #fff;
+}
+
+.novel-toolbar-btn.active {
+  background: rgba(212, 168, 67, 0.15);
+  color: #D4A843;
+}
+
+.novel-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: #2a2a2a;
+  margin: 0 4px;
+}
+
+.novel-toolbar-select {
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #333;
+  color: #9ca3af;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.novel-toolbar-select:hover {
+  border-color: #D4A84340;
+  color: #fff;
+}
+
+.novel-toolbar-select option {
+  background: #1a1a1a;
+  color: #e5e7eb;
+}
+
+/* ─── Selection ───────────────────────────────────────────────────────────── */
+
+.novel-prose ::selection {
+  background: rgba(212, 168, 67, 0.25);
+}

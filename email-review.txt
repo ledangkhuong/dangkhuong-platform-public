@@ -1,0 +1,372 @@
+============================================================
+Email 1 | Subject: Chào mừng -- đây là câu chuyện bắt đầu của chúng ta
+============================================================
+Chào mừng bạn, [Tên]
+Tôi vừa nhận được thông báo: bạn đã đăng ký tài khoản trên dangkhuong.com.
+Và tôi muốn bạn biết một điều -- khoảng khắc bạn nhấn nút "Đăng ký" đó, tôi hiểu nó hơn bất kỳ ai. Bởi vì không lâu trước đây, tôi cũng là người ngồi trước màn hình, tìm kiếm một hướng đi mới cho sự nghiệp của mình.
+Hồi đó, tôi không có gì cả. Không có mentor, không có cộng đồng, không có hệ thống. Chỉ có một chiếc laptop, một đường truyền internet, và một đám câu hỏi không biết hỏi ai.
+Tôi bắt đầu bằng việc thử sai. Thử rất nhiều. Chạy quảng cáo mất tiền, xây website không ai vào, viết content không ai đọc. Có những đêm tôi ngồi tính lại chi phí và tự hỏi: "Mình đang làm gì vậy?"
+Nhưng rồi, từ từ, từng mảnh ghép bắt đầu khớp lại. Tôi tìm ra được quy trình. Tôi hiểu được hệ thống. Và từ đó, mọi thứ thay đổi.
+Hôm nay, bạn đang đứng ở vị trí mà tôi đã từng đứng. Nhưng bạn có một lợi thế mà tôi không có: bạn không phải đi một mình.
+Tài khoản của bạn đã sẵn sàng. Đây là 3 điều bạn có thể làm ngay bây giờ:
+Thứ nhất, đăng nhập tại dangkhuong.com. Dùng email và mật khẩu bạn vừa tạo. Mọi thứ đã được kích hoạt -- bạn chỉ cần bước vào.
+Thứ hai, xem qua kho khóa học. Tôi đã sắp xếp từ cơ bản đến nâng cao, từ tư duy đến kỹ thuật. Bạn không cần học tất cả cùng lúc -- chỉ cần bắt đầu từ bài đầu tiên.
+Thứ ba, vào cộng đồng. Đây là nơi hơn 600 học viên đang hỗ trợ nhau mỗi ngày. Đặt câu hỏi, chia sẻ kinh nghiệm, và kết nối với những người cùng chí hướng.
+À, và blog của tôi -- nơi tôi viết những bài học từ kinh nghiệm thực tế, không lý thuyết suông. Bạn có thể đọc bất kỳ lúc nào, hoàn toàn miễn phí.
+Tôi sẽ gửi thêm vài email trong những ngày tới để giúp bạn định hướng. Không spam, không bán hàng -- chỉ là những câu chuyện và bài học mà tôi ước gì ai đó đã chia sẻ với tôi khi tôi mới bắt đầu.
+Hẹn gặp bạn bên trong.
+Đăng nhập ngay
+P.S. Nếu bạn gặp bất kỳ vấn đề gì khi đăng nhập, chỉ cần reply email này. Tôi đọc tất cả và trả lời trong vòng 24 giờ.
+-- Le Dang Khuong
+
+============================================================
+Email 2 | Subject: Tôi suýt bỏ cuộc -- và đây là thứ cứu tôi
+============================================================
+Tôi suýt bỏ cuộc
+[Tên], tôi muốn kể bạn nghe một câu chuyện mà tôi ít khi chia sẻ.
+Khoảng 2 năm trước, tôi đang chạy 5-6 công cụ khác nhau cùng lúc. Một cái để quản lý email. Một cái để tạo landing page. Một cái để theo dõi đơn hàng. Một cái để chat với khách. Và vài cái nữa mà tôi còn không nhớ tên.
+Mỗi tháng, tiền subscription ngốt đi gần 3 triệu. Nhưng vấn đề không phải tiền -- mà là dữ liệu nằm mỗi nơi một ít. Khách hàng đăng ký nhưng không ai follow-up. Người mua hàng xong rồi mất hút. Tôi không biết ai là khách tiềm năng, ai đã mua, ai cần chăm sóc thêm.
+Một đêm, khoảng 1 giờ sáng, tôi ngồi lại tính. Mở spreadsheet ra, liệt kê tất cả những gì đang chạy. Và tôi nhận ra một điều đau lòng: tôi đang làm việc 14 tiếng mỗi ngày nhưng 60% thời gian là để "vận chuyển dữ liệu" giữa các công cụ.
+Đó không phải làm việc. Đó là chạy vòng tròn.
+Rồi tôi tự hỏi: "Nếu tất cả nằm trong một chỗ thì sao?"
+Câu hỏi đó thay đổi tất cả.
+Tôi bắt đầu xây dựng hệ thống All-In-One bằng AI Agent. Không phải vì tôi giỏi công nghệ -- mà vì tôi quá mệt mỏi với việc chắp vá. Tôi muốn một nơi duy nhất để quản lý khách hàng, gửi email, bán khóa học, xây cộng đồng, và theo dõi doanh thu.
+Mất 6 tháng để hoàn thiện phiên bản đầu tiên. Nhưng khi nó chạy...
+108 triệu doanh số trong 10 ngày đầu tiên.
+Tôi không nói điều này để khoe. Tôi nói vì muốn bạn hiểu: vấn đề của hầu hết chúng ta không phải là thiếu kiến thức. Internet đầy kiến thức. YouTube đầy kiến thức. Ai cũng có thể học được.
+Vấn đề thật sự là thiếu hệ thống. Là không có một quy trình rõ ràng để biến kiến thức thành hành động, hành động thành kết quả, kết quả thành thu nhập bền vững.
+Đây là lý do tôi xây dangkhuong.com. Không phải để bán khóa học -- mà để chia sẻ hệ thống mà tôi đã mất bao nhiêu năm, bao nhiêu thất bại mới xây dựng được.
+Nếu bạn muốn đọc chi tiết hơn về hành trình của tôi -- từ những ngày đầu tiên thất bại đến khi mọi thứ bắt đầu hoạt động -- tôi đã viết tất cả ở trang giới thiệu.
+Đọc thêm về hành trình của tôi
+P.S. Ngày mai tôi sẽ gửi cho bạn một bài học mà tôi cho là quan trọng nhất cho người mới bắt đầu. Đừng bỏ lỡ nhé.
+-- Le Dang Khuong
+
+============================================================
+Email 3 | Subject: Bài học này thay đổi cách tôi nghĩ về kinh doanh online
+============================================================
+Bài học mà hầu hết người mới bỏ qua
+[Tên], tôi có một câu hỏi cho bạn: Khi bắt đầu học kinh doanh online, bạn thường làm gì trước tiên?
+Đa số mọi người sẽ nhảy thẳng vào kỹ thuật. Học cách chạy quảng cáo. Học cách thiết kế website. Học cách viết content. Và điều đó nghe có lý -- vì kỹ thuật là thứ có thể thấy được, đo được, làm được ngay.
+Nhưng đây chính là cái bẫy.
+Tôi muốn kể bạn nghe về Tuấn -- một học viên đăng ký từ đợt đầu tiên của tôi. Tuấn 28 tuổi, đang làm nhân viên văn phòng, muốn xây thu nhập thêm từ online. Bạn biết kiểu -- ai cũng bắt đầu với ước mơ đó.
+Tuấn nhảy thẳng vào học kỹ thuật. Bài 1 về Facebook Ads -- học xong, chạy liền. Bài 2 về landing page -- làm liền. Bài 3 về email marketing -- setup liền.
+Kết quả sau 2 tháng? Chi tiêu 8 triệu quảng cáo, doanh thu 0 đồng.
+Tuấn nhắn tin cho tôi lúc 11 giờ đêm, giỡn nửa thật nửa: "Anh ơi, em chạy hết tiền rồi mà không bán được gì. Có lẽ kinh doanh online không dành cho em."
+Tôi hỏi Tuấn một câu: "Em có xem bài số 0 chưa?"
+Bài số 0 là bài tôi đặt ngay đầu tiên trong khóa học. Không có kỹ thuật gì cả. Chỉ là tư duy. Là cách nhìn toàn cảnh về kinh doanh online. Là hiểu hệ thống trước, kỹ thuật sau.
+Tuấn chưa xem. Anh ấy skip thẳng đến bài 1 vì nghĩ "tư duy nghe chung chung quá, tôi muốn học cái thực tế."
+Tôi nói Tuấn quay lại học bài 0. Xem 3 lần. Ghi chú. Rồi mới quay lại các bài còn lại.
+Tuấn làm theo. Và sau đó, anh ấy nhận ra vấn đề: anh ấy đang chạy quảng cáo mà không hiểu khách hàng của mình là ai. Làm landing page mà không biết mối quan hệ giữa các bước trong phễu bán hàng. Gửi email mà không có chiến lược tổng thể.
+Tháng thứ 3, Tuấn bắt đầu lại từ đầu -- nhưng lần này với tư duy hệ thống. Mọi thứ click. Quảng cáo hiệu quả hơn vì biết nhắm đúng người. Landing page chuyển đổi tốt hơn vì hiểu tâm lý khách hàng. Email bán được hàng vì có quy trình rõ ràng.
+Tháng thứ 4, Tuấn có đơn hàng đầu tiên. Tháng thứ 6, doanh thu 18 triệu.
+Bài học ở đây rất đơn giản: tư duy hệ thống không phải là lý thuyết suông. Nó là nền tảng để mọi kỹ thuật khác phát huy hiệu quả. Không có nó, bạn chỉ đang ném tiền qua cửa sổ.
+Tôi đã chuẩn bị sẵn bài học này cho bạn. Nó không dài -- khoảng 25 phút. Nhưng nếu bạn xem thật kỹ và ghi chú, nó sẽ thay đổi hoàn toàn cách bạn tiếp cận mọi thứ sau này.
+Xem bài học này
+P.S. Đây là bài mà những học viên thành công nhất của tôi đều xem ít nhất 2 lần. Đừng skip nhé.
+-- Le Dang Khuong
+
+============================================================
+Email 4 | Subject: Chị Thủy gọi cho tôi lúc 11 đêm -- và nói điều này
+============================================================
+Cuộc gọi lúc 11 giờ đêm
+[Tên], tôi muốn kể bạn nghe về chị Nguyễn Thị Thủy.
+Chị Thủy năm nay 42 tuổi. Trước khi gặp tôi, chị làm kế toán cho một công ty nhỏ ở Bình Dương. Lương 9 triệu một tháng. Chồng chị làm tài xế, hai vợ chồng nuôi 2 đứa con đang đi học.
+Một hôm, chị Thủy thấy quảng cáo của tôi trên Facebook. Chị đọc -- nhưng không làm gì cả. Một tuần sau, chị thấy lại. Đọc lại. Vẫn không làm gì. Đến lần thứ 3, chị nhắn tin hỏi tôi: "Anh ơi, em 42 tuổi rồi, học mấy này có muộn không?"
+Tôi trả lời chị một câu: "Chị ơi, tuổi không phải là rào cản. Sự do dự mới là rào cản."
+Chị Thủy suy nghĩ thêm 1 tuần nữa rồi quyết định thử. Chị đăng ký với tâm thế "thử xem sao, không được thì thôi."
+Tháng đầu tiên, chị học chậm. Rất chậm. Mỗi tối chị xem được 1-2 bài vì còn phải đi làm, còn phải lo cho gia đình. Chị nhắn tin cho tôi: "Anh ơi, em học chậm quá, mọi người chắc đã đi xa lắm rồi."
+Tôi nói: "Chị ơi, đây không phải cuộc đua. Không ai chờ đợi chị. Nhưng cũng không ai bỏ rơi chị. Chị cứ học theo tốc độ của chị."
+Tháng thứ 2, chị bắt đầu hiểu hệ thống. Chị thấy được bức tranh tổng thể -- từ cách thu hút khách hàng, cách xây dựng nội dung, đến cách chăm sóc và chốt đơn. Chị bắt đầu áp dụng cho một sản phẩm nhỏ -- khóa học kế toán cơ bản cho người mới.
+Tháng thứ 3, chị có đơn hàng đầu tiên. 800 ngàn. Không nhiều -- nhưng chị gọi cho tôi và nói: "Anh ơi, em khóc. Lần đầu tiên em kiếm được tiền từ internet. Em không nghĩ là mình làm được."
+Tháng thứ 4, chị bán được 30 triệu.
+Chị đọc lại: 30 triệu. Nhiều hơn gấp 3 lần lương kế toán của chị.
+Và cuộc gọi lúc 11 giờ đêm mà tôi nói ở tiêu đề? Đó là chị Thủy gọi cho tôi để nói: "Anh ơi, em vừa nộp đơn xin nghỉ việc. Em sẽ làm đây thời gian."
+Tôi không nói điều này để hứa hẹn rằng bạn sẽ có kết quả giống chị Thủy. Mỗi người mỗi hoàn cảnh, mỗi xuất phát điểm khác nhau. Nhưng tôi muốn bạn biết: nếu một người phụ nữ 42 tuổi, chưa bao giờ biết gì về kinh doanh online, có thể làm được -- thì bạn cũng có cơ hội.
+Và chị Thủy không phải người duy nhất. Trong cộng đồng của chúng tôi, có hàng trăm câu chuyện tương tự. Những người bình thường, làm những việc phi thường -- chỉ vì họ quyết định bắt đầu và không bỏ cuộc.
+Bạn có muốn vào cộng đồng để đọc thêm những câu chuyện như vậy không? Để thấy rằng bạn không cô đơn trên hành trình này?
+Vào cộng đồng xem thêm
+P.S. Trong cộng đồng, bạn có thể hỏi bất kỳ câu hỏi nào. Những học viên đã đi trước sẽ sẵn sàng giúp đỡ bạn. Đó chính là sức mạnh của cộng đồng.
+-- Le Dang Khuong
+
+============================================================
+Email 5 | Subject: Thứ 6 này, tôi mở phòng Zoom -- bạn có muốn vào không?
+============================================================
+Buổi Zoom thứ 6 này
+[Tên], tôi có một lời mời cho bạn.
+Mỗi thứ 6, tôi mở một phòng Zoom. Không phải webinar bán hàng với 100 trang slide và 30 phút pitch cuối buổi. Không phải buổi "free" nhưng thực ra là 90 phút quảng cáo.
+Đó là một buổi ngồi nói chuyện thật.
+Tôi kể cho bạn nghe buổi tuần trước như thế nào nhé.
+Có khoảng 25 người tham gia. Một bạn tên Linh, đang làm freelance thiết kế, hỏi một câu: "Anh ơi, em có kỹ năng nhưng không biết cách bán nó online. Em nên bắt đầu từ đâu?"
+Câu hỏi này nghe đơn giản -- nhưng nó là câu hỏi mà 80% người mới đều có. Và thay vì tôi trả lời một mình, cả phòng cùng tham gia. Anh Đức, một học viên đã xây được hệ thống, chia sẻ chính xác cách anh ấy bắt đầu từ một kỹ năng tương tự. Chị Phương, từng là nhân viên văn phòng, kể lại cách chị chuyển đổi kiến thức thành khóa học online trong 3 tuần.
+Và Linh có moment "aha" của mình. Anh ấy nói: "Em hiểu rồi. Em không cần bán kỹ năng -- em cần bán giải pháp cho một vấn đề cụ thể. Kỹ năng chỉ là công cụ." Cả phòng vỗ tay.
+Đó là loại khoảng khắc mà bạn không thể có được từ việc xem video hay đọc bài viết. Nó chỉ xảy ra khi người thật ngồi lại với nhau, chia sẻ thật, và cùng suy nghĩ.
+Buổi Zoom kéo dài 90 phút. Tôi chia sẻ kinh nghiệm thực chiến, trả lời câu hỏi trực tiếp, và thường có 1-2 chiến lược mà tôi chưa từng nói công khai. Ngoài ra, bạn sẽ được kết nối với những người đang trên cùng hành trình -- và tin tôi đi, đôi khi một cuộc trò chuyện đúng người có giá trị hơn cả một khóa học.
+Chi phí tham gia chỉ 100.000 đồng. Bằng một ly sinh tố. Nhưng giá trị bạn mang về có thể thay đổi cả hướng đi kinh doanh của bạn.
+Tôi nói "có thể" vì tôi không hứa suông. Nhiều người đã thay đổi sau những buổi Zoom này -- nhưng điều đó phụ thuộc vào bạn, vào cách bạn tiếp nhận và hành động. Tôi chỉ là người mở cánh cửa.
+Nếu bạn muốn ngồi xem thế nào, cũng được. Nếu bạn muốn đặt câu hỏi, càng tốt. Không có áp lực gì cả.
+Số lượng giới hạn để đảm bảo chất lượng trao đổi. Đăng ký sớm để giữ chỗ nhé.
+Đăng ký Zoom 100K
+P.S. Nếu 100K là rào cản với bạn lúc này, tôi hoàn toàn hiểu. Đừng lo -- những email tiếp theo của tôi vẫn miễn phí và đầy giá trị. Bạn không mất gì cả.
+-- Le Dang Khuong
+
+============================================================
+Email 1 | Subject: Cảm ơn bạn -- và đây là 3 điều tôi muốn bạn làm ngay hôm nay
+============================================================
+Cảm ơn bạn, [Tên]
+Tôi vừa nhận được thông báo: bạn đã hoàn tất đơn hàng.
+Và tôi muốn nói một điều thật lòng: cảm ơn bạn đã tin tưởng tôi.
+Tôi nhớ rất rõ cảm giác khi nhận đơn hàng đầu tiên trên platform này. Không phải vì tiền -- số tiền đó không thay đổi cuộc sống của tôi. Mà vì tôi biết thêm một người nữa tin rằng những gì tôi chia sẻ có giá trị. Thêm một người nữa quyết định đầu tư cho bản thân mình. Và đó là một trách nhiệm mà tôi không bao giờ xem nhẹ.
+Mỗi đơn hàng tôi nhận được, tôi đều tự nhủ: "Người này đã tin mình. Mình không được để họ thất vọng."
+Nên đây là cam kết của tôi với bạn: tôi sẽ ở đây, đồng hành cùng bạn trong từng bước. Không phải kiểu nói cho đẹp -- mà là thật sự. Bạn có câu hỏi? Reply email này, tôi đọc từng email một. Bạn gặp khó khăn? Vào cộng đồng hỏi, tôi hoặc những học viên khác sẽ giúp.
+Bây giờ, tôi muốn bạn làm 3 điều ngay hôm nay. Không phải ngày mai, không phải cuối tuần -- mà hôm nay. Vì tôi biết nếu bạn không bắt đầu trong 24 giờ đầu tiên, khả năng bạn bỏ dở là rất cao. Và tôi không muốn điều đó xảy ra.
+Bước 1: Đăng nhập tại dangkhuong.com. Dùng email và mật khẩu bạn đã đăng ký. Không cần tải gì thêm -- mọi thứ chạy trên trình duyệt.
+Bước 2: Vào khóa học bạn vừa mua. Nó đã nằm sẵn trong dashboard của bạn. Click vào, xem qua cấu trúc khóa học, đọc phần giới thiệu.
+Bước 3: Xem bài 1. Chỉ bài 1 thôi. Không cần xem hết -- chỉ cần bắt đầu. Bài 1 thường mất khoảng 15-20 phút. Vừa xem vừa ghi chú. Và khi xem xong, bạn sẽ có cảm giác "à, ra là vậy" -- cảm giác đó sẽ kéo bạn tiếp tục.
+Đó là tất cả. 3 bước. 20 phút. Bắt đầu hôm nay.
+Và nhớ -- bất kỳ lúc nào bạn cần hỗ trợ, chỉ cần reply email này. Tôi đọc từng email và trả lời thủ công. Không có bot, không có template. Chỉ là tôi.
+Vào khóa học ngay
+P.S. Tôi sẽ gửi cho bạn một email nữa sau 3 ngày với một vài tip học hiệu quả. Nhưng đừng đợi email đó -- bắt đầu hôm nay nhé.
+-- Le Dang Khuong
+
+============================================================
+Email 2 | Subject: Ngày thứ 3 -- đa số người bỏ cuộc ở đây
+============================================================
+Ngày thứ 3
+[Tên], tôi có một con số muốn chia sẻ với bạn.
+70% người mua khóa học online không bao giờ hoàn thành bài 1.
+Bảy mươi phần trăm. Tức là cứ 10 người bỏ tiền ra mua, 7 người không bao giờ bắt đầu học thật sự. Họ mua xong, cảm thấy vui vì đã "hành động." Rồi cuộc sống cuốn đi. Rồi khóa học nằm đó. Rồi tiền mất.
+Tôi không muốn bạn là một trong 7 người đó.
+Tôi muốn kể bạn nghe về Đạt. Đạt là một học viên đăng ký cách đây khoảng 5 tháng. Anh ấy làm sale bất động sản, ban ngày đi làm, tối về mệt quá nằm ngủ. Mua khóa học xong để đó 2 tuần không động đến.
+Ngày thứ 15, Đạt nhận được email của tôi -- tương tự như email này. Và anh ấy tự nhủ: "Thôi, mình đã bỏ tiền rồi, không lẽ để phang phí."
+Đạt bắt đầu học. Nhưng thay vì cố nhồi hết mọi thứ, anh ấy làm một điều rất đơn giản: mỗi ngày 20 phút. Không hơn, không kém. Đúng 20 phút.
+20 phút trước khi đi ngủ. Mở video lên, xem một phần bài học, ghi chú vào sổ. Sáng hôm sau đọc lại ghi chú trong lúc uống cà phê. Chỉ vậy thôi.
+Tuần đầu tiên, Đạt hoàn thành 3 bài. Tuần thứ hai, 4 bài. Đến tuần thứ 4, anh ấy đã hoàn thành toàn bộ module đầu tiên và bắt đầu áp dụng.
+Tháng thứ 2, Đạt xây xong website bán hàng đầu tiên. Tháng thứ 3, anh ấy có đơn hàng đầu tiên từ online -- 4.5 triệu. Không nhiều, nhưng đó là 4.5 triệu mà anh ấy kiếm được trong lúc ngủ, từ một hệ thống mà anh ấy tự tay xây dựng.
+Bây giờ, Đạt là một trong những người hoạt động tích cực nhất trong cộng đồng. Anh ấy thường xuyên giúp những học viên mới -- vì anh ấy hiểu cảm giác của người mới bắt đầu.
+Bí quyết của Đạt không có gì cao siêu. Nó chỉ là 3 điều:
+Một là 20 phút mỗi ngày. Không cần nhiều -- nhưng phải đều. Kiên trì 20 phút/ngày tốt hơn học 5 tiếng rồi nghỉ 2 tuần.
+Hai là ghi chú. Không phải ghi lại tất cả -- chỉ ghi những thứ bạn thấy "a ha." Những insight, những ý tưởng, những điều bạn muốn thử.
+Ba là đặt câu hỏi. Khi không hiểu, đừng skip. Vào cộng đồng hỏi, hoặc reply email tôi. Một câu hỏi đúng lúc có thể tiết kiệm cho bạn hàng tuần mò mẫm.
+Bạn đang ở ngày thứ 3. Đây là ngày quyết định. Bạn sẽ là người tiếp tục, hay là người để khóa học nằm đó?
+Tôi tin bạn sẽ chọn đúng.
+Tiếp tục học
+P.S. Nếu bạn đã xem xong bài 1 rồi, tuyệt vời. Cho tôi biết cảm nhận của bạn bằng cách reply email này nhé. Tôi muốn nghe.
+-- Le Dang Khuong
+
+============================================================
+Email 3 | Subject: Tôi xây cộng đồng này vì một lý do đơn giản
+============================================================
+Vì sao tôi xây cộng đồng này
+[Tên], bạn có bao giờ học một thứ gì đó một mình và cảm thấy cô đơn không?
+Tôi thì có. Rất nhiều lần.
+Trước khi xây dựng dangkhuong.com, tôi đã mua hàng chục khóa học online. Từ những khóa 500 ngàn đến những khóa 50 triệu. Từ tiếng Việt đến tiếng Anh. Từ marketing đến lập trình đến đầu tư.
+Và bạn biết điều gì xảy ra sau khi mua? Không ai hỏi thăm.
+Không ai hỏi: "Bạn học đến đâu rồi?" Không ai nói: "Bài này khó, để tôi giải thích lại cho bạn." Không ai chia sẻ: "Tôi cũng gặp vấn đề này, và đây là cách tôi xử lý."
+Bạn mua khóa học, được cho vào một hệ thống tự động, xem video một mình, mắc kẹt một mình, và -- nếu không đủ động lực -- bỏ dở một mình. Không ai biết. Không ai quan tâm.
+Cảm giác đó -- cảm giác "mình chỉ là một con số trong hệ thống của người khác" -- là cảm giác tôi ghét nhất. Và tôi tự hứa với mình rằng khi tôi xây platform, tôi sẽ không bao giờ để học viên của mình cảm thấy như vậy.
+Đó là lý do tôi xây cộng đồng.
+Cộng đồng Đăng Khương Academy không phải một cái group Facebook nơi mọi người đăng link rồi bỏ đó. Nó là một không gian được thiết kế để mọi người hỗ trợ nhau thật sự.
+Khi bạn hoàn thành một bài học, bạn nhận được XP. Không phải để chơi game -- mà là để đo lường sự kiên trì của bạn. Mỗi XP bạn tích được là một bằng chứng rằng bạn đang tiến về phía trước. Và khi bạn thấy mình leo lên trên leaderboard, đó là cảm giác rất khác -- cảm giác mình không đứng yên, mình đang phát triển.
+Leaderboard không phải để cạnh tranh. Nó là để tôn vinh những người nỗ lực. Khi bạn thấy tên mình trên đó, bạn biết mình đang làm đúng. Và khi bạn thấy tên người khác, bạn biết mình không cô đơn.
+Trong cộng đồng, bạn có thể đặt câu hỏi và nhận được trả lời từ những người đã đi trước. Bạn có thể chia sẻ kết quả của mình và nhận được lời chúc mừng thật lòng. Bạn có thể đọc câu chuyện của người khác và tìm thấy động lực cho mình.
+Tôi không nói quá đâu. Có nhiều học viên nói với tôi rằng cộng đồng là lý do chính khiến họ không bỏ cuộc. Không phải khóa học -- mà là cộng đồng. Vì khi bạn biết có người đang quan tâm, bạn sẽ có lực để tiếp tục.
+Bạn đã mua khóa học rồi. Bây giờ, vào cộng đồng đi. Giới thiệu bản thân, chia sẻ mục tiêu của bạn, và bắt đầu kết nối.
+Vào cộng đồng
+P.S. Khi vào cộng đồng, hãy giới thiệu bản thân bằng một bài ngắn -- bạn là ai, bạn đang làm gì, và bạn muốn đạt được điều gì. Bạn sẽ bất ngờ với số người phản hồi.
+-- Le Dang Khuong
+
+============================================================
+Email 4 | Subject: Tôi sắp đóng ưu đãi này -- muốn nhắc bạn trước
+============================================================
+Một điều tôi muốn chia sẻ trước khi đóng ưu đãi
+[Tên], trước khi nói về ưu đãi, tôi muốn chia sẻ một khái niệm mà tôi học được từ một cuốn sách đã thay đổi cách tôi nghĩ về việc học.
+Khái niệm đó gọi là "compound learning" -- học tích lũy.
+Ý tưởng rất đơn giản: khi bạn học 1 khóa học, bạn biết 1 thứ. Nhưng khi bạn học 3 khóa học bổ trợ cho nhau, bạn không biết 3 thứ -- bạn hiểu cả hệ thống.
+Để tôi giải thích bằng ví dụ cụ thể.
+Nếu bạn chỉ học cách xây website, bạn có một website. Đẹp, chuyên nghiệp, nhưng không ai vào.
+Nếu bạn chỉ học marketing, bạn biết cách kéo traffic. Nhưng traffic đến rồi đi vì không có hệ thống giữ chân.
+Nếu bạn chỉ học bán hàng, bạn biết cách chốt đơn. Nhưng không có khách để chốt.
+Nhưng khi bạn học cả 3 -- website, marketing, và bán hàng -- trong một hệ thống liên kết, mọi thứ nhân lên. Website trở thành công cụ chuyển đổi. Marketing mang khách đến đúng chỗ. Bán hàng trở thành bước cuối tự nhiên trong một quy trình trọn vẹn.
+1 + 1 + 1 không bằng 3. Nó bằng 10. Đó là sức mạnh của compound learning.
+Và đó là lý do tôi tạo combo khóa học. Không phải để bán nhiều hơn -- mà vì tôi biết rằng học riêng lẻ sẽ không mang lại kết quả tốt nhất cho bạn. Các khóa học của tôi được thiết kế để bổ trợ nhau, để khi bạn học xong toàn bộ, bạn có một hệ thống hoàn chỉnh -- không phải những mảnh kiến thức rời rạc.
+Hiện tại, tôi đang có ưu đãi giảm 40% cho combo dành cho học viên hiện tại. Lý do tôi giảm chỉ cho học viên hiện tại rất đơn giản: bạn đã chứng minh mình serious bằng cách mua khóa học đầu tiên. Bạn không phải người chỉ xem -- bạn là người hành động. Và tôi muốn thưởng cho điều đó.
+Ưu đãi này sẽ đóng lại sớm. Tôi không nói để gây áp lực -- mà vì nó thật sự sẽ đóng. Tôi không chạy kiểu "giá trị 10 triệu giảm còn 500 ngàn, chỉ hôm nay" rồi ngày mai lại giảm tiếp. Khi tôi nói đóng là đóng.
+Nếu bạn thấy khóa học đầu tiên có giá trị, thì combo sẽ nhân giá trị đó lên gấp bội. Xem thử và quyết định nhé.
+Xem combo ưu đãi
+P.S. Nếu bạn chưa sẵn sàng, không sao cả. Cứ tiếp tục học khóa hiện tại. Ưu đãi sẽ quay lại -- nhưng có thể không ở mức 40%.
+-- Le Dang Khuong
+
+============================================================
+Email 5 | Subject: Bạn có muốn kiếm thêm thu nhập từ điều bạn đã biết?
+============================================================
+Kiếm thêm thu nhập từ điều bạn đã biết
+[Tên], tôi muốn kể bạn nghe về anh Hùng.
+Anh Hùng là một học viên đã học xong khóa học của tôi cách đây khoảng 6 tháng. Anh ấy làm IT, 32 tuổi, không có kinh nghiệm bán hàng hay marketing gì cả. Sau khi học xong, anh ấy áp dụng cho công việc của mình -- xây được một hệ thống nhỏ, có thêm thu nhập. Mọi thứ ổn.
+Rồi một hôm, anh Hùng đọc được phần giới thiệu về chương trình affiliate của tôi. Anh ấy nghĩ: "Mình đã học, mình thấy hay, mình chia sẻ cho mấy thằng bạn thử xem."
+Anh Hùng gửi link giới thiệu cho đúng 3 người bạn thân. Không viết bài gì, không quảng cáo gì -- chỉ nhắn tin: "Ey, tao học cái này thấy hay, mày thử đi."
+2 trong 3 người đăng ký. Tháng đầu tiên, anh Hùng nhận được hoa hồng 2 triệu đồng.
+2 triệu từ việc nhắn tin cho 3 người bạn. Anh Hùng ngạc nhiên lắm.
+Tháng thứ 2, anh ấy bắt đầu suy nghĩ nghiêm túc hơn. Anh viết một bài review ngắn trên Facebook cá nhân -- không phải kiểu quảng cáo, mà là kiểu chia sẻ kinh nghiệm thật. Anh kể về hành trình học của mình, những gì anh học được, và kết quả anh đạt được. Bài viết không viral gì -- chỉ khoảng 50 lượt like -- nhưng có 8 người nhắn tin hỏi anh link.
+5 người đăng ký. Hoa hồng tháng đó: 5 triệu.
+Tháng thứ 3, anh Hùng bắt đầu viết đều đặn hơn. Mỗi tuần một bài. Không phải bài bán hàng -- mà là bài chia sẻ giá trị. Anh chia sẻ những gì anh học được, những sai lầm anh đã mắc, những kết quả anh đạt được. Và cuối mỗi bài, anh để link giới thiệu.
+Tháng thứ 3: hoa hồng 12 triệu đồng.
+Bạn đọc đúng không? 12 triệu một tháng, chỉ từ việc chia sẻ những gì anh ấy đã biết, cho những người cần nghe. Không cần bán hàng. Không cần chốt deal. Không cần gọi điện. Chỉ cần chia sẻ giá trị và để link.
+Chương trình affiliate của tôi trả 20% hoa hồng trên mỗi đơn hàng. Bạn có link giới thiệu riêng, dashboard theo dõi riêng, và tôi thanh toán hoa hồng hàng tháng, minh bạch. Bạn có thể thấy chính xác bao nhiêu người click, bao nhiêu người mua, và bao nhiêu tiền bạn nhận được.
+Bạn không cần bán. Bạn không cần thuyết phục ai. Bạn chỉ cần chia sẻ giá trị mà bạn đã trải nghiệm, cho những người mà bạn tin là sẽ được hưởng lợi.
+Nếu bạn đã học khóa học và thấy nó có giá trị, thì bạn đã có sẵn mọi thứ cần thiết để bắt đầu. Kinh nghiệm của bạn chính là công cụ bán hàng tốt nhất.
+Tham gia affiliate
+P.S. Bạn không cần đợi kết quả lớn mới bắt đầu chia sẻ. Chỉ cần bạn thấy khóa học có giá trị là đủ. Nhiều affiliate thành công nhất của tôi bắt đầu từ việc chỉ chia sẻ cho 2-3 người bạn.
+-- Le Dang Khuong
+
+============================================================
+Email 1 | Subject: Tôi nhận ra bạn đã vắng một thời gian
+============================================================
+Lâu rồi không gặp, [Tên]
+Tôi nhận ra bạn đã không ghé dangkhuong.com một thời gian rồi.
+Và tôi không viết email này để làm bạn cảm thấy tội lỗi. Thật lòng -- tôi hiểu hoàn toàn.
+Vì tôi cũng đã từng như vậy.
+Cách đây vài năm, tôi bắt đầu một dự án mà tôi tin là sẽ thay đổi cuộc đời tôi. Tôi háo hức lắm -- lên kế hoạch, mua công cụ, học khóa học, làm mọi thứ đúng bước. Tuần đầu tiên, tôi làm việc 12 tiếng mỗi ngày. Tuần thứ hai, 8 tiếng. Tuần thứ ba, 4 tiếng.
+Rồi đến tuần thứ tư, tôi không động đến nữa.
+Không phải vì tôi không còn muốn. Không phải vì dự án đó không tốt. Mà vì cuộc sống cuốn đi. Công việc bão, gia đình cần, sức khỏe có vấn đề nhỏ, một người bạn cần giúp -- và từ từ, dự án bị đẩy xuống cuối danh sách ưu tiên.
+3 tháng sau, tôi tình cờ mở lại folder ghi chú của dự án đó. Đọc lại những gì mình đã viết. Và tôi nhận ra một điều đau lòng: tôi đã gần đến đích mà bỏ cuộc. Những gì tôi cần làm chỉ là vài bước nữa -- nhưng tôi đã để 3 tháng trôi qua mà không làm gì cả.
+Cảm giác đó -- cảm giác "giá như mình không bỏ" -- là cảm giác tôi không muốn bạn phải trải qua.
+Tôi không biết bạn đang ở đâu trên hành trình của mình. Có thể bạn đang rất bận. Có thể bạn đang gặp khó khăn. Có thể bạn chỉ đơn giản là quên. Bất kể lý do là gì, tôi muốn bạn biết: cánh cửa vẫn mở.
+Khóa học vẫn ở đó. Cộng đồng vẫn hoạt động mỗi ngày. Những bài học vẫn chờ bạn. Không có gì hết hạn, không có gì bị xóa.
+Và nếu bạn quay lại hôm nay, bạn sẽ thấy có nhiều điều mới. Chúng tôi đã cập nhật thêm bài học, cải thiện hệ thống XP, và cộng đồng đang sống động hơn bao giờ hết.
+Nhưng quan trọng hơn những điều mới là những điều cũ -- những bài học bạn đã bắt đầu nhưng chưa hoàn thành, những mục tiêu bạn đã đặt ra nhưng chưa đạt được. Chúng vẫn ở đó, chờ bạn.
+Không áp lực. Không deadline. Chỉ là một cánh cửa mở và một người đang chờ.
+Quay lại xem gì mới
+P.S. Nếu bạn không muốn nhận email từ tôi nữa, tôi hoàn toàn tôn trọng. Bạn có thể hủy đăng ký ở link bên dưới. Không có câu hỏi nào được hỏi, không có áp lực nào cả.
+-- Le Dang Khuong
+
+============================================================
+Email 2 | Subject: 3 người này bắt đầu cùng lúc với bạn -- đây là kết quả của họ
+============================================================
+Họ bắt đầu cùng thời điểm với bạn
+[Tên], tôi muốn kể bạn nghe về 3 người đăng ký vào cùng đợt với bạn.
+Không phải để so sánh. Không phải để làm bạn cảm thấy tồi tệ. Mà vì tôi tin rằng đôi khi câu chuyện của người khác có thể thắp lại ngọn lửa trong mình.
+Người thứ nhất: Anh Minh T.
+Anh Minh làm nhân viên kinh doanh ở một công ty nhỏ. Ban ngày đi làm, tối về học. Anh ấy không có gì đặc biệt -- không giỏi công nghệ, không có kinh nghiệm kinh doanh online. Nhưng anh ấy có một thứ: sự kiên trì.
+Mỗi tối, anh Minh xem 1-2 bài học. Ghi chú cẩn thận. Hỏi những gì không hiểu trong cộng đồng. Và từ từ, từng bước một, anh ấy xây được một website bán hàng hoàn chỉnh. Không phải website đẹp nhất thế giới -- nhưng là một website hoạt động, có khách vào, có đơn hàng.
+Hôm trước anh ấy nhắn tin cho tôi: "Anh Khương ơi, em vừa nhận đơn thứ 50 từ website. Em không nghĩ là mình làm được."
+Người thứ hai: Chị Hương L.
+Chị Hương trước đây bán hàng trên Facebook -- đăng sản phẩm, đợi khách comment, inbox từng người. Mệt lắm. Chị đăng ký học với tâm thế "thử xem có cách nào nhanh hơn không."
+Và chị tìm thấy. Chị học cách xây phễu bán hàng tự động -- từ quảng cáo đến landing page đến email follow-up đến chốt đơn. Mất 6 tuần để set up mọi thứ. Nhưng khi nó chạy, chị có đơn hàng đầu tiên 15 triệu mà không cần inbox bất kỳ ai.
+Chị nói với tôi: "Đây là lần đầu tiên em kiếm tiền mà không phải ngồi cạnh điện thoại 24/7."
+Người thứ ba: Bạn Đức N.
+Đức là sinh viên năm 4, chưa kiếm được đồng nào từ online. Nhưng bạn ấy hoạt động rất tích cực trong cộng đồng -- hỏi câu hỏi mỗi ngày, giúp đỡ người khác, chia sẻ những gì bạn ấy học được. Trong 3 tuần, Đức leo lên Top 3 leaderboard.
+Chưa có doanh thu -- nhưng Đức đang xây nền tảng. Và tin tôi đi, những người hoạt động tích cực như Đức thường là những người có kết quả tốt nhất về lâu dài. Vì họ không chỉ học -- họ còn thực hành việc chia sẻ và kết nối.
+Ba người. Ba xuất phát điểm khác nhau. Ba câu chuyện khác nhau. Nhưng họ có chung một điều: họ không bỏ cuộc.
+Họ không giỏi hơn bạn. Họ không có nhiều thời gian hơn bạn. Họ chỉ kiên trì hơn -- 20 phút mỗi ngày, không ngừng.
+Bạn đã từng bắt đầu. Bạn đã từng có động lực. Và động lực đó vẫn ở đó -- chỉ cần bạn cho phép nó quay lại.
+Xem cộng đồng
+P.S. Nếu bạn quay lại cộng đồng hôm nay, hãy giới thiệu lại bản thân. Nói "Tôi đã quay lại." Bạn sẽ bất ngờ với số người chào đón bạn.
+-- Le Dang Khuong
+
+============================================================
+Email 3 | Subject: Tôi dành cho bạn 1 ưu đãi -- nhưng chỉ trong 48 giờ
+============================================================
+48 giờ -- và tôi muốn thẳng thắn với bạn
+[Tên], tôi sẽ không vòng vo. Email này là về một ưu đãi, và tôi muốn thẳng thắn về lý do tôi gửi nó.
+Tôi hiểu rằng đôi khi, rào cản không phải là thiếu động lực. Không phải là không có thời gian. Mà là chi phí.
+Có thể khi bạn đăng ký, bạn đã đầu tư một khoản tiền và cảm thấy chưa sẵn sàng đầu tư thêm. Có thể bạn đang ở giai đoạn mà mỗi đồng tiền đều phải cân nhắc. Tôi hiểu -- tôi đã từng ở đó.
+Nên đây là những gì tôi muốn làm: giảm 50% cho bạn.
+Không phải vì bạn đặc biệt hơn ai. Không phải vì tôi đang cần bán hàng. Mà vì tôi tin bạn chỉ cần một cú hích. Một lý do để quay lại, để bắt đầu lại, để tiếp tục hành trình mà bạn đã bắt đầu.
+Tôi muốn nói về một khái niệm mà các nhà kinh tế học gọi là "sunk cost" -- chi phí chìm. Ý tưởng là thế này: khi bạn đã đầu tư thời gian, tiền bạc, và công sức vào một thứ gì đó, việc bỏ dở có nghĩa là tất cả những gì bạn đã đầu tư đều mất trắng. Không phải vì thứ đó không có giá trị -- mà vì bạn dừng lại trước khi nhận được giá trị.
+Bạn đã đầu tư thời gian để đăng ký. Bạn đã đọc những email của tôi. Bạn đã suy nghĩ về việc thay đổi. Tất cả những điều đó là đầu tư thật sự -- và chúng chỉ có giá trị nếu bạn tiếp tục.
+Tôi không muốn bạn tiếp tục vì tôi nói bạn nên tiếp tục. Tôi muốn bạn tiếp tục vì bạn biết, sâu đây trong lòng, rằng bạn xứng đáng có một cuộc sống tốt hơn những gì bạn đang có.
+50% giảm giá. Có hiệu lực trong 48 giờ kể từ khi bạn nhận email này. Không gia hạn. Không ngoại lệ. Sau 48 giờ, giá trở về bình thường và tôi sẽ không gửi thêm email nào về ưu đãi này nữa.
+Nếu bạn sẵn sàng, click vào link bên dưới. Nếu không, tôi hoàn toàn tôn trọng. Dầu bằng nào, tôi vẫn chúc bạn mọi điều tốt đẹp nhất trên hành trình của bạn.
+Nhận ưu đãi 50%
+P.S. Đây là email cuối cùng trong chuỗi email này. Sau email này, tôi sẽ không gửi thêm email nào nữa về ưu đãi. Quyết định là của bạn.
+-- Le Dang Khuong
+
+============================================================
+Email 1 | Subject: Xác nhận: bạn đã có chỗ trong buổi Zoom
+============================================================
+Bạn đã có chỗ, [Tên]
+Xác nhận: bạn đã đăng ký thành công buổi Zoom live cùng tôi.
+Và tôi muốn nói điều này: bạn đã chọn đúng. Không phải vì tôi nói -- mà vì tôi biết buổi Zoom này sẽ khác với bất kỳ webinar nào bạn đã từng xem.
+Để tôi kể bạn nghe buổi Zoom trước như thế nào.
+Có khoảng 30 người tham gia. Đầu buổi, tôi chia sẻ một chiến lược về cách xây hệ thống bán hàng tự động -- không phải lý thuyết, mà là chính xác những gì tôi đang làm, với số liệu cụ thể. Rồi tôi mở phần Q&A.
+Và đây là lúc mọi thứ trở nên thú vị.
+Bạn Minh -- một người mới hoàn toàn, chưa bao giờ làm kinh doanh online -- hỏi một câu: "Anh ơi, em có 0 đồng và 0 kinh nghiệm. Em có nên bắt đầu không?"
+Cả phòng im lặng 10 giây. Không phải vì câu hỏi đó ngớ -- mà vì nó là câu hỏi mà rất nhiều người muốn hỏi nhưng không dám hỏi.
+Tôi trả lời bạn Minh. Nhưng không chỉ tôi -- 4-5 người khác trong phòng cũng chia sẻ kinh nghiệm của họ. Người thì bắt đầu từ 0, người thì thất bại 3 lần trước khi thành công. Và bạn Minh nhận được không chỉ một câu trả lời -- mà cả một bức tranh về những gì có thể xảy ra nếu bạn bắt đầu.
+Đó là điều mà không video nào, không bài viết nào có thể thay thế. Người thật, câu chuyện thật, cảm xúc thật.
+Buổi Zoom của chúng ta sẽ diễn ra vào:
+Thời gian: Thứ 6 tuần này, 20:00
+Thời lượng: 90 phút
+Nền tảng: Zoom Meeting
+Hình thức: Chia sẻ + Hỏi đáp trực tiếp
+Link Zoom sẽ được gửi cho bạn trong email nhắc nhở trước buổi học 1 ngày. Trong lúc chờ, tôi khuyên bạn vào nhóm Zalo để nhận tài liệu chuẩn bị và gặp gỡ những người sẽ tham gia cùng bạn.
+Buổi này không có slide 100 trang. Không có phần pitch 30 phút cuối buổi. Chỉ là tôi, bạn, và những người cùng chí hướng, ngồi lại nói chuyện thật về kinh doanh online.
+Vào nhóm Zalo chuẩn bị
+P.S. Giữ email này để tham khảo. Và nếu bạn có câu hỏi muốn hỏi trong buổi Zoom, hãy ghi lại từ bây giờ -- những câu hỏi được chuẩn bị trước thường là những câu hỏi hay nhất.
+-- Le Dang Khuong
+
+============================================================
+Email 2 | Subject: Ngày mai gặp nhau -- đây là điều tôi muốn bạn chuẩn bị
+============================================================
+Ngày mai, 20:00
+[Tên], chỉ còn 1 ngày nữa.
+Ngày mai lúc 20:00, chúng ta sẽ gặp nhau trên Zoom. Và tôi muốn bạn biết: tôi đã chuẩn bị rất kỹ cho buổi này.
+Thường thì tôi không tiết lộ trước nội dung. Nhưng lần này, tôi muốn chia sẻ một điều để bạn có lý do để không bỏ lỡ:
+Có một chiến lược mà tôi chưa từng nói công khai.
+Không phải vì tôi giấu -- mà vì nó cần được giải thích trực tiếp, với ví dụ cụ thể, và với phản hồi đáp ngay tại chỗ. Viết thành bài blog hay quay video sẽ không truyền tải được hết. Nó cần cuộc trò chuyện.
+Tôi chỉ có thể nói thế này: chiến lược này là thứ đã giúp tôi tăng doanh thu gấp 3 lần trong vòng 60 ngày, mà không cần tăng chi phí quảng cáo. Không phải hack, không phải trick. Là một cách tiếp cận hoàn toàn khác về cách nhìn nhận mối quan hệ với khách hàng.
+Tôi sẽ mở ra chiến lược này trong buổi Zoom ngày mai. Và tôi sẽ chỉ cho bạn cách áp dụng nó -- bất kể bạn đang ở giai đoạn nào.
+Bây giờ, tôi muốn bạn chuẩn bị vài điều trước buổi Zoom:
+Thứ nhất: Kiểm tra Zoom. Đảm bảo bạn đã cài app hoặc có thể truy cập trên trình duyệt. Kiểm tra micro và camera -- dù bạn không bật camera cũng được, nhưng micro thì cần để đặt câu hỏi.
+Thứ hai: Chuẩn bị giấy bút. Nghe thì có vẻ cũ kỹ, nhưng tôi tin vào việc ghi chú bằng tay. Nó giúp bạn xử lý thông tin sâu hơn là chỉ ngồi nghe. Những người ghi chú trong buổi Zoom của tôi thường là những người có kết quả tốt nhất sau đó.
+Thứ ba: Đặt tâm thế sẵn sàng. Không phải "thử xem sao." Mà là "tôi sẽ học được ít nhất 1 điều có thể áp dụng ngay." Với tâm thế đó, bạn sẽ thấy buổi Zoom có giá trị gấp 10 lần.
+Tôi sẽ gửi link Zoom vào email nhắc nhở ngày mai. Bây giờ, lưu link này lại để không quên:
+Lưu link Zoom
+P.S. Nếu bạn không thể tham gia live, đừng lo -- tôi sẽ gửi replay sau. Nhưng tôi khuyên bạn nên tham gia live nếu có thể. Energy của buổi live, những câu hỏi bất ngờ, những khoảng khắc "aha" -- những thứ đó không thể replay được.
+-- Le Dang Khuong
+
+============================================================
+Email 3 | Subject: Replay đã sẵn sàng -- cùng tất cả tài liệu
+============================================================
+Replay và tài liệu đã sẵn sàng
+[Tên], cảm ơn bạn.
+Dù bạn đã tham gia buổi Zoom live hay không, tôi muốn gửi lời cảm ơn chân thành. Vì việc đăng ký đã cho thấy bạn nghiêm túc với hành trình của mình.
+Buổi Zoom vừa rồi là một trong những buổi tốt nhất chúng tôi từng có. Và tôi muốn chia sẻ với bạn những điều chính từ buổi đó.
+Takeaway thứ nhất: Hệ thống đánh bại chiến thuật. Rất nhiều người chạy theo các "trick" ngắn hạn -- một cái hack Facebook, một cái template email, một cái công thức headline. Nhưng những người thành công bền vững là những người xây hệ thống. Một hệ thống tốt sẽ tiếp tục hoạt động ngay cả khi bạn ngủ, khi bạn đi du lịch, khi bạn không ngồi trước máy tính.
+Takeaway thứ hai: Khách hàng không mua sản phẩm -- họ mua giải pháp cho vấn đề của họ. Khi bạn ngừng suy nghĩ "tôi bán gì" và bắt đầu suy nghĩ "tôi giải quyết vấn đề gì," mọi thứ thay đổi. Đó là bước chuyển từ người bán hàng thành người giúp đỡ -- và người giúp đỡ luôn bán được nhiều hơn.
+Takeaway thứ ba: 20 phút mỗi ngày tốt hơn 5 tiếng mỗi tuần. Sự nhất quán đánh bại sự nỗ lực. Những người học 20 phút mỗi ngày có tỷ lệ hoàn thành khóa học cao gấp 4 lần so với những người học "khi nào có thời gian." Đặt lịch cố định, tạo thói quen, và sự nhất quán sẽ làm phần còn lại.
+Đây là tất cả tài liệu từ buổi Zoom:
+-- Video replay đầy đủ -- xem không giới hạn thời gian
+-- Slide trình bày -- để bạn đọc lại và ghi chú thêm
+-- Tài liệu bổ sung -- những link và tài nguyên tôi đã đề cập trong buổi
+Tất cả nằm trong link bên dưới.
+Và nếu bạn đã bỏ lỡ buổi live -- đây là cơ hội để xem lại. Nhưng tôi phải nói thật: energy của buổi live là thứ không thể replay được. Những câu hỏi bất ngờ, những khoảng khắc im lặng suy nghĩ, những tiếng cười khi ai đó chia sẻ một trải nghiệm hài hước -- những thứ đó chỉ xảy ra một lần.
+Nên nếu lần sau có buổi Zoom nữa, tôi khuyên bạn hãy tham gia live. Trải nghiệm sẽ khác hoàn toàn.
+Xem replay ngay
+P.S. Nếu bạn có câu hỏi thêm sau khi xem replay, cứ reply email này. Tôi luôn sẵn sàng hỗ trợ.
+-- Le Dang Khuong
+
+============================================================
+Email 4 | Subject: Ưu đãi cho người tham dự -- 48 giờ duy nhất
+============================================================
+48 giờ -- dành cho người tham dự
+[Tên], trong buổi Zoom vừa rồi, nhiều bạn hỏi tôi cùng một câu hỏi:
+"Anh ơi, làm sao để đi sâu hơn? Làm sao để không chỉ hiểu mà còn áp dụng được?"
+Câu trả lời của tôi luôn là một: hệ thống Web All-In-One.
+Buổi Zoom là nơi tôi chia sẻ kiến thức. Nhưng kiến thức mà không có hệ thống thì chỉ là thông tin -- nó nằm trong đầu bạn một thời gian rồi từ từ biến mất. Hệ thống Web All-In-One là nơi bạn biến kiến thức thành hành động, hành động thành kết quả.
+Tôi muốn kể bạn nghe về Hạnh -- một bạn tham gia buổi Zoom trước đó. Hạnh nghe xong, cảm thấy háo hức, nhưng rồi không làm gì cả. Hai tuần sau, Hạnh tham gia buổi Zoom tiếp theo. Nghe xong, lại cảm thấy háo hức. Rồi lại không làm gì cả.
+Đến buổi Zoom thứ 3, Hạnh quyết định: "Thôi, mình không thể cứ nghe mãi được. Mình phải làm."
+Hạnh đăng ký hệ thống Web All-In-One ngay sau buổi Zoom. Và đây là điều xảy ra:
+Tuần 1: Hạnh set up xong website và hệ thống email cơ bản. Không đẹp lắm -- nhưng nó chạy được.
+Tuần 2: Hạnh tạo xong sản phẩm đầu tiên và phễu bán hàng. Bắt đầu chạy quảng cáo với 50 ngàn/ngày.
+Ngày thứ 16: Đơn hàng đầu tiên. 1.2 triệu đồng.
+Hạnh nhắn tin cho tôi: "Anh ơi, em khóc. Không phải vì 1.2 triệu. Mà vì em biết hệ thống này sẽ tiếp tục chạy. Em ngủ mà nó vẫn bán."
+Đó là sự khác biệt giữa người nghe và người làm. Và hệ thống Web All-In-One là công cụ để bạn chuyển từ người nghe thành người làm.
+Tôi không thường xuyên làm điều này -- nhưng vì bạn đã đầu tư thời gian tham gia buổi Zoom, tôi muốn dành cho bạn một ưu đãi đặc biệt. Ưu đãi này chỉ dành cho người đã tham dự và chỉ kéo dài 48 giờ.
+Tôi không để giá cụ thể trong email này vì nó phụ thuộc vào gói bạn chọn. Nhưng tôi có thể nói: đây là mức giá tốt nhất mà tôi từng offer. Và sau 48 giờ, nó sẽ không còn nữa.
+Không gia hạn. Không ngoại lệ. Tôi tôn trọng thời gian của bạn bằng cách tôn trọng lời nói của tôi.
+Nếu bạn đã sẵn sàng chuyển từ "nghe" sang "làm" -- đây là thời điểm.
+Nhận ưu đãi
+P.S. Nếu bạn có bất kỳ câu hỏi nào về hệ thống Web All-In-One trước khi quyết định, reply email này. Tôi sẽ trả lời trực tiếp -- không có bot, không có template.
+-- Le Dang Khuong
+

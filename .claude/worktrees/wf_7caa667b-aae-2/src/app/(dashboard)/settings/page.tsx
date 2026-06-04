@@ -1,0 +1,815 @@
+"use client";
+
+import TopBar from "@/components/layout/TopBar";
+import { useState, useEffect, use } from "react";
+import NextImage from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { updateProfile, deleteAccount } from "@/lib/actions/auth";
+import { User, Bell, Shield, CreditCard, Globe, ChevronRight, Check, Eye, EyeOff, AlertTriangle, MessageCircle, Link2, Unlink } from "lucide-react";
+
+const tabs = [
+  { id: "profile", label: "Hồ sơ", icon: User },
+  { id: "notifications", label: "Thông báo", icon: Bell },
+  { id: "security", label: "Bảo mật", icon: Shield },
+  { id: "billing", label: "Thanh toán", icon: CreditCard },
+];
+
+function ProfileTab({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
+  const { error, saved } = use(searchParams);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [initials, setInitials] = useState("??");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [zaloLinked, setZaloLinked] = useState(false);
+  const [unlinkingZalo, setUnlinkingZalo] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        setProfileLoaded(true);
+        return;
+      }
+      // Always set email from auth
+      setEmail(user.email ?? "");
+
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single()
+        .then(({ data, error: profileError }) => {
+          if (profileError) {
+            console.error("[Settings] Profile fetch error:", profileError);
+          }
+          if (data) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const d = data as Record<string, any>;
+            setFullName(d.full_name ?? "");
+            setPhone(d.phone ?? "");
+            setBio(d.bio ?? "");
+            setZaloLinked(!!d.zalo_user_id);
+            if (d.avatar_url) setAvatarUrl(d.avatar_url);
+            const name = d.full_name ?? user.email ?? "?";
+            const parts = name.trim().split(/\s+/);
+            setInitials(
+              parts.length >= 2
+                ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                : name.slice(0, 2).toUpperCase()
+            );
+          } else {
+            // Profile fetch failed — use auth metadata as fallback
+            const metaName = user.user_metadata?.full_name || user.user_metadata?.name || "";
+            if (metaName) setFullName(metaName);
+            setPhone(user.phone ?? "");
+          }
+          setProfileLoaded(true);
+        });
+    });
+  }, []);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarError(null);
+    setUploadingAvatar(true);
+
+    try {
+      // Load image
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.src = url;
+      await new Promise((res) => { img.onload = res; });
+
+      // Center-crop to square + resize to 256x256
+      const size = 256;
+      const minDim = Math.min(img.width, img.height);
+      const sx = (img.width - minDim) / 2;
+      const sy = (img.height - minDim) / 2;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+
+      // Compress to JPEG, try 0.7 first, then 0.5 if too large
+      let blob = await new Promise<Blob>((res) =>
+        canvas.toBlob((b) => res(b!), "image/jpeg", 0.7)
+      );
+      if (blob.size > 500 * 1024) {
+        blob = await new Promise<Blob>((res) =>
+          canvas.toBlob((b) => res(b!), "image/jpeg", 0.5)
+        );
+      }
+
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const filename = `avatars/${user.id}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("thumbnails")
+        .upload(filename, blob, { contentType: "image/jpeg", upsert: true });
+
+      if (upErr) { setAvatarError(upErr.message); return; }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("thumbnails")
+        .getPublicUrl(filename);
+
+      const finalUrl = publicUrl + "?t=" + Date.now();
+
+      await supabase.from("profiles").update({ avatar_url: finalUrl }).eq("id", user.id);
+      setAvatarUrl(finalUrl);
+    } catch {
+      setAvatarError("Lỗi tải ảnh. Vui lòng thử lại.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  if (!profileLoaded) {
+    return (
+      <div className="space-y-6">
+        <div className="card-dark p-6 animate-pulse">
+          <div className="h-5 w-32 bg-[#2a2a2a] rounded mb-4" />
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-full bg-[#2a2a2a]" />
+            <div className="h-8 w-24 bg-[#2a2a2a] rounded" />
+          </div>
+        </div>
+        <div className="card-dark p-6 animate-pulse">
+          <div className="h-5 w-40 bg-[#2a2a2a] rounded mb-4" />
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="h-10 bg-[#2a2a2a] rounded" />
+            <div className="h-10 bg-[#2a2a2a] rounded" />
+            <div className="h-10 bg-[#2a2a2a] rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {saved && (
+        <div
+          className="p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20"
+          style={{ background: "rgba(212,168,67,0.08)" }}
+        >
+          ✓ Đã lưu thay đổi thành công!
+        </div>
+      )}
+      {error && (
+        <div
+          className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20"
+          style={{ background: "rgba(239,68,68,0.08)" }}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Avatar */}
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4">Ảnh đại diện</h3>
+        <div className="flex items-center gap-5">
+          {avatarUrl ? (
+            <NextImage src={avatarUrl} alt="Avatar" width={80} height={80} className="w-20 h-20 rounded-full object-cover shrink-0" unoptimized />
+          ) : (
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
+              style={{ background: "linear-gradient(135deg, #D4A843, #059669)" }}
+            >
+              {initials}
+            </div>
+          )}
+          <div>
+            <label htmlFor="avatarUpload" className="px-3 py-1.5 rounded-lg text-sm font-medium mb-2 inline-flex cursor-pointer hover:bg-[#333] transition-colors"
+              style={{ background: "#2a2a2a", color: "#9ca3af" }}>
+              {uploadingAvatar ? "Đang tải..." : "Tải ảnh lên"}
+              <input id="avatarUpload" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+            </label>
+            <p className="text-xs text-gray-500">JPG, PNG — tự crop vuông &amp; nén dưới 0.5MB</p>
+            {avatarError && <p className="text-xs text-red-400 mt-1">{avatarError}</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Personal info form */}
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4">Thông tin cá nhân</h3>
+        <form action={updateProfile} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="settingsFullName" className="block text-xs text-gray-400 mb-1.5 font-medium">Họ và tên</label>
+              <input
+                id="settingsFullName"
+                name="full_name"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Nguyễn Văn A"
+                className="input-dark w-full text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="settingsEmail" className="block text-xs text-gray-400 mb-1.5 font-medium">Email</label>
+              <input
+                id="settingsEmail"
+                type="email"
+                value={email}
+                readOnly
+                className="input-dark w-full text-sm opacity-60 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label htmlFor="settingsPhone" className="block text-xs text-gray-400 mb-1.5 font-medium">Số điện thoại</label>
+              <input
+                id="settingsPhone"
+                name="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+84 xxx xxx xxx"
+                className="input-dark w-full text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="settingsBio" className="block text-xs text-gray-400 mb-1.5 font-medium">Bio ngắn</label>
+            <textarea
+              id="settingsBio"
+              name="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={3}
+              placeholder="Giới thiệu ngắn về bạn..."
+              className="input-dark w-full text-sm resize-none"
+            />
+          </div>
+          <div className="flex justify-end">
+            <button type="submit" className="btn-green text-sm">
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Social links (static for now) */}
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+          <Globe size={16} /> Mạng xã hội
+        </h3>
+        <div className="space-y-3">
+          {[
+            { label: "Facebook", placeholder: "https://facebook.com/..." },
+            { label: "YouTube", placeholder: "https://youtube.com/@..." },
+            { label: "TikTok", placeholder: "https://tiktok.com/@..." },
+            { label: "Website", placeholder: "https://..." },
+          ].map((f) => (
+            <div key={f.label} className="flex items-center gap-3">
+              <span className="text-xs text-gray-500 w-20 shrink-0">{f.label}</span>
+              <input
+                type="url"
+                placeholder={f.placeholder}
+                className="input-dark flex-1 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end mt-4">
+          <button className="btn-green text-sm">Lưu</button>
+        </div>
+      </div>
+
+      {/* Zalo link */}
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+          <MessageCircle size={16} className="text-[#D4A843]" /> Liên kết Zalo
+        </h3>
+        {zaloLinked ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-[#22c55e]">
+              <Link2 size={14} />
+              <span>Đã liên kết với Zalo</span>
+            </div>
+            <p className="text-xs text-gray-500">
+              Bạn sẽ nhận thông báo qua Zalo khi có đơn hàng mới, bài học mới và các cập nhật quan trọng.
+            </p>
+            <button
+              onClick={async () => {
+                setUnlinkingZalo(true);
+                try {
+                  const res = await fetch("/api/zalo/unlink", { method: "POST" });
+                  if (res.ok) {
+                    setZaloLinked(false);
+                  }
+                } catch { /* ignore */ } finally {
+                  setUnlinkingZalo(false);
+                }
+              }}
+              disabled={unlinkingZalo}
+              className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+            >
+              <Unlink size={12} />
+              {unlinkingZalo ? "Đang huỷ..." : "Huỷ liên kết Zalo"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-400">
+              Liên kết tài khoản Zalo để nhận thông báo đơn hàng, bài học mới và nhắc nhở học tập qua Zalo.
+            </p>
+            <div className="p-3 rounded-lg text-xs text-gray-400 space-y-2" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+              <p className="font-medium text-gray-300">Cách liên kết:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Mở Zalo và tìm kiếm OA &quot;Lê Đăng Khương Academy&quot;</li>
+                <li>Nhấn &quot;Theo dõi&quot; OA</li>
+                <li>Hệ thống sẽ tự động liên kết tài khoản của bạn</li>
+              </ol>
+              <p className="text-gray-500 mt-2">
+                Lưu ý: Số điện thoại Zalo cần trùng với số điện thoại đã đăng ký trên nền tảng để liên kết tự động.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NotificationsTab() {
+  const [prefs, setPrefs] = useState({
+    email_new_lesson: true,
+    email_community: true,
+    email_promotions: false,
+    email_weekly: true,
+    push_community: true,
+    push_events: true,
+    push_achievements: true,
+  });
+
+  type PrefKey = keyof typeof prefs;
+  const toggle = (key: PrefKey) => setPrefs((p) => ({ ...p, [key]: !p[key] }));
+
+  const groups = [
+    {
+      title: "Email thông báo",
+      items: [
+        { key: "email_new_lesson" as PrefKey, label: "Bài học mới", desc: "Khi có nội dung mới trong khoá học bạn đã đăng ký" },
+        { key: "email_community" as PrefKey, label: "Hoạt động cộng đồng", desc: "Khi có reply hoặc mention trong cộng đồng" },
+        { key: "email_promotions" as PrefKey, label: "Ưu đãi & khuyến mãi", desc: "Thông tin về sản phẩm mới và ưu đãi đặc biệt" },
+        { key: "email_weekly" as PrefKey, label: "Newsletter hàng tuần", desc: "Digest nội dung hay mỗi thứ Hai" },
+      ],
+    },
+    {
+      title: "Thông báo đẩy",
+      items: [
+        { key: "push_community" as PrefKey, label: "Tin nhắn cộng đồng", desc: "Like, comment, mention trong feed" },
+        { key: "push_events" as PrefKey, label: "Nhắc nhở sự kiện", desc: "1 tiếng trước khi sự kiện bắt đầu" },
+        { key: "push_achievements" as PrefKey, label: "Thành tích & badges", desc: "Khi đạt được huy hiệu hoặc lên level" },
+      ],
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {groups.map((g) => (
+        <div key={g.title} className="card-dark p-6">
+          <h3 className="font-semibold text-white mb-4">{g.title}</h3>
+          <div className="space-y-4">
+            {g.items.map((item) => (
+              <div key={item.key} className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm text-white font-medium">{item.label}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{item.desc}</div>
+                </div>
+                <button
+                  onClick={() => toggle(item.key)}
+                  role="switch"
+                  aria-checked={prefs[item.key]}
+                  aria-label={item.label}
+                  className="shrink-0 w-11 h-6 rounded-full transition-all duration-200 relative"
+                  style={{ background: prefs[item.key] ? "#D4A843" : "#333" }}
+                >
+                  <div
+                    className="bg-white rounded-full absolute top-[3px] transition-all duration-200"
+                    style={{
+                      left: prefs[item.key] ? "calc(100% - 21px)" : "3px",
+                      width: "18px",
+                      height: "18px",
+                    }}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SecurityTab() {
+  // OAuth-only detection
+  const [isOAuthOnly, setIsOAuthOnly] = useState<boolean | null>(null);
+  const [oauthProviders, setOauthProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        setIsOAuthOnly(false);
+        return;
+      }
+      const providers: string[] = user.app_metadata?.providers ?? [];
+      setOauthProviders(providers.filter((p) => p !== "email"));
+      setIsOAuthOnly(!providers.includes("email"));
+    });
+  }, []);
+
+  // Password change state
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError(null);
+    setPwSuccess(false);
+
+    // Client-side validation
+    if (!currentPassword) {
+      setPwError("Vui lòng nhập mật khẩu hiện tại.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwError("Mật khẩu mới phải có ít nhất 8 ký tự.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPwError(data.error ?? "Có lỗi xảy ra. Vui lòng thử lại.");
+      } else {
+        setPwSuccess(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch {
+      setPwError("Có lỗi xảy ra. Vui lòng thử lại.");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError(null);
+    const result = await deleteAccount();
+    if (result.success) {
+      // Session is now invalidated on the server; redirect to home
+      window.location.href = "/";
+    } else {
+      setDeleteError(result.error ?? "Có lỗi xảy ra. Vui lòng thử lại.");
+      setDeleteLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Change password */}
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4">Đổi mật khẩu</h3>
+
+        {isOAuthOnly === null ? (
+          <p className="text-sm text-gray-400">Đang tải...</p>
+        ) : isOAuthOnly ? (
+          <div
+            className="flex items-center gap-2 p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20"
+            style={{ background: "rgba(212,168,67,0.08)" }}
+          >
+            <Shield size={15} className="shrink-0" />
+            <span>
+              Bạn đăng nhập bằng {oauthProviders.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(", ")} nên không cần mật khẩu. Tài khoản của bạn được bảo mật thông qua nhà cung cấp đăng nhập.
+            </span>
+          </div>
+        ) : (
+          <>
+            {pwSuccess && (
+              <div
+                className="flex items-center gap-2 p-3 rounded-lg text-sm text-[#D4A843] border border-[#D4A843]/20 mb-4"
+                style={{ background: "rgba(212,168,67,0.08)" }}
+              >
+                <Check size={15} />
+                Đã cập nhật mật khẩu thành công!
+              </div>
+            )}
+            {pwError && (
+              <div
+                className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20 mb-4"
+                style={{ background: "rgba(239,68,68,0.08)" }}
+              >
+                {pwError}
+              </div>
+            )}
+
+            <form onSubmit={handlePasswordChange} className="space-y-3 max-w-md">
+              <div>
+                <label htmlFor="currentPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu hiện tại</label>
+                <div className="relative">
+                  <input
+                    id="currentPassword"
+                    type={showOld ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="input-dark w-full pr-10 text-sm"
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOld(!showOld)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showOld ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="newPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Mật khẩu mới</label>
+                <div className="relative">
+                  <input
+                    id="newPassword"
+                    type={showNew ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="input-dark w-full pr-10 text-sm"
+                    placeholder="Ít nhất 8 ký tự"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-xs text-gray-400 mb-1.5 font-medium">Xác nhận mật khẩu mới</label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-dark w-full pr-10 text-sm"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={pwLoading}
+                className="btn-green text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {pwLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+
+      {/* Danger zone */}
+      <div className="card-dark p-6" style={{ borderColor: "rgba(239,68,68,0.2)" }}>
+        <h3 className="font-semibold text-red-400 mb-2">Vùng nguy hiểm</h3>
+        <p className="text-xs text-gray-400 mb-4">Hành động này không thể hoàn tác. Tất cả dữ liệu của bạn sẽ bị xoá vĩnh viễn.</p>
+
+        {deleteError && (
+          <div
+            className="p-3 rounded-lg text-sm text-red-400 border border-red-400/20 mb-4"
+            style={{ background: "rgba(239,68,68,0.08)" }}
+          >
+            {deleteError}
+          </div>
+        )}
+
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-sm font-medium text-red-400 px-4 py-2 rounded-lg border border-red-900 hover:bg-red-950 transition-colors"
+          >
+            Xoá tài khoản
+          </button>
+        ) : (
+          <div
+            className="p-4 rounded-lg border border-red-900/50 space-y-3"
+            style={{ background: "rgba(239,68,68,0.05)" }}
+          >
+            <div className="flex items-start gap-2 text-sm text-red-300">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <span>Bạn có chắc chắn muốn xoá tài khoản? Tất cả dữ liệu bao gồm khoá học, tiến độ và lịch sử sẽ bị xoá vĩnh viễn và không thể khôi phục.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="text-sm font-medium text-white bg-red-700 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
+              >
+                {deleteLoading ? "Đang xoá..." : "Xác nhận xoá tài khoản"}
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); }}
+                disabled={deleteLoading}
+                className="text-sm text-gray-400 hover:text-gray-200 px-4 py-2 rounded-lg transition-colors"
+              >
+                Huỷ
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface Order {
+  id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  product: { title: string } | null;
+}
+
+function BillingTab() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("orders")
+        .select("id, amount, status, created_at, products(title)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setOrders((data ?? []).map((o: any) => ({
+            ...o,
+            product: Array.isArray(o.products) ? o.products[0] : o.products,
+          })));
+          setLoading(false);
+        });
+    });
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="card-dark p-6">
+        <h3 className="font-semibold text-white mb-4">Lịch sử thanh toán</h3>
+        {loading ? (
+          <p className="text-sm text-gray-500">Đang tải...</p>
+        ) : orders.length === 0 ? (
+          <p className="text-sm text-gray-500">Chưa có giao dịch nào.</p>
+        ) : (
+          <div className="space-y-3">
+            {orders.map((o) => (
+              <div key={o.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+                <div>
+                  <div className="text-sm font-medium text-white">{o.product?.title ?? "Khoá học"}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {new Date(o.created_at).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Ho_Chi_Minh" })}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-bold text-white">{o.amount.toLocaleString("vi-VN")}đ</div>
+                  <div className={`text-[10px] font-medium ${o.status === "paid" ? "text-[#22c55e]" : o.status === "pending" ? "text-[#f59e0b]" : "text-gray-500"}`}>
+                    {o.status === "paid" ? "Đã thanh toán" : o.status === "pending" ? "Chờ thanh toán" : o.status}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
+  const [active, setActive] = useState("profile");
+
+  return (
+    <div>
+      <TopBar title="Cài đặt" subtitle="Quản lý tài khoản và tuỳ chọn của bạn" />
+
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+        {/* Mobile: horizontal scrollable tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-4 md:hidden no-scrollbar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActive(tab.id)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0"
+              style={
+                active === tab.id
+                  ? { background: "rgba(212,168,67,0.1)", color: "#D4A843", border: "1px solid rgba(212,168,67,0.25)" }
+                  : { color: "#9ca3af", background: "#1a1a1a", border: "1px solid #2a2a2a" }
+              }
+            >
+              <tab.icon size={14} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-6">
+          {/* Desktop: Tab sidebar */}
+          <div className="w-52 shrink-0 hidden md:block">
+            <div className="card-dark p-2 space-y-0.5">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActive(tab.id)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all group"
+                  style={
+                    active === tab.id
+                      ? { background: "rgba(212,168,67,0.1)", color: "#D4A843" }
+                      : { color: "#9ca3af" }
+                  }
+                >
+                  <div className="flex items-center gap-2.5">
+                    <tab.icon size={16} />
+                    <span>{tab.label}</span>
+                  </div>
+                  <ChevronRight
+                    size={14}
+                    className={active === tab.id ? "text-[#D4A843]" : "text-gray-500 group-hover:text-gray-400"}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {active === "profile" && <ProfileTab searchParams={searchParams} />}
+            {active === "notifications" && <NotificationsTab />}
+            {active === "security" && <SecurityTab />}
+            {active === "billing" && <BillingTab />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,705 @@
+import TopBar from "@/components/layout/TopBar";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getRevenueSplit } from "@/lib/orders-revenue";
+import { vnDayKey } from "@/lib/vn-time";
+import Link from "next/link";
+import {
+  TrendingUp, ShoppingCart, Users, DollarSign,
+  BarChart2, Package, AlertCircle, Gift,
+  UserCheck, Target, ClipboardList, AlertTriangle, GitBranch,
+} from "lucide-react";
+
+/* ---------- helpers ---------- */
+
+function formatVND(amount: number): string {
+  return amount.toLocaleString("vi-VN") + "đ";
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins} phút trước`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} giờ trước`;
+  return `${Math.floor(hrs / 24)} ngày trước`;
+}
+
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  paid:      { label: "Đã TT",   color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+  pending:   { label: "Chờ XL",  color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+  cancelled: { label: "Đã huỷ",  color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
+};
+
+/* ---------- page ---------- */
+
+export default async function CRMPage() {
+  const supabase = await createClient();
+  const adminClient = await createAdminClient();
+
+  // Last-30-day window (matches the legacy `daily_revenue` view's `>= now() -
+  // interval '30 days'` clause), used by the per-day chart query below.
+  const chartFrom = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+  const chartFromIso = chartFrom.toISOString();
+
+  // Fetch all data in parallel. We keep the `crm_overview` view for
+  // total_customers / pending_orders (which the split doesn't touch) but
+  // compute revenue + paid-order count ourselves via `getRevenueSplit` so
+  // external grants don't inflate the cash KPI. Same story for top products
+  // and the per-day chart — both filter to platform-only paid orders.
+  const [
+    overviewRes,
+    dailyChartRes,
+    recentOrdersRes,
+    topProductsRes,
+    lifetimeSplit,
+  ] = await Promise.all([
+    supabase.from("crm_overview").select("*").single(),
+    // Per-day chart: pull every paid order in the last 30 days with its
+    // source flag, bucket client-side. Lets us draw a platform bar and a
+    // dashed external overlay without two more round-trips.
+    supabase
+      .from("orders")
+      .select("amount, paid_at, revenue_source")
+      .eq("status", "paid")
+      .gte("paid_at", chartFromIso),
+    supabase
+      .from("orders")
+      .select("id, order_code, customer_name, customer_email, amount, status, paid_at, created_at, products(title)")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    // Top products is "money the website earned per product" — restrict to
+    // platform cash so an external grant doesn't crown a course bestseller.
+    supabase
+      .from("orders")
+      .select("product_id, products(title), amount")
+      .eq("status", "paid")
+      .or("revenue_source.is.null,revenue_source.eq.platform"),
+    getRevenueSplit(adminClient),
+  ]);
+
+  // CRM-specific queries
+  const [unassignedRes, pipelineRes, pendingTasksRes, totalContactsRes, customerContactsRes, journeyFunnelRes] = await Promise.all([
+    adminClient
+      .from("crm_contacts")
+      .select("id", { count: "exact", head: true })
+      .is("assigned_to", null)
+      .in("journey_stage", ["visitor", "lead", "contacted"]),
+    adminClient
+      .from("crm_deals")
+      .select("id", { count: "exact", head: true })
+      .not("stage", "in", "(won,lost)"),
+    adminClient
+      .from("crm_next_actions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    adminClient
+      .from("crm_contacts")
+      .select("id", { count: "exact", head: true }),
+    adminClient
+      .from("crm_contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("journey_stage", "customer"),
+    adminClient
+      .from("crm_contacts")
+      .select("journey_stage")
+      .not("journey_stage", "is", null),
+  ]);
+
+  const unassignedLeads = unassignedRes.count ?? 0;
+  const activePipeline = pipelineRes.count ?? 0;
+  const pendingTasks = pendingTasksRes.count ?? 0;
+  const totalContacts = totalContactsRes.count ?? 0;
+  const customerContacts = customerContactsRes.count ?? 0;
+  const conversionRate = totalContacts > 0 ? Math.round((customerContacts / totalContacts) * 100) : 0;
+
+  // Journey funnel aggregation
+  const journeyStageOrder = ["lead", "contacted", "qualified", "negotiation", "customer", "advocate"];
+  const journeyStageLabels: Record<string, string> = {
+    visitor: "Visitor",
+    lead: "Lead",
+    contacted: "Contacted",
+    qualified: "Qualified",
+    negotiation: "Negotiation",
+    customer: "Customer",
+    advocate: "Advocate",
+  };
+  const journeyStageColors: Record<string, string> = {
+    lead: "#3b82f6",
+    contacted: "#8b5cf6",
+    qualified: "#f59e0b",
+    negotiation: "#ef4444",
+    customer: "#22c55e",
+    advocate: "#D4A843",
+  };
+  const journeyCountMap = new Map<string, number>();
+  for (const row of (journeyFunnelRes.data ?? []) as { journey_stage: string }[]) {
+    const stage = row.journey_stage;
+    if (journeyStageOrder.includes(stage)) {
+      journeyCountMap.set(stage, (journeyCountMap.get(stage) ?? 0) + 1);
+    }
+  }
+  const journeyFunnel = journeyStageOrder
+    .map((stage) => ({
+      stage,
+      label: journeyStageLabels[stage] ?? stage,
+      count: journeyCountMap.get(stage) ?? 0,
+      color: journeyStageColors[stage] ?? "#6b7280",
+    }))
+    .filter((item) => item.count > 0 || journeyStageOrder.indexOf(item.stage) < 4);
+  const maxFunnelCount = Math.max(...journeyFunnel.map((f) => f.count), 1);
+
+  const overviewRaw = overviewRes.data ?? {
+    total_orders: 0,
+    total_revenue: 0,
+    total_customers: 0,
+    avg_order_value: 0,
+    pending_orders: 0,
+  };
+  // We only trust `total_customers` and `pending_orders` from the view (the
+  // view sums revenue blindly, including external grants). Cash KPIs come
+  // from `lifetimeSplit` instead.
+  const overview = {
+    total_orders: lifetimeSplit.platformCount,
+    total_revenue: lifetimeSplit.platformAmount,
+    total_customers: (overviewRaw as { total_customers?: number }).total_customers ?? 0,
+    avg_order_value:
+      lifetimeSplit.platformCount > 0
+        ? lifetimeSplit.platformAmount / lifetimeSplit.platformCount
+        : 0,
+    pending_orders: (overviewRaw as { pending_orders?: number }).pending_orders ?? 0,
+  };
+  const externalCount = lifetimeSplit.externalCount;
+  const externalAmount = lifetimeSplit.externalAmount;
+
+  // Bucket the last 30 days client-side, keyed by the VN-local day (00:00–24:00
+  // Asia/Ho_Chi_Minh) of `paid_at` so each bar matches the calendar day a VN
+  // admin sees — not the UTC day (which rolls over at 07:00 VN).
+  type DailyRow = {
+    day: string;
+    revenue: number;
+    revenue_platform: number;
+    revenue_external: number;
+    orders: number;
+  };
+  const dailyBuckets = new Map<string, DailyRow>();
+  for (const row of (dailyChartRes.data ?? []) as Array<{
+    amount: number | null;
+    paid_at: string | null;
+    revenue_source: string | null;
+  }>) {
+    if (!row.paid_at) continue;
+    const day = vnDayKey(row.paid_at); // VN-local day (00:00–24:00 ICT)
+    let bucket = dailyBuckets.get(day);
+    if (!bucket) {
+      bucket = {
+        day,
+        revenue: 0,
+        revenue_platform: 0,
+        revenue_external: 0,
+        orders: 0,
+      };
+      dailyBuckets.set(day, bucket);
+    }
+    const amt = row.amount ?? 0;
+    const src = row.revenue_source ?? "platform";
+    bucket.orders += 1;
+    if (src === "external") {
+      bucket.revenue_external += amt;
+    } else if (src === "comp") {
+      // comp = no cash, but the order count still moved above so the tooltip
+      // matches what the operator just recorded. No revenue contribution.
+    } else {
+      bucket.revenue_platform += amt;
+    }
+    // Headline `revenue` on the chart bar = platform cash, mirroring the
+    // sale-dashboard convention (RevenueTrend.tsx).
+    bucket.revenue = bucket.revenue_platform;
+  }
+  const dailyRevenue: DailyRow[] = Array.from(dailyBuckets.values()).sort(
+    (a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0),
+  );
+
+  const recentOrders = ((recentOrdersRes.data ?? []) as unknown as {
+    id: string;
+    order_code: string;
+    customer_name: string | null;
+    customer_email: string | null;
+    amount: number;
+    status: string;
+    paid_at: string | null;
+    created_at: string;
+    products: { title: string } | null;
+  }[]);
+
+  // Aggregate top products by revenue
+  const productRevMap = new Map<string, { title: string; revenue: number; orders: number }>();
+  for (const row of ((topProductsRes.data ?? []) as unknown as { product_id: string; products: { title: string } | null; amount: number }[])) {
+    const title = row.products?.title ?? "Không rõ";
+    const existing = productRevMap.get(title);
+    if (existing) {
+      existing.revenue += row.amount;
+      existing.orders += 1;
+    } else {
+      productRevMap.set(title, { title, revenue: row.amount, orders: 1 });
+    }
+  }
+  const topProducts = Array.from(productRevMap.values())
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
+  // Stats cards. The first four are platform-only cash KPIs; the fifth is
+  // the dedicated external-grant card (count + value, info only — these are
+  // sales recorded in other channels, not money the website collected).
+  const stats: Array<{
+    label: string;
+    value: string;
+    sub?: string;
+    icon: typeof DollarSign;
+    color: string;
+  }> = [
+    {
+      label: "Doanh thu (nền tảng)",
+      value: formatVND(overview.total_revenue),
+      icon: DollarSign,
+      color: "#f59e0b",
+    },
+    {
+      label: "Đơn đã TT (nền tảng)",
+      value: String(overview.total_orders),
+      sub: `${overview.pending_orders} đang chờ`,
+      icon: ShoppingCart,
+      color: "#a855f7",
+    },
+    {
+      label: "Khách hàng",
+      value: String(overview.total_customers),
+      icon: Users,
+      color: "#D4A843",
+    },
+    {
+      label: "TB/đơn hàng",
+      value: formatVND(Math.round(overview.avg_order_value)),
+      icon: TrendingUp,
+      color: "#3b82f6",
+    },
+    {
+      label: "Doanh thu cấp khóa ngoài",
+      value: formatVND(externalAmount),
+      sub: `${externalCount} đơn cấp khóa`,
+      icon: Gift,
+      color: "#22c55e",
+    },
+  ];
+
+  // Chart calculations. The bar height is platform cash (the headline); the
+  // dashed overlay shows external grants in the same period so they're not
+  // invisible — but they never push the bar taller.
+  const maxRevenue = dailyRevenue.length > 0
+    ? Math.max(
+        ...dailyRevenue.map((d) =>
+          Math.max(d.revenue_platform, d.revenue_external),
+        ),
+        1,
+      )
+    : 1;
+  const totalChartRevenue = dailyRevenue.reduce(
+    (sum, d) => sum + d.revenue_platform,
+    0,
+  );
+  const totalChartExternal = dailyRevenue.reduce(
+    (sum, d) => sum + d.revenue_external,
+    0,
+  );
+
+  // Order status breakdown for donut
+  const paidCount = overview.total_orders;
+  const totalOrdersAll = paidCount + overview.pending_orders;
+  const paidPct = totalOrdersAll > 0 ? Math.round((paidCount / totalOrdersAll) * 100) : 0;
+  const pendingPct = totalOrdersAll > 0 ? Math.round((overview.pending_orders / totalOrdersAll) * 100) : 0;
+
+  const maxProductRevenue = topProducts.length > 0
+    ? Math.max(...topProducts.map((p) => p.revenue))
+    : 1;
+
+  return (
+    <div>
+      <TopBar title="CRM & Doanh số" subtitle="Quản lý kinh doanh của bạn" />
+
+      <div className="p-6 max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div>
+          <h2 className="text-xl font-bold text-white">CRM Command Center</h2>
+          <p className="text-gray-400 text-sm">Tổng quan hoạt động kinh doanh & quản lý khách hàng</p>
+        </div>
+
+        {/* CRM Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Lead chưa phân công", value: String(unassignedLeads), icon: AlertTriangle, color: "#ef4444" },
+            { label: "Pipeline đang hoạt động", value: String(activePipeline), icon: Target, color: "#3b82f6" },
+            { label: "Task đang chờ", value: String(pendingTasks), icon: ClipboardList, color: "#f59e0b" },
+            { label: "Tỷ lệ chuyển đổi", value: `${conversionRate}%`, icon: TrendingUp, color: "#22c55e" },
+          ].map((s, i) => (
+            <div key={i} className="stat-card">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">{s.label}</span>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: s.color + "20" }}
+                >
+                  <s.icon size={15} style={{ color: s.color }} />
+                </div>
+              </div>
+              <div className="text-xl font-bold text-white">{s.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { href: "/crm/contacts", label: "Khách hàng", desc: "Quản lý danh sách liên hệ", icon: Users, color: "#D4A843" },
+            { href: "/crm/pipeline", label: "Pipeline", desc: "Theo dõi cơ hội kinh doanh", icon: GitBranch, color: "#8b5cf6" },
+            { href: "/crm/performance", label: "Hiệu suất Sale", desc: "Phân tích hiệu quả bán hàng", icon: TrendingUp, color: "#3b82f6" },
+            { href: "/crm/assignments", label: "Phân công Lead", desc: "Phân bổ lead cho sale", icon: UserCheck, color: "#22c55e" },
+          ].map((link) => (
+            <Link key={link.href} href={link.href}>
+              <div className="card-dark p-4 hover:border-[#3a3a3a] hover:bg-[#1e1e1e] transition-all cursor-pointer group">
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center"
+                    style={{ background: link.color + "15" }}
+                  >
+                    <link.icon size={16} style={{ color: link.color }} />
+                  </div>
+                  <span className="text-sm font-semibold text-white group-hover:text-[#D4A843] transition-colors">
+                    {link.label}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">{link.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Journey Funnel */}
+        <div className="card-dark p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Target size={16} className="text-[#3b82f6]" />
+            <h3 className="font-semibold text-white">Customer Journey Funnel</h3>
+          </div>
+          {journeyFunnel.length > 0 ? (
+            <div className="space-y-3">
+              {journeyFunnel.map((item) => {
+                const barPct = (item.count / maxFunnelCount) * 100;
+                return (
+                  <div key={item.stage} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400 w-24 shrink-0 text-right">
+                      {item.label}
+                    </span>
+                    <div className="flex-1 h-7 rounded-md overflow-hidden" style={{ background: "#1a1a1a" }}>
+                      <div
+                        className="h-full rounded-md flex items-center px-3 transition-all"
+                        style={{
+                          width: `${Math.max(barPct, 5)}%`,
+                          background: item.color + "30",
+                          borderLeft: `3px solid ${item.color}`,
+                        }}
+                      >
+                        <span className="text-xs font-semibold text-white">{item.count}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
+              Chưa có dữ liệu journey
+            </div>
+          )}
+        </div>
+
+        {/* Revenue Stats Header */}
+        <div>
+          <h2 className="text-xl font-bold text-white">Tổng quan doanh số</h2>
+          <p className="text-gray-400 text-sm">Dữ liệu cập nhật theo thời gian thực</p>
+        </div>
+
+        {/* Stats — 5-up at lg+ since we added the dedicated external card.
+            On md we go 3-up so the labels stay readable. */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {stats.map((s, i) => (
+            <div key={i} className="stat-card">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">{s.label}</span>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: s.color + "20" }}
+                >
+                  <s.icon size={15} style={{ color: s.color }} />
+                </div>
+              </div>
+              <div className="text-xl font-bold text-white">{s.value}</div>
+              {s.sub && <div className="text-xs text-gray-500 mt-0.5">{s.sub}</div>}
+            </div>
+          ))}
+        </div>
+
+        {/* Pending orders alert */}
+        {overview.pending_orders > 0 && (
+          <div
+            className="flex items-center gap-3 p-3 rounded-xl text-sm"
+            style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}
+          >
+            <AlertCircle size={16} className="text-[#f59e0b] shrink-0" />
+            <div>
+              <strong className="text-white">
+                {overview.pending_orders} đơn hàng đang chờ xử lý
+              </strong>
+              <span className="text-gray-400 ml-2">
+                — Kiểm tra và xác nhận thanh toán.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Charts Row */}
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Revenue Chart */}
+          <div className="card-dark p-5 md:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-white text-sm">
+                  Doanh thu 30 ngày qua
+                </h3>
+                <div className="text-xl font-bold text-white mt-1">
+                  {formatVND(totalChartRevenue)}
+                </div>
+                <div className="text-xs text-gray-400 flex items-center gap-1">
+                  <BarChart2 size={11} />
+                  {dailyRevenue.length} ngày có doanh thu
+                </div>
+                {totalChartExternal > 0 && (
+                  <div className="text-[11px] text-[#22c55e] flex items-center gap-1 mt-1">
+                    <Gift size={10} />
+                    + {formatVND(totalChartExternal)} cấp khóa ngoài
+                  </div>
+                )}
+              </div>
+              {/* Inline legend so the dual stack reads correctly. */}
+              <div className="hidden sm:flex flex-col gap-1 text-[10px] text-gray-400">
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "#D4A843" }} />
+                  Nền tảng
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-sm"
+                    style={{ background: "rgba(34,197,94,0.45)", border: "1px dashed #22c55e" }}
+                  />
+                  Cấp ngoài
+                </div>
+              </div>
+            </div>
+            {dailyRevenue.length > 0 ? (
+              <div className="flex items-end gap-1 h-32 mt-4">
+                {dailyRevenue.map((d, i) => {
+                  const platformPct = (d.revenue_platform / maxRevenue) * 100;
+                  const externalPct = (d.revenue_external / maxRevenue) * 100;
+                  const dayLabel = new Date(d.day).toLocaleDateString("vi-VN", {
+                    day: "numeric",
+                    month: "numeric",
+                    timeZone: "Asia/Ho_Chi_Minh",
+                  });
+                  const tooltip =
+                    d.revenue_external > 0
+                      ? `${dayLabel}: ${formatVND(d.revenue_platform)} nền tảng + ${formatVND(d.revenue_external)} cấp ngoài (${d.orders} đơn)`
+                      : `${dayLabel}: ${formatVND(d.revenue_platform)} (${d.orders} đơn)`;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 flex flex-col items-center gap-1 group relative"
+                      title={tooltip}
+                    >
+                      {/* External overlay sits ABOVE the platform bar so it
+                          reads as supplementary signal, not part of cash. */}
+                      <div className="w-full flex flex-col justify-end" style={{ height: "100%" }}>
+                        {d.revenue_external > 0 && (
+                          <div
+                            className="w-full transition-all"
+                            style={{
+                              height: `${externalPct}%`,
+                              background: "rgba(34,197,94,0.35)",
+                              borderTop: "1px dashed #22c55e",
+                              minHeight: 2,
+                            }}
+                          />
+                        )}
+                        <div
+                          className="w-full rounded-t transition-all hover:opacity-80"
+                          style={{
+                            height: `${platformPct}%`,
+                            background: "#D4A843",
+                            minHeight: d.revenue_platform > 0 ? 4 : 0,
+                          }}
+                        />
+                      </div>
+                      {dailyRevenue.length <= 15 && (
+                        <span className="text-[9px] text-gray-500">{dayLabel}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+                Chưa có dữ liệu doanh thu
+              </div>
+            )}
+          </div>
+
+          {/* Order Status Donut */}
+          <div className="card-dark p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-white text-sm">Trạng thái đơn hàng</h3>
+            </div>
+            <div className="flex justify-center mb-4">
+              <div
+                className="w-24 h-24 rounded-full flex items-center justify-center font-bold text-white"
+                style={{
+                  background: totalOrdersAll > 0
+                    ? `conic-gradient(#22c55e 0% ${paidPct}%, #f59e0b ${paidPct}% ${paidPct + pendingPct}%, #6b7280 ${paidPct + pendingPct}% 100%)`
+                    : "#2a2a2a",
+                }}
+              >
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{ background: "#1a1a1a" }}
+                >
+                  {totalOrdersAll > 0 ? `${paidPct}%` : "—"}
+                </div>
+              </div>
+            </div>
+            {[
+              { label: "Đã thanh toán", count: paidCount, color: "#22c55e" },
+              { label: "Chờ xử lý", count: overview.pending_orders, color: "#f59e0b" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center justify-between py-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ background: item.color }} />
+                  <span className="text-xs text-gray-400">{item.label}</span>
+                </div>
+                <span className="text-xs font-semibold text-white">{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Orders */}
+        <div className="card-dark">
+          <div className="flex items-center justify-between p-5 border-b border-[#2a2a2a]">
+            <h3 className="font-semibold text-white">Đơn hàng gần đây</h3>
+            <span className="text-xs text-gray-500">10 đơn mới nhất</span>
+          </div>
+          {recentOrders.length > 0 ? (
+            <div className="divide-y divide-[#2a2a2a]">
+              {recentOrders.map((order) => {
+                const st = statusConfig[order.status] ?? statusConfig.cancelled;
+                const productTitle =
+                  order.products?.title ?? "—";
+                const displayName = order.customer_name || order.customer_email || "Khách hàng";
+                const initial = displayName.charAt(0).toUpperCase();
+                return (
+                  <div key={order.id} className="flex items-center gap-4 p-4">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                      style={{ background: "linear-gradient(135deg,#3b82f6,#1d4ed8)" }}
+                    >
+                      {initial}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">
+                        {displayName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {productTitle} &bull; {timeAgo(order.created_at)}
+                      </p>
+                    </div>
+                    <div className="text-sm font-semibold text-white">
+                      {formatVND(order.amount)}
+                    </div>
+                    <span
+                      className="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
+                      style={{ background: st.bg, color: st.color }}
+                    >
+                      {st.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
+              Chưa có đơn hàng nào
+            </div>
+          )}
+        </div>
+
+        {/* Top Products */}
+        <div className="card-dark p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Package size={16} className="text-[#D4A843]" />
+            <h3 className="font-semibold text-white">Sản phẩm bán chạy</h3>
+          </div>
+          {topProducts.length > 0 ? (
+            <div className="space-y-3">
+              {topProducts.map((product, i) => {
+                const barPct = (product.revenue / maxProductRevenue) * 100;
+                return (
+                  <div key={product.title} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold"
+                          style={{
+                            background: i === 0 ? "rgba(245,158,11,0.15)" : "rgba(255,255,255,0.05)",
+                            color: i === 0 ? "#f59e0b" : "#9ca3af",
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+                        <span className="text-sm text-white">{product.title}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-semibold text-white">
+                          {formatVND(product.revenue)}
+                        </span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          {product.orders} đơn
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#1a1a1a" }}>
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${barPct}%`,
+                          background: i === 0 ? "#f59e0b" : "#D4A843",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8 text-gray-500 text-sm">
+              Chưa có dữ liệu sản phẩm
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

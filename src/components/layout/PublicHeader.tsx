@@ -59,6 +59,12 @@ export default function PublicHeader({ user }: PublicHeaderProps) {
             Khoá học
           </Link>
           <Link
+            href="/shop"
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            Cửa hàng
+          </Link>
+          <Link
             href="/blog"
             className="text-sm text-gray-400 hover:text-white transition-colors"
           >
