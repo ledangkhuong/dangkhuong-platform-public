@@ -41,6 +41,18 @@ export async function GET(req: NextRequest) {
           const orderType = (order as { order_type?: string | null }).order_type ?? null;
           const isPhysical = orderType === "physical" || orderType === "mixed";
 
+          // 0) Trừ tồn kho (Week 7) — best-effort, idempotent. Helper tự
+          //    skip nếu webhook đã trừ trước đó.
+          try {
+            const { deductInventory } = await import("@/lib/ecommerce/inventory");
+            const invRes = await deductInventory(order.id as string);
+            if (!invRes.ok) {
+              console.warn(`[PayOS Success] deductInventory failed (non-blocking) for ${order.order_code}:`, invRes.error);
+            }
+          } catch (invErr) {
+            console.error("[PayOS Success] deductInventory hook error (non-critical):", invErr);
+          }
+
           // 1) Best-effort shipment creation cho physical/mixed orders.
           //    createShipment đã idempotent (check shipments table), nhưng ta
           //    vẫn check trước để tránh import/call thừa.

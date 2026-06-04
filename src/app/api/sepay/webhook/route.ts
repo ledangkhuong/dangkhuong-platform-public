@@ -258,6 +258,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // 4.5 Trừ tồn kho (Week 7) — best-effort, idempotent. Helper tự skip
+    //     nếu order không có physical/digital items hoặc đã trừ trước đó.
+    try {
+      const { deductInventory } = await import("@/lib/ecommerce/inventory");
+      const invRes = await deductInventory(order.id as string);
+      if (!invRes.ok) {
+        console.warn(`[Sepay] ⚠️ deductInventory failed (non-blocking) for ${matchedCode}:`, invRes.error);
+      } else if (invRes.skipped) {
+        console.log(`[Sepay] Inventory deduct skipped for ${matchedCode}: ${invRes.skipped}`);
+      } else {
+        console.log(`[Sepay] 📦 Inventory deducted for ${matchedCode}: ${invRes.adjustments.length} variant(s)`);
+      }
+    } catch (invErr) {
+      console.error(`[Sepay] deductInventory threw (non-blocking) for ${matchedCode}:`, invErr);
+    }
+
     // 4a.0 Auto-tạo user account nếu order chưa có user_id (khách CK trực tiếp
     //      mà chưa đăng ký). Sau khi tạo, gắn user_id vào order để các bước
     //      enrollment / progression / Zalo invite chạy được.

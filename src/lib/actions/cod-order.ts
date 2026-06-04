@@ -214,6 +214,25 @@ export async function confirmCODOrder(
     }
   }
 
+  // 3.5) Trừ tồn kho (Week 7) — best-effort, idempotent.
+  //      COD chỉ tạo shipment sau khi admin confirm, nên đây là điểm
+  //      mark đơn 'paid' — cần trừ stock luôn để đồng bộ với Sepay/PayOS.
+  try {
+    const { deductInventory } = await import("@/lib/ecommerce/inventory");
+    const invRes = await deductInventory(orderId);
+    if (!invRes.ok) {
+      console.warn(
+        "[cod-order/confirmCODOrder] deductInventory failed (non-fatal):",
+        invRes.error,
+      );
+    }
+  } catch (err) {
+    console.error(
+      "[cod-order/confirmCODOrder] deductInventory threw (non-fatal):",
+      err,
+    );
+  }
+
   // 4) Tạo vận đơn — best-effort, không block confirm.
   let shipmentId: string | null = null;
   let shipmentError: string | null = null;

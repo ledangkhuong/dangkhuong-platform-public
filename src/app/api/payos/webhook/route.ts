@@ -170,6 +170,21 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // 5a. Trừ tồn kho (Week 7) — best-effort, idempotent.
+    try {
+      const { deductInventory } = await import("@/lib/ecommerce/inventory");
+      const invRes = await deductInventory(order.id);
+      if (!invRes.ok) {
+        console.warn(`[PayOS] ⚠️ deductInventory failed (non-blocking) for ${order.order_code}:`, invRes.error);
+      } else if (invRes.skipped) {
+        console.log(`[PayOS] Inventory deduct skipped for ${order.order_code}: ${invRes.skipped}`);
+      } else {
+        console.log(`[PayOS] 📦 Inventory deducted for ${order.order_code}: ${invRes.adjustments.length} variant(s)`);
+      }
+    } catch (invErr) {
+      console.error(`[PayOS] deductInventory threw (non-blocking) for ${order.order_code}:`, invErr);
+    }
+
     // 5b. Handle subscription orders
     if (order.payment_method === "subscription") {
       try {

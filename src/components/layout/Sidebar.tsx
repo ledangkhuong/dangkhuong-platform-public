@@ -17,7 +17,7 @@ import {
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
   Video, Globe, Sparkles, Activity, Gauge, Filter, Layout, Link2,
-  Package, FolderTree,
+  Package, FolderTree, PackageOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -98,6 +98,7 @@ const adminNavGroups: AdminNavGroup[] = [
     color: "#22c55e",
     items: [
       { href: "/admin/orders", icon: Rocket, label: "Quản lý Đơn hàng", roles: ["admin", "manager", "sale"] },
+      { href: "/admin/orders/physical", icon: PackageOpen, label: "Đơn hàng vật lý", roles: ["admin", "manager", "sale", "support"] },
       { href: "/admin/products", icon: Package, label: "Sản phẩm", roles: ["admin", "manager", "sale"] },
       { href: "/admin/products/categories", icon: FolderTree, label: "Danh mục SP", roles: ["admin", "manager"] },
       { href: "/admin/users", icon: Users, label: "Quản lý Users", roles: ["admin", "manager", "sale"] },

@@ -9,6 +9,7 @@ import {
   TrendingUp, Plus, Settings, ArrowRight, AlertCircle, DollarSign, Gift
 } from "lucide-react";
 import AnalyticsDashboard from "@/components/admin/analytics/AnalyticsDashboardWrapper";
+import OrderStatsWidget from "@/components/admin/orders/OrderStatsWidget";
 import UserAvatar from "@/components/admin/UserAvatar";
 
 export default async function AdminPage() {
@@ -239,6 +240,10 @@ export default async function AdminPage() {
             </div>
           ))}
         </div>
+
+        {/* Physical orders widget (Week 7) — đặt ngay sau quick stats để
+            staff nhìn thấy ngay tình trạng giao nhận trước Analytics. */}
+        <OrderStatsWidget />
 
         {/* Analytics Dashboard */}
         <AnalyticsDashboard />
