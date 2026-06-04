@@ -17,7 +17,7 @@ import {
   FolderOpen, TrendingUp, Target, UserCheck, Tag, ClipboardCheck,
   CreditCard, GraduationCap, Megaphone, Eye, Shield,
   Video, Globe, Sparkles, Activity, Gauge, Filter, Layout, Link2,
-  Package, FolderTree, PackageOpen,
+  Package, FolderTree, PackageOpen, ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,6 +34,7 @@ const mainNav = [
   { href: "/resources", icon: FolderOpen, label: "Tài nguyên" },
   { href: "/community", icon: Users, label: "Cộng đồng" },
   { href: "/blog", icon: FileText, label: "Blog" },
+  { href: "/shop", icon: ShoppingBag, label: "Cửa hàng" },
   { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },
   { href: "/events", icon: Calendar, label: "Sự kiện" },
   { href: "/subscriptions", icon: CreditCard, label: "Gói đăng ký" },
