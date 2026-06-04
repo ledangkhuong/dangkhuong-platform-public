@@ -208,6 +208,20 @@ function compact<T extends Record<string, unknown>>(obj: T): Partial<T> {
   return out;
 }
 
+/**
+ * Map new ecommerce status values to legacy DB CHECK constraint values.
+ * The products table CHECK still only accepts 'draft' | 'published' from the
+ * original course schema. Until we can drop that constraint, translate.
+ *  - active   → published (live in storefront)
+ *  - archived → draft     (hide from storefront)
+ *  - draft    → draft
+ */
+function mapStatusToDb(status: string | null | undefined): string {
+  if (status === "active") return "published";
+  if (status === "archived") return "draft";
+  return status || "draft";
+}
+
 function revalidateProductSurfaces(slug?: string | null) {
   revalidatePath("/admin/products");
   revalidatePath("/shop");
@@ -257,7 +271,7 @@ export async function createProduct(
     compare_at_price: data.compare_at_price ?? null,
     cost: data.cost ?? null,
     product_type: data.product_type,
-    status: data.status ?? "draft",
+    status: mapStatusToDb(data.status),
     thumbnail_url: data.thumbnail_url ?? null,
     gallery_urls: data.gallery_urls ?? [],
     weight_grams: data.weight_grams ?? null,
@@ -327,7 +341,7 @@ export async function updateProduct(
     compare_at_price: data.compare_at_price,
     cost: data.cost,
     product_type: data.product_type,
-    status: data.status,
+    status: data.status !== undefined ? mapStatusToDb(data.status) : undefined,
     thumbnail_url: data.thumbnail_url,
     gallery_urls: data.gallery_urls,
     weight_grams: data.weight_grams,
