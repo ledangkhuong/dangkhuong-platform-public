@@ -28,10 +28,16 @@ const courseSubNav = [
   { href: "/courses?cat=personal_development", icon: Sparkles, label: "Phát triển bản thân", color: "#22c55e" },
 ];
 
+const shopSubNav = [
+  { href: "/shop?type=book", icon: BookOpen, label: "Sách", color: "#D4A843" },
+  { href: "/shop?type=merch", icon: Package, label: "Merch", color: "#ec4899" },
+  { href: "/shop?type=digital", icon: Sparkles, label: "Sản phẩm số", color: "#3b82f6" },
+];
+
 const mainNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
   { href: "/courses", icon: BookOpen, label: "Khoá học", subNav: courseSubNav },
-  { href: "/shop", icon: ShoppingBag, label: "Cửa hàng" },
+  { href: "/shop", icon: ShoppingBag, label: "Cửa hàng", subNav: shopSubNav },
   { href: "/resources", icon: FolderOpen, label: "Tài nguyên" },
   { href: "/community", icon: Users, label: "Cộng đồng" },
   { href: "/blog", icon: FileText, label: "Blog" },
