@@ -43,3 +43,6 @@ next-env.d.ts
 .vercel
 backup.env.txt
 *.env.txt
+
+# Workflow worktrees
+.claude/worktrees/

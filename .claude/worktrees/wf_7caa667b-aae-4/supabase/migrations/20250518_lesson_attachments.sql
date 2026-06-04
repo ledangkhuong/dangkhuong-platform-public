@@ -1,1 +1,0 @@
-ALTER TABLE lessons ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT '[]';
