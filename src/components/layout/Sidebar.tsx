@@ -31,10 +31,10 @@ const courseSubNav = [
 const mainNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Tổng quan" },
   { href: "/courses", icon: BookOpen, label: "Khoá học", subNav: courseSubNav },
+  { href: "/shop", icon: ShoppingBag, label: "Cửa hàng" },
   { href: "/resources", icon: FolderOpen, label: "Tài nguyên" },
   { href: "/community", icon: Users, label: "Cộng đồng" },
   { href: "/blog", icon: FileText, label: "Blog" },
-  { href: "/shop", icon: ShoppingBag, label: "Cửa hàng" },
   { href: "/leaderboard", icon: Trophy, label: "Bảng xếp hạng" },
   { href: "/events", icon: Calendar, label: "Sự kiện" },
   { href: "/subscriptions", icon: CreditCard, label: "Gói đăng ký" },
