@@ -1,9 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+/**
+ * PaymentStep — Week 6 wire-final.
+ *
+ * 3 phương thức:
+ *  - sepay: chuyển khoản qua QR Sepay (tự động xác nhận qua webhook).
+ *  - payos: link thanh toán PayOS (MoMo/ZaloPay/Banking).
+ *  - cod:   thanh toán khi nhận hàng.
+ *
+ * `bank_transfer` đã bỏ — flow manual ít dùng, Sepay đã thay thế.
+ *
+ * Component KHÔNG gọi server action ở đây — chỉ chọn method rồi
+ * `onNext({ method })`. Action thật chạy ở Review step (placeOrderDraft)
+ * và CheckoutFlow sẽ dispatch redirect tuỳ theo method:
+ *   - sepay → /checkout/success?order=...&method=sepay  (page render QR).
+ *   - payos → POST /api/payos/create → redirect checkoutUrl.
+ *   - cod   → /checkout/success?order=...&method=cod    (page render message).
+ */
+
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, QrCode, CreditCard, Banknote, AlertTriangle } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Banknote,
+  CreditCard,
+  QrCode,
+} from 'lucide-react';
 
 type PaymentMethod = 'sepay' | 'payos' | 'cod';
 
@@ -19,57 +44,70 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
   {
     id: 'sepay',
     name: 'Sepay',
-    description: 'Chuyển khoản qua mã QR Sepay (tự động xác nhận)',
+    description: 'Chuyển khoản qua mã QR Sepay (tự động xác nhận).',
     icon: <QrCode className="h-6 w-6" />,
   },
   {
     id: 'payos',
     name: 'PayOS',
-    description: 'Thanh toán PayOS (Visa / Master / ngân hàng nội địa)',
+    description: 'MoMo / ZaloPay / Internet Banking qua cổng PayOS.',
     icon: <CreditCard className="h-6 w-6" />,
   },
   {
     id: 'cod',
-    name: 'COD - Thanh toán khi nhận hàng',
-    description: 'Trả tiền mặt khi nhận hàng từ shipper',
+    name: 'COD — Thanh toán khi nhận hàng',
+    description: 'Trả tiền mặt khi nhận hàng từ shipper.',
     icon: <Banknote className="h-6 w-6" />,
     warning: 'Phương thức này cần xác minh thủ công với admin trước khi giao.',
   },
 ];
 
-interface PaymentStepProps {
-  onNext: () => void;
-  onBack: () => void;
-}
-
+const VALID_METHODS: readonly PaymentMethod[] = ['sepay', 'payos', 'cod'];
 const STORAGE_KEY = 'dk_checkout_payment';
 
-export default function PaymentStep({ onNext, onBack }: PaymentStepProps) {
-  const [method, setMethod] = useState<PaymentMethod>('sepay');
+interface PaymentStepProps {
+  /** Cha sẽ nhận `{ method }` để dispatch vào reducer + chuyển step. */
+  onNext: (payload: { method: PaymentMethod }) => void;
+  onBack: () => void;
+  /** Default selected method (từ state đã hydrate ở cha). */
+  defaultMethod?: PaymentMethod;
+}
 
-  // Hydrate from sessionStorage on mount
+export default function PaymentStep({
+  onNext,
+  onBack,
+  defaultMethod,
+}: PaymentStepProps) {
+  const [method, setMethod] = useState<PaymentMethod>(
+    defaultMethod && VALID_METHODS.includes(defaultMethod)
+      ? defaultMethod
+      : 'sepay',
+  );
+
+  // Hydrate from sessionStorage on mount (chỉ khi cha không truyền default).
   useEffect(() => {
+    if (defaultMethod) return;
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as { method?: PaymentMethod };
-        if (parsed.method && ['sepay', 'payos', 'cod'].includes(parsed.method)) {
+        if (parsed.method && VALID_METHODS.includes(parsed.method)) {
           setMethod(parsed.method);
         }
       }
     } catch {
       // ignore
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleNext = () => {
-    // TODO: WEEK_6 wire Sepay redirect + PayOS createPaymentRequest
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ method }));
     } catch {
       // ignore
     }
-    onNext();
+    onNext({ method });
   };
 
   return (

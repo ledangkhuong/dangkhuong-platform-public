@@ -539,7 +539,12 @@ export async function previewOrder(
 export async function placeOrderDraft(
   input: CheckoutState
 ): Promise<
-  CheckoutResult<{ orderCode: string; orderId: string }>
+  CheckoutResult<{
+    orderCode: string;
+    orderId: string;
+    paymentMethod: CheckoutPaymentMethodCode;
+    requiresPaymentRedirect: boolean;
+  }>
 > {
   try {
     // 1) Address re-validate
@@ -566,16 +571,22 @@ export async function placeOrderDraft(
       return { ok: false, error: "Phương thức vận chuyển không hợp lệ." };
     }
 
-    const paymentCode = (input.paymentMethod?.code ?? "").trim().toLowerCase();
-    const ALLOWED_PAYMENTS = new Set([
+    const paymentCodeRaw = (input.paymentMethod?.code ?? "")
+      .trim()
+      .toLowerCase();
+    const ALLOWED_PAYMENTS = new Set<CheckoutPaymentMethodCode>([
       "sepay",
       "payos",
       "cod",
       "bank_transfer",
     ]);
-    if (!paymentCode || !ALLOWED_PAYMENTS.has(paymentCode)) {
+    if (
+      !paymentCodeRaw ||
+      !ALLOWED_PAYMENTS.has(paymentCodeRaw as CheckoutPaymentMethodCode)
+    ) {
       return { ok: false, error: "Phương thức thanh toán không hợp lệ." };
     }
+    const paymentCode = paymentCodeRaw as CheckoutPaymentMethodCode;
 
     // 2) Cart + totals (server-side authoritative)
     const cart = await getCurrentCart();
@@ -611,14 +622,10 @@ export async function placeOrderDraft(
     let lastErr: unknown = null;
 
     for (let attempt = 0; attempt < 3; attempt++) {
-      // payment_method ở DB có CHECK constraint hẹp (xem
-      // external-orders.ts comment). Map placeholder → 'bank_transfer'
-      // cho code chưa được CHECK chấp nhận; field `payment_method`
-      // thật sẽ lưu raw code Week 6 sau khi mở rộng CHECK.
-      const paymentForDb =
-        paymentCode === "cod" || paymentCode === "bank_transfer"
-          ? "bank_transfer"
-          : "bank_transfer";
+      // Week 6: payment_method CHECK đã được relax để chấp nhận
+      // 'sepay' | 'payos' | 'cod' | 'bank_transfer'. Lưu raw code
+      // để webhook/admin biết đúng channel đã chọn.
+      const paymentForDb = paymentCode;
 
       const orderPayload: Record<string, unknown> = {
         order_code: orderCode,
@@ -741,7 +748,22 @@ export async function placeOrderDraft(
       );
     }
 
-    return { ok: true, orderCode, orderId: insertedOrderId };
+    // 8) Tín hiệu cho client biết next action:
+    //    - 'payos' → redirect sang PayOS checkout URL (client gọi
+    //      /api/payos/create để lấy URL).
+    //    - 'sepay' / 'bank_transfer' → hiện QR + chờ webhook xác nhận.
+    //    - 'cod' → không cần redirect, đơn ở 'pending' chờ admin confirm.
+    //    Shipment KHÔNG tạo ở bước này — đợi payment confirmation
+    //    (Sepay/PayOS webhook) hoặc admin manual cho COD.
+    const requiresPaymentRedirect = paymentCode === "payos";
+
+    return {
+      ok: true,
+      orderCode,
+      orderId: insertedOrderId,
+      paymentMethod: paymentCode,
+      requiresPaymentRedirect,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[checkout] placeOrderDraft failed", err);

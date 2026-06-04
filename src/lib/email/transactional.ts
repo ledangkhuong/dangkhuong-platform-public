@@ -99,21 +99,98 @@ export async function sendWelcomeEmail(to: string, name: string) {
   );
 }
 
+export type PurchaseConfirmationOptions = {
+  isPhysical?: boolean;
+  shippingTrackingUrl?: string;
+  orderType?: "course" | "physical" | "mixed";
+  shippingFee?: number;
+  estimatedDelivery?: string;
+};
+
 export async function sendPurchaseConfirmation(
   to: string,
   name: string,
   productName: string,
   amount: number,
   orderCode: string,
+  options: PurchaseConfirmationOptions = {},
 ) {
   const formattedAmount = amount.toLocaleString("vi-VN") + "₫";
+  const {
+    isPhysical,
+    shippingTrackingUrl,
+    orderType,
+    shippingFee,
+    estimatedDelivery,
+  } = options;
+
+  const hasPhysical =
+    isPhysical === true || orderType === "physical" || orderType === "mixed";
+
+  // ─── Shipping/tracking section (only for physical/mixed orders) ───
+  let shippingSection = "";
+  if (hasPhysical) {
+    const trackingBlock = shippingTrackingUrl
+      ? `
+        <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Mã theo dõi</div>
+        <div style="margin-bottom:12px;">
+          <a href="${escapeHtml(shippingTrackingUrl)}" style="color:#D4A843;font-weight:600;font-size:14px;text-decoration:underline;word-break:break-all;">
+            ${escapeHtml(shippingTrackingUrl)}
+          </a>
+        </div>`
+      : `
+        <div style="color:#9ca3af;font-size:13px;line-height:1.6;margin-bottom:12px;">
+          📦 Mã tracking sẽ được gửi sau khi đơn hàng được pickup bởi đơn vị vận chuyển. Bạn sẽ nhận email cập nhật ngay khi có.
+        </div>`;
+
+    const shippingFeeLine =
+      typeof shippingFee === "number" && shippingFee >= 0
+        ? `
+        <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Phí vận chuyển</div>
+        <div style="color:#fff;font-weight:600;font-size:14px;margin-bottom:12px;">${escapeHtml(shippingFee.toLocaleString("vi-VN") + "₫")}</div>`
+        : "";
+
+    const etaLine = estimatedDelivery
+      ? `
+        <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Dự kiến giao hàng</div>
+        <div style="color:#fff;font-weight:600;font-size:14px;margin-bottom:12px;">${escapeHtml(estimatedDelivery)}</div>`
+      : "";
+
+    shippingSection = `
+      <div style="background:#1d1f1d;border:1px solid rgba(212,168,67,0.25);border-radius:8px;padding:16px;margin:20px 0;">
+        <div style="color:#D4A843;font-weight:700;font-size:14px;margin-bottom:12px;">🚚 Theo dõi đơn hàng</div>
+        ${trackingBlock}
+        ${shippingFeeLine}
+        ${etaLine}
+      </div>`;
+  }
+
+  // ─── CTA: course vs physical-only ───
+  const ctaHref =
+    orderType === "physical"
+      ? `${getBaseUrl()}/account/orders`
+      : `${getBaseUrl()}/courses`;
+  const ctaLabel =
+    orderType === "physical"
+      ? "Xem đơn hàng →"
+      : orderType === "mixed"
+        ? "Vào học & xem đơn →"
+        : "Vào học ngay →";
+
+  const accessLine =
+    orderType === "physical"
+      ? "Chúng tôi đã nhận được thanh toán của bạn — đơn hàng đang được xử lý và giao đến địa chỉ của bạn."
+      : orderType === "mixed"
+        ? "Chúng tôi đã nhận được thanh toán của bạn — quyền truy cập khoá học đã kích hoạt và sản phẩm vật lý đang được chuẩn bị giao đến bạn."
+        : "Chúng tôi đã nhận được thanh toán của bạn và quyền truy cập đã được kích hoạt.";
+
   return sesSendEmail(
     to,
     `✅ Xác nhận thanh toán — ${escapeHtml(productName)}`,
     baseTemplate(`
       <h1>Thanh toán thành công! 🎉</h1>
       <p>Xin chào <span class="highlight">${escapeHtml(name)}</span>,</p>
-      <p>Chúng tôi đã nhận được thanh toán của bạn và quyền truy cập đã được kích hoạt.</p>
+      <p>${accessLine}</p>
       <div style="background:#222;border:1px solid #333;border-radius:8px;padding:16px;margin:20px 0;">
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Sản phẩm</div>
         <div style="color:#fff;font-weight:600;font-size:15px;margin-bottom:12px;">${escapeHtml(productName)}</div>
@@ -122,7 +199,8 @@ export async function sendPurchaseConfirmation(
         <div style="color:#6b7280;font-size:12px;margin-bottom:4px;">Mã đơn hàng</div>
         <div style="color:#9ca3af;font-family:monospace;font-size:13px;">DK${escapeHtml(orderCode)}</div>
       </div>
-      <a href="${getBaseUrl()}/courses" class="btn">Vào học ngay →</a>
+      ${shippingSection}
+      <a href="${ctaHref}" class="btn">${ctaLabel}</a>
       <div class="divider"></div>
       <p style="margin:0;font-size:13px;color:#6b7280;">Giữ email này làm biên lai. Nếu có vấn đề gì, reply email này để được hỗ trợ trong 24h.</p>
     `),

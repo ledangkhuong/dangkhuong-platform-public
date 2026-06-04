@@ -401,6 +401,40 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 4c. Physical/Mixed orders — tạo vận đơn GHN (best-effort, idempotent)
+    //
+    // BACKWARD COMPAT: nếu order.order_type không tồn tại (legacy course orders)
+    // hoặc giá trị là 'course'/null → skip hoàn toàn, không đụng tới flow cũ.
+    //
+    // Idempotency: createShipment() đã có internal check trên shipments table,
+    // nhưng ta vẫn check trước đây để tránh gọi không cần thiết khi webhook retry.
+    const orderType = (order as Record<string, unknown>).order_type as string | null | undefined;
+    if (orderType === "physical" || orderType === "mixed") {
+      try {
+        const { data: existingShipment } = await supabase
+          .from("shipments")
+          .select("id")
+          .eq("order_id", order.id as string)
+          .maybeSingle();
+
+        if (existingShipment) {
+          console.log(`[Sepay] Shipment đã tồn tại cho order ${matchedCode}, skip createShipment.`);
+        } else {
+          const { createShipment } = await import("@/lib/actions/shipping");
+          const shipRes = await createShipment(order.id as string);
+          if (shipRes.ok) {
+            console.log(`[Sepay] 📦 Created shipment for ${matchedCode}:`, shipRes.carrierOrderCode);
+          } else {
+            console.warn(`[Sepay] ⚠️ createShipment failed (non-blocking) for ${matchedCode}:`, shipRes.error);
+          }
+        }
+      } catch (shipErr) {
+        // Best-effort: lỗi tạo shipment KHÔNG block payment confirmation.
+        // Admin sẽ thấy order paid + shipping_status pending và xử lý thủ công.
+        console.error(`[Sepay] createShipment threw (non-blocking) for ${matchedCode}:`, shipErr);
+      }
+    }
+
     // 5. Cấp quyền truy cập khoá học
     if (order.user_id && order.product_id) {
       await supabase.from("enrollments").upsert({
@@ -442,6 +476,8 @@ export async function POST(req: NextRequest) {
       }
 
       // 8. Gửi email xác nhận mua hàng
+      // BACKWARD COMPAT: course-only orders → giữ nguyên flow cũ.
+      // Physical/mixed → gửi thêm 1 email ngắn báo tracking sẽ đến sau.
       try {
         const { sendPurchaseConfirmation } = await import("@/lib/email/transactional");
         const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", order.user_id).single();
@@ -454,6 +490,26 @@ export async function POST(req: NextRequest) {
             order.amount as number,
             order.order_code as string,
           ).catch((err) => console.error("[SePay Webhook] Non-critical error:", err));
+
+          // Physical/mixed: kèm thông báo tracking sẽ gửi sau
+          if (orderType === "physical" || orderType === "mixed") {
+            try {
+              const { sendEmail } = await import("@/lib/email/ses");
+              const fullName = profile?.full_name || "bạn";
+              await sendEmail(
+                authUser.user.email,
+                `📦 Đơn hàng ${order.order_code} — thông tin vận chuyển`,
+                `<div style="font-family:system-ui,-apple-system,sans-serif;color:#111;line-height:1.6;">
+                  <p>Xin chào <strong>${fullName}</strong>,</p>
+                  <p>Cảm ơn bạn đã đặt mua sản phẩm vật lý từ chúng tôi.</p>
+                  <p><strong>Bạn sẽ nhận tracking sau khi đơn được giao cho carrier.</strong> Chúng tôi sẽ gửi mã vận đơn qua email ngay khi đơn vị vận chuyển nhận hàng.</p>
+                  <p style="color:#6b7280;font-size:13px;">Mã đơn: <code>${order.order_code}</code></p>
+                </div>`,
+              ).catch((err) => console.error("[SePay Webhook] Shipping notice email error (non-critical):", err));
+            } catch (mailErr) {
+              console.warn("[Sepay] Shipping notice email failed (non-critical):", mailErr);
+            }
+          }
         }
       } catch {
         console.warn("[Sepay] Email confirmation failed (non-critical)");

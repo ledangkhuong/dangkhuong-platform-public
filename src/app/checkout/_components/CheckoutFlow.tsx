@@ -379,32 +379,24 @@ export default function CheckoutFlow({
   }, []);
 
   /**
-   * PaymentStep hiện ký interface `onNext: () => void` (đọc method từ
-   * sessionStorage). Wrap để đọc lại method từ sessionStorage và dispatch
-   * vào reducer.
+   * Week 6: PaymentStep nay trả về `{ method }` qua onNext payload. Bỏ
+   * 'bank_transfer' khỏi UI (vẫn còn trong type union để backward-compat
+   * với các order cũ đã lưu).
    */
-  const handlePaymentNext = useCallback(() => {
-    let method: PaymentMethod = "sepay";
-    try {
-      const raw = window.sessionStorage.getItem("dk_checkout_payment");
-      if (raw) {
-        const parsed = JSON.parse(raw) as { method?: PaymentMethod };
-        if (
-          parsed.method &&
-          ["sepay", "payos", "cod", "bank_transfer"].includes(parsed.method)
-        ) {
-          method = parsed.method;
-        }
+  const handlePaymentNext = useCallback(
+    ({ method }: { method: PaymentMethod }) => {
+      const allowed: PaymentMethod[] = ["sepay", "payos", "cod", "bank_transfer"];
+      const safeMethod: PaymentMethod = allowed.includes(method)
+        ? method
+        : "sepay";
+      dispatch({ type: "SET_PAYMENT", payment: { method: safeMethod } });
+      dispatch({ type: "NEXT_STEP" });
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
-    } catch {
-      // ignore
-    }
-    dispatch({ type: "SET_PAYMENT", payment: { method } });
-    dispatch({ type: "NEXT_STEP" });
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, []);
+    },
+    [],
+  );
 
   // -------------------------------------------------------------------------
   // Place order — Review step's onPlace callback.
@@ -424,14 +416,56 @@ export default function CheckoutFlow({
       throw new Error(result.error);
     }
 
-    // Thành công: clear session checkout + redirect success page.
+    // Thành công: clear session checkout (giữ method khi cần debug).
     clearSession();
     try {
       window.sessionStorage.removeItem("dk_checkout_payment");
     } catch {
       // ignore
     }
-    router.push(`/checkout/success?order=${encodeURIComponent(result.orderCode)}`);
+
+    const method = state.payment.method;
+    const code = encodeURIComponent(result.orderCode);
+
+    // Week 6 — branch theo payment method:
+    //   - 'payos' → gọi /api/payos/create lấy checkoutUrl rồi redirect
+    //     thẳng sang PayOS. Nếu fail → fallback success page (admin xử lý).
+    //   - 'sepay' / 'bank_transfer' → success page render QR + chờ webhook.
+    //   - 'cod' → success page chỉ hiển thị message xác nhận.
+    if (method === "payos") {
+      try {
+        const res = await fetch("/api/payos/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: result.orderId }),
+        });
+        const data = (await res.json()) as {
+          success?: boolean;
+          checkoutUrl?: string;
+          error?: string;
+        };
+        if (res.ok && data.success && data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+          return;
+        }
+        // PayOS create fail → fallback success page với cờ payos_failed
+        // để page hiển thị hướng dẫn liên hệ admin.
+        console.error("[checkout] PayOS create failed:", data.error);
+        router.push(
+          `/checkout/success?order=${code}&method=payos&payos_failed=1`,
+        );
+        return;
+      } catch (err) {
+        console.error("[checkout] PayOS create exception:", err);
+        router.push(
+          `/checkout/success?order=${code}&method=payos&payos_failed=1`,
+        );
+        return;
+      }
+    }
+
+    // sepay | bank_transfer | cod
+    router.push(`/checkout/success?order=${code}&method=${method}`);
   }, [state, router]);
 
   // -------------------------------------------------------------------------
@@ -519,7 +553,19 @@ export default function CheckoutFlow({
             )}
 
             {effectiveStep === "payment" && (
-              <PaymentStep onNext={handlePaymentNext} onBack={handleBack} />
+              <PaymentStep
+                onNext={handlePaymentNext}
+                onBack={handleBack}
+                defaultMethod={
+                  state.payment?.method === "bank_transfer"
+                    ? "sepay"
+                    : (state.payment?.method as
+                        | "sepay"
+                        | "payos"
+                        | "cod"
+                        | undefined)
+                }
+              />
             )}
 
             {effectiveStep === "review" && (
