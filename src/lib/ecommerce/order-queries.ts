@@ -92,6 +92,44 @@ function toError(scope: string, error: unknown): Error {
 }
 
 /**
+ * Detect lỗi Supabase do schema chưa được migrate (table / column / FK chưa
+ * tồn tại). Trả `true` nếu là 1 trong các code:
+ * - PGRST200: foreign key relationship not found in schema cache
+ * - 42P01: undefined_table (table không tồn tại)
+ * - 42703: undefined_column (column không tồn tại)
+ * Khi gặp các lỗi này, caller nên degrade gracefully (trả empty list)
+ * thay vì throw, để admin UI vẫn render được và show banner hướng dẫn.
+ */
+export function isMissingSchemaError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = (error as { code?: string }).code;
+  return (
+    code === "PGRST200" ||
+    code === "42P01" ||
+    code === "42703"
+  );
+}
+
+/**
+ * Quick probe để biết schema ecommerce (Week 1 migrations) đã apply chưa.
+ * Trả về `false` khi table `order_items` chưa tồn tại — admin UI dùng cờ này
+ * để hiển thị banner hướng dẫn apply chunks.
+ */
+export async function isEcommerceSchemaMigrated(): Promise<boolean> {
+  try {
+    const supabase = await createAdminClient();
+    const { error } = await supabase
+      .from("order_items")
+      .select("id", { head: true, count: "exact" })
+      .limit(1);
+    if (error && isMissingSchemaError(error)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Cột cần SELECT cho `orders` ở mọi query — giữ thống nhất shape.
  * Có thể có cột chưa tồn tại tuỳ migration (ví dụ `payment_status`,
  * `assigned_to`); Supabase sẽ throw nếu chọn cột không tồn tại, nhưng theo
@@ -235,6 +273,14 @@ export async function getPhysicalOrders(
 
   if (error) {
     if (DEBUG) console.error("[order-queries] getPhysicalOrders raw error", error);
+    // Graceful degradation: migration chưa apply → return empty thay vì throw
+    if (isMissingSchemaError(error)) {
+      console.warn(
+        "[ecommerce/order-queries] getPhysicalOrders: schema chưa migrate, trả empty list. " +
+        "Apply chunks trong supabase/migrations/week1-chunks/ vào Supabase SQL Editor.",
+      );
+      return { orders: [], totalCount: 0 };
+    }
     console.error("[ecommerce/order-queries] getPhysicalOrders failed", {
       filters,
       error,
@@ -291,6 +337,10 @@ export async function getOrderDetail(
     .maybeSingle();
 
   if (error) {
+    if (isMissingSchemaError(error)) {
+      console.warn("[ecommerce/order-queries] getOrderDetail: schema chưa migrate, trả null.");
+      return null;
+    }
     console.error("[ecommerce/order-queries] getOrderDetail failed", {
       orderId,
       error,
@@ -363,6 +413,7 @@ export async function getOrderByCode(
     .maybeSingle();
 
   if (error) {
+    if (isMissingSchemaError(error)) return null;
     console.error("[ecommerce/order-queries] getOrderByCode failed", {
       orderCode,
       error,
@@ -451,6 +502,15 @@ export async function getOrderStats(): Promise<OrderStats> {
     ["deliveredToday", deliveredRes],
   ] as const) {
     if (res.error) {
+      if (isMissingSchemaError(res.error)) {
+        // Schema chưa migrate → trả zeros, không throw
+        return {
+          pendingPayment: 0,
+          paidAwaitingShip: 0,
+          inTransit: 0,
+          deliveredToday: 0,
+        };
+      }
       console.error("[ecommerce/order-queries] getOrderStats failed", {
         scope,
         error: res.error,
@@ -508,6 +568,7 @@ export async function searchOrders(
     .limit(20);
 
   if (error) {
+    if (isMissingSchemaError(error)) return [];
     console.error("[ecommerce/order-queries] searchOrders failed", {
       query,
       error,

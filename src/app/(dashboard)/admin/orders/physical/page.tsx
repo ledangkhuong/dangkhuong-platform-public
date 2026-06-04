@@ -27,6 +27,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getPhysicalOrders,
   getOrderStats,
+  isEcommerceSchemaMigrated,
   type AdminOrderListRow,
 } from "@/lib/ecommerce/order-queries";
 import { Badge } from "@/components/ui/badge";
@@ -295,7 +296,7 @@ export default async function AdminPhysicalOrdersPage({
   // ── Fetch orders + stats in parallel ──
   const { status: statusFilter, postFilter } = statusTabToFilter(statusTab);
 
-  const [{ orders: fetchedOrders, totalCount }, stats] = await Promise.all([
+  const [{ orders: fetchedOrders, totalCount }, stats, schemaMigrated] = await Promise.all([
     getPhysicalOrders({
       status: statusFilter,
       paymentMethod: payment || undefined,
@@ -307,6 +308,7 @@ export default async function AdminPhysicalOrdersPage({
       offset,
     }),
     getOrderStats(),
+    isEcommerceSchemaMigrated(),
   ]);
 
   // Áp post-filter cho 2 tab "shipped"/"delivered" (xem comment ở statusTabToFilter).
@@ -350,6 +352,48 @@ export default async function AdminPhysicalOrdersPage({
       />
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* ── Migration banner ── */}
+        {!schemaMigrated && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 text-sm">
+                <h3 className="font-medium text-amber-300 mb-1">
+                  ⚠️ Database chưa migrate cho module ecommerce
+                </h3>
+                <p className="text-amber-200/80 leading-relaxed">
+                  Module &quot;Cửa hàng&quot; cần apply migrations Week 1. Vào{" "}
+                  <a
+                    href="https://supabase.com/dashboard/project/ezgqdriljfodsuxdxjrd/sql/new"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline hover:text-amber-100"
+                  >
+                    Supabase SQL Editor
+                  </a>{" "}
+                  → paste lần lượt 7 file trong{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-200">
+                    supabase/migrations/week1-chunks/
+                  </code>{" "}
+                  (chunk-01.sql → chunk-07.sql), sau đó thêm{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-200">
+                    20260606
+                  </code>
+                  ,{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-200">
+                    20260607
+                  </code>
+                  ,{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-200">
+                    20260608
+                  </code>
+                  . Mỗi chunk &lt;250 dòng nên không bị timeout.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── Stats cards row ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Pending payment */}
