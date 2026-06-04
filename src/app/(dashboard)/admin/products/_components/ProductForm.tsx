@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { createProduct, updateProduct } from "@/lib/actions/products";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -408,12 +409,11 @@ export default function ProductForm({ mode, categories, initialValues }: Props) 
 
       {/* ── Media ── */}
       <Section title="Hình ảnh">
-        <Field label="Ảnh đại diện (thumbnail URL)">
-          <Input
-            type="url"
+        <Field label="Ảnh đại diện">
+          <ImageUploader
             value={values.thumbnail_url}
-            onChange={(e) => update("thumbnail_url", e.target.value)}
-            placeholder="https://..."
+            onChange={(url) => update("thumbnail_url", url)}
+            folder="thumbnails"
           />
         </Field>
 
