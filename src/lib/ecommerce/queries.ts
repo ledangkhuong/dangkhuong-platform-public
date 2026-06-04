@@ -87,7 +87,13 @@ export async function getProducts(
     query = query.eq("category_id", filters.categoryId);
   }
   if (filters.status) {
-    query = query.eq("status", filters.status);
+    // Legacy DB column stores 'published' where the new enum uses 'active'.
+    // Treat them as the same when filtering so the storefront still sees products.
+    if (filters.status === "active") {
+      query = query.in("status", ["active", "published"]);
+    } else {
+      query = query.eq("status", filters.status);
+    }
   }
   if (filters.productType) {
     query = query.eq("product_type", filters.productType);
@@ -274,7 +280,7 @@ export async function getActiveProductsCount(): Promise<number> {
   const { count, error } = await supabase
     .from("products")
     .select("id", { count: "exact", head: true })
-    .eq("status", "active");
+    .in("status", ["active", "published"]);
 
   if (error) {
     console.error("[ecommerce/queries] getActiveProductsCount failed", error);

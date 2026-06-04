@@ -107,7 +107,7 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const product = await getProductBySlug(slug);
 
-  if (!product || product.status !== "active") {
+  if (!product || ((product.status as string) !== "active" && (product.status as string) !== "published")) {
     return { title: `Không tìm thấy sản phẩm — ${siteConfig.name}` };
   }
 
@@ -152,7 +152,7 @@ export default async function ProductDetailPage(
   const { slug } = await props.params;
 
   const product = await getProductBySlug(slug);
-  if (!product || product.status !== "active") notFound();
+  if (!product || ((product.status as string) !== "active" && (product.status as string) !== "published")) notFound();
 
   const isStaff = await viewerIsStaff();
 
