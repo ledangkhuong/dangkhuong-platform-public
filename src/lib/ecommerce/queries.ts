@@ -91,6 +91,10 @@ export async function getProducts(
     // Treat them as the same when filtering so the storefront still sees products.
     if (filters.status === "active") {
       query = query.in("status", ["active", "published"]);
+      // Exclude legacy course rows that share the table — those rows have a
+      // NULL `name` because they predate the ecommerce schema and only carry
+      // the legacy `title` column. The storefront should never show them.
+      query = query.not("name", "is", null);
     } else {
       query = query.eq("status", filters.status);
     }
