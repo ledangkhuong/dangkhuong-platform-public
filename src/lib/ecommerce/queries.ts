@@ -295,6 +295,47 @@ export async function getActiveProductsCount(): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
+// 5b) getStorefrontFacets — counts per category/type for the storefront filter
+// ---------------------------------------------------------------------------
+
+export interface StorefrontFacets {
+  /** Map category_id → product count */
+  byCategory: Record<string, number>;
+  /** Map product_type → product count */
+  byType: Record<string, number>;
+}
+
+/**
+ * Trả về số lượng sản phẩm "active/published" theo category_id và product_type.
+ * Dùng để filter sidebar storefront chỉ hiển thị options có sản phẩm thực.
+ */
+export async function getStorefrontFacets(): Promise<StorefrontFacets> {
+  const supabase = await createAdminClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("category_id, product_type")
+    .in("status", ["active", "published"])
+    .not("name", "is", null);
+
+  if (error) {
+    console.error("[ecommerce/queries] getStorefrontFacets failed", error);
+    return { byCategory: {}, byType: {} };
+  }
+
+  const byCategory: Record<string, number> = {};
+  const byType: Record<string, number> = {};
+  for (const row of (data ?? []) as Array<{ category_id: string | null; product_type: string | null }>) {
+    if (row.category_id) {
+      byCategory[row.category_id] = (byCategory[row.category_id] ?? 0) + 1;
+    }
+    if (row.product_type) {
+      byType[row.product_type] = (byType[row.product_type] ?? 0) + 1;
+    }
+  }
+  return { byCategory, byType };
+}
+
+// ---------------------------------------------------------------------------
 // 6) getLowStockVariants — variants sắp/đang hết hàng (admin alert)
 // ---------------------------------------------------------------------------
 

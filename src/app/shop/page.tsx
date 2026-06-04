@@ -21,7 +21,9 @@ import Link from "next/link";
 import {
   getCategories,
   getProducts,
+  getStorefrontFacets,
   type ProductCategoryNode,
+  type StorefrontFacets,
 } from "@/lib/ecommerce/queries";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -195,12 +197,18 @@ function FilterSidebar({
   activeCategorySlug,
   activeType,
   paramsForLink,
+  facets,
 }: {
   categories: ProductCategoryNode[];
   activeCategorySlug?: string;
   activeType?: ProductType;
   paramsForLink: Record<string, string | undefined>;
+  facets: StorefrontFacets;
 }) {
+  // Chỉ render type options có ít nhất 1 sản phẩm
+  const visibleTypeOptions = TYPE_OPTIONS.filter(
+    (opt) => (facets.byType[opt.key] ?? 0) > 0,
+  );
   return (
     <div className="space-y-8">
       {/* Danh mục */}
@@ -249,7 +257,7 @@ function FilterSidebar({
               Tất cả
             </Link>
           </li>
-          {TYPE_OPTIONS.map((opt) => {
+          {visibleTypeOptions.map((opt) => {
             const isActive = activeType === opt.key;
             return (
               <li key={opt.key}>
@@ -476,18 +484,27 @@ export default async function ShopPage({
     page: currentPage === 1 ? undefined : String(currentPage),
   };
 
-  // Fetch song song: categories + (resolve category nếu có slug).
-  const [categories, activeCategory] = await Promise.all([
+  // Fetch song song: categories + (resolve category nếu có slug) + facets.
+  const [categories, activeCategory, facets] = await Promise.all([
     getCategories(),
     categorySlug ? resolveCategoryBySlug(categorySlug) : Promise.resolve(null),
+    getStorefrontFacets(),
   ]);
 
-  // Chỉ hiển thị category visible cho storefront.
+  // Chỉ hiển thị category có sản phẩm thực (count > 0) + visible.
+  // Một category được hiển thị nếu CHÍNH NÓ có sản phẩm, hoặc bất kỳ child nào có sản phẩm.
+  function categoryHasProducts(c: ProductCategoryNode): boolean {
+    if ((facets.byCategory[c.id] ?? 0) > 0) return true;
+    return (c.children ?? []).some((ch) => (facets.byCategory[ch.id] ?? 0) > 0);
+  }
+
   const visibleCategories = categories
-    .filter((c) => c.is_visible)
+    .filter((c) => c.is_visible && categoryHasProducts(c))
     .map((c) => ({
       ...c,
-      children: c.children.filter((ch) => ch.is_visible),
+      children: (c.children ?? []).filter(
+        (ch) => ch.is_visible && (facets.byCategory[ch.id] ?? 0) > 0,
+      ),
     }));
 
   // Nếu user filter category-slug không tồn tại / ẩn → trả empty list.
@@ -540,6 +557,7 @@ export default async function ShopPage({
                   activeCategorySlug={categorySlug}
                   activeType={productType}
                   paramsForLink={paramsForLink}
+                  facets={facets}
                 />
               </div>
             </details>
@@ -551,6 +569,7 @@ export default async function ShopPage({
                 activeCategorySlug={categorySlug}
                 activeType={productType}
                 paramsForLink={paramsForLink}
+                facets={facets}
               />
             </div>
           </aside>
