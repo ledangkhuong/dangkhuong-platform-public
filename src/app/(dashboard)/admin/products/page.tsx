@@ -416,7 +416,12 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                     const categoryName = p.category_id
                       ? (categoryNameById.get(p.category_id) ?? "—")
                       : "—";
-                    const badge = STATUS_BADGE[p.status];
+                    const badge = STATUS_BADGE[p.status] ?? {
+                      label: String(p.status ?? "unknown"),
+                      className: "border border-gray-700 bg-gray-800 text-gray-400",
+                    };
+                    const typeLabel =
+                      TYPE_LABEL[p.product_type] ?? String(p.product_type ?? "—");
                     return (
                       <tr
                         key={p.id}
@@ -464,7 +469,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                             variant="outline"
                             className="border-[#2a2a2a] bg-[#1a1a1a] text-gray-300"
                           >
-                            {TYPE_LABEL[p.product_type]}
+                            {typeLabel}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-right">
