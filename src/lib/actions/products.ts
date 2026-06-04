@@ -266,7 +266,6 @@ export async function createProduct(
     category_id: data.category_id ?? null,
     seo_title: data.seo_title ?? null,
     seo_description: data.seo_description ?? null,
-    seo_keywords: data.seo_keywords ?? null,
     focus_keyword: data.focus_keyword ?? null,
   });
 
@@ -337,7 +336,6 @@ export async function updateProduct(
     category_id: data.category_id,
     seo_title: data.seo_title,
     seo_description: data.seo_description,
-    seo_keywords: data.seo_keywords,
     focus_keyword: data.focus_keyword,
     updated_at: new Date().toISOString(),
   });
