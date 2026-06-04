@@ -511,6 +511,7 @@ export default function CheckoutFlow({
             {effectiveStep === "shipping" && state.address && (
               <ShippingStep
                 address={state.address}
+                cart={initialCart}
                 initialShipping={state.shipping}
                 onNext={handleShippingNext}
                 onBack={handleBack}
