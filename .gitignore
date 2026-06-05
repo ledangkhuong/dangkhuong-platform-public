@@ -46,3 +46,6 @@ backup.env.txt
 
 # Workflow worktrees
 .claude/worktrees/
+
+# Local image-optimization backups (originals before sharp recompression)
+.image-backup/
