@@ -56,7 +56,7 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             {/* Banner */}
             <div className="relative aspect-video">
               <Image
-                src="/images/slowenglish/banner-standard.png"
+                src="/images/slowenglish/banner-standard.jpg"
                 alt="Khoá học Slow English — Gói Standard"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -141,7 +141,7 @@ export default function PricingSection({ onScrollToRegister }: PricingSectionPro
             {/* Banner */}
             <div className="relative aspect-video">
               <Image
-                src="/images/slowenglish/banner-ultra.png"
+                src="/images/slowenglish/banner-ultra.jpg"
                 alt="Khoá học Slow English — Gói Ultra Đồng Hành"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"

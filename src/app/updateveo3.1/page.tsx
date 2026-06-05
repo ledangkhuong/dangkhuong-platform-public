@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://dangkhuong.com/updateveo3.1",
     images: [
       {
-        url: "https://dangkhuong.com/images/updateveo31/banner.png",
+        url: "https://dangkhuong.com/images/updateveo31/banner.jpg",
         width: 1200,
         height: 630,
         alt: "Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến · Trainer Lê Đăng Khương",

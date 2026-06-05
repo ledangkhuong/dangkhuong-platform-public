@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://dangkhuong.com/slowenglish",
     images: [
       {
-        url: "https://dangkhuong.com/images/slowenglish/banner-ultra.png",
+        url: "https://dangkhuong.com/images/slowenglish/banner-ultra.jpg",
         width: 1200,
         height: 630,
         alt: "Làm Video YouTube Slow English Bằng VEO 3.1",

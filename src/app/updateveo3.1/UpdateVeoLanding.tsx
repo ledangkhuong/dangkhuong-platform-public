@@ -919,7 +919,7 @@ export default function UpdateVeoLanding() {
             }}
           >
             <img
-              src="/images/updateveo31/banner.png"
+              src="/images/updateveo31/banner.jpg"
               alt="Update VEO 3.1 thành Gemini Omni Flash — Workshop trực tuyến 23-24/05 · Trainer Lê Đăng Khương · KOHADA"
               className="block w-full h-auto"
               loading="lazy"

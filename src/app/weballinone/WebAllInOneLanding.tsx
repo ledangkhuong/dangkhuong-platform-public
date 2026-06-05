@@ -458,7 +458,7 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
           <div className="mt-10 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(59,130,246,0.15)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/weballinone/banner.png"
+              src="/images/weballinone/banner.jpg"
               alt="Lộ Trình Thiết Kế Website All-In-One Bằng AI Agent"
               className="w-full h-auto"
             />

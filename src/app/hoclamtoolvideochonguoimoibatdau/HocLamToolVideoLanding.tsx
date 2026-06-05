@@ -487,7 +487,7 @@ export default function HocLamToolVideoLanding() {
               ) : (
                 <>
                   <img
-                    src="/images/updateveo31/banner.png"
+                    src="/images/updateveo31/banner.jpg"
                     alt="Học Làm Tool Video Cho Người Mới Bắt Đầu"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -930,7 +930,7 @@ export default function HocLamToolVideoLanding() {
             }}
           >
             <img
-              src="/images/updateveo31/banner.png"
+              src="/images/updateveo31/banner.jpg"
               alt="Học Làm Tool Video Cho Người Mới Bắt Đầu — Khóa học Lê Đăng Khương"
               className="block w-full h-auto"
               loading="lazy"

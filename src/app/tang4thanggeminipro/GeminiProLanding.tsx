@@ -181,7 +181,7 @@ export default function GeminiProLanding() {
 
           {/* Banner image */}
           <div className="mt-10 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(66,133,244,0.2)", boxShadow: "0 8px 40px rgba(66,133,244,0.15)" }}>
-            <Image src="/images/geminipro/banner.png" alt="Google tặng 4 tháng Gemini Pro miễn phí — Tiết kiệm hơn 2 triệu, 1000 credit/tháng" width={1672} height={941} sizes="(max-width: 768px) 100vw, 800px" className="w-full h-auto" priority />
+            <Image src="/images/geminipro/banner.jpg" alt="Google tặng 4 tháng Gemini Pro miễn phí — Tiết kiệm hơn 2 triệu, 1000 credit/tháng" width={1672} height={941} sizes="(max-width: 768px) 100vw, 800px" className="w-full h-auto" priority />
           </div>
         </div>
       </section>

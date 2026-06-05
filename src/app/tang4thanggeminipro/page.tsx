@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://dangkhuong.com/tang4thanggeminipro",
     images: [
       {
-        url: "https://dangkhuong.com/images/geminipro/banner.png",
+        url: "https://dangkhuong.com/images/geminipro/banner.jpg",
         width: 1600,
         height: 900,
         alt: "Google Tặng 4 Tháng Gemini Pro Miễn Phí — 1000 credit/tháng, 0đ 4 tháng",
