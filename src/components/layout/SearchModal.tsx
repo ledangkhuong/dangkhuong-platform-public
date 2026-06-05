@@ -296,6 +296,7 @@ export default function SearchModal({ open, onClose }: SearchModalProps) {
               <button
                 onMouseDown={() => setQuery("")}
                 className="flex-shrink-0 text-gray-500 hover:text-gray-400 transition-colors"
+                aria-label="Xoá từ khoá tìm kiếm"
               >
                 <X size={16} />
               </button>

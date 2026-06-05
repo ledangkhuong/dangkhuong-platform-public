@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { siteConfig, getZaloPhone } from "@/lib/site-config";
 import {
   User,
@@ -266,9 +267,13 @@ export default function HocChuaXongLanding() {
         }}
       >
         <Link href="/" className="flex items-center gap-2.5">
-          <img
+          <Image
             src="/images/about/portrait.jpg"
             alt="Lê Đăng Khương"
+            width={40}
+            height={40}
+            sizes="40px"
+            loading="lazy"
             className="w-9 h-9 rounded-lg object-cover"
             style={{ border: "1px solid rgba(229,182,99,0.35)" }}
           />

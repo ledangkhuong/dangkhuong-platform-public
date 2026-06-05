@@ -162,48 +162,70 @@ export default async function middleware(request: NextRequest) {
     request: { headers: requestHeaders },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  // --- 1a. Anonymous fast-path ------------------------------------------------
+  // The @supabase/ssr session cookie is named `sb-<project-ref>-auth-token`
+  // (with chunks `…-auth-token.0`, `…-auth-token.1` for large sessions). When
+  // NO such cookie is present the visitor has no session, so calling
+  // supabase.auth.getUser() (a network round-trip to the Auth server) is
+  // wasteful. Skip the client creation + getUser() entirely and treat the user
+  // as null. Header injection (step 0) and route protection (step 2) below are
+  // unaffected, so anonymous visitors hitting protected routes still redirect.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.includes("-auth-token"));
+
+  // Typed via the getUser() return so reassignment below stays type-safe
+  // without importing @supabase/supabase-js's User type directly.
+  let user: Awaited<
+    ReturnType<
+      ReturnType<typeof createServerClient>["auth"]["getUser"]
+    >
+  >["data"]["user"] = null;
+
+  if (hasAuthCookie) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            // 1a. Mirror cookies onto the *request* so downstream Server
+            //     Components / Route Handlers see the refreshed values.
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+
+            // 1b. Re-create the response so the updated request is forwarded.
+            supabaseResponse = NextResponse.next({
+              request: { headers: requestHeaders },
+            });
+
+            // 1c. Write Set-Cookie headers on the *response* so the browser
+            //     stores the refreshed tokens.
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          // 1a. Mirror cookies onto the *request* so downstream Server
-          //     Components / Route Handlers see the refreshed values.
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+      }
+    );
 
-          // 1b. Re-create the response so the updated request is forwarded.
-          supabaseResponse = NextResponse.next({
-            request: { headers: requestHeaders },
-          });
+    // IMPORTANT: Do NOT call supabase.auth.getSession() between
+    // createServerClient and supabase.auth.getUser(). A getSession() call
+    // without a preceding getUser() returns the *unverified* session from the
+    // cookie — that is not suitable for authorization decisions.
+    //
+    // getUser() sends a request to the Supabase Auth server every time, which
+    // guarantees the returned data is authentic and triggers a token refresh
+    // when the access token has expired.
 
-          // 1c. Write Set-Cookie headers on the *response* so the browser
-          //     stores the refreshed tokens.
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  // IMPORTANT: Do NOT call supabase.auth.getSession() between createServerClient
-  // and supabase.auth.getUser(). A getSession() call without a preceding
-  // getUser() returns the *unverified* session from the cookie — that is not
-  // suitable for authorization decisions.
-  //
-  // getUser() sends a request to the Supabase Auth server every time, which
-  // guarantees the returned data is authentic and triggers a token refresh when
-  // the access token has expired.
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  }
 
   // --- 2. Route protection ---------------------------------------------------
 

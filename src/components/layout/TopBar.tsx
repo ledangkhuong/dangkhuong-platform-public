@@ -109,10 +109,15 @@ export default function TopBar({ title, subtitle, onMenuClick, notification, pro
                 {promotions.map((_, i) => (
                   <button
                     key={i}
-                    className="w-1.5 h-1.5 rounded-full transition-colors"
-                    style={{ background: i === promoIndex % promotions.length ? "#D4A843" : "#333" }}
+                    className="flex items-center justify-center p-[9px] transition-colors"
+                    aria-label={`Xem quảng cáo ${i + 1}`}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPromoIndex(i); }}
-                  />
+                  >
+                    <span
+                      className="block w-1.5 h-1.5 rounded-full transition-colors"
+                      style={{ background: i === promoIndex % promotions.length ? "#D4A843" : "#333" }}
+                    />
+                  </button>
                 ))}
               </div>
             )}
@@ -163,6 +168,7 @@ export default function TopBar({ title, subtitle, onMenuClick, notification, pro
           <button
             className="md:hidden text-gray-500 hover:text-white transition-colors p-1.5"
             onClick={() => setSearchOpen(true)}
+            aria-label="Tìm kiếm"
           >
             <Search size={18} />
           </button>
@@ -175,6 +181,8 @@ export default function TopBar({ title, subtitle, onMenuClick, notification, pro
             <button
               onClick={() => setAvatarMenuOpen(!avatarMenuOpen)}
               className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50"
+              aria-label="Tài khoản"
+              aria-expanded={avatarMenuOpen}
             >
               <UserAvatar
                 src={profile?.avatar_url}

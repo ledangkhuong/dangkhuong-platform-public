@@ -1,18 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { siteConfig } from "@/lib/site-config";
+import YouTubeFacade from "./YouTubeFacade";
 import {
-  ArrowRight, Play, Star, ChevronDown, CheckCircle,
+  ArrowRight, Star, ChevronDown, CheckCircle,
   Users, Video, BookOpen, Bot, Clock, TrendingDown,
   User, Briefcase, Heart, GraduationCap, ShoppingBag, Rocket,
   Mail, Phone, Zap, Shield, Gift, Menu, X,
   MessageCircle, Award, Eye, Sparkles, Download,
 } from "lucide-react";
-import PasswordInput from "@/components/auth/PasswordInput";
-import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
+
+
+// Lazy-loaded only when the lead modal opens (client-only)
+const PasswordInput = dynamic(() => import("@/components/auth/PasswordInput"), { ssr: false });
+const SocialLoginButtons = dynamic(() => import("@/components/auth/SocialLoginButtons"), { ssr: false });
 
 /* ─── Data ───────────────────────────────────────────────────── */
 
@@ -110,34 +115,6 @@ export default function HomePage() {
   const [countdown, setCountdown] = useState({ h: 23, m: 59, s: 59 });
   const [showLeadModal, setShowLeadModal] = useState(false);
 
-  // Dynamic courses from API
-  type DynCourse = typeof fallbackCourses[number];
-  const [dynamicCourses, setDynamicCourses] = useState<DynCourse[]>(fallbackCourses);
-
-  useEffect(() => {
-    fetch("/api/courses/public")
-      .then((r) => r.json())
-      .then((data: { slug: string; title: string; description: string | null; price: number; sale_price: number | null; thumbnail: string | null; lessonCount: number; chapterCount: number }[]) => {
-        if (!Array.isArray(data) || data.length === 0) return;
-        const mapped: DynCourse[] = data.map((c) => ({
-          emoji: "",
-          title: c.title,
-          badge: c.price === 0 ? "Miễn phí" : c.sale_price ? "Sale" : "",
-          desc: c.description ?? "",
-          stats: `${c.lessonCount} bài học | ${c.chapterCount} chương`,
-          slug: c.slug,
-          thumbnail: c.thumbnail,
-          price: c.price,
-          sale_price: c.sale_price,
-          lessonCount: c.lessonCount,
-          chapterCount: c.chapterCount,
-          _static: false,
-        }));
-        setDynamicCourses(mapped);
-      })
-      .catch(() => {/* keep fallback */});
-  }, []);
-
   // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
@@ -224,7 +201,7 @@ export default function HomePage() {
           </div>
 
           {/* Mobile hamburger */}
-          <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden text-gray-400 p-2">
+          <button onClick={() => setMobileMenu(!mobileMenu)} aria-label={mobileMenu ? "Đóng menu" : "Mở menu"} aria-expanded={mobileMenu} className="md:hidden text-gray-400 p-2">
             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
@@ -283,13 +260,7 @@ export default function HomePage() {
           {/* Video giới thiệu */}
           <div className="mt-8 sm:mt-14 max-w-2xl mx-auto">
             <div className="relative rounded-2xl overflow-hidden border border-[#FBBF24]/20 aspect-video bg-black">
-              <iframe
-                src="https://www.youtube.com/embed/b7tuRnyuuNw"
-                title="Video giới thiệu - Lê Đăng Khương"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              />
+              <YouTubeFacade videoId="b7tuRnyuuNw" title="Video giới thiệu - Lê Đăng Khương" />
             </div>
           </div>
 
@@ -303,7 +274,7 @@ export default function HomePage() {
           </div>
 
           {/* Trust bar */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3 mt-6 sm:mt-10 text-xs sm:text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3 mt-6 sm:mt-10 text-xs sm:text-sm text-gray-400">
             <span className="flex items-center gap-1.5"><Users size={14} className="text-[#FBBF24]" /> +1,300 học viên</span>
             <span className="flex items-center gap-1.5"><Video size={14} className="text-[#84CC16]" /> 500M+ view</span>
             <span className="flex items-center gap-1.5">
@@ -490,7 +461,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ SECTION 6: KHOÁ HỌC — HIDDEN (ẩn để tập trung thu data) ═══ */}
-      <section id="courses" className="py-12 sm:py-24 px-4 sm:px-6" style={{ display: "none" }}>
+      <section id="courses" aria-hidden="true" className="py-12 sm:py-24 px-4 sm:px-6" style={{ display: "none" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">
@@ -500,7 +471,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {dynamicCourses.map((c, i) => (
+            {fallbackCourses.map((c, i) => (
               <div key={c.slug ?? i} className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden flex flex-col hover:border-[#FBBF24]/20 transition-colors">
                 {/* Thumbnail (from DB) */}
                 {c.thumbnail && !c._static && (
@@ -539,7 +510,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-400 leading-relaxed mb-4 flex-1">{c.desc}</p>
-                  <div className="text-xs text-gray-500 mb-4">{c.stats}</div>
+                  <div className="text-xs text-gray-400 mb-4">{c.stats}</div>
                   {c.slug ? (
                     <Link href={`/courses/${c.slug}`} className="btn-green text-sm py-2.5 justify-center">
                       Xem chi tiết <ArrowRight size={15} />
@@ -575,7 +546,7 @@ export default function HomePage() {
             {statsBar.map((s, i) => (
               <div key={i} className="text-center bg-[#111] border border-white/5 rounded-xl py-5 px-3">
                 <div className="text-2xl sm:text-3xl font-extrabold text-[#FBBF24]">{s.value}</div>
-                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+                <div className="text-xs text-gray-400 mt-1">{s.label}</div>
               </div>
             ))}
           </div>
@@ -595,7 +566,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate">{t.name}</div>
-                    <div className="text-xs text-gray-500">{t.role}</div>
+                    <div className="text-xs text-gray-400">{t.role}</div>
                   </div>
                   <span className="text-xs font-medium text-[#84CC16] shrink-0">{t.result}</span>
                 </div>
@@ -697,7 +668,7 @@ export default function HomePage() {
                 </button>
               )}
 
-              <div className="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-500">
+              <div className="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-400">
                 <span className="flex items-center gap-1"><Shield size={10} /> Bảo mật tuyệt đối</span>
                 <span className="flex items-center gap-1"><Zap size={10} /> Gửi trong 2 phút</span>
               </div>
@@ -747,7 +718,7 @@ export default function HomePage() {
             Tham gia cùng 1,300+ chuyên gia Việt Nam đang làm chủ Video AI, xây kênh triệu view và kiếm tiền tự động với AI Agent.
           </p>
 
-          <div className="flex items-center justify-center gap-2 mb-8 text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-2 mb-8 text-sm text-gray-400">
             {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="#F59E0B" color="#F59E0B" />)}
             <span className="ml-1">4.9/5 từ 500+ học viên</span>
             <span className="mx-2">|</span>
@@ -776,7 +747,7 @@ export default function HomePage() {
                 <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={32} height={32} sizes="32px" className="w-8 h-8 rounded-lg object-cover" />
                 <span className="font-bold text-sm">Lê Đăng Khương</span>
               </div>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Giới thiệu</a></li>
                 <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
                 <li><a href={siteConfig.socials.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Liên hệ</a></li>
@@ -785,8 +756,8 @@ export default function HomePage() {
 
             {/* Col 2: Courses */}
             <div>
-              <h4 className="font-bold text-sm mb-4">Khoá học</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <h3 className="font-bold text-sm mb-4">Khoá học</h3>
+              <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Video AI VEO3.1 A-Z</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Xây Kênh Triệu View</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">AI Agent Bán Hàng</a></li>
@@ -797,8 +768,8 @@ export default function HomePage() {
 
             {/* Col 3: Links */}
             <div>
-              <h4 className="font-bold text-sm mb-4">Hỗ trợ</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <h3 className="font-bold text-sm mb-4">Hỗ trợ</h3>
+              <ul className="space-y-2 text-sm text-gray-400">
                 <li><Link href="/community" className="hover:text-white transition-colors">Cộng đồng</Link></li>
                 <li><Link href="/events" className="hover:text-white transition-colors">Sự kiện</Link></li>
                 <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
@@ -807,8 +778,8 @@ export default function HomePage() {
 
             {/* Col 4: Newsletter */}
             <div>
-              <h4 className="font-bold text-sm mb-4">Đăng ký nhận tin</h4>
-              <p className="text-xs text-gray-500 mb-3">Nhận tip Video AI + Xây kênh triệu view mỗi tuần</p>
+              <h3 className="font-bold text-sm mb-4">Đăng ký nhận tin</h3>
+              <p className="text-xs text-gray-400 mb-3">Nhận tip Video AI + Xây kênh triệu view mỗi tuần</p>
               <form className="flex gap-2">
                 <input type="email" placeholder="Email của bạn" className="input-dark flex-1 text-sm py-2 px-3" />
                 <button type="submit" className="btn-green text-xs py-2 px-3 shrink-0">Đăng ký</button>
@@ -816,7 +787,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
             <p>&copy; {new Date().getFullYear()} Lê Đăng Khương | dangkhuong.com | Powered by Kohada</p>
             <div className="flex gap-4">
               <a href="/privacy-policy" className="hover:text-white transition-colors">Chính sách bảo mật</a>
@@ -865,7 +836,8 @@ export default function HomePage() {
           <div className="relative w-full max-w-md bg-[#111] border border-[#FBBF24]/30 rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
             {/* Close button */}
             <button onClick={() => formStatus !== "loading" && setShowLeadModal(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10 p-1 rounded-lg hover:bg-white/5">
+              aria-label="Đóng"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10 p-1 rounded-lg hover:bg-white/5">
               <X size={18} />
             </button>
 
@@ -886,7 +858,7 @@ export default function HomePage() {
                     Chúng tôi đã gửi email xác thực đến:
                   </p>
                   <p className="text-[#D4A843] font-semibold mb-4">{formData.email}</p>
-                  <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                  <p className="text-sm text-gray-400 mb-6 leading-relaxed">
                     Vui lòng mở email và nhấn <span className="text-gray-300 font-medium">&quot;Xác thực tài khoản&quot;</span> để kích hoạt.
                     Kiểm tra cả thư mục <span className="text-gray-300 font-medium">Spam</span> nếu không thấy.
                   </p>
@@ -894,7 +866,7 @@ export default function HomePage() {
                     onClick={() => setShowLeadModal(false)}>
                     Đã xác thực? Đăng nhập
                   </Link>
-                  <p className="text-xs text-gray-500 mt-3">Link xác thực có hiệu lực trong 24 giờ.</p>
+                  <p className="text-xs text-gray-400 mt-3">Link xác thực có hiệu lực trong 24 giờ.</p>
                 </div>
               ) : (
                 <>
@@ -931,7 +903,7 @@ export default function HomePage() {
                         pattern="^(0|\+84)[0-9]{9}$"
                         title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
                         className="input-dark w-full" placeholder="0912345678" />
-                      <p className="text-[10px] text-gray-500 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
+                      <p className="text-[10px] text-gray-400 mt-1">Định dạng: 09xx hoặc +84xxx (10 số)</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
@@ -947,7 +919,7 @@ export default function HomePage() {
                       {/* Hidden input to sync password to state */}
                     </div>
 
-                    <p className="text-xs text-gray-500 pt-1">
+                    <p className="text-xs text-gray-400 pt-1">
                       Bằng cách đăng ký, bạn đồng ý với{" "}
                       <a href="#" className="text-[#D4A843] hover:underline">Điều khoản dịch vụ</a> và{" "}
                       <a href="#" className="text-[#D4A843] hover:underline">Chính sách bảo mật</a>
@@ -963,7 +935,7 @@ export default function HomePage() {
                     <SocialLoginButtons />
                   </div>
 
-                  <p className="text-center text-sm text-gray-500 mt-5">
+                  <p className="text-center text-sm text-gray-400 mt-5">
                     Đã có tài khoản?{" "}
                     <Link href="/login" className="text-[#D4A843] font-medium hover:underline"
                       onClick={() => setShowLeadModal(false)}>

@@ -32,6 +32,7 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import BankTransferButtons from "@/components/BankTransferButtons";
 
 /* ---- Types ---- */
@@ -374,9 +375,13 @@ export default function WebAllInOneLanding({ pixelSlug = "default" }: WebAllInOn
         }}
       >
         <Link href="/" className="flex items-center gap-2.5">
-          <img
+          <Image
             src="/images/about/portrait.jpg"
             alt="Lê Đăng Khương"
+            width={40}
+            height={40}
+            sizes="40px"
+            loading="lazy"
             className="w-8 h-8 rounded-lg object-cover"
           />
           <span className="font-semibold text-sm text-white hidden sm:block">

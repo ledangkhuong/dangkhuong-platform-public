@@ -9,6 +9,19 @@ const cspReportUri = process.env.CSP_REPORT_URI ?? "";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    inlineCss: true,
+    optimizePackageImports: [
+      "lucide-react",
+      "@tiptap/starter-kit",
+      "@tiptap/react",
+      "@xyflow/react",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "@tanstack/react-table",
+      "novel",
+    ],
+  },
   async headers() {
     return [
       {
@@ -80,6 +93,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       ...(supabaseHostname
         ? [
@@ -94,6 +108,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "qr.sepay.vn",
         pathname: "/img**",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+        pathname: "/**",
       },
     ],
   },

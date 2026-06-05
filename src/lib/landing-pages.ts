@@ -5,6 +5,8 @@
  * vào landing không cần đụng source code.
  */
 
+import { cache } from "react";
+
 import { createAdminClient } from "@/lib/supabase/server";
 import type { LandingPage, LandingPageWithPixels, PixelConfig } from "@/types/pixel-config";
 
@@ -18,7 +20,7 @@ import type { LandingPage, LandingPageWithPixels, PixelConfig } from "@/types/pi
  *
  * Dedupe theo id (1 pixel chỉ fire 1 lần dù có cả 2 nguồn).
  */
-export async function getPixelsForPathname(pathname: string): Promise<PixelConfig[]> {
+export const getPixelsForPathname = cache(async (pathname: string): Promise<PixelConfig[]> => {
   if (!pathname) return [];
 
   const admin = await createAdminClient();
@@ -70,7 +72,7 @@ export async function getPixelsForPathname(pathname: string): Promise<PixelConfi
     }
   }
   return out;
-}
+});
 
 /**
  * Lookup landing page event config theo pathname.
@@ -85,7 +87,7 @@ export interface LandingEventConfig {
   slug: string | null;
 }
 
-export async function getLandingEventConfig(pathname: string): Promise<LandingEventConfig | null> {
+export const getLandingEventConfig = cache(async (pathname: string): Promise<LandingEventConfig | null> => {
   if (!pathname) return null;
   const admin = await createAdminClient();
   const { data, error } = await admin
@@ -128,7 +130,7 @@ export async function getLandingEventConfig(pathname: string): Promise<LandingEv
     contentName: row.event_content_name,
     slug: firstActive?.pixel_config.slug || null,
   };
-}
+});
 
 /** List tất cả landing pages (admin). */
 export async function listLandingPages(): Promise<LandingPage[]> {

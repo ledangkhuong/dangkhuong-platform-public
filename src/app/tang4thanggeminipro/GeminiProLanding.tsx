@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   User, Mail, Phone, Lock, Loader2, AlertCircle, CheckCircle,
   Eye, EyeOff, ArrowRight, Sparkles, Gift, Star,
@@ -126,7 +127,7 @@ export default function GeminiProLanding() {
       {/* ═══ NAVBAR ═══ */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-8 py-3 flex items-center justify-between" style={{ background: "rgba(5,9,19,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(66,133,244,0.12)" }}>
         <Link href="/" className="flex items-center gap-2.5">
-          <img src="/images/about/portrait.jpg" alt="Lê Đăng Khương" className="w-9 h-9 rounded-lg object-cover" style={{ border: "1px solid rgba(66,133,244,0.35)" }} />
+          <Image src="/images/about/portrait.jpg" alt="Lê Đăng Khương" width={40} height={40} sizes="40px" loading="lazy" className="w-9 h-9 rounded-lg object-cover" style={{ border: "1px solid rgba(66,133,244,0.35)" }} />
           <div className="hidden sm:flex flex-col leading-tight">
             <span className="text-sm font-bold text-white">Lê Đăng Khương</span>
             <span className="text-[10px]" style={{ color: "rgba(241,245,251,0.5)" }}>Video AI & Thương Hiệu Cá Nhân</span>

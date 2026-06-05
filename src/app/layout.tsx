@@ -11,6 +11,7 @@ import EngagementTracker from "@/components/analytics/EngagementTracker";
 import EnhancedTracker from "@/components/analytics/EnhancedTracker";
 import EventAttrTracker from "@/components/analytics/EventAttrTracker";
 import AffiliateTracker from "@/components/affiliate/AffiliateTracker";
+import PreloadResources from "@/components/PreloadResources";
 import CookieConsent from "@/components/CookieConsent";
 import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
@@ -25,7 +26,8 @@ validateEnv();
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  // Inter is a variable font — omitting `weight` loads the full 100–900 axis
+  // from a single file (replaces the previous 6 discrete weights).
   display: "swap",
   variable: "--font-inter",
 });
@@ -83,6 +85,7 @@ export default function RootLayout({
   return (
     <html lang="vi" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased min-h-screen" style={{ background: "#0a0a0a", color: "#f5f5f5" }} suppressHydrationWarning>
+        <PreloadResources />
         {/* Skip to main content — accessibility */}
         <a
           href="#main-content"

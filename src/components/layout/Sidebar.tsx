@@ -286,6 +286,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <button
             onClick={closeMobile}
             className="text-gray-500 hover:text-white transition-colors p-1 rounded ml-auto"
+            aria-label="Đóng menu"
           >
             <X size={18} />
           </button>
@@ -293,6 +294,8 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <button
             onClick={onToggle}
             className="text-gray-500 hover:text-white transition-colors p-1 rounded ml-auto"
+            aria-label={isCompact ? 'Mở rộng menu' : 'Thu gọn menu'}
+            aria-expanded={!isCompact}
           >
             {isCompact ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
@@ -603,6 +606,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             <button
               type="submit"
               title="Đăng xuất"
+              aria-label="Đăng xuất"
               className="text-gray-500 hover:text-red-400 transition-colors p-1"
             >
               <LogOut size={16} />
