@@ -17,7 +17,7 @@ import {
   type Ga4Event,
 } from "@/lib/ga4-server";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type IncomingBody = {
   /** Array of GA4 events. Capped server-side at 25. */
