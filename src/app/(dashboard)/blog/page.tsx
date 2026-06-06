@@ -9,25 +9,37 @@ import NewsletterForm from "@/components/blog/NewsletterForm";
 
 const BASE_URL = getBaseUrl();
 
+const BLOG_TITLE = "Blog — Lê Đăng Khương Academy";
+const BLOG_DESCRIPTION =
+  "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.";
+const BLOG_URL = `${BASE_URL}/blog`;
+const BLOG_OG_IMAGE = `${BASE_URL}/images/hero/offer-banner.jpg`;
+
 export const metadata: Metadata = {
-  title: "Blog — Lê Đăng Khương Academy",
-  description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",
-  alternates: { canonical: `${BASE_URL}/blog` },
+  title: BLOG_TITLE,
+  description: BLOG_DESCRIPTION,
+  alternates: { canonical: BLOG_URL },
   openGraph: {
-    title: "Blog — Lê Đăng Khương Academy",
-    description: "Chia sẻ kiến thức về Video AI, thương hiệu cá nhân, marketing và kiếm tiền online từ Lê Đăng Khương.",
-    url: "/blog",
+    title: BLOG_TITLE,
+    description: BLOG_DESCRIPTION,
+    url: BLOG_URL,
     siteName: "Lê Đăng Khương Academy",
     locale: "vi_VN",
     type: "website",
     images: [
       {
-        url: "/images/hero/offer-banner.jpg",
+        url: BLOG_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "Blog — Lê Đăng Khương Academy",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BLOG_TITLE,
+    description: BLOG_DESCRIPTION,
+    images: [BLOG_OG_IMAGE],
   },
 };
 

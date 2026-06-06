@@ -36,17 +36,37 @@ import type {
 // Metadata
 // ---------------------------------------------------------------------------
 
+const SHOP_TITLE = "Cửa hàng Lê Đăng Khương | Sách, Merch & Sản phẩm số";
+const SHOP_DESCRIPTION =
+  "Khám phá toàn bộ sách, merch và sản phẩm số chính hãng từ Lê Đăng Khương. Giao hàng toàn quốc, thanh toán an toàn.";
+const SHOP_URL = "https://dangkhuong.com/shop";
+const SHOP_OG_IMAGE = "https://dangkhuong.com/images/hero/offer-banner.jpg";
+
 export const metadata: Metadata = {
-  title: "Cửa hàng Lê Đăng Khương | Sách, Merch & Sản phẩm số",
-  description:
-    "Khám phá toàn bộ sách, merch và sản phẩm số chính hãng từ Lê Đăng Khương. Giao hàng toàn quốc, thanh toán an toàn.",
-  alternates: { canonical: "https://dangkhuong.com/shop" },
+  title: SHOP_TITLE,
+  description: SHOP_DESCRIPTION,
+  alternates: { canonical: SHOP_URL },
   openGraph: {
-    title: "Cửa hàng Lê Đăng Khương",
-    description:
-      "Sách, merch và sản phẩm số chính hãng từ Lê Đăng Khương — giao hàng toàn quốc.",
+    title: SHOP_TITLE,
+    description: SHOP_DESCRIPTION,
     type: "website",
-    url: "https://dangkhuong.com/shop",
+    url: SHOP_URL,
+    siteName: "Lê Đăng Khương Academy",
+    locale: "vi_VN",
+    images: [
+      {
+        url: SHOP_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "Cửa hàng Lê Đăng Khương — Sách, Merch & Sản phẩm số",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SHOP_TITLE,
+    description: SHOP_DESCRIPTION,
+    images: [SHOP_OG_IMAGE],
   },
 };
 

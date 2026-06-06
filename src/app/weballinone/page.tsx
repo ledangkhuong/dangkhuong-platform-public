@@ -2,29 +2,39 @@ import type { Metadata } from "next";
 import WebAllInOneLanding from "./WebAllInOneLanding";
 import { getLandingEventConfig, getPixelsForPathname } from "@/lib/landing-pages";
 
+const WAIO_TITLE = "Website All-In-One Bằng AI Agent | Đăng Khương";
+const WAIO_DESCRIPTION =
+  "Zoom Live 20h-22h tối nay. Chia sẻ tư duy hệ thống All-In-One và cách dùng AI Agent để xây trụ sở kinh doanh số. Kèm bộ tài liệu & quy trình.";
+const WAIO_URL = "https://dangkhuong.com/weballinone";
+const WAIO_OG_IMAGE = "https://dangkhuong.com/images/weballinone/banner.jpg";
+
 export const metadata: Metadata = {
-  title:
-    "Mời Sinh Tố 100K — Lộ Trình Thiết Kế Website All-In-One Bằng AI Agent | Đăng Khương",
-  description:
-    "Zoom Live 20h-22h tối nay. Chia sẻ tư duy hệ thống All-In-One và cách dùng AI Agent để xây trụ sở kinh doanh số. Kèm bộ tài liệu & quy trình.",
+  title: WAIO_TITLE,
+  description: WAIO_DESCRIPTION,
   alternates: {
-    canonical: "https://dangkhuong.com/weballinone",
+    canonical: WAIO_URL,
   },
   openGraph: {
-    title:
-      "Mời Sinh Tố 100K — Lộ Trình Thiết Kế Website All-In-One Bằng AI Agent",
-    description:
-      "10 ngày qua, tôi để AI Agent chạy thử một hệ thống website All-In-One. Tối nay tôi lên Zoom chia sẻ trực tiếp tư duy hệ thống và cách triển khai từ A đến Z.",
+    title: WAIO_TITLE,
+    description: WAIO_DESCRIPTION,
     type: "website",
-    url: "https://dangkhuong.com/weballinone",
+    url: WAIO_URL,
+    siteName: "Lê Đăng Khương Academy",
+    locale: "vi_VN",
     images: [
       {
-        url: "https://dangkhuong.com/images/weballinone/banner.jpg",
+        url: WAIO_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "Lộ Trình Thiết Kế Website All-In-One Bằng AI Agent",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: WAIO_TITLE,
+    description: WAIO_DESCRIPTION,
+    images: [WAIO_OG_IMAGE],
   },
 };
 

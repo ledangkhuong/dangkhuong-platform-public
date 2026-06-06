@@ -16,8 +16,13 @@ import CookieConsent from "@/components/CookieConsent";
 import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
 import TrackingProvider from "@/components/TrackingProvider";
-import WebsiteJsonLd from "@/components/seo/WebsiteJsonLd";
-import { siteConfig, getBaseUrl } from "@/lib/site-config";
+import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
+import VercelAnalyticsBundle from "@/components/analytics/VercelAnalyticsBundle";
+import { GoogleTagManager, GoogleTagManagerNoscript } from "@/components/analytics/GoogleTagManager";
+import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+import { WebsiteJsonLd } from "@/components/seo/WebsiteJsonLd";
+import { siteConfig } from "@/lib/site-config";
+import { SITE_URL, GSC_VERIFICATION } from "@/lib/seo-config";
 import { validateEnv } from "@/lib/env-check";
 import "./globals.css";
 
@@ -37,11 +42,15 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   keywords: `${siteConfig.owner.name}, ${siteConfig.shortName}`,
   manifest: "/manifest.json",
-  metadataBase: new URL(getBaseUrl()),
+  metadataBase: new URL(SITE_URL),
   alternates: {
+    canonical: "/",
     types: {
       "application/rss+xml": "/feed.xml",
     },
+  },
+  verification: {
+    google: GSC_VERIFICATION,
   },
   openGraph: {
     title: `${siteConfig.owner.name} — ${siteConfig.tagline}`,
@@ -109,6 +118,11 @@ export default function RootLayout({
         </ErrorBoundary>
         <InAppBrowserBanner />
         <CookieConsent />
+        <MicrosoftClarity />
+        <VercelAnalyticsBundle />
+        <GoogleTagManager />
+        <GoogleTagManagerNoscript />
+        <OrganizationJsonLd />
         <WebsiteJsonLd />
       </body>
     </html>

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
+import { SITE_URL } from "@/lib/seo-config";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -11,15 +10,25 @@ export default function robots(): MetadataRoute.Robots {
           "/",
           "/blog",
           "/courses",
+          "/shop",
           "/cafe",
           "/terms",
           "/privacy",
           "/refund-policy",
+          "/slowenglish",
+          "/sanphamso",
+          "/weballinone",
+          "/tang4thanggeminipro",
+          "/updateveo3.1",
+          "/hocchuaxongtiendave",
+          "/hoclamtoolvideochonguoimoibatdau",
         ],
         disallow: [
           "/api/",
           "/admin",
           "/dashboard",
+          "/checkout",
+          "/cart",
           "/settings",
           "/notifications",
           "/email",
@@ -27,10 +36,12 @@ export default function robots(): MetadataRoute.Robots {
           "/register",
           "/forgot-password",
           "/reset-password",
+          "/verify",
+          "/complete-profile",
         ],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
-    host: BASE_URL,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

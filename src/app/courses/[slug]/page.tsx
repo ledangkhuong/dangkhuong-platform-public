@@ -34,6 +34,8 @@ import LessonSubmission from "@/components/courses/LessonSubmission";
 import CourseInterestTracker from "@/components/courses/CourseInterestTracker";
 import RichDescription from "@/components/courses/RichDescription";
 import CourseDiscussion from "@/components/courses/CourseDiscussion";
+import { CourseJsonLd } from "@/components/seo/CourseJsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 // force-dynamic: this page is personalized (auth state, enrollment, progress)
 export const dynamic = "force-dynamic";
@@ -285,50 +287,34 @@ export default async function CourseDetailPage({
     instructor = data;
   }
 
-  // ── JSON-LD Structured Data (schema.org/Course) ──
-  const totalLessons = chapters.reduce((sum, ch) => sum + ch.lessons.length, 0);
-  const totalDuration = chapters.reduce(
-    (sum, ch) => sum + ch.lessons.reduce((s, l) => s + (l.duration_sec || 0), 0),
-    0
-  );
+  // ── JSON-LD Structured Data (schema.org/Course + BreadcrumbList) ──
   const baseUrl = getBaseUrl();
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    name: product.title,
-    description: product.description || undefined,
-    provider: {
-      "@type": "Organization",
-      name: siteConfig.name,
-      url: baseUrl,
-    },
-    url: `${baseUrl}/courses/${product.slug}`,
-    image: product.thumbnail || undefined,
-    numberOfCredits: totalLessons,
-    timeRequired: totalDuration > 0 ? `PT${Math.ceil(totalDuration / 60)}M` : undefined,
-    inLanguage: "vi",
-    offers: {
-      "@type": "Offer",
-      price: product.sale_price ?? product.price ?? 0,
-      priceCurrency: "VND",
-      availability: "https://schema.org/InStock",
-      url: `${baseUrl}/courses/${product.slug}`,
-    },
-    hasCourseInstance: {
-      "@type": "CourseInstance",
-      courseMode: "online",
-      courseWorkload: totalDuration > 0 ? `PT${Math.ceil(totalDuration / 60)}M` : undefined,
-    },
-  };
+  const courseUrl = `${baseUrl}/courses/${product.slug}`;
+  const coursePrice = product.sale_price ?? product.price ?? 0;
+  const seoJsonLd = (
+    <>
+      <CourseJsonLd
+        name={product.title}
+        description={product.description || product.title}
+        url={courseUrl}
+        image={product.thumbnail || undefined}
+        price={coursePrice}
+        priceCurrency="VND"
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Khoá học", url: `${baseUrl}/courses` },
+          { name: product.title, url: courseUrl },
+        ]}
+      />
+    </>
+  );
 
   /* ═══ PUBLIC / UNAUTHENTICATED ═══ */
   if (!user) {
     return (
       <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-        />
+        {seoJsonLd}
         <CoursePublicView
         product={{
           id: product.id,
@@ -418,6 +404,7 @@ export default async function CourseDetailPage({
     };
     return (
       <div>
+        {seoJsonLd}
         {/* Track interest: user viewed course but hasn't purchased (skip for admin) */}
         {!isAdmin && <CourseInterestTracker productId={product.id} />}
         <TopBar title={product.title} subtitle="Khoá học" />
@@ -1039,6 +1026,7 @@ export default async function CourseDetailPage({
 
   return (
     <div>
+      {seoJsonLd}
       <TopBar title={product.title} subtitle="Khoá học" />
       <CourseMobileLayout
         mainContent={mainContent}

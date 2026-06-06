@@ -7,29 +7,39 @@ import CoursesPublicGrid from "@/components/courses/CoursesPublicGrid";
 
 const BASE_URL = getBaseUrl();
 
+const COURSES_TITLE = "Khoá học — Lê Đăng Khương Academy";
+const COURSES_DESCRIPTION =
+  "Khoá học Video AI, Xây kênh triệu view, Sản phẩm số & AI Agent từ Lê Đăng Khương.";
+const COURSES_URL = `${BASE_URL}/courses`;
+const COURSES_OG_IMAGE = `${BASE_URL}/images/hero/offer-banner.jpg`;
+
 export const metadata = {
-  title: "Khoá học — Lê Đăng Khương Academy",
-  description:
-    "Khoá học Video AI, Xây kênh triệu view, Sản phẩm số & AI Agent từ Lê Đăng Khương.",
+  title: COURSES_TITLE,
+  description: COURSES_DESCRIPTION,
   alternates: {
-    canonical: `${BASE_URL}/courses`,
+    canonical: COURSES_URL,
   },
   openGraph: {
-    title: "Khoá học — Lê Đăng Khương Academy",
-    description:
-      "Khoá học Video AI, Xây kênh triệu view, Sản phẩm số & AI Agent từ Lê Đăng Khương.",
-    url: "/courses",
+    title: COURSES_TITLE,
+    description: COURSES_DESCRIPTION,
+    url: COURSES_URL,
     siteName: "Lê Đăng Khương Academy",
-    locale: "vi_VN",
-    type: "website",
+    locale: "vi_VN" as const,
+    type: "website" as const,
     images: [
       {
-        url: "/images/hero/offer-banner.jpg",
+        url: COURSES_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "Khoá học — Lê Đăng Khương Academy",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image" as const,
+    title: COURSES_TITLE,
+    description: COURSES_DESCRIPTION,
+    images: [COURSES_OG_IMAGE],
   },
 };
 

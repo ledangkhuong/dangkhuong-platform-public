@@ -26,6 +26,7 @@ import type { ProductVariant } from "@/types/ecommerce";
 
 import AddToCartButton from "../_components/AddToCartButton";
 import ProductViewTracker from "../_components/ProductViewTracker";
+import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 
 // PDP: ISR 10 phút.
 // - Giá / tồn kho ít thay đổi đột ngột; nếu cần realtime stock, client tự refetch.
@@ -180,29 +181,6 @@ export default async function ProductDetailPage(
 
   // ─── JSON-LD Product schema ───
   const canonicalUrl = `${getBaseUrl()}/shop/${product.slug}`;
-  const jsonLd = {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    name: product.name,
-    description:
-      product.seo_description ||
-      product.short_description ||
-      product.description ||
-      undefined,
-    image: gallery.length > 0 ? gallery : undefined,
-    sku: defaultVariant?.sku || product.sku || undefined,
-    brand: { "@type": "Brand", name: siteConfig.name },
-    offers: {
-      "@type": "Offer",
-      url: canonicalUrl,
-      priceCurrency: "VND",
-      price: displayPrice,
-      availability:
-        stockState === "out_of_stock"
-          ? "https://schema.org/OutOfStock"
-          : "https://schema.org/InStock",
-    },
-  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-gray-100">
@@ -403,12 +381,8 @@ export default async function ProductDetailPage(
         </div>
       </div>
 
-      {/* JSON-LD */}
-      <script
-        type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {/* JSON-LD Product schema */}
+      <ProductJsonLd product={product} url={canonicalUrl} />
 
       {/* FB Pixel + CAPI ViewContent (client, dedup qua eventID) */}
       <ProductViewTracker
