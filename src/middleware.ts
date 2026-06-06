@@ -72,6 +72,7 @@ export default async function middleware(request: NextRequest) {
       "/api/affiliate/click",
       "/api/analytics/",
       "/api/capi/",
+      "/api/event",
     ];
     const isExempt = exemptPrefixes.some((p) => pathname.startsWith(p));
 
