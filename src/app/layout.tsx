@@ -17,6 +17,7 @@ import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import ErrorBoundary from "@/components/providers/ErrorBoundary";
 import TrackingProvider from "@/components/TrackingProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import ServerSideTracker from "@/components/analytics/ServerSideTracker";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import VercelAnalyticsBundle from "@/components/analytics/VercelAnalyticsBundle";
 import { GoogleTagManager, GoogleTagManagerNoscript } from "@/components/analytics/GoogleTagManager";
@@ -105,6 +106,7 @@ export default function RootLayout({
         </a>
         <Suspense fallback={null}>
           <PageTracker />
+          <ServerSideTracker />
           <AutoPixel />
           <AutoEvent />
           <EngagementTracker />
