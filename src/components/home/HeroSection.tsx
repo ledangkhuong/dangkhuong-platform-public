@@ -218,6 +218,8 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
             <YouTubeFacade
               videoId="b7tuRnyuuNw"
               title="Video giới thiệu - Lê Đăng Khương"
+              poster="/images/hero/offer-banner.jpg"
+              priority
             />
           </div>
         </div>

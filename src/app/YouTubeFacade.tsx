@@ -15,13 +15,24 @@ import { Play } from "lucide-react";
 export default function YouTubeFacade({
   videoId,
   title,
+  poster,
+  priority = false,
 }: {
   videoId: string;
   title: string;
+  /**
+   * Optional local poster path (e.g. "/images/hero/offer-banner.jpg").
+   * When provided, the facade skips the YouTube thumbnail CDN entirely —
+   * the local image loads from the same origin as the page, dramatically
+   * faster than i.ytimg.com (no CORS, no extra DNS, no maxres-404 retry).
+   */
+  poster?: string;
+  /** Mark as priority for above-the-fold video posters (preloads the image). */
+  priority?: boolean;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [thumbSrc, setThumbSrc] = useState(
-    `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
+    poster ?? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
   );
 
   if (isPlaying) {
@@ -36,6 +47,8 @@ export default function YouTubeFacade({
     );
   }
 
+  const isLocalPoster = thumbSrc.startsWith("/");
+
   return (
     <button
       type="button"
@@ -49,10 +62,16 @@ export default function YouTubeFacade({
         fill
         sizes="(max-width: 768px) 100vw, 640px"
         className="object-cover"
-        onError={() =>
-          setThumbSrc(`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`)
-        }
-        unoptimized
+        priority={priority}
+        onError={() => {
+          // Only fall back through YouTube thumbnails if we're not using a
+          // local poster (a local 404 means the dev typo'd the path —
+          // they should see the error, not get a silent YouTube fallback).
+          if (!isLocalPoster) {
+            setThumbSrc(`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`);
+          }
+        }}
+        unoptimized={!isLocalPoster}
       />
       <span className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
         <span className="flex items-center justify-center w-16 h-16 rounded-full bg-[#D4A843] text-black shadow-lg transition-transform group-hover:scale-110">
