@@ -11,6 +11,7 @@ import {
   Download,
   ArrowRight,
 } from "lucide-react";
+import FourStepFunnel from "./FourStepFunnel";
 
 interface PainAndRoadmapSectionProps {
   onOpenModal?: () => void;
@@ -172,7 +173,7 @@ export default function PainAndRoadmapSection({
         className="py-12 sm:py-24 px-4 sm:px-6 bg-[#0d0d0d]"
       >
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
+          <div className="text-center mb-6 sm:mb-10">
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-4 text-white">
               Lộ trình <span className="text-[#D4A843]">4 bước</span> để hệ
               thống làm thay bạn
@@ -181,6 +182,18 @@ export default function PainAndRoadmapSection({
               Triết lý của tôi: tư duy trước, công cụ sau. Bạn đi từng bước,
               mỗi bước gỡ một nỗi đau — đến cuối là một cỗ máy tự chạy.
             </p>
+          </div>
+
+          {/* Funnel diagram */}
+          <FourStepFunnel />
+
+          {/* Section subtitle for transformation rows */}
+          <div className="text-center mt-12 sm:mt-16 mb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-white">
+              Mỗi bước, bạn{" "}
+              <span className="text-red-400">thôi phải làm gì</span> — và{" "}
+              <span className="text-[#22c55e]">nhận được gì?</span>
+            </h3>
           </div>
 
           {/* Transformation rows */}
