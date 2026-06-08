@@ -96,6 +96,7 @@ export default async function AdminCoursesPage() {
       sale_price: c.sale_price ?? null,
       created_at: c.created_at,
       sort_order: c.sort_order ?? 0,
+      category: c.category ?? null,
       chapterCount,
       lessonCount,
       enrolled: enrollmentMap[c.id] ?? 0,
