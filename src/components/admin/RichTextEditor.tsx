@@ -6,7 +6,8 @@ import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useCallback, useRef } from "react";
+import Youtube from "@tiptap/extension-youtube";
+import { useCallback, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -20,9 +21,12 @@ import {
   Code,
   Link as LinkIcon,
   Image as ImageIcon,
+  Upload as UploadIcon,
+  Film as YoutubeIcon,
   Undo,
   Redo,
   Minus,
+  Loader2,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -67,6 +71,7 @@ export default function RichTextEditor({
   placeholder = "Nhập nội dung mô tả khoá học...",
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -80,6 +85,13 @@ export default function RichTextEditor({
       }),
       Image.configure({
         HTMLAttributes: { class: "rounded-lg max-w-full my-4" },
+      }),
+      Youtube.configure({
+        width: 640,
+        height: 360,
+        nocookie: true,
+        controls: true,
+        HTMLAttributes: { class: "rounded-lg my-4 max-w-full aspect-video" },
       }),
       Placeholder.configure({ placeholder }),
     ],
@@ -120,12 +132,43 @@ export default function RichTextEditor({
     }
   }, [editor]);
 
+  const triggerImageUpload = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const addYoutube = useCallback(() => {
+    if (!editor) return;
+    const url = window.prompt(
+      "Dán link YouTube (vd: https://www.youtube.com/watch?v=xxxx hoặc https://youtu.be/xxxx):"
+    );
+    if (!url) return;
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    // Basic YouTube URL validation
+    if (!/youtube\.com\/watch|youtu\.be\/|youtube\.com\/shorts\//i.test(trimmed)) {
+      alert("Link không phải YouTube. Vui lòng dán link YouTube hợp lệ.");
+      return;
+    }
+    editor.commands.setYoutubeVideo({
+      src: trimmed,
+      width: 640,
+      height: 360,
+    });
+  }, [editor]);
+
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file || !editor) return;
 
-      // Upload to /api/upload/blog-image
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Ảnh quá lớn. Tối đa 10MB.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+
+      setUploading(true);
       const formData = new FormData();
       formData.append("file", file);
 
@@ -137,13 +180,15 @@ export default function RichTextEditor({
         const data = await res.json();
         if (data.url) {
           editor.chain().focus().setImage({ src: data.url }).run();
+        } else {
+          alert(data.error || "Upload thất bại.");
         }
       } catch {
         alert("Lỗi upload ảnh. Vui lòng thử lại.");
+      } finally {
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
-
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = "";
     },
     [editor]
   );
@@ -263,6 +308,20 @@ export default function RichTextEditor({
         <MenuButton onClick={addImage} title="Thêm ảnh từ URL">
           <ImageIcon size={15} />
         </MenuButton>
+        <MenuButton
+          onClick={triggerImageUpload}
+          disabled={uploading}
+          title="Upload ảnh từ máy tính (tối đa 10MB)"
+        >
+          {uploading ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : (
+            <UploadIcon size={15} />
+          )}
+        </MenuButton>
+        <MenuButton onClick={addYoutube} title="Nhúng video YouTube">
+          <YoutubeIcon size={15} />
+        </MenuButton>
 
         <div className="w-px h-5 bg-[#2a2a2a] mx-1" />
 
@@ -367,6 +426,19 @@ export default function RichTextEditor({
           height: auto;
           border-radius: 0.5rem;
           margin: 1rem 0;
+        }
+        .ProseMirror iframe,
+        .ProseMirror div[data-youtube-video] {
+          max-width: 100%;
+          border-radius: 0.5rem;
+          margin: 1rem 0;
+        }
+        .ProseMirror div[data-youtube-video] iframe {
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          height: auto;
+          border-radius: 0.5rem;
+          border: none;
         }
         .ProseMirror hr {
           border: none;
