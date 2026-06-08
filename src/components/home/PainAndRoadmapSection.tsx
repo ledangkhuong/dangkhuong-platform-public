@@ -73,7 +73,7 @@ const roadmapSteps: RoadmapStep[] = [
     Icon: Video,
     color: "#D4A843",
     stop: "Thôi mất cả ngày quay dựng",
-    gain: "Vài phút có video hút khách, chất lượng cinema, không cần lên hình",
+    gain: "Thu hút hàng triệu khách hàng tiềm năng bằng video AI chất lượng cinema — không cần lên hình",
   },
   {
     num: 2,
