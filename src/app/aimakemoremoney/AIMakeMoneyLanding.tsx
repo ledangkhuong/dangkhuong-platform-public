@@ -474,13 +474,13 @@ export default function AIMakeMoneyLanding() {
             </div>
           </Link>
 
-          <button
-            onClick={() => openTicket("free")}
+          <a
+            href="#tickets"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-transform hover:scale-[1.02]"
             style={{ background: "#D4A843", color: "#0a0a0a" }}
           >
-            <Gift size={14} /> Đăng ký vé FREE
-          </button>
+            <Gift size={14} /> Đăng ký ngay
+          </a>
         </div>
       </nav>
 
@@ -574,27 +574,28 @@ export default function AIMakeMoneyLanding() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
-            <button
-              onClick={() => openTicket("free")}
+            <a
+              href="#tickets"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base text-black transition-transform hover:scale-[1.02]"
               style={{
                 background: "#D4A843",
                 boxShadow: "0 10px 35px -10px rgba(212,168,67,0.55)",
               }}
             >
-              <Gift size={18} /> ĐĂNG KÝ VÉ FREE NGAY
-            </button>
+              <Gift size={18} /> ĐĂNG KÝ NGAY
+            </a>
             <a
-              href="#tickets"
+              href="#sessions"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base transition-colors"
               style={{ border: "1.5px solid #D4A843", color: "#D4A843" }}
             >
-              Xem hạng vé khác <ArrowRight size={16} />
+              Xem lộ trình 3 buổi <ArrowRight size={16} />
             </a>
           </div>
 
           <p className="text-xs text-gray-500 mt-4">
-            Học trực tiếp cùng Lê Đăng Khương · Tặng cẩm nang trị giá 2.990.000đ
+            Học trực tiếp cùng Lê Đăng Khương · 3 hạng vé từ 0đ — chọn vé phù
+            hợp với bạn ở mục bên dưới
           </p>
         </div>
       </section>
@@ -666,7 +667,10 @@ export default function AIMakeMoneyLanding() {
       </section>
 
       {/* ═══ 4. SESSIONS — Days 12, 13, 14 prominent ═══ */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-[#0d0d0d]">
+      <section
+        id="sessions"
+        className="py-12 sm:py-20 px-4 sm:px-6 bg-[#0d0d0d] scroll-mt-20"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">
@@ -1268,16 +1272,16 @@ export default function AIMakeMoneyLanding() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => openTicket("free")}
+            <a
+              href="#tickets"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base text-black transition-transform hover:scale-[1.02]"
               style={{
                 background: "#D4A843",
                 boxShadow: "0 10px 35px -10px rgba(212,168,67,0.55)",
               }}
             >
-              <Gift size={18} /> ĐĂNG KÝ VÉ FREE NGAY
-            </button>
+              <Gift size={18} /> ĐĂNG KÝ NGAY
+            </a>
             <a
               href={siteConfig.socials.facebook}
               target="_blank"
