@@ -29,7 +29,7 @@ const STEPS: FunnelStep[] = [
     Icon: Video,
     title: "Thu hút hàng triệu khách hàng tiềm năng",
     outcome:
-      "Bằng video AI chất lượng cinema — không cần quay dựng, không cần lên hình",
+      "Bằng video AI chất lượng cao — không cần quay dựng, không cần lên hình",
     color: "#D4A843",
     desktopWidth: "lg:max-w-[100%]",
   },

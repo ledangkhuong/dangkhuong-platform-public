@@ -31,7 +31,7 @@ const FOUR_STEPS: FourStep[] = [
     num: 1,
     Icon: Video,
     title: "Thu hút khách bằng video AI",
-    subtitle: "Hàng triệu khách hàng tiềm năng — chất lượng cinema",
+    subtitle: "Hàng triệu khách hàng tiềm năng — chất lượng cao, không cần lên hình",
   },
   {
     num: 2,
