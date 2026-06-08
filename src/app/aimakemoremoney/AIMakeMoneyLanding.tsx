@@ -1184,16 +1184,16 @@ export default function AIMakeMoneyLanding() {
           </div>
 
           <div className="text-center">
-            <button
-              onClick={() => openTicket("free")}
+            <a
+              href="#tickets"
               className="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base text-black transition-transform hover:scale-[1.02]"
               style={{
                 background: "#D4A843",
                 boxShadow: "0 10px 35px -10px rgba(212,168,67,0.55)",
               }}
             >
-              <Gift size={18} /> ĐĂNG KÝ MIỄN PHÍ &amp; NHẬN CẨM NANG
-            </button>
+              <Gift size={18} /> ĐĂNG KÝ NGAY &amp; NHẬN CẨM NANG
+            </a>
             <p className="text-xs text-gray-500 mt-3">
               <Shield size={11} className="inline mb-0.5 mr-1" /> Bảo mật tuyệt
               đối · <Zap size={11} className="inline mb-0.5 mx-1" /> Gửi trong 2
