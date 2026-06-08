@@ -37,7 +37,7 @@ const FOUR_STEPS: FourStep[] = [
     num: 2,
     Icon: Eye,
     title: "Xây kênh hút khách",
-    subtitle: "Để khách đúng gu tự tìm đến",
+    subtitle: "Làm affiliate hoặc bán sản phẩm số của chính bạn",
   },
   {
     num: 3,

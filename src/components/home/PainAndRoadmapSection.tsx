@@ -80,7 +80,7 @@ const roadmapSteps: RoadmapStep[] = [
     Icon: Eye,
     color: "#22c55e",
     stop: "Thôi đi chào mời từng người",
-    gain: "Hiểu thuật toán, để khách đúng gu tự tìm đến bạn mỗi ngày",
+    gain: "Hiểu thuật toán, để khách tự tìm đến — làm affiliate hoặc bán sản phẩm số của chính bạn",
   },
   {
     num: 3,
