@@ -17,6 +17,7 @@ import {
 
 import HeroSection from "@/components/home/HeroSection";
 import PainAndRoadmapSection from "@/components/home/PainAndRoadmapSection";
+import WebAllInOneSection from "@/components/home/WebAllInOneSection";
 import AboutAndAudienceSection from "@/components/home/AboutAndAudienceSection";
 import TestimonialsFaqSection from "@/components/home/TestimonialsFaqSection";
 import FreeOfferFinalCtaSection from "@/components/home/FreeOfferFinalCtaSection";
@@ -187,6 +188,7 @@ export default function HomePage() {
       {/* ═══ SECTIONS ═══ */}
       <HeroSection onOpenModal={openModal} />
       <PainAndRoadmapSection onOpenModal={openModal} />
+      <WebAllInOneSection onOpenModal={openModal} />
       <AboutAndAudienceSection
         onOpenModal={openModal}
         facebookUrl={siteConfig.socials.facebook}
