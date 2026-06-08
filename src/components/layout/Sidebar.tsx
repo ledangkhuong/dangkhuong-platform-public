@@ -22,10 +22,12 @@ import {
 } from "lucide-react";
 
 const courseSubNav = [
-  { href: "/courses?cat=video", icon: Video, label: "Làm video", color: "#3b82f6" },
-  { href: "/courses?cat=branding", icon: Globe, label: "Xây kênh & thương hiệu", color: "#a855f7" },
-  { href: "/courses?cat=business", icon: TrendingUp, label: "Kinh doanh & chuyển đổi", color: "#f59e0b" },
-  { href: "/courses?cat=personal_development", icon: Sparkles, label: "Phát triển bản thân", color: "#22c55e" },
+  { href: "/courses?cat=video", icon: Video, label: "Khóa học làm video", color: "#3b82f6" },
+  { href: "/courses?cat=video_tool", icon: Sparkles, label: "Tool làm video", color: "#06b6d4" },
+  { href: "/courses?cat=channel", icon: Globe, label: "Khóa học xây kênh", color: "#a855f7" },
+  { href: "/courses?cat=website", icon: Layout, label: "Khóa học làm Website All-in-One", color: "#f59e0b" },
+  { href: "/courses?cat=digital_product", icon: Package, label: "Khóa học bán sản phẩm số", color: "#ec4899" },
+  { href: "/courses?cat=coaching", icon: GraduationCap, label: "Coaching 1 năm", color: "#22c55e" },
 ];
 
 const shopSubNav = [

@@ -549,9 +549,11 @@ export default function EditCoursePage() {
             >
               <option value="">— Chưa phân loại —</option>
               <option value="video">Khóa học làm video</option>
-              <option value="branding">Khóa học xây kênh, thương hiệu cá nhân</option>
-              <option value="business">Khóa học kinh doanh, hệ thống chuyển đổi cao</option>
-              <option value="personal_development">Khóa học phát triển bản thân</option>
+              <option value="video_tool">Tool làm video</option>
+              <option value="channel">Khóa học xây kênh</option>
+              <option value="website">Khóa học làm Website All-in-One</option>
+              <option value="digital_product">Khóa học bán sản phẩm số</option>
+              <option value="coaching">Coaching 1 năm</option>
             </select>
             <p className="text-[11px] text-gray-500">
               Khoá học sẽ được hiển thị trong mục tương ứng trên trang Khoá học.

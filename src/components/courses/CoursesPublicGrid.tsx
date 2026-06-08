@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   BookOpen, PlayCircle, ArrowRight, Clock,
-  Video, Globe, TrendingUp, Sparkles,
+  Video, Globe, Sparkles, Layout, Package, GraduationCap,
 } from "lucide-react";
 
 type PublicCourse = {
@@ -25,7 +25,13 @@ type PublicCourse = {
 
 /* ─── Category config ───────────────────────────────────────────────────────── */
 
-type CategoryKey = "video" | "branding" | "business" | "personal_development";
+type CategoryKey =
+  | "video"
+  | "video_tool"
+  | "channel"
+  | "website"
+  | "digital_product"
+  | "coaching";
 
 const CATEGORIES: {
   key: CategoryKey;
@@ -37,29 +43,43 @@ const CATEGORIES: {
   {
     key: "video",
     title: "Khóa học làm video",
-    subtitle: "Học cách tạo video chuyên nghiệp, thu hút triệu view",
+    subtitle: "Học cách tạo video chuyên nghiệp, thu hút triệu view với AI",
     icon: Video,
     color: "#3b82f6",
   },
   {
-    key: "branding",
-    title: "Khóa học xây kênh, thương hiệu cá nhân",
-    subtitle: "Xây dựng thương hiệu và kênh truyền thông bền vững",
+    key: "video_tool",
+    title: "Tool làm video",
+    subtitle: "Bộ công cụ + template + prompt giúp làm video nhanh 10x",
+    icon: Sparkles,
+    color: "#06b6d4",
+  },
+  {
+    key: "channel",
+    title: "Khóa học xây kênh",
+    subtitle: "Xây dựng kênh và thương hiệu cá nhân nổi bật",
     icon: Globe,
     color: "#a855f7",
   },
   {
-    key: "business",
-    title: "Khóa học kinh doanh, hệ thống chuyển đổi cao",
-    subtitle: "Chiến lược kinh doanh và tối ưu doanh thu",
-    icon: TrendingUp,
+    key: "website",
+    title: "Khóa học làm Website All-in-One",
+    subtitle: "Tự build hệ thống website + bán hàng + CRM với AI Agent",
+    icon: Layout,
     color: "#f59e0b",
   },
   {
-    key: "personal_development",
-    title: "Khóa học phát triển bản thân",
-    subtitle: "Nâng cao kỹ năng và tư duy để thành công",
-    icon: Sparkles,
+    key: "digital_product",
+    title: "Khóa học bán sản phẩm số",
+    subtitle: "Tạo và bán sản phẩm số tự động — kiếm tiền khi đang ngủ",
+    icon: Package,
+    color: "#ec4899",
+  },
+  {
+    key: "coaching",
+    title: "Coaching 1 năm",
+    subtitle: "Mentorship 1:1 đồng hành cùng Lê Đăng Khương suốt 12 tháng",
+    icon: GraduationCap,
     color: "#22c55e",
   },
 ];
