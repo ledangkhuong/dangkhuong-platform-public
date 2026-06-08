@@ -12,7 +12,6 @@ import {
   Clock,
   Crown,
   Gift,
-  GraduationCap,
   Heart,
   Mail,
   MessageCircle,
@@ -34,14 +33,21 @@ const CheckoutModal = dynamic(
   () => import("@/components/checkout/CheckoutModal"),
   { ssr: false }
 );
-const PasswordInput = dynamic(
-  () => import("@/components/auth/PasswordInput"),
-  { ssr: false }
-);
 
-/* ─── DB product IDs (inserted via Supabase SQL) ───────────────────── */
+/* ─── Tier products (inserted via Supabase SQL) ──────────────────── */
 
-const VIP_PRODUCT = {
+type TicketTier = "free" | "vip" | "vvip";
+
+type TicketProduct = {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+};
+
+const FREE_TIER_LABEL = "AI Make More Money — Vé FREE";
+
+const VIP_PRODUCT: TicketProduct = {
   id: "85f21e60-7f21-4f9f-a43d-6a76612bb6c6",
   name: "AI Make More Money — Vé VIP",
   price: 99_000,
@@ -49,7 +55,7 @@ const VIP_PRODUCT = {
     "Trọn bộ Free + Video xem lại vĩnh viễn + Bộ slide PDF từng buổi + Ưu tiên Q&A",
 };
 
-const VVIP_PRODUCT = {
+const VVIP_PRODUCT: TicketProduct = {
   id: "d20cf733-0d4c-44fa-8c4a-26ba140614dc",
   name: "AI Make More Money — Vé VVIP",
   price: 499_000,
@@ -57,11 +63,13 @@ const VVIP_PRODUCT = {
     "Trọn bộ VIP + Coaching 1-1 30 phút với Lê Đăng Khương + AI Agent Starter Kit. Giới hạn 50 suất.",
 };
 
-/* ─── Event date (Fri 12/06/2026 20:00 Asia/Ho_Chi_Minh = 13:00 UTC) ── */
+const ZALO_GROUP_URL = "https://zalo.me/g/l4qmpdq934rmst9xxnfj";
+
+/* ─── Event date (Fri 12/06/2026 20:00 Asia/Ho_Chi_Minh) ─────────── */
 
 const EVENT_START_ISO = "2026-06-12T20:00:00+07:00";
 
-/* ─── Static data ──────────────────────────────────────────────────── */
+/* ─── Static data ────────────────────────────────────────────────── */
 
 const TRUST_STATS = [
   { value: "1.300+", label: "Học viên" },
@@ -96,14 +104,30 @@ const PAIN_POINTS = [
   },
 ];
 
-const SESSIONS = [
+type Session = {
+  num: number;
+  dayName: string;
+  dateNumber: string;
+  monthNumber: string;
+  fullDate: string;
+  time: string;
+  title: string;
+  Icon: React.ComponentType<{ size?: number; className?: string }>;
+  accent: string;
+  points: string[];
+};
+
+const SESSIONS: Session[] = [
   {
     num: 1,
-    day: "Thứ 6, 12/06",
+    dayName: "THỨ 6",
+    dateNumber: "12",
+    monthNumber: "06",
+    fullDate: "12/06/2026",
     time: "20:00",
     title: "Tư Duy Đúng & 10 Nguồn Thu Nhập Từ AI 2026",
     Icon: Sparkles,
-    color: "#D4A843",
+    accent: "#D4A843",
     points: [
       "Tư duy đúng để kiếm tiền bằng AI — vì sao 2026 là thời điểm vàng.",
       "Toàn cảnh 10 nguồn thu nhập đến từ AI và bạn nên bắt đầu từ đâu.",
@@ -112,11 +136,14 @@ const SESSIONS = [
   },
   {
     num: 2,
-    day: "Thứ 7, 13/06",
+    dayName: "THỨ 7",
+    dateNumber: "13",
+    monthNumber: "06",
+    fullDate: "13/06/2026",
     time: "20:00",
     title: "Video & Kênh Triệu View — Kiếm Tiền Từ Affiliate",
     Icon: Video,
-    color: "#22c55e",
+    accent: "#22c55e",
     points: [
       "Cách tạo video AI hấp dẫn và xây kênh triệu view, không cần quay dựng.",
       "Kiếm tiền Affiliate ở 4 ngách hot: KOL AI, Tiếng Anh, Sức khỏe, Sách.",
@@ -125,11 +152,14 @@ const SESSIONS = [
   },
   {
     num: 3,
-    day: "Chủ Nhật, 14/06",
+    dayName: "CHỦ NHẬT",
+    dateNumber: "14",
+    monthNumber: "06",
+    fullDate: "14/06/2026",
     time: "20:00",
     title: "Chuyển Đổi Khách Thành Tiền & Hệ Thống Tự Động",
     Icon: Rocket,
-    color: "#D4A843",
+    accent: "#D4A843",
     points: [
       "Bí mật chuyển đổi danh sách khách hàng thành tiền.",
       "Cách xây dựng sản phẩm số từ chính chuyên môn của bạn.",
@@ -157,16 +187,37 @@ const TAKEAWAYS = [
   },
 ];
 
-type Benefit = { label: string; free: boolean | string; vip: boolean | string; vvip: boolean | string };
+type Benefit = {
+  label: string;
+  free: boolean | string;
+  vip: boolean | string;
+  vvip: boolean | string;
+};
+
 const BENEFITS: Benefit[] = [
   { label: "Học trực tiếp cả 3 buổi Zoom", free: true, vip: true, vvip: true },
-  { label: "Cẩm nang \"Bí Mật Video AI Triệu View\" (trị giá 2.990.000đ)", free: true, vip: true, vvip: true },
+  {
+    label: 'Cẩm nang "Bí Mật Video AI Triệu View" (trị giá 2.990.000đ)',
+    free: true,
+    vip: true,
+    vvip: true,
+  },
   { label: "Nhóm cộng đồng (Zalo / Facebook)", free: true, vip: true, vvip: true },
   { label: "Video xem lại (replay) vĩnh viễn", free: false, vip: true, vvip: true },
   { label: "Bộ slide + tài liệu PDF từng buổi", free: false, vip: true, vvip: true },
   { label: "Ưu tiên đặt câu hỏi trong Q&A", free: false, vip: "Có", vvip: "Ưu tiên 1" },
-  { label: "Coaching 1-1 30 phút với Lê Đăng Khương", free: false, vip: false, vvip: true },
-  { label: "AI Agent Starter Kit (template + prompt)", free: false, vip: false, vvip: true },
+  {
+    label: "Coaching 1-1 30 phút với Lê Đăng Khương",
+    free: false,
+    vip: false,
+    vvip: true,
+  },
+  {
+    label: "AI Agent Starter Kit (template + prompt)",
+    free: false,
+    vip: false,
+    vvip: true,
+  },
   { label: "Số suất", free: "99 suất", vip: "Không giới hạn", vvip: "50 suất" },
 ];
 
@@ -211,7 +262,8 @@ const GIFT_PARTS = [
     price: "990.000đ",
   },
   {
-    title: "PHẦN 3 — Giải mã thuật toán YouTube Shorts / TikTok / Facebook Reels 2026",
+    title:
+      "PHẦN 3 — Giải mã thuật toán YouTube Shorts / TikTok / Facebook Reels 2026",
     price: "1.010.000đ",
   },
 ];
@@ -243,7 +295,7 @@ const FAQS = [
   },
 ];
 
-/* ─── Countdown helper ────────────────────────────────────────────── */
+/* ─── Countdown helper ───────────────────────────────────────────── */
 
 function useCountdown(targetIso: string) {
   const target = useMemo(() => new Date(targetIso).getTime(), [targetIso]);
@@ -255,11 +307,10 @@ function useCountdown(targetIso: string) {
     return () => clearInterval(id);
   }, []);
 
-  if (now === null) return { d: 0, h: 0, m: 0, s: 0, expired: false, mounted: false };
-
+  if (now === null)
+    return { d: 0, h: 0, m: 0, s: 0, expired: false, mounted: false };
   const ms = target - now;
   if (ms <= 0) return { d: 0, h: 0, m: 0, s: 0, expired: true, mounted: true };
-
   const d = Math.floor(ms / 86_400_000);
   const h = Math.floor((ms % 86_400_000) / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
@@ -269,28 +320,51 @@ function useCountdown(targetIso: string) {
 
 const pad = (n: number) => n.toString().padStart(2, "0");
 
-/* ─── Page ─────────────────────────────────────────────────────────── */
+/* ─── Page ───────────────────────────────────────────────────────── */
 
 export default function AIMakeMoneyLanding() {
   const cd = useCountdown(EVENT_START_ISO);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [checkoutProduct, setCheckoutProduct] = useState<typeof VIP_PRODUCT | null>(null);
 
-  // Lead-capture modal (Free tier registration)
-  const [showFreeModal, setShowFreeModal] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
-  const [formStatus, setFormStatus] = useState<"idle" | "loading" | "verify" | "error">(
-    "idle"
+  /* ── Ticket flow state machine ──
+   *  null  → no modal open
+   *  "form" → lead-capture form open (for selectedTier)
+   *  "checkout" → CheckoutModal open (VIP/VVIP only)
+   *  "success" → final success popup with Zalo + email check
+   */
+  const [stage, setStage] = useState<"closed" | "form" | "checkout" | "success">(
+    "closed"
   );
+  const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+  const [formStatus, setFormStatus] = useState<"idle" | "loading">("idle");
   const [formError, setFormError] = useState("");
 
-  const handleFreeSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  function openTicket(tier: TicketTier) {
+    setSelectedTier(tier);
+    setFormError("");
+    setStage("form");
+  }
+
+  function closeAll() {
+    if (formStatus === "loading") return;
+    setStage("closed");
+    setFormError("");
+  }
+
+  const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!selectedTier) return;
     setFormStatus("loading");
     setFormError("");
-    const fd = new FormData(e.currentTarget);
-    const password = (fd.get("popup_password") as string) ?? "";
+
     try {
+      // Generate a temporary password so the account can be created — user
+      // will reset via the verify-email link or via "Quên mật khẩu" later.
+      const tempPassword = `LDK-${Math.random().toString(36).slice(2, 10)}-${Date.now()
+        .toString(36)
+        .slice(-4)}`;
+
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -298,22 +372,54 @@ export default function AIMakeMoneyLanding() {
           full_name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          password,
-          source: "aimakemoremoney-free",
+          password: tempPassword,
+          source: `aimakemoremoney-${selectedTier}`,
         }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setFormStatus("verify");
-      } else {
+
+      // Treat "already registered" as OK — the lead still has their account
+      // and we want to move to checkout / success without blocking.
+      const okOrAlready =
+        (res.ok && data.success) ||
+        (typeof data?.error === "string" &&
+          /đã.*tồn|already|exists|registered/i.test(data.error));
+
+      if (!okOrAlready) {
         setFormError(data.error || "Có lỗi xảy ra.");
         setFormStatus("idle");
+        return;
+      }
+
+      setFormStatus("idle");
+
+      // Route to next stage based on tier
+      if (selectedTier === "free") {
+        setStage("success");
+      } else {
+        setStage("checkout");
       }
     } catch {
       setFormError("Lỗi kết nối. Vui lòng thử lại.");
       setFormStatus("idle");
     }
   };
+
+  const selectedProduct: TicketProduct | null =
+    selectedTier === "vip"
+      ? VIP_PRODUCT
+      : selectedTier === "vvip"
+        ? VVIP_PRODUCT
+        : null;
+
+  const selectedTierLabel: string =
+    selectedTier === "free"
+      ? FREE_TIER_LABEL
+      : selectedTier === "vip"
+        ? VIP_PRODUCT.name
+        : selectedTier === "vvip"
+          ? VVIP_PRODUCT.name
+          : "";
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-white overflow-x-hidden">
@@ -337,7 +443,7 @@ export default function AIMakeMoneyLanding() {
           </Link>
 
           <button
-            onClick={() => setShowFreeModal(true)}
+            onClick={() => openTicket("free")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-transform hover:scale-[1.02]"
             style={{ background: "#D4A843", color: "#0a0a0a" }}
           >
@@ -347,16 +453,33 @@ export default function AIMakeMoneyLanding() {
       </nav>
 
       {/* ═══ 1. HERO ═══ */}
-      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 relative">
+      <section className="pt-20 sm:pt-24 pb-12 sm:pb-20 px-4 sm:px-6 relative">
         <div
           className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full opacity-20 blur-[100px] pointer-events-none"
-          style={{ background: "radial-gradient(circle, #D4A843, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, #D4A843, transparent 70%)",
+          }}
         />
 
-        <div className="relative max-w-4xl mx-auto text-center">
+        <div className="relative max-w-5xl mx-auto text-center">
+          {/* Banner image */}
+          <div className="mx-auto max-w-4xl mb-6 sm:mb-10">
+            <div className="rounded-2xl overflow-hidden border border-[#D4A843]/30 shadow-[0_20px_60px_-20px_rgba(212,168,67,0.5)]">
+              <Image
+                src="/images/aimakemoremoney/banner.png"
+                alt="AI Make More Money and Freedom — Bí quyết kiếm vài ngàn đô/tháng với AI và tự do du lịch — Nhà đào tạo Lê Đăng Khương"
+                width={1920}
+                height={1080}
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                priority
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+
           {/* Top label */}
           <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-xs sm:text-sm font-bold uppercase tracking-wider"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5 sm:mb-6 text-xs sm:text-sm font-bold uppercase tracking-wider"
             style={{
               background: "rgba(212,168,67,0.12)",
               border: "1px solid rgba(212,168,67,0.35)",
@@ -367,15 +490,14 @@ export default function AIMakeMoneyLanding() {
             <span>MIỄN PHÍ · 3 BUỔI TỐI ZOOM · 12-14/06</span>
           </div>
 
-          {/* H1 */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] mb-3 sm:mb-4">
-            <span className="text-[#D4A843]">AI Make More Money</span>
-            <br /> and Freedom
+          {/* H1 (semantic, for SEO; visually smaller than banner) */}
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.15] mb-3 sm:mb-4">
+            <span className="text-[#D4A843]">AI Make More Money</span> and
+            Freedom
           </h1>
 
-          {/* Subhead */}
-          <p className="text-xl sm:text-2xl font-bold text-white/90 mb-5 sm:mb-7">
-            Kiếm Tiền &amp; Tự Do Bằng AI
+          <p className="text-lg sm:text-xl font-bold text-white/90 mb-5">
+            Bí Quyết Kiếm Vài Ngàn Đô/Tháng Với AI Và Tự Do Du Lịch
           </p>
 
           {/* Value line */}
@@ -397,11 +519,8 @@ export default function AIMakeMoneyLanding() {
                 { label: "Giờ", value: cd.h },
                 { label: "Phút", value: cd.m },
                 { label: "Giây", value: cd.s },
-              ].map((u, i) => (
-                <div
-                  key={u.label}
-                  className="flex flex-col items-center"
-                >
+              ].map((u) => (
+                <div key={u.label} className="flex flex-col items-center">
                   <div
                     className="w-14 sm:w-20 h-14 sm:h-20 rounded-xl flex items-center justify-center font-extrabold text-2xl sm:text-4xl"
                     style={{
@@ -416,7 +535,6 @@ export default function AIMakeMoneyLanding() {
                   <span className="text-[10px] sm:text-xs text-gray-500 mt-1.5 uppercase tracking-wider">
                     {u.label}
                   </span>
-                  {i < 3 && null}
                 </div>
               ))}
             </div>
@@ -425,7 +543,7 @@ export default function AIMakeMoneyLanding() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
             <button
-              onClick={() => setShowFreeModal(true)}
+              onClick={() => openTicket("free")}
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base text-black transition-transform hover:scale-[1.02]"
               style={{
                 background: "#D4A843",
@@ -437,10 +555,7 @@ export default function AIMakeMoneyLanding() {
             <a
               href="#tickets"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base transition-colors"
-              style={{
-                border: "1.5px solid #D4A843",
-                color: "#D4A843",
-              }}
+              style={{ border: "1.5px solid #D4A843", color: "#D4A843" }}
             >
               Xem hạng vé khác <ArrowRight size={16} />
             </a>
@@ -488,8 +603,12 @@ export default function AIMakeMoneyLanding() {
                   </div>
                   <div className="text-2xl leading-none">{p.emoji}</div>
                 </div>
-                <h3 className="text-sm font-bold mb-1.5 text-white">{p.title}</h3>
-                <p className="text-xs text-gray-400 leading-relaxed">{p.desc}</p>
+                <h3 className="text-sm font-bold mb-1.5 text-white">
+                  {p.title}
+                </h3>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  {p.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -514,60 +633,107 @@ export default function AIMakeMoneyLanding() {
         </div>
       </section>
 
-      {/* ═══ 4. SESSIONS ═══ */}
+      {/* ═══ 4. SESSIONS — Days 12, 13, 14 prominent ═══ */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-[#0d0d0d]">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">
-              Bạn sẽ học gì trong <span className="text-[#D4A843]">3 buổi?</span>
+              3 đêm — <span className="text-[#D4A843]">3 buổi đột phá</span>
             </h2>
             <p className="text-gray-400 text-sm sm:text-base">
-              3 đêm liền — 20:00 Thứ 6, Thứ 7, Chủ Nhật trên Zoom
+              20:00 đến 22:00 trên Zoom · Thứ 6, Thứ 7, Chủ Nhật
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
             {SESSIONS.map((s) => (
-              <div
+              <article
                 key={s.num}
-                className="bg-[#111] border border-white/5 rounded-2xl p-6 relative overflow-hidden hover:border-[#D4A843]/30 transition-colors"
+                className="relative rounded-2xl overflow-hidden flex flex-col"
+                style={{
+                  background:
+                    "linear-gradient(155deg, rgba(212,168,67,0.08) 0%, rgba(17,17,17,1) 60%)",
+                  border: `1.5px solid ${s.accent}40`,
+                  boxShadow: `0 20px 50px -20px ${s.accent}40`,
+                }}
               >
+                {/* Big date strip — replaces the faint watermark with a punchy block */}
                 <div
-                  className="absolute top-3 right-4 text-[80px] font-extrabold leading-none opacity-[0.07] select-none"
-                  style={{ color: s.color }}
+                  className="flex items-center gap-4 px-5 sm:px-6 py-4 sm:py-5 border-b"
+                  style={{
+                    background: `linear-gradient(90deg, ${s.accent}1F, transparent)`,
+                    borderColor: `${s.accent}30`,
+                  }}
                 >
-                  {s.num}
-                </div>
-                <div className="relative">
-                  <div className="flex items-center gap-3 mb-4">
+                  {/* Calendar-style date block */}
+                  <div
+                    className="rounded-xl overflow-hidden text-center shrink-0"
+                    style={{
+                      border: `1.5px solid ${s.accent}`,
+                      minWidth: "72px",
+                    }}
+                  >
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: `${s.color}20` }}
+                      className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-1"
+                      style={{ background: s.accent, color: "#0a0a0a" }}
                     >
-                      <s.Icon size={20} style={{ color: s.color }} />
+                      THÁNG {s.monthNumber}
                     </div>
-                    <div>
-                      <div
-                        className="text-[11px] font-bold uppercase tracking-wider"
-                        style={{ color: s.color }}
-                      >
-                        Buổi {s.num} · {s.day} · {s.time}
-                      </div>
-                      <h3 className="text-base sm:text-lg font-extrabold text-white leading-tight mt-0.5">
-                        {s.title}
-                      </h3>
+                    <div
+                      className="px-2 py-2 font-extrabold text-3xl sm:text-4xl leading-none"
+                      style={{ color: s.accent, background: "#0a0a0a" }}
+                    >
+                      {s.dateNumber}
                     </div>
                   </div>
-                  <ul className="space-y-2">
+
+                  <div className="min-w-0">
+                    <div
+                      className="text-[11px] font-extrabold uppercase tracking-wider"
+                      style={{ color: s.accent }}
+                    >
+                      Buổi {s.num} · {s.dayName}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-white text-sm sm:text-base font-bold">
+                      <Clock
+                        size={13}
+                        className="shrink-0"
+                        style={{ color: s.accent }}
+                      />
+                      <span>{s.time} – 22:00</span>
+                    </div>
+                  </div>
+
+                  {/* Icon */}
+                  <div
+                    className="ml-auto w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${s.accent}25` }}
+                  >
+                    <s.Icon size={22} className="" />
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="p-5 sm:p-6 flex flex-col flex-1">
+                  <h3 className="text-base sm:text-lg font-extrabold text-white leading-tight mb-4">
+                    {s.title}
+                  </h3>
+                  <ul className="space-y-2.5 flex-1">
                     {s.points.map((pt, j) => (
-                      <li key={j} className="flex items-start gap-2 text-sm text-gray-300">
-                        <CheckCircle size={15} className="text-[#22c55e] shrink-0 mt-0.5" />
+                      <li
+                        key={j}
+                        className="flex items-start gap-2 text-sm text-gray-300 leading-relaxed"
+                      >
+                        <CheckCircle
+                          size={15}
+                          className="text-[#22c55e] shrink-0 mt-0.5"
+                        />
                         <span>{pt}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
@@ -631,10 +797,7 @@ export default function AIMakeMoneyLanding() {
             {/* FREE */}
             <div
               className="rounded-2xl p-6 sm:p-7 flex flex-col"
-              style={{
-                background: "#111",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
                 FREE
@@ -647,13 +810,24 @@ export default function AIMakeMoneyLanding() {
                 <strong className="text-yellow-400">Giới hạn 99 suất.</strong>
               </p>
               <ul className="space-y-2.5 text-sm text-gray-300 mb-6 flex-1">
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Học trực tiếp cả 3 buổi Zoom</li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Cẩm nang Bí Mật Video AI</li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Vào nhóm cộng đồng</li>
-                <li className="flex items-start gap-2 text-gray-500"><X size={14} className="shrink-0 mt-0.5" /> KHÔNG có video xem lại</li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Học trực tiếp cả 3 buổi Zoom
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Cẩm nang Bí Mật Video AI
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Vào nhóm cộng đồng
+                </li>
+                <li className="flex items-start gap-2 text-gray-500">
+                  <X size={14} className="shrink-0 mt-0.5" /> KHÔNG có video xem lại
+                </li>
               </ul>
               <button
-                onClick={() => setShowFreeModal(true)}
+                onClick={() => openTicket("free")}
                 className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-colors"
                 style={{ border: "1.5px solid #D4A843", color: "#D4A843" }}
               >
@@ -664,10 +838,7 @@ export default function AIMakeMoneyLanding() {
             {/* VIP */}
             <div
               className="rounded-2xl p-6 sm:p-7 flex flex-col"
-              style={{
-                background: "#111",
-                border: "1px solid rgba(212,168,67,0.25)",
-              }}
+              style={{ background: "#111", border: "1px solid rgba(212,168,67,0.25)" }}
             >
               <div className="text-xs font-bold uppercase tracking-wider text-[#D4A843] mb-2">
                 VIP
@@ -682,13 +853,25 @@ export default function AIMakeMoneyLanding() {
                 cứ lúc nào.
               </p>
               <ul className="space-y-2.5 text-sm text-gray-300 mb-6 flex-1">
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Tất cả của Free</li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> <strong className="text-white">Video xem lại vĩnh viễn</strong></li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Slide + PDF từng buổi</li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Ưu tiên đặt câu hỏi Q&amp;A</li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Tất cả của Free
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  <strong className="text-white">Video xem lại vĩnh viễn</strong>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Slide + PDF từng buổi
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Ưu tiên đặt câu hỏi Q&amp;A
+                </li>
               </ul>
               <button
-                onClick={() => setCheckoutProduct(VIP_PRODUCT)}
+                onClick={() => openTicket("vip")}
                 className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-black transition-transform hover:scale-[1.02]"
                 style={{ background: "#D4A843" }}
               >
@@ -700,12 +883,12 @@ export default function AIMakeMoneyLanding() {
             <div
               className="relative rounded-2xl p-6 sm:p-7 flex flex-col"
               style={{
-                background: "linear-gradient(155deg, rgba(212,168,67,0.18) 0%, rgba(34,197,94,0.06) 100%)",
+                background:
+                  "linear-gradient(155deg, rgba(212,168,67,0.18) 0%, rgba(34,197,94,0.06) 100%)",
                 border: "2px solid #D4A843",
                 boxShadow: "0 20px 50px -20px rgba(212,168,67,0.5)",
               }}
             >
-              {/* Best value badge */}
               <div
                 className="absolute -top-3 right-5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
                 style={{
@@ -732,13 +915,27 @@ export default function AIMakeMoneyLanding() {
                 trực tiếp với Lê Đăng Khương.
               </p>
               <ul className="space-y-2.5 text-sm text-gray-200 mb-6 flex-1">
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Tất cả của VIP</li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> <strong className="text-white">Coaching 1-1 30 phút với Khương</strong></li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> AI Agent Starter Kit (template + prompt)</li>
-                <li className="flex items-start gap-2"><CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" /> Ưu tiên Q&amp;A số 1</li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Tất cả của VIP
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  <strong className="text-white">
+                    Coaching 1-1 30 phút với Khương
+                  </strong>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  AI Agent Starter Kit (template + prompt)
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Ưu tiên Q&amp;A số 1
+                </li>
               </ul>
               <button
-                onClick={() => setCheckoutProduct(VVIP_PRODUCT)}
+                onClick={() => openTicket("vvip")}
                 className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-extrabold text-sm text-black transition-transform hover:scale-[1.02]"
                 style={{
                   background: "linear-gradient(135deg, #D4A843, #b8902f)",
@@ -763,10 +960,7 @@ export default function AIMakeMoneyLanding() {
               </thead>
               <tbody>
                 {BENEFITS.map((b, i) => (
-                  <tr
-                    key={i}
-                    className={i % 2 === 0 ? "bg-[#111]" : "bg-[#0d0d0d]"}
-                  >
+                  <tr key={i} className={i % 2 === 0 ? "bg-[#111]" : "bg-[#0d0d0d]"}>
                     <td className="p-4 text-gray-200">{b.label}</td>
                     <td className="text-center p-4">{renderCell(b.free)}</td>
                     <td className="text-center p-4">{renderCell(b.vip)}</td>
@@ -777,7 +971,6 @@ export default function AIMakeMoneyLanding() {
             </table>
           </div>
 
-          {/* Risk reversal */}
           <p className="text-center text-xs text-gray-500 mt-6 max-w-xl mx-auto">
             <Shield size={12} className="inline mb-0.5 mr-1" />
             Cam kết hoàn 100% phí vé VIP/VVIP nếu sau buổi 1 bạn không thấy giá
@@ -804,7 +997,9 @@ export default function AIMakeMoneyLanding() {
                 />
                 <div
                   className="absolute bottom-0 left-0 right-0 p-4 text-center"
-                  style={{ background: "linear-gradient(transparent, rgba(0,0,0,0.85))" }}
+                  style={{
+                    background: "linear-gradient(transparent, rgba(0,0,0,0.85))",
+                  }}
                 >
                   <div className="text-lg font-bold">Lê Đăng Khương</div>
                   <div className="text-sm text-[#D4A843]">Founder Kohada</div>
@@ -824,15 +1019,18 @@ export default function AIMakeMoneyLanding() {
                   "🎬 Người Việt tiên phong xây giáo trình Video AI VEO3.1 từ A-Z",
                   "🤖 Tiên phong ứng dụng AI Agent vào hệ thống bán hàng tự động",
                 ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-gray-300"
+                  >
                     <span className="shrink-0">{item.slice(0, 2)}</span>
                     <span>{item.slice(3)}</span>
                   </li>
                 ))}
               </ul>
               <blockquote className="border-l-2 border-[#D4A843] pl-4 italic text-gray-400 text-sm mt-4">
-                &quot;Giúp 10.000 chuyên gia Việt Nam làm chủ AI, xây thương
-                hiệu cá nhân và kiếm tiền tự động — để sống cân bằng và tự do.&quot;
+                &quot;Giúp 10.000 chuyên gia Việt Nam làm chủ AI, xây thương hiệu
+                cá nhân và kiếm tiền tự động — để sống cân bằng và tự do.&quot;
               </blockquote>
             </div>
           </div>
@@ -887,7 +1085,9 @@ export default function AIMakeMoneyLanding() {
       <section className="py-12 sm:py-20 px-4 sm:px-6 relative">
         <div
           className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at center, #D4A843, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(ellipse at center, #D4A843, transparent 70%)",
+          }}
         />
         <div className="relative max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -898,20 +1098,21 @@ export default function AIMakeMoneyLanding() {
               <Gift size={16} /> QUÀ TẶNG KHI ĐĂNG KÝ
             </div>
             <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">
-              Cẩm nang <span className="text-[#D4A843]">&quot;Bí Mật Video AI Triệu View&quot;</span>
+              Cẩm nang{" "}
+              <span className="text-[#D4A843]">
+                &quot;Bí Mật Video AI Triệu View&quot;
+              </span>
             </h2>
             <p className="text-gray-400 text-sm sm:text-base">
-              Trị giá <strong className="text-white line-through">2.990.000đ</strong> —{" "}
+              Trị giá{" "}
+              <strong className="text-white line-through">2.990.000đ</strong> —{" "}
               <strong className="text-[#22c55e]">MIỄN PHÍ</strong> cho cả 3 hạng vé
             </p>
           </div>
 
           <div
             className="rounded-2xl p-6 sm:p-8 mb-6"
-            style={{
-              background: "#111",
-              border: "1px solid rgba(212,168,67,0.3)",
-            }}
+            style={{ background: "#111", border: "1px solid rgba(212,168,67,0.3)" }}
           >
             <div className="space-y-4">
               {GIFT_PARTS.map((g, i) => (
@@ -930,13 +1131,16 @@ export default function AIMakeMoneyLanding() {
               <div
                 className="rounded-xl p-4 mt-4 text-center"
                 style={{
-                  background: "linear-gradient(135deg, rgba(212,168,67,0.15), rgba(34,197,94,0.08))",
+                  background:
+                    "linear-gradient(135deg, rgba(212,168,67,0.15), rgba(34,197,94,0.08))",
                   border: "1px solid rgba(212,168,67,0.3)",
                 }}
               >
                 <p className="text-xs text-gray-400 mb-1">TỔNG TRỊ GIÁ</p>
                 <p className="text-xl font-extrabold">
-                  <span className="text-gray-500 line-through mr-2">2.990.000đ</span>
+                  <span className="text-gray-500 line-through mr-2">
+                    2.990.000đ
+                  </span>
                   <span className="text-[#22c55e]">MIỄN PHÍ</span>
                 </p>
               </div>
@@ -945,7 +1149,7 @@ export default function AIMakeMoneyLanding() {
 
           <div className="text-center">
             <button
-              onClick={() => setShowFreeModal(true)}
+              onClick={() => openTicket("free")}
               className="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base text-black transition-transform hover:scale-[1.02]"
               style={{
                 background: "#D4A843",
@@ -979,7 +1183,9 @@ export default function AIMakeMoneyLanding() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors"
                 >
-                  <span className="font-semibold text-sm sm:text-base pr-4">{f.q}</span>
+                  <span className="font-semibold text-sm sm:text-base pr-4">
+                    {f.q}
+                  </span>
                   <ChevronDown
                     size={18}
                     className={`shrink-0 text-gray-400 transition-transform ${
@@ -1002,7 +1208,9 @@ export default function AIMakeMoneyLanding() {
       <section className="py-12 sm:py-24 px-4 sm:px-6 relative">
         <div
           className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ background: "radial-gradient(circle at center, #D4A843, transparent 60%)" }}
+          style={{
+            background: "radial-gradient(circle at center, #D4A843, transparent 60%)",
+          }}
         />
         <div className="relative max-w-2xl mx-auto text-center">
           <h2 className="text-2xl sm:text-4xl font-extrabold mb-4">
@@ -1022,14 +1230,14 @@ export default function AIMakeMoneyLanding() {
             <span className="ml-1">4.9/5 từ 500+ học viên</span>
             <span className="mx-2 hidden sm:inline">|</span>
             <span>
-              <Users size={13} className="inline mr-1 mb-0.5" /> 1.300+ học viên đã
-              thành công
+              <Users size={13} className="inline mr-1 mb-0.5" /> 1.300+ học viên
+              đã thành công
             </span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => setShowFreeModal(true)}
+              onClick={() => openTicket("free")}
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base text-black transition-transform hover:scale-[1.02]"
               style={{
                 background: "#D4A843",
@@ -1044,7 +1252,8 @@ export default function AIMakeMoneyLanding() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl font-bold text-base border border-white/10 hover:border-white/20 transition-colors"
             >
-              <MessageCircle size={16} className="text-[#D4A843]" /> Tư vấn trực tiếp
+              <MessageCircle size={16} className="text-[#D4A843]" /> Tư vấn trực
+              tiếp
             </a>
           </div>
 
@@ -1062,28 +1271,16 @@ export default function AIMakeMoneyLanding() {
         </p>
       </footer>
 
-      {/* ═══ CHECKOUT MODAL (VIP/VVIP) ═══ */}
-      {checkoutProduct && (
-        <CheckoutModal
-          product={checkoutProduct}
-          onClose={() => setCheckoutProduct(null)}
-          onSuccess={() => {
-            setCheckoutProduct(null);
-            window.location.href = "/dashboard";
-          }}
-        />
-      )}
-
-      {/* ═══ FREE-TIER LEAD CAPTURE MODAL ═══ */}
-      {showFreeModal && (
+      {/* ═══ STAGE 1 — UNIFIED LEAD-CAPTURE FORM (all tiers) ═══ */}
+      {stage === "form" && selectedTier && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => formStatus !== "loading" && setShowFreeModal(false)}
+            onClick={closeAll}
           />
           <div className="relative w-full max-w-md bg-[#111] border border-[#D4A843]/30 rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
             <button
-              onClick={() => formStatus !== "loading" && setShowFreeModal(false)}
+              onClick={closeAll}
               aria-label="Đóng"
               className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-1 rounded-lg hover:bg-white/5"
             >
@@ -1091,150 +1288,248 @@ export default function AIMakeMoneyLanding() {
             </button>
 
             <div className="relative p-6 sm:p-8">
-              {formStatus === "verify" ? (
-                <div className="text-center py-4">
-                  <div
-                    className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5"
-                    style={{
-                      background: "rgba(212,168,67,0.1)",
-                      border: "1px solid rgba(212,168,67,0.2)",
-                    }}
-                  >
-                    <Mail size={32} className="text-[#D4A843]" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">Đăng ký thành công 🎉</h3>
-                  <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-                    Em đã gửi email xác thực đến{" "}
-                    <span className="text-[#D4A843]">{formData.email}</span>.
-                    Vui lòng xác thực để chính thức nhận vé Free + link Zoom 3 buổi.
-                  </p>
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-base text-black"
-                    style={{ background: "#D4A843" }}
-                    onClick={() => setShowFreeModal(false)}
-                  >
-                    Đăng nhập <ArrowRight size={16} />
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <div className="text-center mb-6">
-                    <div className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-3 bg-[#D4A843]/10">
-                      <Gift size={26} className="text-[#D4A843]" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-1">Đăng ký Vé FREE</h3>
-                    <p className="text-sm text-gray-400">
-                      3 buổi Zoom 12-14/06 + cẩm nang 2.990.000đ
-                    </p>
-                  </div>
-
-                  {formError && (
-                    <div
-                      className="mb-4 p-3 rounded-lg text-sm text-red-400 border border-red-400/20"
-                      style={{ background: "rgba(239,68,68,0.08)" }}
-                    >
-                      {formError}
-                    </div>
+              <div className="text-center mb-6">
+                <div className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-3 bg-[#D4A843]/10">
+                  {selectedTier === "free" ? (
+                    <Gift size={26} className="text-[#D4A843]" />
+                  ) : (
+                    <Crown size={26} className="text-[#D4A843]" />
                   )}
+                </div>
+                <h3 className="text-xl font-bold mb-1">Đăng ký {selectedTierLabel}</h3>
+                <p className="text-sm text-gray-400">
+                  3 buổi Zoom 12-14/06 + cẩm nang 2.990.000đ
+                  {selectedTier === "vip" && (
+                    <span className="block text-[#D4A843] mt-1">
+                      Sẽ tiếp tục đến trang thanh toán 99.000đ.
+                    </span>
+                  )}
+                  {selectedTier === "vvip" && (
+                    <span className="block text-[#D4A843] mt-1">
+                      Sẽ tiếp tục đến trang thanh toán 499.000đ.
+                    </span>
+                  )}
+                </p>
+              </div>
 
-                  <form onSubmit={handleFreeSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        Họ và tên
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData((p) => ({ ...p, name: e.target.value }))
-                        }
-                        className="input-dark w-full"
-                        placeholder="Nguyễn Văn A"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        Số điện thoại <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) =>
-                          setFormData((p) => ({ ...p, phone: e.target.value }))
-                        }
-                        pattern="^(0|\+84)[0-9]{9}$"
-                        title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
-                        className="input-dark w-full"
-                        placeholder="0912345678"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData((p) => ({ ...p, email: e.target.value }))
-                        }
-                        className="input-dark w-full"
-                        placeholder="ban@email.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        Mật khẩu
-                      </label>
-                      <PasswordInput
-                        name="popup_password"
-                        placeholder="Tối thiểu 8 ký tự"
-                        minLength={8}
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={formStatus === "loading"}
-                      className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-base text-black disabled:opacity-50 transition-transform hover:scale-[1.01]"
-                      style={{ background: "#D4A843" }}
-                    >
-                      {formStatus === "loading"
-                        ? "Đang xử lý..."
-                        : "ĐĂNG KÝ NHẬN VÉ FREE"}
-                    </button>
-
-                    <p className="text-xs text-gray-500 text-center">
-                      <Shield size={11} className="inline mb-0.5 mr-1" /> Bảo mật tuyệt
-                      đối · không spam
-                    </p>
-
-                    <p className="text-center text-sm text-gray-400">
-                      Đã có tài khoản?{" "}
-                      <Link
-                        href="/login"
-                        className="text-[#D4A843] font-medium hover:underline"
-                        onClick={() => setShowFreeModal(false)}
-                      >
-                        Đăng nhập
-                      </Link>
-                    </p>
-                  </form>
-                </>
+              {formError && (
+                <div
+                  className="mb-4 p-3 rounded-lg text-sm text-red-400 border border-red-400/20"
+                  style={{ background: "rgba(239,68,68,0.08)" }}
+                >
+                  {formError}
+                </div>
               )}
+
+              <form onSubmit={handleLeadSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                    Họ và tên <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, name: e.target.value }))
+                    }
+                    className="input-dark w-full"
+                    placeholder="Nguyễn Văn A"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                    Số điện thoại <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, phone: e.target.value }))
+                    }
+                    pattern="^(0|\+84)[0-9]{9}$"
+                    title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
+                    className="input-dark w-full"
+                    placeholder="0912345678"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                    Email <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, email: e.target.value }))
+                    }
+                    className="input-dark w-full"
+                    placeholder="ban@email.com"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={formStatus === "loading"}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-base text-black disabled:opacity-50 transition-transform hover:scale-[1.01]"
+                  style={{ background: "#D4A843" }}
+                >
+                  {formStatus === "loading"
+                    ? "Đang xử lý..."
+                    : selectedTier === "free"
+                      ? "ĐĂNG KÝ NHẬN VÉ FREE"
+                      : "TIẾP TỤC ĐẾN THANH TOÁN"}
+                  {formStatus !== "loading" && <ArrowRight size={16} />}
+                </button>
+
+                <p className="text-xs text-gray-500 text-center">
+                  <Shield size={11} className="inline mb-0.5 mr-1" /> Bảo mật
+                  tuyệt đối · không spam
+                </p>
+              </form>
             </div>
           </div>
         </div>
       )}
 
-      {/* ESLint-keep: ensure GraduationCap stays imported (used by future audience expansion) */}
-      <span className="hidden">
-        <GraduationCap size={1} />
-      </span>
+      {/* ═══ STAGE 2 — CHECKOUT MODAL (VIP/VVIP) ═══ */}
+      {stage === "checkout" && selectedProduct && (
+        <CheckoutModal
+          product={selectedProduct}
+          onClose={closeAll}
+          onSuccess={() => setStage("success")}
+        />
+      )}
+
+      {/* ═══ STAGE 3 — SUCCESS POPUP (email + Zalo group) ═══ */}
+      {stage === "success" && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            onClick={closeAll}
+          />
+          <div className="relative w-full max-w-lg bg-[#111] border border-[#22c55e]/30 rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={closeAll}
+              aria-label="Đóng"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-1 rounded-lg hover:bg-white/5"
+            >
+              <X size={18} />
+            </button>
+
+            <div
+              className="absolute top-0 left-0 right-0 h-32 opacity-30 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(ellipse at top, #22c55e, transparent 80%)",
+              }}
+            />
+
+            <div className="relative p-6 sm:p-8 text-center">
+              <div className="inline-flex w-16 h-16 rounded-full items-center justify-center mb-4 bg-[#22c55e]/15 border border-[#22c55e]/40">
+                <CheckCircle size={34} className="text-[#22c55e]" />
+              </div>
+
+              <h3 className="text-xl sm:text-2xl font-extrabold mb-2">
+                {selectedTier === "free"
+                  ? "Đăng ký thành công 🎉"
+                  : "Thanh toán thành công 🎉"}
+              </h3>
+              <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                Bạn đã giữ chỗ <strong className="text-white">{selectedTierLabel}</strong>{" "}
+                cho 3 buổi Zoom 12-14/06.
+                <br />
+                <span className="text-[#D4A843]">
+                  Vui lòng làm 2 việc dưới đây để chính thức nhận quyền lợi:
+                </span>
+              </p>
+
+              {/* Step 1 — Check email */}
+              <div
+                className="text-left rounded-xl p-4 mb-3"
+                style={{
+                  background: "rgba(212,168,67,0.06)",
+                  border: "1px solid rgba(212,168,67,0.25)",
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#D4A843]/15 flex items-center justify-center shrink-0">
+                    <Mail size={16} className="text-[#D4A843]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D4A843]">
+                        Bước 1
+                      </span>
+                      <h4 className="text-sm font-bold text-white">
+                        Kiểm tra email{" "}
+                        {formData.email && (
+                          <span className="text-[#D4A843]">({formData.email})</span>
+                        )}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      Em đã gửi email xác nhận + link Zoom 3 buổi vào hộp thư của
+                      bạn. Vui lòng xác thực để chính thức kích hoạt vé. Nếu không
+                      thấy, kiểm tra cả thư mục <strong>Spam</strong>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2 — Join Zalo */}
+              <div
+                className="text-left rounded-xl p-4 mb-5"
+                style={{
+                  background: "rgba(34,197,94,0.08)",
+                  border: "1px solid rgba(34,197,94,0.3)",
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#22c55e]/15 flex items-center justify-center shrink-0">
+                    <MessageCircle size={16} className="text-[#22c55e]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#22c55e]">
+                        Bước 2
+                      </span>
+                      <h4 className="text-sm font-bold text-white">
+                        Tham gia nhóm Zalo cộng đồng
+                      </h4>
+                    </div>
+                    <p className="text-xs text-gray-400 leading-relaxed mb-3">
+                      Nhận link Zoom trực tiếp, tài liệu, thông báo lịch học và hỗ
+                      trợ Q&amp;A. Đây là kênh chính để theo dõi chương trình.
+                    </p>
+                    <a
+                      href={ZALO_GROUP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-lg font-bold text-sm text-white transition-transform hover:scale-[1.01]"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #0068ff, #0050cc)",
+                        boxShadow: "0 8px 20px -8px rgba(0,104,255,0.6)",
+                      }}
+                    >
+                      <MessageCircle size={15} /> THAM GIA NHÓM ZALO NGAY
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer note */}
+              <p className="text-xs text-gray-500">
+                Hẹn gặp lại bạn lúc <strong className="text-[#D4A843]">20:00 Thứ 6, 12/06</strong>{" "}
+                trên Zoom!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1244,7 +1539,6 @@ export default function AIMakeMoneyLanding() {
 function renderCell(v: boolean | string) {
   if (v === true)
     return <CheckCircle size={16} className="inline text-[#22c55e]" />;
-  if (v === false)
-    return <X size={14} className="inline text-gray-600" />;
+  if (v === false) return <X size={14} className="inline text-gray-600" />;
   return <span className="text-xs font-medium text-[#D4A843]">{v}</span>;
 }
