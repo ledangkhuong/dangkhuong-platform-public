@@ -830,92 +830,7 @@ export default function AIMakeMoneyLanding() {
 
           {/* 3 ticket cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-10">
-            {/* FREE */}
-            <div
-              className="rounded-2xl p-6 sm:p-7 flex flex-col"
-              style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}
-            >
-              <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
-                FREE
-              </div>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-extrabold text-white">0đ</span>
-              </div>
-              <p className="text-xs text-gray-400 mb-5 leading-relaxed">
-                Học trực tiếp cả 3 buổi + nhận cẩm nang 2.990.000đ.{" "}
-                <strong className="text-yellow-400">Giới hạn 99 suất.</strong>
-              </p>
-              <ul className="space-y-2.5 text-sm text-gray-300 mb-6 flex-1">
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  Học trực tiếp cả 3 buổi Zoom
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  Cẩm nang Bí Mật Video AI
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  Vào nhóm cộng đồng
-                </li>
-                <li className="flex items-start gap-2 text-gray-500">
-                  <X size={14} className="shrink-0 mt-0.5" /> KHÔNG có video xem lại
-                </li>
-              </ul>
-              <button
-                onClick={() => openTicket("free")}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-colors"
-                style={{ border: "1.5px solid #D4A843", color: "#D4A843" }}
-              >
-                ĐĂNG KÝ VÉ FREE
-              </button>
-            </div>
-
-            {/* VIP */}
-            <div
-              className="rounded-2xl p-6 sm:p-7 flex flex-col"
-              style={{ background: "#111", border: "1px solid rgba(212,168,67,0.25)" }}
-            >
-              <div className="text-xs font-bold uppercase tracking-wider text-[#D4A843] mb-2">
-                VIP
-              </div>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-extrabold text-[#D4A843]">99k</span>
-                <span className="text-xs text-gray-500">≈ 1 ly cà phê</span>
-              </div>
-              <p className="text-xs text-gray-400 mb-5 leading-relaxed">
-                Giữ trọn bộ tài liệu và video xem lại{" "}
-                <strong className="text-white">vĩnh viễn</strong> để học lại bất
-                cứ lúc nào.
-              </p>
-              <ul className="space-y-2.5 text-sm text-gray-300 mb-6 flex-1">
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  Tất cả của Free
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  <strong className="text-white">Video xem lại vĩnh viễn</strong>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  Slide + PDF từng buổi
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
-                  Ưu tiên đặt câu hỏi Q&amp;A
-                </li>
-              </ul>
-              <button
-                onClick={() => openTicket("vip")}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-black transition-transform hover:scale-[1.02]"
-                style={{ background: "#D4A843" }}
-              >
-                LẤY VÉ VIP — 99K
-              </button>
-            </div>
-
-            {/* VVIP — featured */}
+            {/* VVIP — featured (first to show flagship) */}
             <div
               className="relative rounded-2xl p-6 sm:p-7 flex flex-col"
               style={{
@@ -981,6 +896,91 @@ export default function AIMakeMoneyLanding() {
                 <Crown size={16} /> LẤY VÉ VVIP — 499K
               </button>
             </div>
+
+            {/* VIP */}
+            <div
+              className="rounded-2xl p-6 sm:p-7 flex flex-col"
+              style={{ background: "#111", border: "1px solid rgba(212,168,67,0.25)" }}
+            >
+              <div className="text-xs font-bold uppercase tracking-wider text-[#D4A843] mb-2">
+                VIP
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-4xl font-extrabold text-[#D4A843]">99k</span>
+                <span className="text-xs text-gray-500">≈ 1 ly cà phê</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-5 leading-relaxed">
+                Giữ trọn bộ tài liệu và video xem lại{" "}
+                <strong className="text-white">vĩnh viễn</strong> để học lại bất
+                cứ lúc nào.
+              </p>
+              <ul className="space-y-2.5 text-sm text-gray-300 mb-6 flex-1">
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Tất cả của Free
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  <strong className="text-white">Video xem lại vĩnh viễn</strong>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Slide + PDF từng buổi
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Ưu tiên đặt câu hỏi Q&amp;A
+                </li>
+              </ul>
+              <button
+                onClick={() => openTicket("vip")}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-black transition-transform hover:scale-[1.02]"
+                style={{ background: "#D4A843" }}
+              >
+                LẤY VÉ VIP — 99K
+              </button>
+            </div>
+
+            {/* FREE */}
+            <div
+              className="rounded-2xl p-6 sm:p-7 flex flex-col"
+              style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <div className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+                FREE
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-4xl font-extrabold text-white">0đ</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-5 leading-relaxed">
+                Học trực tiếp cả 3 buổi + nhận cẩm nang 2.990.000đ.{" "}
+                <strong className="text-yellow-400">Giới hạn 99 suất.</strong>
+              </p>
+              <ul className="space-y-2.5 text-sm text-gray-300 mb-6 flex-1">
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Học trực tiếp cả 3 buổi Zoom
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Cẩm nang Bí Mật Video AI
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle size={14} className="text-[#22c55e] shrink-0 mt-0.5" />{" "}
+                  Vào nhóm cộng đồng
+                </li>
+                <li className="flex items-start gap-2 text-gray-500">
+                  <X size={14} className="shrink-0 mt-0.5" /> KHÔNG có video xem lại
+                </li>
+              </ul>
+              <button
+                onClick={() => openTicket("free")}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-colors"
+                style={{ border: "1.5px solid #D4A843", color: "#D4A843" }}
+              >
+                ĐĂNG KÝ VÉ FREE
+              </button>
+            </div>
           </div>
 
           {/* Comparison table */}
@@ -989,18 +989,18 @@ export default function AIMakeMoneyLanding() {
               <thead>
                 <tr style={{ background: "#0a0a0a" }}>
                   <th className="text-left p-4 font-bold text-gray-400">Quyền lợi</th>
-                  <th className="p-4 font-bold text-gray-300">FREE (0đ)</th>
-                  <th className="p-4 font-bold text-[#D4A843]">VIP (99k)</th>
                   <th className="p-4 font-bold text-[#D4A843]">VVIP (499k)</th>
+                  <th className="p-4 font-bold text-[#D4A843]">VIP (99k)</th>
+                  <th className="p-4 font-bold text-gray-300">FREE (0đ)</th>
                 </tr>
               </thead>
               <tbody>
                 {BENEFITS.map((b, i) => (
                   <tr key={i} className={i % 2 === 0 ? "bg-[#111]" : "bg-[#0d0d0d]"}>
                     <td className="p-4 text-gray-200">{b.label}</td>
-                    <td className="text-center p-4">{renderCell(b.free)}</td>
-                    <td className="text-center p-4">{renderCell(b.vip)}</td>
                     <td className="text-center p-4">{renderCell(b.vvip)}</td>
+                    <td className="text-center p-4">{renderCell(b.vip)}</td>
+                    <td className="text-center p-4">{renderCell(b.free)}</td>
                   </tr>
                 ))}
               </tbody>
