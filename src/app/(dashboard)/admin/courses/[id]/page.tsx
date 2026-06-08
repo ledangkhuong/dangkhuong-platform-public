@@ -548,6 +548,7 @@ export default function EditCoursePage() {
               className="input-dark w-full"
             >
               <option value="">— Chưa phân loại —</option>
+              <option value="ai_money">AI Make More Money & Freedom</option>
               <option value="video">Khóa học làm video</option>
               <option value="video_tool">Tool làm video</option>
               <option value="channel">Khóa học xây kênh</option>

@@ -34,6 +34,7 @@ import {
   Package,
   GraduationCap,
   Inbox,
+  Rocket,
 } from "lucide-react";
 import DeleteCourseButton from "@/components/admin/DeleteCourseButton";
 
@@ -42,6 +43,7 @@ import DeleteCourseButton from "@/components/admin/DeleteCourseButton";
 type CourseStatus = "draft" | "published" | "coming_soon" | "archived";
 
 type CategoryKey =
+  | "ai_money"
   | "video"
   | "video_tool"
   | "channel"
@@ -76,6 +78,13 @@ const CATEGORIES: {
   icon: typeof Video;
   color: string;
 }[] = [
+  {
+    key: "ai_money",
+    title: "AI Make More Money & Freedom",
+    subtitle: "Sự kiện 3 buổi Zoom — vé Free / VIP / VVIP",
+    icon: Rocket,
+    color: "#D4A843",
+  },
   {
     key: "video",
     title: "Khóa học làm video",
@@ -445,6 +454,7 @@ export default function AdminCoursesList({
   // Group courses by category
   const groupedCourses = useMemo(() => {
     const groups: Record<CategoryKey, AdminCourseItem[]> = {
+      ai_money: [],
       video: [],
       video_tool: [],
       channel: [],

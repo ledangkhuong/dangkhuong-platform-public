@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 const courseSubNav = [
+  { href: "/courses?cat=ai_money", icon: Rocket, label: "AI Make More Money & Freedom", color: "#D4A843" },
   { href: "/courses?cat=video", icon: Video, label: "Khóa học làm video", color: "#3b82f6" },
   { href: "/courses?cat=video_tool", icon: Sparkles, label: "Tool làm video", color: "#06b6d4" },
   { href: "/courses?cat=channel", icon: Globe, label: "Khóa học xây kênh", color: "#a855f7" },

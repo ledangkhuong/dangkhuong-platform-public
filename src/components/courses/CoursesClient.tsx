@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   PlayCircle, Lock, CheckCircle, ChevronDown, BookOpen,
-  Clock, Video, Globe, Sparkles, Layout, Package, GraduationCap, X,
+  Clock, Video, Globe, Sparkles, Layout, Package, GraduationCap, Rocket, X,
 } from "lucide-react";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 
@@ -31,6 +31,7 @@ type CourseItem = {
 /* ─── Category config (6 menus matching public sidebar) ─────────────────────── */
 
 type CategoryKey =
+  | "ai_money"
   | "video"
   | "video_tool"
   | "channel"
@@ -45,6 +46,13 @@ const CATEGORIES: {
   icon: typeof Video;
   color: string;
 }[] = [
+  {
+    key: "ai_money",
+    title: "AI Make More Money & Freedom",
+    subtitle: "Sự kiện 3 buổi Zoom + lộ trình kiếm tiền tự động bằng AI",
+    icon: Rocket,
+    color: "#D4A843",
+  },
   {
     key: "video",
     title: "Khóa học làm video",
