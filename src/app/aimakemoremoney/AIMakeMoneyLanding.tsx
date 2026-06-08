@@ -327,22 +327,32 @@ export default function AIMakeMoneyLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   /* ── Ticket flow state machine ──
-   *  null  → no modal open
-   *  "form" → lead-capture form open (for selectedTier)
-   *  "checkout" → CheckoutModal open (VIP/VVIP only)
-   *  "success" → final success popup with Zalo + email check
+   *  closed   → no modal open
+   *  form     → lead-capture form open (register OR login mode)
+   *  checkout → CheckoutModal open (VIP/VVIP only)
+   *  success  → final success popup with Zalo + email check
    */
-  const [stage, setStage] = useState<"closed" | "form" | "checkout" | "success">(
-    "closed"
-  );
+  const [stage, setStage] = useState<
+    "closed" | "form" | "checkout" | "success"
+  >("closed");
   const [selectedTier, setSelectedTier] = useState<TicketTier | null>(null);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
+
+  // Form mode — flips to "login" automatically when the API tells us the
+  // email is already registered, so the customer doesn't get stuck.
+  const [formMode, setFormMode] = useState<"register" | "login">("register");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
   const [formStatus, setFormStatus] = useState<"idle" | "loading">("idle");
   const [formError, setFormError] = useState("");
 
   function openTicket(tier: TicketTier) {
     setSelectedTier(tier);
     setFormError("");
+    setFormMode("register");
     setStage("form");
   }
 
@@ -359,8 +369,31 @@ export default function AIMakeMoneyLanding() {
     setFormError("");
 
     try {
-      // Generate a temporary password so the account can be created — user
-      // will reset via the verify-email link or via "Quên mật khẩu" later.
+      if (formMode === "login") {
+        // ── Login flow (email already had an account) ─────────────────
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          setFormError(data.error || "Đăng nhập thất bại.");
+          setFormStatus("idle");
+          return;
+        }
+        setFormStatus("idle");
+        if (selectedTier === "free") setStage("success");
+        else setStage("checkout");
+        return;
+      }
+
+      // ── Register flow ────────────────────────────────────────────────
+      // Generate a temporary password — user will set their own via the
+      // verify-email link or "Quên mật khẩu".
       const tempPassword = `LDK-${Math.random().toString(36).slice(2, 10)}-${Date.now()
         .toString(36)
         .slice(-4)}`;
@@ -378,27 +411,26 @@ export default function AIMakeMoneyLanding() {
       });
       const data = await res.json();
 
-      // Treat "already registered" as OK — the lead still has their account
-      // and we want to move to checkout / success without blocking.
-      const okOrAlready =
-        (res.ok && data.success) ||
-        (typeof data?.error === "string" &&
-          /đã.*tồn|already|exists|registered/i.test(data.error));
+      // Email already in use → switch to login mode in the same modal
+      if (res.status === 409 || data?.code === "user_exists") {
+        setFormMode("login");
+        setFormError(
+          data?.error ||
+            "Email này đã có tài khoản. Vui lòng đăng nhập để tiếp tục."
+        );
+        setFormStatus("idle");
+        return;
+      }
 
-      if (!okOrAlready) {
-        setFormError(data.error || "Có lỗi xảy ra.");
+      if (!res.ok || !data.success) {
+        setFormError(data?.error || "Có lỗi xảy ra.");
         setFormStatus("idle");
         return;
       }
 
       setFormStatus("idle");
-
-      // Route to next stage based on tier
-      if (selectedTier === "free") {
-        setStage("success");
-      } else {
-        setStage("checkout");
-      }
+      if (selectedTier === "free") setStage("success");
+      else setStage("checkout");
     } catch {
       setFormError("Lỗi kết nối. Vui lòng thử lại.");
       setFormStatus("idle");
@@ -1290,24 +1322,39 @@ export default function AIMakeMoneyLanding() {
             <div className="relative p-6 sm:p-8">
               <div className="text-center mb-6">
                 <div className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-3 bg-[#D4A843]/10">
-                  {selectedTier === "free" ? (
+                  {formMode === "login" ? (
+                    <User size={26} className="text-[#D4A843]" />
+                  ) : selectedTier === "free" ? (
                     <Gift size={26} className="text-[#D4A843]" />
                   ) : (
                     <Crown size={26} className="text-[#D4A843]" />
                   )}
                 </div>
-                <h3 className="text-xl font-bold mb-1">Đăng ký {selectedTierLabel}</h3>
+                <h3 className="text-xl font-bold mb-1">
+                  {formMode === "login"
+                    ? "Đăng nhập để tiếp tục"
+                    : `Đăng ký ${selectedTierLabel}`}
+                </h3>
                 <p className="text-sm text-gray-400">
-                  3 buổi Zoom 12-14/06 + cẩm nang 2.990.000đ
-                  {selectedTier === "vip" && (
-                    <span className="block text-[#D4A843] mt-1">
-                      Sẽ tiếp tục đến trang thanh toán 99.000đ.
-                    </span>
-                  )}
-                  {selectedTier === "vvip" && (
-                    <span className="block text-[#D4A843] mt-1">
-                      Sẽ tiếp tục đến trang thanh toán 499.000đ.
-                    </span>
+                  {formMode === "login" ? (
+                    <>
+                      Email này đã có tài khoản. Đăng nhập để hoàn tất đăng ký{" "}
+                      <strong className="text-white">{selectedTierLabel}</strong>.
+                    </>
+                  ) : (
+                    <>
+                      3 buổi Zoom 12-14/06 + cẩm nang 2.990.000đ
+                      {selectedTier === "vip" && (
+                        <span className="block text-[#D4A843] mt-1">
+                          Sẽ tiếp tục đến trang thanh toán 99.000đ.
+                        </span>
+                      )}
+                      {selectedTier === "vvip" && (
+                        <span className="block text-[#D4A843] mt-1">
+                          Sẽ tiếp tục đến trang thanh toán 499.000đ.
+                        </span>
+                      )}
+                    </>
                   )}
                 </p>
               </div>
@@ -1322,38 +1369,45 @@ export default function AIMakeMoneyLanding() {
               )}
 
               <form onSubmit={handleLeadSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                    Họ và tên <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, name: e.target.value }))
-                    }
-                    className="input-dark w-full"
-                    placeholder="Nguyễn Văn A"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                    Số điện thoại <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, phone: e.target.value }))
-                    }
-                    pattern="^(0|\+84)[0-9]{9}$"
-                    title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
-                    className="input-dark w-full"
-                    placeholder="0912345678"
-                  />
-                </div>
+                {/* Name + Phone — register mode only */}
+                {formMode === "register" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                        Họ và tên <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData((p) => ({ ...p, name: e.target.value }))
+                        }
+                        className="input-dark w-full"
+                        placeholder="Nguyễn Văn A"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                        Số điện thoại <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData((p) => ({ ...p, phone: e.target.value }))
+                        }
+                        pattern="^(0|\+84)[0-9]{9}$"
+                        title="Nhập số điện thoại hợp lệ (VD: 0912345678)"
+                        className="input-dark w-full"
+                        placeholder="0912345678"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Email — both modes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1.5">
                     Email <span className="text-red-400">*</span>
@@ -1367,8 +1421,49 @@ export default function AIMakeMoneyLanding() {
                     }
                     className="input-dark w-full"
                     placeholder="ban@email.com"
+                    readOnly={formMode === "login"}
                   />
                 </div>
+
+                {/* Password — login mode only */}
+                {formMode === "login" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Mật khẩu <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData((p) => ({ ...p, password: e.target.value }))
+                      }
+                      className="input-dark w-full"
+                      placeholder="Nhập mật khẩu của bạn"
+                      autoFocus
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <Link
+                        href="/forgot-password"
+                        className="text-xs text-[#D4A843] hover:underline"
+                        target="_blank"
+                      >
+                        Quên mật khẩu?
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormMode("register");
+                          setFormError("");
+                          setFormData((p) => ({ ...p, password: "" }));
+                        }}
+                        className="text-xs text-gray-400 hover:text-white"
+                      >
+                        Dùng email khác
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -1378,9 +1473,11 @@ export default function AIMakeMoneyLanding() {
                 >
                   {formStatus === "loading"
                     ? "Đang xử lý..."
-                    : selectedTier === "free"
-                      ? "ĐĂNG KÝ NHẬN VÉ FREE"
-                      : "TIẾP TỤC ĐẾN THANH TOÁN"}
+                    : formMode === "login"
+                      ? "ĐĂNG NHẬP & TIẾP TỤC"
+                      : selectedTier === "free"
+                        ? "ĐĂNG KÝ NHẬN VÉ FREE"
+                        : "TIẾP TỤC ĐẾN THANH TOÁN"}
                   {formStatus !== "loading" && <ArrowRight size={16} />}
                 </button>
 

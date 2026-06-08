@@ -54,7 +54,33 @@ export async function POST(req: NextRequest) {
     });
     if (createError) {
       console.error("[Register] Create user error:", createError.message);
-      return NextResponse.json({ error: "Không thể tạo tài khoản. Vui lòng thử email khác." }, { status: 400 });
+
+      // Surface a structured signal for "email already in use" so the client
+      // can offer a "log in instead" flow without parsing free-form text.
+      const msg = createError.message?.toLowerCase() ?? "";
+      const alreadyRegistered =
+        msg.includes("already") ||
+        msg.includes("exists") ||
+        msg.includes("registered") ||
+        msg.includes("duplicate") ||
+        (createError as { code?: string }).code === "email_exists";
+
+      if (alreadyRegistered) {
+        return NextResponse.json(
+          {
+            error:
+              "Email này đã có tài khoản. Vui lòng đăng nhập để tiếp tục đăng ký chương trình.",
+            code: "user_exists",
+            email: cleanEmail,
+          },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: "Không thể tạo tài khoản. Vui lòng thử email khác." },
+        { status: 400 }
+      );
     }
 
     // Save phone (upsert to handle case where trigger hasn't fired yet)
