@@ -3,7 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 /**
  * POST /api/admin/courses/reorder
- * Body: { type: "chapters" | "lessons", items: { id: string, sort_order: number }[] }
+ * Body: { type: "chapters" | "lessons" | "products", items: { id: string, sort_order: number }[] }
  */
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -37,7 +37,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const table = type === "chapters" ? "chapters" : "lessons";
+  const validTypes = ["chapters", "lessons", "products"] as const;
+  if (!validTypes.includes(type)) {
+    return NextResponse.json(
+      { error: "type must be 'chapters', 'lessons', or 'products'" },
+      { status: 400 }
+    );
+  }
+
+  const table = type as (typeof validTypes)[number];
   const admin = await createAdminClient();
 
   // Update sort_order for each item
