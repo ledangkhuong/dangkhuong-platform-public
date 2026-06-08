@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
   PlayCircle, Lock, CheckCircle, ChevronDown, BookOpen,
-  Clock, Video, Globe, TrendingUp, Sparkles, GraduationCap,
+  Clock, Video, Globe, Sparkles, Layout, Package, GraduationCap, X,
 } from "lucide-react";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 
@@ -28,9 +28,15 @@ type CourseItem = {
   chapter_count: number;
 };
 
-/* ─── Category config ───────────────────────────────────────────────────────── */
+/* ─── Category config (6 menus matching public sidebar) ─────────────────────── */
 
-type CategoryKey = "video" | "branding" | "business" | "personal_development";
+type CategoryKey =
+  | "video"
+  | "video_tool"
+  | "channel"
+  | "website"
+  | "digital_product"
+  | "coaching";
 
 const CATEGORIES: {
   key: CategoryKey;
@@ -42,29 +48,43 @@ const CATEGORIES: {
   {
     key: "video",
     title: "Khóa học làm video",
-    subtitle: "Học cách tạo video chuyên nghiệp, thu hút triệu view",
+    subtitle: "Học cách tạo video chuyên nghiệp, thu hút triệu view với AI",
     icon: Video,
     color: "#3b82f6",
   },
   {
-    key: "branding",
-    title: "Khóa học xây kênh, thương hiệu cá nhân",
-    subtitle: "Xây dựng thương hiệu và kênh truyền thông bền vững",
+    key: "video_tool",
+    title: "Tool làm video",
+    subtitle: "Bộ công cụ + template + prompt giúp làm video nhanh 10x",
+    icon: Sparkles,
+    color: "#06b6d4",
+  },
+  {
+    key: "channel",
+    title: "Khóa học xây kênh",
+    subtitle: "Xây dựng kênh và thương hiệu cá nhân nổi bật",
     icon: Globe,
     color: "#a855f7",
   },
   {
-    key: "business",
-    title: "Khóa học kinh doanh, hệ thống chuyển đổi cao",
-    subtitle: "Chiến lược kinh doanh và tối ưu doanh thu",
-    icon: TrendingUp,
+    key: "website",
+    title: "Khóa học làm Website All-in-One",
+    subtitle: "Tự build hệ thống website + bán hàng + CRM với AI Agent",
+    icon: Layout,
     color: "#f59e0b",
   },
   {
-    key: "personal_development",
-    title: "Khóa học phát triển bản thân",
-    subtitle: "Nâng cao kỹ năng và tư duy để thành công",
-    icon: Sparkles,
+    key: "digital_product",
+    title: "Khóa học bán sản phẩm số",
+    subtitle: "Tạo và bán sản phẩm số tự động — kiếm tiền khi đang ngủ",
+    icon: Package,
+    color: "#ec4899",
+  },
+  {
+    key: "coaching",
+    title: "Coaching 1 năm",
+    subtitle: "Mentorship 1:1 đồng hành cùng Lê Đăng Khương suốt 12 tháng",
+    icon: GraduationCap,
     color: "#22c55e",
   },
 ];
@@ -269,6 +289,14 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
   } | null>(null);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeCat = searchParams.get("cat");
+
+  // Validate active category against known keys
+  const activeCategoryConfig = useMemo(() => {
+    if (!activeCat) return null;
+    return CATEGORIES.find((c) => c.key === activeCat) ?? null;
+  }, [activeCat]);
 
   useEffect(() => {
     const checkoutId = searchParams.get("checkout");
@@ -284,15 +312,12 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
     }
   }, [searchParams, courses]);
 
-  // Scroll to category section when ?cat= is present
+  // Scroll to top when category filter changes
   useEffect(() => {
-    const cat = searchParams.get("cat");
-    if (!cat) return;
-    const el = document.getElementById(`cat-${cat}`);
-    if (el) {
-      setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    if (activeCat) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [searchParams]);
+  }, [activeCat]);
 
   const handleBuy = (course: CourseItem) => {
     setCheckoutProduct({
@@ -303,28 +328,79 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
     });
   };
 
-  // ── "Khóa học của tôi" — enrolled courses ──
-  const myCourses = courses.filter(
+  const clearFilter = () => router.push("/courses");
+
+  // When filter is active, narrow everything down to that category
+  const filteredCourses = activeCat
+    ? courses.filter((c) => c.category === activeCat)
+    : courses;
+
+  // ── "Khóa học của tôi" — enrolled courses (respects filter) ──
+  const myCourses = filteredCourses.filter(
     (c) => c.status !== "coming_soon" && (c.enrolled || c.price === 0)
   );
 
-  // ── Coming soon ──
-  const comingSoonCourses = courses.filter((c) => c.status === "coming_soon");
+  // ── Coming soon (respects filter) ──
+  const comingSoonCourses = filteredCourses.filter((c) => c.status === "coming_soon");
 
   // ── Published courses (not coming_soon) grouped by category ──
-  const publishedCourses = courses.filter((c) => c.status !== "coming_soon");
+  const publishedCourses = filteredCourses.filter((c) => c.status !== "coming_soon");
 
-  // ── Courses without a category (show separately if any) ──
-  const uncategorized = publishedCourses.filter((c) => !c.category);
+  // ── Categories to render: just the active one, or all ──
+  const categoriesToShow = activeCategoryConfig
+    ? [activeCategoryConfig]
+    : CATEGORIES;
+
+  // ── Courses without a category (only relevant when no filter) ──
+  const uncategorized = activeCat
+    ? []
+    : publishedCourses.filter((c) => !c.category);
 
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-10">
-      {/* ── Khóa học của tôi ── */}
+      {/* ── Filter banner ── */}
+      {activeCategoryConfig && (
+        <div
+          className="card-dark p-4 flex items-center justify-between gap-3"
+          style={{
+            borderColor: `${activeCategoryConfig.color}40`,
+            background: `linear-gradient(90deg, ${activeCategoryConfig.color}10 0%, transparent 100%)`,
+          }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: `${activeCategoryConfig.color}20` }}
+            >
+              <activeCategoryConfig.icon
+                size={18}
+                style={{ color: activeCategoryConfig.color }}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-gray-400">Đang lọc theo menu</p>
+              <h3 className="text-sm font-bold text-white truncate">
+                {activeCategoryConfig.title}
+              </h3>
+            </div>
+          </div>
+          <button
+            onClick={clearFilter}
+            className="shrink-0 inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+            style={{ border: "1px solid #2a2a2a" }}
+          >
+            <X size={12} />
+            Xem tất cả
+          </button>
+        </div>
+      )}
+
+      {/* ── Khóa học của tôi (only show in "all" view OR when filter has owned courses) ── */}
       {myCourses.length > 0 && (
         <section>
           <SectionHeader
             icon={GraduationCap}
-            title="Khoá học của tôi"
+            title={activeCat ? "Khoá học của tôi (trong menu này)" : "Khoá học của tôi"}
             subtitle={`Bạn có quyền truy cập ${myCourses.length} khoá học`}
             iconColor="#22c55e"
           />
@@ -337,7 +413,7 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
       )}
 
       {/* ── Category sections ── */}
-      {CATEGORIES.map((cat) => {
+      {categoriesToShow.map((cat) => {
         const catCourses = publishedCourses.filter((c) => c.category === cat.key);
         if (catCourses.length === 0) return null;
 
@@ -364,8 +440,8 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
         );
       })}
 
-      {/* ── Uncategorized courses (fallback) ── */}
-      {uncategorized.length > 0 && !CATEGORIES.some((cat) => publishedCourses.some((c) => c.category === cat.key)) && (
+      {/* ── Uncategorized courses (fallback, only when no filter) ── */}
+      {uncategorized.length > 0 && (
         <section>
           <SectionHeader
             icon={BookOpen}
@@ -381,8 +457,8 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
         </section>
       )}
 
-      {/* ── Coming soon ── */}
-      {comingSoonCourses.length > 0 && (
+      {/* ── Coming soon (only when no filter) ── */}
+      {!activeCat && comingSoonCourses.length > 0 && (
         <section>
           <SectionHeader
             icon={Clock}
@@ -398,7 +474,23 @@ export default function CoursesClient({ courses }: { courses: CourseItem[] }) {
         </section>
       )}
 
-      {/* Empty state */}
+      {/* ── Empty state when filter has no results ── */}
+      {activeCategoryConfig && publishedCourses.length === 0 && myCourses.length === 0 && (
+        <div className="card-dark p-10 text-center">
+          <div className="text-4xl mb-3">📭</div>
+          <h3 className="font-bold text-white mb-1">
+            Chưa có khoá học nào trong menu "{activeCategoryConfig.title}"
+          </h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Hãy quay lại sau hoặc xem các khoá học khác.
+          </p>
+          <button onClick={clearFilter} className="btn-gold text-sm">
+            Xem tất cả khoá học
+          </button>
+        </div>
+      )}
+
+      {/* Empty state when no courses at all */}
       {courses.length === 0 && (
         <div className="card-dark p-10 text-center">
           <div className="text-4xl mb-3">📚</div>
