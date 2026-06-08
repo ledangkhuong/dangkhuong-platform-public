@@ -49,7 +49,7 @@ export const siteConfig = {
   // Env: NEXT_PUBLIC_SOCIAL_FACEBOOK, NEXT_PUBLIC_SOCIAL_YOUTUBE,
   //      NEXT_PUBLIC_SOCIAL_ZALO, NEXT_PUBLIC_SOCIAL_TIKTOK, NEXT_PUBLIC_SOCIAL_INSTAGRAM
   socials: {
-    facebook: env("NEXT_PUBLIC_SOCIAL_FACEBOOK", "https://facebook.com/ledangkhuong"),
+    facebook: env("NEXT_PUBLIC_SOCIAL_FACEBOOK", "https://www.facebook.com/jackmadk13"),
     youtube: env("NEXT_PUBLIC_SOCIAL_YOUTUBE", "https://youtube.com/@ledangkhuong"),
     zalo: env("NEXT_PUBLIC_SOCIAL_ZALO", "https://zalo.me/0782276727"),
     tiktok: env("NEXT_PUBLIC_SOCIAL_TIKTOK", ""),

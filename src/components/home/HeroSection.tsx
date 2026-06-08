@@ -6,10 +6,12 @@ import {
   Video,
   Award,
   Star,
-  CheckCircle,
   Download,
   ArrowRight,
   Code2,
+  Eye,
+  BookOpen,
+  Bot,
 } from "lucide-react";
 import YouTubeFacade from "@/app/YouTubeFacade";
 
@@ -17,11 +19,38 @@ interface HeroSectionProps {
   onOpenModal?: () => void;
 }
 
-const FOUR_STEPS = [
-  "Làm video AI để hút khách",
-  "Xây kênh để khách tự tìm đến",
-  "Đóng gói chuyên môn thành sản phẩm số",
-  "Thiết kế website AI Agent tự bán hàng 24/7",
+type FourStep = {
+  num: number;
+  Icon: React.ComponentType<{ size?: number; className?: string }>;
+  title: string;
+  subtitle: string;
+};
+
+const FOUR_STEPS: FourStep[] = [
+  {
+    num: 1,
+    Icon: Video,
+    title: "Làm video AI",
+    subtitle: "Hút khách bằng video chất lượng cinema",
+  },
+  {
+    num: 2,
+    Icon: Eye,
+    title: "Xây kênh hút khách",
+    subtitle: "Để khách đúng gu tự tìm đến",
+  },
+  {
+    num: 3,
+    Icon: BookOpen,
+    title: "Đóng gói sản phẩm số",
+    subtitle: "Khoá học / Ebook bán được mãi",
+  },
+  {
+    num: 4,
+    Icon: Bot,
+    title: "Website AI Agent",
+    subtitle: "Tự bán hàng 24/7 thay bạn",
+  },
 ];
 
 const CHANNEL_IMAGES = [1, 2, 3, 4];
@@ -68,10 +97,10 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
           </span>
         </p>
 
-        {/* Unique USP badge */}
-        <div className="flex justify-center mb-6 sm:mb-8">
+        {/* USP badge */}
+        <div className="flex justify-center mb-8 sm:mb-10">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-medium"
             style={{
               background: "rgba(34,197,94,0.08)",
               border: "1px solid rgba(34,197,94,0.3)",
@@ -80,26 +109,69 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
           >
             <Code2 size={14} />
             <span>
-              Người duy nhất tự tay code toàn bộ hệ thống dangkhuong.com đang
-              chạy
+              Người tự tay code toàn bộ hệ thống dangkhuong.com đang chạy
             </span>
           </div>
         </div>
 
-        {/* 4-step inline checklist */}
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-          {FOUR_STEPS.map((step, idx) => (
+        {/* 4-step roadmap cards — eye-catching */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
+          {FOUR_STEPS.map((step) => (
             <div
-              key={idx}
-              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm bg-white/[0.03] border border-[#D4A843]/20 text-gray-200"
+              key={step.num}
+              className="group relative rounded-2xl p-4 sm:p-5 text-left overflow-hidden transition-all hover:scale-[1.03] hover:-translate-y-1"
+              style={{
+                background:
+                  "linear-gradient(155deg, rgba(212,168,67,0.12) 0%, rgba(212,168,67,0.02) 60%)",
+                border: "1px solid rgba(212,168,67,0.25)",
+                boxShadow:
+                  "0 10px 30px -15px rgba(212,168,67,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+              }}
             >
-              <CheckCircle size={14} className="text-[#D4A843] shrink-0" />
-              <span>
-                <span className="text-[#D4A843] font-semibold mr-1">
-                  {idx + 1}.
-                </span>
-                {step}
-              </span>
+              {/* Big watermark step number */}
+              <div
+                className="absolute -top-2 -right-2 text-[80px] sm:text-[100px] font-extrabold leading-none opacity-[0.08] pointer-events-none select-none"
+                style={{ color: "#D4A843" }}
+              >
+                {step.num}
+              </div>
+
+              {/* Hover glow */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(circle at top left, rgba(212,168,67,0.18), transparent 60%)",
+                }}
+              />
+
+              <div className="relative">
+                {/* Step badge + icon row */}
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className="inline-flex items-center justify-center text-xs font-bold w-7 h-7 rounded-lg"
+                    style={{
+                      background: "#D4A843",
+                      color: "#0a0a0a",
+                    }}
+                  >
+                    {step.num}
+                  </div>
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(212,168,67,0.18)" }}
+                  >
+                    <step.Icon size={18} className="text-[#D4A843]" />
+                  </div>
+                </div>
+
+                <h3 className="font-extrabold text-sm sm:text-base text-white leading-tight mb-1.5">
+                  {step.title}
+                </h3>
+                <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                  {step.subtitle}
+                </p>
+              </div>
             </div>
           ))}
         </div>

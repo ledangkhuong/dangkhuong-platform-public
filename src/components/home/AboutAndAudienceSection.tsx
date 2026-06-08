@@ -82,7 +82,7 @@ const audienceCards: AudienceCard[] = [
 export default function AboutAndAudienceSection({
   facebookUrl,
 }: AboutAndAudienceSectionProps) {
-  const fbUrl = facebookUrl ?? "https://www.facebook.com/dangkhuong.kohada";
+  const fbUrl = facebookUrl ?? "https://www.facebook.com/jackmadk13";
 
   return (
     <>

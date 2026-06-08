@@ -113,15 +113,22 @@ export default function PainAndRoadmapSection({
             <span className="text-[#D4A843]">những điều này?</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {/*
+            Balanced 5-card layout:
+            - Mobile: 1 column
+            - Tablet (sm): 2 columns, last card spans both columns
+            - Desktop (lg): 6-column grid → first row 3 cards × col-span-2,
+              second row 2 cards × col-span-3 (centered visually)
+          */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-5">
             {painPoints.map((p, i) => {
-              const isLast = i === painPoints.length - 1;
+              const isBottomRow = i >= 3; // last 2 cards
+              const lgSpan = isBottomRow ? "lg:col-span-3" : "lg:col-span-2";
+              const smSpan = i === painPoints.length - 1 ? "sm:col-span-2" : "";
               return (
                 <div
                   key={i}
-                  className={`bg-[#111] border border-white/5 rounded-2xl p-6 hover:border-red-500/20 transition-colors ${
-                    isLast ? "lg:col-span-3 lg:max-w-2xl lg:mx-auto lg:w-full" : ""
-                  }`}
+                  className={`bg-[#111] border border-white/5 rounded-2xl p-6 hover:border-red-500/30 hover:bg-[#141414] transition-all ${lgSpan} ${smSpan}`}
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
@@ -129,8 +136,12 @@ export default function PainAndRoadmapSection({
                     </div>
                     <div className="text-3xl leading-none">{p.emoji}</div>
                   </div>
-                  <h3 className="text-lg font-bold mb-2 text-white">{p.title}</h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">{p.desc}</p>
+                  <h3 className="text-lg font-bold mb-2 text-white">
+                    {p.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    {p.desc}
+                  </p>
                 </div>
               );
             })}

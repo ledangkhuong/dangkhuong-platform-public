@@ -48,7 +48,7 @@ const valueRows: ValueRow[] = [
 
 export default function FreeOfferFinalCtaSection({
   onOpenModal,
-  facebookUrl = "https://www.facebook.com/dangkhuong.kohada",
+  facebookUrl = "https://www.facebook.com/jackmadk13",
   ownerName = "Lê Đăng Khương",
 }: FreeOfferFinalCtaSectionProps) {
   const [secondsLeft, setSecondsLeft] = useState<number>(RESET_SECONDS);
