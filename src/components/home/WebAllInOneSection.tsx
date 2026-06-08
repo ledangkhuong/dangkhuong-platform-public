@@ -132,7 +132,7 @@ export default function WebAllInOneSection({
           }}
         >
           <Image
-            src="/images/weballinone/system-diagram.png"
+            src="/images/weballinone/websiteallinone.png"
             alt="Sơ đồ Web All in One — hệ thống tự bán hàng 24/7"
             width={1920}
             height={1400}
