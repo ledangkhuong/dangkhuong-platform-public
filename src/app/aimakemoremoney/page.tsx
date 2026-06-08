@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AIMakeMoneyLanding from "./AIMakeMoneyLanding";
 
 const URL = "https://dangkhuong.com/aimakemoremoney";
-const OG_IMAGE = "https://dangkhuong.com/images/hero/offer-banner.jpg";
+const OG_IMAGE = "https://dangkhuong.com/images/aimakemoremoney/banner.png";
 const TITLE =
   "AI Make More Money and Freedom — 3 buổi Zoom miễn phí 12-14/06 | Lê Đăng Khương";
 const DESCRIPTION =
@@ -19,7 +19,14 @@ export const metadata: Metadata = {
     url: URL,
     siteName: "Lê Đăng Khương Academy",
     locale: "vi_VN",
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: TITLE }],
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1920,
+        height: 1080,
+        alt: "AI Make More Money & Freedom — Bí quyết kiếm vài ngàn đô/tháng với AI và tự do du lịch — Lê Đăng Khương",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
