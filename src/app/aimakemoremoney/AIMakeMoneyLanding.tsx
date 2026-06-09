@@ -362,6 +362,60 @@ export default function AIMakeMoneyLanding() {
     setFormError("");
   }
 
+  // Read UTM / click-id attribution captured on first landing.
+  // PageTracker writes the original (first-touch) UTM payload to
+  // sessionStorage.dk_utm; we fall back to URL params and document
+  // referrer so this works even if cookies/storage are cleared.
+  function readAttribution(): Record<string, string | undefined> {
+    if (typeof window === "undefined") return {};
+
+    const out: Record<string, string | undefined> = {
+      referrer: document.referrer || undefined,
+      landing_url: window.location.href,
+    };
+
+    // 1) Session-storage snapshot (first-touch winner)
+    try {
+      const stored = sessionStorage.getItem("dk_utm");
+      if (stored) {
+        const parsed = JSON.parse(stored) as Record<string, string>;
+        for (const k of [
+          "utm_source",
+          "utm_medium",
+          "utm_campaign",
+          "utm_term",
+          "utm_content",
+          "fbclid",
+          "gclid",
+        ] as const) {
+          if (parsed[k]) out[k] = parsed[k];
+        }
+      }
+    } catch {
+      // ignore corrupted storage
+    }
+
+    // 2) Fall back to current URL params for whatever sessionStorage
+    //    didn't have.
+    const params = new URLSearchParams(window.location.search);
+    for (const k of [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content",
+      "fbclid",
+      "gclid",
+    ] as const) {
+      if (!out[k]) {
+        const v = params.get(k);
+        if (v) out[k] = v;
+      }
+    }
+
+    return out;
+  }
+
   // Fire-and-forget enrollment into the AI Make More Money email
   // automation. Adds the lead to `aimm_attendees` and triggers the
   // welcome email immediately. Failure here must NOT block the funnel
@@ -376,6 +430,7 @@ export default function AIMakeMoneyLanding() {
           full_name: fullName || formData.name,
           phone: formData.phone || undefined,
           tier,
+          ...readAttribution(),
         }),
       });
     } catch (err) {

@@ -24,6 +24,16 @@ export async function POST(req: NextRequest) {
     phone?: string;
     tier?: string;
     user_id?: string;
+    // Attribution — captured client-side from URL params + sessionStorage
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    referrer?: string;
+    landing_url?: string;
+    fbclid?: string;
+    gclid?: string;
   };
   try {
     body = await req.json();
@@ -35,6 +45,22 @@ export async function POST(req: NextRequest) {
   const name = body.full_name?.trim();
   const phone = body.phone?.trim() || null;
   const tier = body.tier?.toLowerCase() as AimmTier | undefined;
+
+  // Sanitise + cap UTM fields so a malicious actor can't stuff arbitrary
+  // payloads. All optional; null if blank.
+  const cap = (v: string | undefined, max = 255) =>
+    v?.trim().slice(0, max) || null;
+  const utmFields = {
+    utm_source: cap(body.utm_source, 100),
+    utm_medium: cap(body.utm_medium, 100),
+    utm_campaign: cap(body.utm_campaign, 200),
+    utm_term: cap(body.utm_term, 200),
+    utm_content: cap(body.utm_content, 200),
+    referrer: cap(body.referrer, 500),
+    landing_url: cap(body.landing_url, 500),
+    fbclid: cap(body.fbclid, 200),
+    gclid: cap(body.gclid, 200),
+  };
 
   if (!email || !name) {
     return NextResponse.json(
@@ -104,6 +130,10 @@ export async function POST(req: NextRequest) {
           .eq("id", existing.id);
       }
     } else {
+      // First-touch attribution: store UTM only on initial insert. We
+      // don't overwrite on subsequent visits — the channel that first
+      // brought the lead gets credit, which is the convention used by
+      // the rest of the marketing dashboards.
       const { error: insErr } = await admin.from("aimm_attendees").insert({
         email,
         full_name: name,
@@ -111,6 +141,7 @@ export async function POST(req: NextRequest) {
         tier,
         user_id: body.user_id ?? null,
         stages_sent: [],
+        ...utmFields,
       });
       if (insErr) {
         console.error("[aimm/enroll] Insert error:", insErr.message);
