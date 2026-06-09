@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import {
   Mail,
-  Phone,
   Clock,
   ShoppingCart,
   DollarSign,
@@ -14,6 +13,7 @@ import { DataTable, type ColumnDef } from "@/components/ui/DataTable";
 import ContactAssignSelect from "./ContactAssignSelect";
 import StatusInlineSelect from "./StatusInlineSelect";
 import SourceInlineSelect from "./SourceInlineSelect";
+import CopyablePhone from "./CopyablePhone";
 import type { SalesUser } from "@/lib/sales";
 
 /* ---------- Types ---------- */
@@ -162,11 +162,11 @@ export default function ContactsTable({
 }: ContactsTableProps) {
   const columns = useMemo<ColumnDef<Contact, any>[]>(
     () => [
-      /* ── Tên ── */
+      /* ── Tên (+ SĐT inline cho dễ thấy, click-to-copy) ── */
       {
         accessorKey: "full_name",
         header: "Tên",
-        size: 160,
+        size: 220,
         enableSorting: true,
         cell: ({ row }) => {
           const c = row.original;
@@ -189,8 +189,17 @@ export default function ContactsTable({
                 >
                   {c.full_name}
                 </Link>
+                {/* Phone inline under the name — most teams need to call
+                    the customer faster than they need to read the company,
+                    so we surface it here too (not just in the SĐT column
+                    further right which can be off-screen on narrow viewports). */}
+                {c.phone && (
+                  <div className="mt-0.5">
+                    <CopyablePhone phone={c.phone} compact />
+                  </div>
+                )}
                 {c.company && (
-                  <div className="text-[11px] text-gray-500 truncate flex items-center gap-1">
+                  <div className="text-[11px] text-gray-500 truncate flex items-center gap-1 mt-0.5">
                     <Building2 size={10} />
                     {c.company}
                   </div>
@@ -220,22 +229,17 @@ export default function ContactsTable({
         },
       },
 
-      /* ── SĐT ── */
+      /* ── SĐT (đầy đủ + copy button — cột riêng cho ai cần scan nhanh) ── */
       {
         accessorKey: "phone",
         header: "SĐT",
-        size: 120,
+        size: 180,
         enableSorting: false,
         cell: ({ row }) => {
           const phone = row.original.phone;
           if (!phone)
             return <span className="text-gray-700 text-xs">&mdash;</span>;
-          return (
-            <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-              <Phone size={12} className="text-gray-500" />
-              {phone}
-            </div>
-          );
+          return <CopyablePhone phone={phone} />;
         },
       },
 
