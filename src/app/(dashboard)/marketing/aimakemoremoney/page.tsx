@@ -426,70 +426,6 @@ export default async function AimmDashboardPage() {
           />
         </div>
 
-        {/* UTM templates — ready to copy */}
-        <div className="card-dark p-4 sm:p-5">
-          <div className="flex items-start gap-3 mb-4">
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "rgba(212,168,67,0.1)" }}
-            >
-              <Sparkles size={18} className="text-[#D4A843]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-bold text-white">
-                Link UTM sẵn dùng — copy + dán cho từng kênh
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Dùng các link này thay vì link gốc <code className="text-[#D4A843]">dangkhuong.com/aimakemoremoney</code>{" "}
-                để hệ thống tự gắn nguồn vào mỗi khách. Sửa{" "}
-                <code>utm_campaign</code> mỗi đợt chạy (vd:{" "}
-                <code>aimm_jul26</code>) để tách riêng.
-              </p>
-            </div>
-            <Link
-              href="/marketing/utm-builder"
-              className="text-xs text-gray-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5 shrink-0"
-            >
-              <Wrench size={12} /> UTM Builder
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {utmTemplates.map((t) => (
-              <div
-                key={t.label}
-                className="rounded-lg p-3 flex items-start gap-3"
-                style={{
-                  background: "#0d0d0d",
-                  border: `1px solid ${t.color}25`,
-                }}
-              >
-                <div
-                  className="w-2 h-2 rounded-full mt-1.5 shrink-0"
-                  style={{ background: t.color }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div
-                    className="text-xs font-bold uppercase tracking-wide mb-1"
-                    style={{ color: t.color }}
-                  >
-                    {t.label}
-                  </div>
-                  <code className="block text-[11px] text-gray-300 break-all leading-relaxed">
-                    {t.url}
-                  </code>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-[11px] text-gray-500 mt-4 leading-relaxed">
-            💡 <strong className="text-gray-300">Mẹo</strong>: dùng cùng <code className="text-[#D4A843]">utm_campaign</code> cho 1 đợt sale
-            để gom kết quả. <code>utm_source</code> = nền tảng (facebook/google/zalo…). <code>utm_medium</code> = loại traffic (cpc/organic/email…).
-            <code>utm_content</code> = phân biệt creative / list / link cụ thể trong cùng campaign.
-          </p>
-        </div>
-
         {/* Channel breakdown */}
         <div className="card-dark overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
@@ -661,6 +597,72 @@ export default async function AimmDashboardPage() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* UTM templates — ready to copy (placed AFTER metrics so the
+            measurement tables are above the fold; anh Khương asked to
+            move this block down on 09/06). */}
+        <div className="card-dark p-4 sm:p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "rgba(212,168,67,0.1)" }}
+            >
+              <Sparkles size={18} className="text-[#D4A843]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-bold text-white">
+                Link UTM sẵn dùng — copy + dán cho từng kênh
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Dùng các link này thay vì link gốc <code className="text-[#D4A843]">dangkhuong.com/aimakemoremoney</code>{" "}
+                để hệ thống tự gắn nguồn vào mỗi khách. Sửa{" "}
+                <code>utm_campaign</code> mỗi đợt chạy (vd:{" "}
+                <code>aimm_jul26</code>) để tách riêng.
+              </p>
+            </div>
+            <Link
+              href="/marketing/utm-builder"
+              className="text-xs text-gray-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5 shrink-0"
+            >
+              <Wrench size={12} /> UTM Builder
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {utmTemplates.map((t) => (
+              <div
+                key={t.label}
+                className="rounded-lg p-3 flex items-start gap-3"
+                style={{
+                  background: "#0d0d0d",
+                  border: `1px solid ${t.color}25`,
+                }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                  style={{ background: t.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: t.color }}
+                  >
+                    {t.label}
+                  </div>
+                  <code className="block text-[11px] text-gray-300 break-all leading-relaxed">
+                    {t.url}
+                  </code>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-gray-500 mt-4 leading-relaxed">
+            💡 <strong className="text-gray-300">Mẹo</strong>: dùng cùng <code className="text-[#D4A843]">utm_campaign</code> cho 1 đợt sale
+            để gom kết quả. <code>utm_source</code> = nền tảng (facebook/google/zalo…). <code>utm_medium</code> = loại traffic (cpc/organic/email…).
+            <code>utm_content</code> = phân biệt creative / list / link cụ thể trong cùng campaign.
+          </p>
         </div>
 
         {/* Cross-links */}
