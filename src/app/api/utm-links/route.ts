@@ -117,10 +117,16 @@ export async function GET(req: NextRequest) {
   if (error) return error;
 
   // RLS handles per-row visibility (own + admin/manager see all).
-  const { data, error: queryErr } = await supabase
+  //
+  // Note: we don't use Supabase relational select syntax
+  // (`creator:created_by(full_name)`) here because utm_links.created_by
+  // FKs to auth.users(id), not public.profiles(id) — PostgREST can't
+  // resolve the join automatically. We fetch profiles in a second batch
+  // query and merge in code.
+  const { data: links, error: queryErr } = await supabase
     .from("utm_links")
     .select(
-      "id, base_url, url, utm_source, utm_medium, utm_campaign, utm_term, utm_content, label, notes, created_by, created_at, creator:created_by(full_name)"
+      "id, base_url, url, utm_source, utm_medium, utm_campaign, utm_term, utm_content, label, notes, created_by, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -129,7 +135,28 @@ export async function GET(req: NextRequest) {
     console.error("[utm-links GET]", queryErr.message);
     return NextResponse.json({ error: "Query failed" }, { status: 500 });
   }
-  return NextResponse.json({ links: data ?? [] });
+
+  // Resolve created_by → profile full_name in a single batch query
+  const creatorIds = Array.from(
+    new Set((links ?? []).map((l) => l.created_by).filter(Boolean) as string[])
+  );
+  const creatorMap = new Map<string, { full_name: string | null }>();
+  if (creatorIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", creatorIds);
+    for (const p of profiles ?? []) {
+      creatorMap.set(p.id, { full_name: p.full_name });
+    }
+  }
+
+  const linksWithCreator = (links ?? []).map((l) => ({
+    ...l,
+    creator: l.created_by ? creatorMap.get(l.created_by) ?? null : null,
+  }));
+
+  return NextResponse.json({ links: linksWithCreator });
 }
 
 export async function DELETE(req: NextRequest) {

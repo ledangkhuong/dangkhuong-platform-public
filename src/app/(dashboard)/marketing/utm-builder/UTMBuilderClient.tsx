@@ -161,29 +161,75 @@ export default function UTMBuilderClient() {
   // Load recent links — server first (so admin sees everyone's links),
   // fall back to localStorage if the API is down so the form still
   // works offline.
+  //
+  // On first successful load, if the user has links sitting in
+  // localStorage that aren't yet on the server (legacy / pre-deploy),
+  // we push them up so they show up with the current user as creator.
+  // This lets the team see ALL historical links, not just new ones.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const res = await fetch("/api/utm-links", { cache: "no-store" });
-        if (res.ok) {
-          const data = (await res.json()) as {
-            links: Array<{
-              id: string;
-              url: string;
-              base_url: string;
-              utm_source: string;
-              utm_medium: string | null;
-              utm_campaign: string | null;
-              utm_term: string | null;
-              utm_content: string | null;
-              created_at: string;
-              creator?: { full_name: string | null } | null;
-            }>;
-          };
-          if (cancelled) return;
+      type ServerLink = {
+        id: string;
+        url: string;
+        base_url: string;
+        utm_source: string;
+        utm_medium: string | null;
+        utm_campaign: string | null;
+        utm_term: string | null;
+        utm_content: string | null;
+        created_at: string;
+        creator?: { full_name: string | null } | null;
+      };
+
+      async function fetchFromServer(): Promise<ServerLink[] | null> {
+        try {
+          const res = await fetch("/api/utm-links", { cache: "no-store" });
+          if (!res.ok) return null;
+          const data = (await res.json()) as { links: ServerLink[] };
+          return data.links ?? [];
+        } catch {
+          return null;
+        }
+      }
+
+      const serverLinks = await fetchFromServer();
+      if (cancelled) return;
+
+      if (serverLinks === null) {
+        // Server unreachable — show cached
+        setRecentLinks(loadRecent());
+        return;
+      }
+
+      // Migrate any local-only links to the server (best-effort, parallel)
+      const local = loadRecent();
+      const serverUrls = new Set(serverLinks.map((l) => l.url));
+      const toMigrate = local.filter((l) => l.url && !serverUrls.has(l.url));
+      if (toMigrate.length > 0) {
+        await Promise.allSettled(
+          toMigrate.map((l) =>
+            fetch("/api/utm-links", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                base_url: l.baseUrl,
+                url: l.url,
+                utm_source: l.source || "unknown",
+                utm_medium: l.medium,
+                utm_campaign: l.campaign,
+                utm_term: l.term,
+                utm_content: l.content,
+              }),
+            })
+          )
+        );
+        // Re-fetch so we see the new server-assigned IDs + creator
+        const refreshed = await fetchFromServer();
+        if (cancelled) return;
+        if (refreshed) {
           setRecentLinks(
-            data.links.map((l) => ({
+            refreshed.map((l) => ({
               id: l.id,
               url: l.url,
               baseUrl: l.base_url,
@@ -196,12 +242,26 @@ export default function UTMBuilderClient() {
               creatorName: l.creator?.full_name ?? undefined,
             }))
           );
+          // Wipe the cache since the server is now the source of truth
+          saveRecent([]);
           return;
         }
-      } catch {
-        // network/server down — fall through to localStorage
       }
-      if (!cancelled) setRecentLinks(loadRecent());
+
+      setRecentLinks(
+        serverLinks.map((l) => ({
+          id: l.id,
+          url: l.url,
+          baseUrl: l.base_url,
+          source: l.utm_source,
+          medium: l.utm_medium ?? "",
+          campaign: l.utm_campaign ?? "",
+          term: l.utm_term ?? "",
+          content: l.utm_content ?? "",
+          createdAt: l.created_at,
+          creatorName: l.creator?.full_name ?? undefined,
+        }))
+      );
     })();
     return () => {
       cancelled = true;
