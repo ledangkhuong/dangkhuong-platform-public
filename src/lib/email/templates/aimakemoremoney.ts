@@ -25,8 +25,6 @@ export type SessionNum = 1 | 2 | 3;
 const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
 const ZALO_GROUP = "https://zalo.me/g/l4qmpdq934rmst9xxnfj";
-const LANDING = `${BASE_URL}/aimakemoremoney`;
-const TICKETS_URL = `${LANDING}#tickets`;
 const DASHBOARD = `${BASE_URL}/dashboard`;
 const SESSION_TIME = "20:00 – 22:00";
 const COURSE_SLUGS = {
@@ -34,6 +32,11 @@ const COURSE_SLUGS = {
   vip: "ai-make-more-money-vip",
   vvip: "ai-make-more-money-vvip",
 } as const;
+// Upgrade buttons go straight to the actual course / checkout page
+// (instead of the landing-page #tickets anchor) so the customer is one
+// click away from buying the upgrade tier.
+const VIP_COURSE_URL = `${BASE_URL}/courses/${COURSE_SLUGS.vip}`;
+const VVIP_COURSE_URL = `${BASE_URL}/courses/${COURSE_SLUGS.vvip}`;
 
 const SESSIONS: Record<
   SessionNum,
@@ -180,15 +183,14 @@ function upgradeBlock(currentTier: AimmTier): string {
   if (currentTier === "free") {
     return `<div style="background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.3);border-radius:10px;padding:16px 18px;margin:18px 0;">
       <div style="color:#D4A843;font-weight:800;font-size:15px;margin-bottom:8px;">🚀 Nâng cấp để giữ trọn giá trị</div>
-      <div style="color:#9ca3af;font-size:13px;line-height:1.7;margin-bottom:12px;">Vé Free chỉ học trực tiếp, không có video xem lại. Nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.</div>
+      <div style="color:#9ca3af;font-size:13px;line-height:1.7;margin-bottom:12px;">Vé Free chỉ học trực tiếp. Muốn xem lại bất cứ lúc nào hoặc được Khương kèm 1-1? Hai lựa chọn dưới đây:</div>
       <div style="margin-bottom:14px;">
         <div style="color:#fff;font-weight:700;font-size:13px;margin-bottom:4px;">Vé VIP — 99.000đ <span style="color:#9ca3af;font-weight:400;">(≈ 1 ly cà phê)</span></div>
         <ul style="margin:0 0 10px;padding-left:18px;color:#cbd5e1;font-size:12.5px;line-height:1.7;">
-          <li>Video xem lại vĩnh viễn cả 3 buổi</li>
-          <li>Bộ slide PDF + tài liệu từng buổi</li>
+          <li>Tài liệu, slide PDF + bộ tài liệu bổ sung từng buổi</li>
           <li>Ưu tiên đặt câu hỏi Q&amp;A</li>
         </ul>
-        ${ctaButton(TICKETS_URL, "Nâng cấp VIP — 99k")}
+        ${ctaButton(VIP_COURSE_URL, "Lấy link mua Vé VIP — 99k")}
       </div>
       <div>
         <div style="color:#fff;font-weight:700;font-size:13px;margin-bottom:4px;">Vé VVIP — 499.000đ <span style="color:#9ca3af;font-weight:400;">(giới hạn 50 suất)</span></div>
@@ -197,7 +199,7 @@ function upgradeBlock(currentTier: AimmTier): string {
           <li>30 phút coaching 1-1 trực tiếp với Khương</li>
           <li>AI Agent Starter Kit (template + prompt + hướng dẫn)</li>
         </ul>
-        ${ctaButton(TICKETS_URL, "Xem chi tiết VVIP — 499k", "#22c55e")}
+        ${ctaButton(VVIP_COURSE_URL, "Lấy link mua Vé VVIP — 499k", "#22c55e")}
       </div>
     </div>`;
   }
@@ -211,7 +213,7 @@ function upgradeBlock(currentTier: AimmTier): string {
       <li><strong style="color:#fff;">AI Agent Starter Kit</strong> — template database + prompt library + hướng dẫn dựng AI Agent đầu tiên</li>
       <li>Ưu tiên Q&amp;A số 1 — câu hỏi của bạn được trả lời trước</li>
     </ul>
-    ${ctaButton(TICKETS_URL, "Nâng cấp VVIP — 499k", "#22c55e")}
+    ${ctaButton(VVIP_COURSE_URL, "Lấy link mua Vé VVIP — 499k", "#22c55e")}
   </div>`;
 }
 
@@ -227,11 +229,10 @@ export function welcomeEmail(
   const tierIntro: Record<AimmTier, string> = {
     free: `
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé Free cho bạn quyền tham gia <strong style="color:#fff;">trực tiếp cả 3 buổi Zoom</strong> + nhận quà cẩm nang trị giá <span style="color:#22c55e;font-weight:600;">2.990.000đ</span>.</p>
-      <p style="color:#facc15;font-size:13px;line-height:1.7;margin:0 0 12px;"><strong>⚠️ Lưu ý:</strong> vé Free <strong>không có video xem lại</strong> — nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.</p>
+      <p style="color:#facc15;font-size:13px;line-height:1.7;margin:0 0 12px;"><strong>⚠️ Lưu ý:</strong> vé Free <strong>chỉ học trực tiếp</strong> — nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.</p>
     `,
     vip: `
-      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé VIP của bạn đã được kích hoạt. Bạn có quyền truy cập <strong style="color:#fff;">video xem lại vĩnh viễn</strong> + bộ slide PDF từng buổi + ưu tiên đặt câu hỏi trong Q&amp;A.</p>
-      <p style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0 0 12px;">Sau mỗi buổi học, video replay sẽ được cập nhật trong vòng 24h vào trang khoá học của bạn.</p>
+      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé VIP của bạn đã được kích hoạt. Bạn có quyền truy cập <strong style="color:#fff;">trọn bộ tài liệu + slide PDF từng buổi</strong> + ưu tiên đặt câu hỏi trong Q&amp;A — tất cả nằm trong trang khoá học của bạn.</p>
     `,
     vvip: `
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé VVIP — suất gần Thầy Khương nhất — đã được kích hoạt. Bạn có toàn bộ quyền lợi của VIP + <strong style="color:#22c55e;">30 phút coaching 1-1 trực tiếp</strong> với Lê Đăng Khương + AI Agent Starter Kit.</p>
@@ -331,6 +332,11 @@ export function reminderT1hEmail(
 }
 
 /* ─── 4. Recap (after each session, ~22:30) ───────────────────── */
+//
+// Note: the "Video xem lại sẽ có trong 24h" promise block was removed
+// per anh Khương's feedback — recap emails no longer make replay
+// commitments. Recap is now: appreciation → next session preview →
+// upgrade CTA (FREE/VIP only) → closing (session 3 only).
 
 export function recapEmail(
   tier: AimmTier,
@@ -342,21 +348,6 @@ export function recapEmail(
   const subject = isLast
     ? `🎉 Đã xong 3 buổi — cảm ơn ${name} đã đồng hành!`
     : `💎 Cảm ơn ${name} — Buổi ${sessionNum} đã kết thúc, hẹn buổi tiếp theo`;
-
-  const courseUrl = `${BASE_URL}/courses/${COURSE_SLUGS[tier]}`;
-
-  const replayBlock =
-    tier === "free"
-      ? `<div style="background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.25);border-radius:10px;padding:14px 16px;margin:18px 0;">
-          <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">📺 Bỏ lỡ buổi? Muốn xem lại?</div>
-          <p style="color:#9ca3af;font-size:13px;line-height:1.6;margin:0 0 10px;">Vé Free không có replay. <strong style="color:#fff;">Nâng cấp lên VIP (99k)</strong> để có video xem lại vĩnh viễn cả 3 buổi + slide PDF.</p>
-          ${ctaButton(TICKETS_URL, "Nâng cấp VIP — chỉ 99k")}
-        </div>`
-      : `<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px 16px;margin:18px 0;">
-          <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">🎬 Video xem lại Buổi ${sessionNum}</div>
-          <p style="color:#9ca3af;font-size:13px;line-height:1.6;margin:0 0 10px;">Replay sẽ được cập nhật vào trang khoá học của bạn <strong style="color:#fff;">trong vòng 24h</strong>. Bạn xem lại vĩnh viễn — học bao nhiêu lần tuỳ thích.</p>
-          ${ctaButton(courseUrl, "Mở khoá học của tôi")}
-        </div>`;
 
   const nextSessionBlock = !isLast
     ? `<div style="color:#fff;font-weight:700;font-size:14px;margin:18px 0 10px;">👉 Buổi tiếp theo</div>${sessionRowExpanded(
@@ -377,7 +368,6 @@ export function recapEmail(
     <div style="margin-bottom:16px;">${tierBadge(tier)}</div>
     <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">Cảm ơn ${escapeHtml(name)} đã tham gia <span style="color:#D4A843;">Buổi ${sessionNum}</span> 🙏</h1>
     <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Hi vọng bạn đã có những insight giá trị từ buổi <strong style="color:#fff;">"${escapeHtml(s.title)}"</strong>.</p>
-    ${replayBlock}
     ${nextSessionBlock}
     ${tier !== "vvip" && !isLast ? upgradeBlock(tier) : ""}
     ${closingBlock}
@@ -399,13 +389,13 @@ export function eventCompleteEmail(
 
   const upgradeOrCompletion: Record<AimmTier, string> = {
     free: `
-      <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">🚀 Muốn xem lại 3 buổi vừa qua?</h2>
-      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 14px;">Vé Free đã hết quyền truy cập video. Nếu bạn muốn <strong style="color:#fff;">xem lại + có slide PDF</strong> để học sâu hơn, hãy nâng cấp lên VIP.</p>
+      <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">🚀 Bạn muốn đi sâu hơn?</h2>
+      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 14px;">Vé Free chỉ học trực tiếp. Nếu bạn muốn <strong style="color:#fff;">trọn bộ tài liệu + slide PDF</strong> và ưu tiên Q&amp;A để áp dụng sâu hơn, hãy nâng cấp lên VIP.</p>
       ${upgradeBlock("free")}
     `,
     vip: `
-      <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">🎬 Toàn bộ replay đã sẵn sàng</h2>
-      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 14px;">Cả 3 buổi đã được upload đầy đủ vào trang khoá học VIP của bạn. Xem lại bất cứ lúc nào, slide PDF cũng có sẵn để tải.</p>
+      <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">💼 Trang khoá học VIP của bạn</h2>
+      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 14px;">Toàn bộ tài liệu, slide PDF và bộ tài liệu bổ sung từng buổi đã có sẵn trong trang khoá học VIP — mở ra bất cứ lúc nào để tra cứu lại.</p>
       <div style="text-align:center;margin:18px 0;">${ctaButton(courseUrl, "Mở khoá VIP của tôi")}</div>
       ${upgradeBlock("vip")}
     `,

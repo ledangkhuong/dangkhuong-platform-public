@@ -9,7 +9,7 @@ This version (v2):
 - ADDS the program-overview block (curriculum bullets for all 3 buổi)
   to welcome + D-1 emails so customers know what they'll learn.
 - ADDS an upgrade CTA block for FREE (→ VIP + VVIP) and VIP (→ VVIP).
-- CLARIFIES that {tên_khách} in this doc is just a marker — the real
+- CLARIFIES that {{name}} in this doc is just a marker — the real
   email injects the customer name via the `name` parameter and contains
   no `{name}` placeholder text.
 """
@@ -19,7 +19,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from docx import Document
 from docx.shared import RGBColor, Pt, Inches
 
-OUTPUT = r"C:\Users\Admin\Downloads\AI-Make-More-Money-Email-Automation-v2.docx"
+OUTPUT = r"C:\Users\Admin\Downloads\AI-Make-More-Money-Email-Automation-v3.docx"
 
 # ── Color palette ──
 GOLD = RGBColor(0xD4, 0xA8, 0x43)
@@ -128,39 +128,41 @@ def program_overview_block():
         session_block(n)
 
 def upgrade_block_free():
-    label("🚀 BLOCK NÂNG CẤP (cho vé FREE — hiện ở welcome, D-1, recap)")
+    label("🚀 BLOCK NÂNG CẤP (cho vé FREE — hiện ở welcome, D-1, recap, event-complete)")
     body("Tiêu đề: Nâng cấp để giữ trọn giá trị")
-    body("Mô tả: Vé Free chỉ học trực tiếp, không có video xem lại. Nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.")
+    body("Mô tả: Vé Free chỉ học trực tiếp. Muốn xem lại bất cứ lúc nào hoặc được Khương kèm 1-1? Hai lựa chọn dưới đây:")
     body("")
     body("👉 Vé VIP — 99.000đ (≈ 1 ly cà phê):")
-    bullet("Video xem lại vĩnh viễn cả 3 buổi")
-    bullet("Bộ slide PDF + tài liệu từng buổi")
+    bullet("Tài liệu, slide PDF + bộ tài liệu bổ sung từng buổi")
     bullet("Ưu tiên đặt câu hỏi Q&A")
-    body("→ Nút (vàng): 'Nâng cấp VIP — 99k'  ·  Link: /aimakemoremoney#tickets")
+    body("→ Nút (vàng): 'Lấy link mua Vé VIP — 99k'")
+    body("→ Link KHOÁ HỌC VIP: https://dangkhuong.com/courses/ai-make-more-money-vip")
     body("")
     body("👉 Vé VVIP — 499.000đ (giới hạn 50 suất):")
     bullet("Toàn bộ quyền lợi VIP")
     bullet("30 phút coaching 1-1 trực tiếp với Khương")
     bullet("AI Agent Starter Kit (template + prompt + hướng dẫn)")
-    body("→ Nút (xanh): 'Xem chi tiết VVIP — 499k'  ·  Link: /aimakemoremoney#tickets")
+    body("→ Nút (xanh): 'Lấy link mua Vé VVIP — 499k'")
+    body("→ Link KHOÁ HỌC VVIP: https://dangkhuong.com/courses/ai-make-more-money-vvip")
     body("")
 
 def upgrade_block_vip():
-    label("💎 BLOCK NÂNG CẤP VVIP (cho vé VIP — hiện ở welcome, D-1, recap)")
+    label("💎 BLOCK NÂNG CẤP VVIP (cho vé VIP — hiện ở welcome, D-1, recap, event-complete)")
     body("Tiêu đề: Muốn được Khương kèm 1-1?")
     body("Mô tả: Học viên VIP có quyền nâng cấp lên VVIP — bao gồm coaching 1-1 + AI Agent Starter Kit.")
     body("")
     bullet("30 phút coaching 1-1 trực tiếp với Lê Đăng Khương — phân tích case riêng của bạn")
     bullet("AI Agent Starter Kit — template database + prompt library + hướng dẫn dựng AI Agent đầu tiên")
     bullet("Ưu tiên Q&A số 1 — câu hỏi của bạn được trả lời trước")
-    body("→ Nút (xanh): 'Nâng cấp VVIP — 499k'  ·  Link: /aimakemoremoney#tickets")
+    body("→ Nút (xanh): 'Lấy link mua Vé VVIP — 499k'")
+    body("→ Link KHOÁ HỌC VVIP: https://dangkhuong.com/courses/ai-make-more-money-vvip")
     body("")
 
 # ════════════════════════════════════════════════════════════════
 # COVER PAGE
 # ════════════════════════════════════════════════════════════════
 H1("🚀 AI MAKE MORE MONEY & FREEDOM", color=GOLD)
-H2("Hệ thống Email Automation — Bản nội dung để review (v2)", color=BLACK)
+H2("Hệ thống Email Automation — Bản nội dung để review (v3)", color=BLACK)
 body("")
 label("LANDING PAGE")
 body("https://dangkhuong.com/aimakemoremoney")
@@ -174,10 +176,12 @@ body("Anh chạy event nhiều cohort — nội dung email KHÔNG nhắc ngày c
 body("")
 
 callout(
-    "Quan trọng — placeholder tên khách",
-    "Trong tài liệu này em viết {tên_khách} để đánh dấu nơi tên thật được chèn vào. "
-    "Email thật KHÔNG có chữ '{tên_khách}' — code tự inject tên thật từ database. "
-    "Ví dụ khách tên 'Trần Thế Anh' sẽ nhận email mở đầu: 'Chào Trần Thế Anh,...'"
+    "Biến hệ thống — placeholder tên khách",
+    "Trong tài liệu này em dùng {{name}} là BIẾN HỆ THỐNG — đúng cú pháp mà platform "
+    "email campaign của anh đang dùng (em thấy trong screenshot anh gửi). "
+    "Khi gửi đi, hệ thống tự thay {{name}} bằng tên thật từ database. "
+    "Ví dụ khách tên 'Trần Thế Anh' sẽ nhận email mở đầu: 'Chào Trần Thế Anh,...'. "
+    "Anh KHÔNG cần xoá hoặc đổi placeholder này — giữ nguyên dạng {{name}}."
 )
 body("")
 
@@ -228,13 +232,13 @@ body("")
 # ── Tier: FREE ──
 H2("Biến thể 1.1: Vé FREE", color=GRAY)
 label("SUBJECT")
-body("🎉 Chào mừng {tên_khách} — đăng ký AI Make More Money & Freedom thành công")
+body("🎉 Chào mừng {{name}} — đăng ký AI Make More Money & Freedom thành công")
 label("BODY")
-body("Chào {tên_khách}, chào mừng đến với AI Make More Money & Freedom 🚀")
+body("Chào {{name}}, chào mừng đến với AI Make More Money & Freedom 🚀")
 body("")
 body("Vé Free cho bạn quyền tham gia trực tiếp cả 3 buổi Zoom + nhận quà cẩm nang trị giá 2.990.000đ.")
 body("")
-body("⚠️ Lưu ý: vé Free không có video xem lại — nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.")
+body("⚠️ Lưu ý: vé Free chỉ học trực tiếp — nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.")
 body("")
 label("🎯 TỔNG QUAN CHƯƠNG TRÌNH (hiện ngay sau lời mở thư)")
 body("3 buổi tối Zoom, mỗi buổi 20:00 – 22:00. Bạn sẽ đi qua trọn vẹn lộ trình: "
@@ -259,14 +263,12 @@ divider()
 # ── Tier: VIP ──
 H2("Biến thể 1.2: Vé VIP", color=GOLD)
 label("SUBJECT (giống Free)")
-body("🎉 Chào mừng {tên_khách} — đăng ký AI Make More Money & Freedom thành công")
+body("🎉 Chào mừng {{name}} — đăng ký AI Make More Money & Freedom thành công")
 label("BODY (giới thiệu)")
-body("Chào {tên_khách}, chào mừng đến với AI Make More Money & Freedom 🚀")
+body("Chào {{name}}, chào mừng đến với AI Make More Money & Freedom 🚀")
 body("")
-body("Vé VIP của bạn đã được kích hoạt. Bạn có quyền truy cập video xem lại VĨNH VIỄN + "
-     "bộ slide PDF từng buổi + ưu tiên đặt câu hỏi trong Q&A.")
-body("")
-body("Sau mỗi buổi học, video replay sẽ được cập nhật trong vòng 24h vào trang khoá học của bạn.")
+body("Vé VIP của bạn đã được kích hoạt. Bạn có quyền truy cập trọn bộ tài liệu + "
+     "slide PDF từng buổi + ưu tiên đặt câu hỏi trong Q&A — tất cả nằm trong trang khoá học của bạn.")
 body("")
 label("→ Sau đó hiện 'TỔNG QUAN CHƯƠNG TRÌNH + 3 BUỔI' giống Free")
 body("→ Sau đó hiện ZALO CALLOUT giống Free")
@@ -280,9 +282,9 @@ divider()
 # ── Tier: VVIP ──
 H2("Biến thể 1.3: Vé VVIP", color=GREEN)
 label("SUBJECT (giống Free/VIP)")
-body("🎉 Chào mừng {tên_khách} — đăng ký AI Make More Money & Freedom thành công")
+body("🎉 Chào mừng {{name}} — đăng ký AI Make More Money & Freedom thành công")
 label("BODY")
-body("Chào {tên_khách}, chào mừng đến với AI Make More Money & Freedom 🚀")
+body("Chào {{name}}, chào mừng đến với AI Make More Money & Freedom 🚀")
 body("")
 body("Vé VVIP — suất gần Thầy Khương nhất — đã được kích hoạt. Bạn có toàn bộ quyền lợi của VIP "
      "+ 30 phút coaching 1-1 trực tiếp với Lê Đăng Khương + AI Agent Starter Kit.")
@@ -319,7 +321,7 @@ H2("Mẫu — D-1 Buổi 1", color=GRAY)
 label("SUBJECT")
 body("⏰ Tối mai 20:00 — Buổi 1: Tư Duy Đúng & 10 Nguồn Thu Nhập Từ AI 2026")
 label("BODY")
-body("{tên_khách}, tối mai 20:00 mình gặp nhau ở Zoom 🎯")
+body("{{name}}, tối mai 20:00 mình gặp nhau ở Zoom 🎯")
 body("")
 body("Buổi 1 / 3 của chương trình AI Make More Money & Freedom diễn ra tối mai, 20:00 – 22:00.")
 body("")
@@ -373,7 +375,7 @@ H2("Mẫu — T-1h Buổi 1", color=GRAY)
 label("SUBJECT")
 body("🔥 Còn 1 tiếng nữa — Buổi 1: Tư Duy Đúng & 10 Nguồn Thu Nhập Từ AI 2026")
 label("BODY")
-body("{tên_khách}, còn 1 tiếng nữa — Buổi 1 bắt đầu! ⚡")
+body("{{name}}, còn 1 tiếng nữa — Buổi 1 bắt đầu! ⚡")
 body("")
 body("Đúng 20:00 tối nay, mình sẽ cùng nhau khai mạc Buổi 1.")
 body("")
@@ -415,38 +417,32 @@ callout(
 
 H2("Mẫu — Recap Buổi 1", color=GRAY)
 label("SUBJECT (chung cả 3 tier)")
-body("💎 Cảm ơn {tên_khách} — Buổi 1 đã kết thúc, hẹn buổi tiếp theo")
-label("BODY (chung)")
-body("Cảm ơn {tên_khách} đã tham gia Buổi 1 🙏")
+body("💎 Cảm ơn {{name}} — Buổi 1 đã kết thúc, hẹn buổi tiếp theo")
+label("BODY (chung — không nhắc replay video)")
+body("Cảm ơn {{name}} đã tham gia Buổi 1 🙏")
 body("")
 body('Hi vọng bạn đã có những insight giá trị từ buổi "Tư Duy Đúng & 10 Nguồn Thu Nhập Từ AI 2026".')
 body("")
-
-H3("REPLAY BLOCK — Vé FREE (đỏ, upsell)", color=RED)
-body("📺 Bỏ lỡ buổi? Muốn xem lại?")
-body("Vé Free không có replay. Nâng cấp lên VIP (99k) để có video xem lại vĩnh viễn cả 3 buổi + slide PDF.")
-body("→ Nút (vàng): 'Nâng cấp VIP — chỉ 99k'  ·  Link: /aimakemoremoney#tickets")
-body("")
-
-H3("REPLAY BLOCK — Vé VIP & VVIP (xanh, link replay)", color=GREEN)
-body("🎬 Video xem lại Buổi 1")
-body("Replay sẽ được cập nhật vào trang khoá học của bạn TRONG VÒNG 24H. "
-     "Bạn xem lại vĩnh viễn — học bao nhiêu lần tuỳ thích.")
-body("→ Nút (vàng): 'Mở khoá học của tôi'  ·  Link: /courses/ai-make-more-money-{tier}")
+callout(
+    "Lưu ý — đã BỎ block replay video",
+    "Recap email KHÔNG còn promise 'Video xem lại sẽ có trong 24h' nữa. "
+    "Email giờ chỉ tập trung: cảm ơn → nhắc buổi tiếp theo → upgrade CTA (FREE/VIP).",
+    color=RED,
+)
 body("")
 
 label("👉 NHẮC BUỔI TIẾP THEO (chỉ Recap Buổi 1 & 2, KHÔNG có ở Buổi 3)")
 session_block(2)
 label("UPGRADE BLOCK (chỉ Free & VIP, KHÔNG ở Recap Buổi 3 vì sẽ có ở Event Complete)")
-body("→ Free thấy upgrade VIP/VVIP")
-body("→ VIP thấy upgrade VVIP")
+body("→ Free thấy upgrade VIP + VVIP (link mua khoá học VIP/VVIP)")
+body("→ VIP thấy upgrade VVIP (link mua khoá học VVIP)")
 body("→ VVIP không hiện")
 
 divider()
 
 H3("Email 10 — Recap Buổi 3 (buổi cuối)")
 label("SUBJECT (khác Buổi 1, 2)")
-body("🎉 Đã xong 3 buổi — cảm ơn {tên_khách} đã đồng hành!")
+body("🎉 Đã xong 3 buổi — cảm ơn {{name}} đã đồng hành!")
 label("KẾT THƯ thay vì 'Buổi tiếp theo'")
 body("🚀 Bắt đầu hành trình của bạn ngay tuần này!")
 body("3 buổi đã cho bạn bản đồ. Bước tiếp theo là ÁP DỤNG. Em hẹn gặp bạn trong cộng đồng "
@@ -464,10 +460,10 @@ body("• Tổng kết sự kiện và push khách về bước tiếp theo")
 body("• 3 tier có nội dung HOÀN TOÀN khác nhau (upsell theo từng nhóm)")
 body("")
 label("SUBJECT (chung cả 3 tier)")
-body("🎁 {tên_khách}, đây là bước tiếp theo của bạn sau AI Make More Money")
+body("🎁 {{name}}, đây là bước tiếp theo của bạn sau AI Make More Money")
 body("")
 label("MỞ THƯ (chung)")
-body("Chào {tên_khách} — chương trình đã khép lại, nhưng hành trình của bạn VỪA BẮT ĐẦU ✨")
+body("Chào {{name}} — chương trình đã khép lại, nhưng hành trình của bạn VỪA BẮT ĐẦU ✨")
 body("")
 body("3 buổi vừa qua đã trao cho bạn bản đồ kiếm tiền bằng AI. "
      "Bước quan trọng nhất giờ là ÁP DỤNG NGAY TUẦN NÀY — đừng để kiến thức nằm im trên giấy.")
@@ -477,20 +473,20 @@ divider()
 
 H2("Biến thể 11.1: Vé FREE — Upsell VIP + VVIP", color=RED)
 label("PHẦN HEADING")
-body("🚀 Muốn xem lại 3 buổi vừa qua?")
-body("Vé Free đã hết quyền truy cập video. Nếu bạn muốn xem lại + có slide PDF "
-     "để học sâu hơn, hãy nâng cấp lên VIP.")
+body("🚀 Bạn muốn đi sâu hơn?")
+body("Vé Free chỉ học trực tiếp. Nếu bạn muốn trọn bộ tài liệu + slide PDF "
+     "và ưu tiên Q&A để áp dụng sâu hơn, hãy nâng cấp lên VIP.")
 body("")
-label("UPGRADE BLOCK (đầy đủ cả VIP và VVIP)")
+label("UPGRADE BLOCK (đầy đủ cả VIP và VVIP — link mua trực tiếp khoá học)")
 upgrade_block_free()
 
 divider()
 
 H2("Biến thể 11.2: Vé VIP — Replay + Upsell VVIP", color=GOLD)
 label("PHẦN CONFIRM REPLAY")
-body("🎬 Toàn bộ replay đã sẵn sàng")
-body("Cả 3 buổi đã được upload đầy đủ vào trang khoá học VIP của bạn. "
-     "Xem lại bất cứ lúc nào, slide PDF cũng có sẵn để tải.")
+body("💼 Trang khoá học VIP của bạn")
+body("Toàn bộ tài liệu, slide PDF và bộ tài liệu bổ sung từng buổi đã có sẵn trong trang khoá học VIP "
+     "— mở ra bất cứ lúc nào để tra cứu lại.")
 body("→ Nút (vàng, ở giữa): 'Mở khoá VIP của tôi'  ·  Link: /courses/ai-make-more-money-vip")
 body("")
 label("UPGRADE BLOCK VVIP")
@@ -526,12 +522,12 @@ body("")
 H3("Cách anh sửa nội dung")
 bullet("Mở file Word, sửa trực tiếp các đoạn text — KHÔNG cần sửa cấu trúc/style")
 bullet("Có thể đổi: subject, lời mở thư, lời kết, CTA copy, callout, bullet points, nội dung từng buổi")
-bullet("KHÔNG đổi: link Zalo, route URL (/courses/*), placeholder {tên_khách}")
+bullet("KHÔNG đổi: link Zalo, route URL (/courses/*), placeholder {{name}}")
 bullet("Gửi lại file Word cho em qua chat — em sẽ tự convert thành code và push deploy")
 body("")
-H3("Về placeholder {tên_khách}")
-body("Trong tài liệu này em viết {tên_khách} chỉ để đánh dấu nơi tên thật xuất hiện. "
-     "Email thật KHÔNG có chữ '{tên_khách}' — code tự inject tên thật từ database. "
+H3("Về placeholder {{name}}")
+body("Trong tài liệu này em viết {{name}} chỉ để đánh dấu nơi tên thật xuất hiện. "
+     "Email thật KHÔNG có chữ '{{name}}' — code tự inject tên thật từ database. "
      "Anh không cần thay thế hoặc xoá placeholder này.")
 body("")
 H3("Cách chạy event cho cohort mới")
