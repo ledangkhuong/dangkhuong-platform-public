@@ -1,6 +1,11 @@
 /**
- * Email templates for the "AI Make More Money & Freedom" event
- * (3 Zoom sessions on 12-14/06/2026)
+ * Email templates for the "AI Make More Money & Freedom" event series.
+ *
+ * Date-agnostic on purpose — Lê Đăng Khương runs this event repeatedly,
+ * so the body text refers to "Buổi 1 / 2 / 3" and relative times
+ * ("tối mai", "còn 1 tiếng") instead of hardcoded calendar dates. The
+ * cron schedule (api/cron/aimakemoremoney) is the only place that
+ * knows the actual run dates — update those when running a new cohort.
  *
  * Public API:
  *   - welcomeEmail(tier, name)
@@ -9,11 +14,9 @@
  *   - recapEmail(tier, name, sessionNum)
  *   - eventCompleteEmail(tier, name)
  *
- * Each returns { subject, html }.
- *
- * Design intent: dark theme matches dangkhuong.com / Lê Đăng Khương Academy
- * (gold #D4A843 accent, #0a0a0a bg, #1a1a1a card). Keep inline CSS only —
- * Gmail / Outlook strip <style> blocks unreliably.
+ * Each returns { subject, html }. The `name` parameter is injected
+ * directly (HTML-escaped) — there is no `{name}` placeholder string in
+ * the rendered output.
  */
 
 export type AimmTier = "free" | "vip" | "vvip";
@@ -23,7 +26,9 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://dangkhuong.com";
 const ZALO_GROUP = "https://zalo.me/g/l4qmpdq934rmst9xxnfj";
 const LANDING = `${BASE_URL}/aimakemoremoney`;
+const TICKETS_URL = `${LANDING}#tickets`;
 const DASHBOARD = `${BASE_URL}/dashboard`;
+const SESSION_TIME = "20:00 – 22:00";
 const COURSE_SLUGS = {
   free: "ai-make-more-money-free",
   vip: "ai-make-more-money-vip",
@@ -32,25 +37,31 @@ const COURSE_SLUGS = {
 
 const SESSIONS: Record<
   SessionNum,
-  { title: string; dayLabel: string; date: string; time: string }
+  { title: string; bullets: string[] }
 > = {
   1: {
     title: "Tư Duy Đúng & 10 Nguồn Thu Nhập Từ AI 2026",
-    dayLabel: "Thứ 6",
-    date: "12/06/2026",
-    time: "20:00 – 22:00",
+    bullets: [
+      "Tư duy đúng để kiếm tiền bằng AI — vì sao đây là thời điểm vàng",
+      "Toàn cảnh 10 nguồn thu nhập đến từ AI và bạn nên bắt đầu từ đâu",
+      "Lộ trình kiếm 10 nguồn thu nhập trên internet, từ con số 0",
+    ],
   },
   2: {
     title: "Video & Kênh Triệu View — Kiếm Tiền Từ Affiliate",
-    dayLabel: "Thứ 7",
-    date: "13/06/2026",
-    time: "20:00 – 22:00",
+    bullets: [
+      "Cách tạo video AI hấp dẫn và xây kênh triệu view, không cần quay dựng",
+      "Kiếm tiền Affiliate ở 4 ngách hot: KOL AI · Tiếng Anh · Sức khỏe · Sách",
+      "Công thức biến lượt xem thành hoa hồng đều đặn",
+    ],
   },
   3: {
     title: "Chuyển Đổi Khách Thành Tiền & Hệ Thống Tự Động",
-    dayLabel: "Chủ Nhật",
-    date: "14/06/2026",
-    time: "20:00 – 22:00",
+    bullets: [
+      "Bí mật chuyển đổi danh sách khách hàng thành tiền",
+      "Cách xây dựng sản phẩm số từ chính chuyên môn của bạn",
+      "Dựng Website All-in-One bán hàng tự động với AI Agent — bạn ngủ, hệ thống vẫn bán",
+    ],
   },
 };
 
@@ -102,17 +113,6 @@ function ctaButton(href: string, label: string, color = "#D4A843"): string {
   return `<a href="${href}" style="display:inline-block;background:${color};color:#0a0a0a;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;">${escapeHtml(label)}</a>`;
 }
 
-function sessionRow(num: SessionNum, opts?: { highlight?: boolean }): string {
-  const s = SESSIONS[num];
-  const bg = opts?.highlight
-    ? "background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.3);"
-    : "background:#111;border:1px solid #2a2a2a;";
-  return `<div style="${bg}border-radius:10px;padding:14px 16px;margin-bottom:10px;">
-    <div style="color:#D4A843;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">BUỔI ${num} · ${escapeHtml(s.dayLabel)} ${escapeHtml(s.date)} · ${escapeHtml(s.time)}</div>
-    <div style="color:#fff;font-weight:700;font-size:15px;margin-top:4px;">${escapeHtml(s.title)}</div>
-  </div>`;
-}
-
 function divider(): string {
   return `<div style="height:1px;background:#2a2a2a;margin:20px 0;"></div>`;
 }
@@ -126,11 +126,92 @@ function tierBadge(tier: AimmTier): string {
   return `<span style="display:inline-block;padding:3px 10px;border-radius:99px;background:${colors[tier]}1f;color:${colors[tier]};border:1px solid ${colors[tier]}55;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${TIER_LABEL[tier]}</span>`;
 }
 
+/** Compact session row — used in pinned lists. */
+function sessionRow(num: SessionNum, opts?: { highlight?: boolean }): string {
+  const s = SESSIONS[num];
+  const bg = opts?.highlight
+    ? "background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.3);"
+    : "background:#111;border:1px solid #2a2a2a;";
+  return `<div style="${bg}border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+    <div style="color:#D4A843;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">BUỔI ${num} · ${SESSION_TIME}</div>
+    <div style="color:#fff;font-weight:700;font-size:15px;margin-top:4px;">${escapeHtml(s.title)}</div>
+  </div>`;
+}
+
+/** Expanded session row — includes the curriculum bullets. */
+function sessionRowExpanded(num: SessionNum, opts?: { highlight?: boolean }): string {
+  const s = SESSIONS[num];
+  const bg = opts?.highlight
+    ? "background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.3);"
+    : "background:#111;border:1px solid #2a2a2a;";
+  const bulletsHtml = s.bullets
+    .map(
+      (b) =>
+        `<li style="color:#cbd5e1;font-size:13px;line-height:1.7;margin-bottom:4px;">${escapeHtml(b)}</li>`
+    )
+    .join("");
+  return `<div style="${bg}border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+    <div style="color:#D4A843;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">BUỔI ${num} · ${SESSION_TIME}</div>
+    <div style="color:#fff;font-weight:700;font-size:15px;margin:4px 0 8px;">${escapeHtml(s.title)}</div>
+    <ul style="margin:0;padding-left:20px;">${bulletsHtml}</ul>
+  </div>`;
+}
+
+/** Full program curriculum — used inside welcome + D-1 emails. */
+function programOverviewBlock(highlightSession?: SessionNum): string {
+  return `<div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:10px;">🎯 Nội dung 3 buổi</div>
+    ${sessionRowExpanded(1, { highlight: highlightSession === 1 })}
+    ${sessionRowExpanded(2, { highlight: highlightSession === 2 })}
+    ${sessionRowExpanded(3, { highlight: highlightSession === 3 })}`;
+}
+
 function zaloCallout(): string {
   return `<div style="background:rgba(0,104,255,0.08);border:1px solid rgba(0,104,255,0.3);border-radius:10px;padding:14px 16px;margin:18px 0;">
     <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">💬 Tham gia nhóm Zalo (quan trọng!)</div>
     <div style="color:#9ca3af;font-size:13px;line-height:1.6;margin-bottom:10px;">Link Zoom 3 buổi sẽ được gửi qua nhóm Zalo trước mỗi buổi 30 phút.</div>
     ${ctaButton(ZALO_GROUP, "Vào nhóm Zalo ngay", "#0068ff")}
+  </div>`;
+}
+
+/** Tier-upgrade CTA block — shown for FREE and VIP. Empty for VVIP. */
+function upgradeBlock(currentTier: AimmTier): string {
+  if (currentTier === "vvip") return "";
+
+  if (currentTier === "free") {
+    return `<div style="background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.3);border-radius:10px;padding:16px 18px;margin:18px 0;">
+      <div style="color:#D4A843;font-weight:800;font-size:15px;margin-bottom:8px;">🚀 Nâng cấp để giữ trọn giá trị</div>
+      <div style="color:#9ca3af;font-size:13px;line-height:1.7;margin-bottom:12px;">Vé Free chỉ học trực tiếp, không có video xem lại. Nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.</div>
+      <div style="margin-bottom:14px;">
+        <div style="color:#fff;font-weight:700;font-size:13px;margin-bottom:4px;">Vé VIP — 99.000đ <span style="color:#9ca3af;font-weight:400;">(≈ 1 ly cà phê)</span></div>
+        <ul style="margin:0 0 10px;padding-left:18px;color:#cbd5e1;font-size:12.5px;line-height:1.7;">
+          <li>Video xem lại vĩnh viễn cả 3 buổi</li>
+          <li>Bộ slide PDF + tài liệu từng buổi</li>
+          <li>Ưu tiên đặt câu hỏi Q&amp;A</li>
+        </ul>
+        ${ctaButton(TICKETS_URL, "Nâng cấp VIP — 99k")}
+      </div>
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:13px;margin-bottom:4px;">Vé VVIP — 499.000đ <span style="color:#9ca3af;font-weight:400;">(giới hạn 50 suất)</span></div>
+        <ul style="margin:0 0 10px;padding-left:18px;color:#cbd5e1;font-size:12.5px;line-height:1.7;">
+          <li>Toàn bộ quyền lợi VIP</li>
+          <li>30 phút coaching 1-1 trực tiếp với Khương</li>
+          <li>AI Agent Starter Kit (template + prompt + hướng dẫn)</li>
+        </ul>
+        ${ctaButton(TICKETS_URL, "Xem chi tiết VVIP — 499k", "#22c55e")}
+      </div>
+    </div>`;
+  }
+
+  // VIP → upsell VVIP only
+  return `<div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:16px 18px;margin:18px 0;">
+    <div style="color:#22c55e;font-weight:800;font-size:15px;margin-bottom:8px;">💎 Muốn được Khương kèm 1-1?</div>
+    <div style="color:#9ca3af;font-size:13px;line-height:1.7;margin-bottom:12px;">Học viên VIP có quyền nâng cấp lên VVIP — bao gồm coaching 1-1 + AI Agent Starter Kit.</div>
+    <ul style="margin:0 0 12px;padding-left:18px;color:#cbd5e1;font-size:12.5px;line-height:1.7;">
+      <li><strong style="color:#fff;">30 phút coaching 1-1</strong> trực tiếp với Lê Đăng Khương — phân tích case riêng của bạn</li>
+      <li><strong style="color:#fff;">AI Agent Starter Kit</strong> — template database + prompt library + hướng dẫn dựng AI Agent đầu tiên</li>
+      <li>Ưu tiên Q&amp;A số 1 — câu hỏi của bạn được trả lời trước</li>
+    </ul>
+    ${ctaButton(TICKETS_URL, "Nâng cấp VVIP — 499k", "#22c55e")}
   </div>`;
 }
 
@@ -143,37 +224,40 @@ export function welcomeEmail(
   const subject = `🎉 Chào mừng ${name} — đăng ký AI Make More Money & Freedom thành công`;
   const courseUrl = `${BASE_URL}/courses/${COURSE_SLUGS[tier]}`;
 
-  const tierSpecific: Record<AimmTier, string> = {
+  const tierIntro: Record<AimmTier, string> = {
     free: `
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé Free cho bạn quyền tham gia <strong style="color:#fff;">trực tiếp cả 3 buổi Zoom</strong> + nhận quà cẩm nang trị giá <span style="color:#22c55e;font-weight:600;">2.990.000đ</span>.</p>
-      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;"><strong style="color:#facc15;">⚠️ Lưu ý:</strong> vé Free <strong style="color:#fff;">không có video xem lại</strong> — nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó. Muốn xem replay vĩnh viễn, anh/chị có thể <a href="${LANDING}#tickets" style="color:#D4A843;text-decoration:underline;">nâng cấp lên VIP (99k)</a> hoặc VVIP (499k).</p>
+      <p style="color:#facc15;font-size:13px;line-height:1.7;margin:0 0 12px;"><strong>⚠️ Lưu ý:</strong> vé Free <strong>không có video xem lại</strong> — nếu bỏ lỡ buổi nào, bạn sẽ mất buổi đó.</p>
     `,
     vip: `
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé VIP của bạn đã được kích hoạt. Bạn có quyền truy cập <strong style="color:#fff;">video xem lại vĩnh viễn</strong> + bộ slide PDF từng buổi + ưu tiên đặt câu hỏi trong Q&amp;A.</p>
-      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Sau mỗi buổi học, video replay sẽ được cập nhật trong vòng 24h vào trang khoá học của bạn.</p>
+      <p style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0 0 12px;">Sau mỗi buổi học, video replay sẽ được cập nhật trong vòng 24h vào trang khoá học của bạn.</p>
     `,
     vvip: `
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">Vé VVIP — suất gần Thầy Khương nhất — đã được kích hoạt. Bạn có toàn bộ quyền lợi của VIP + <strong style="color:#22c55e;">30 phút coaching 1-1 trực tiếp</strong> với Lê Đăng Khương + AI Agent Starter Kit.</p>
-      <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;"><strong style="color:#D4A843;">📅 Link đặt lịch coaching 1-1</strong> sẽ được gửi qua email riêng sau Buổi 3 (Chủ Nhật 14/06). Hãy giữ lịch trống tuần sau!</p>
+      <p style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0 0 12px;"><strong style="color:#D4A843;">📅 Link đặt lịch coaching 1-1</strong> sẽ được gửi qua email riêng sau Buổi 3. Hãy giữ lịch trống tuần sau!</p>
     `,
   };
 
   const content = `
     <div style="margin-bottom:16px;">${tierBadge(tier)}</div>
     <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">Chào ${escapeHtml(name)}, chào mừng đến với <span style="color:#D4A843;">AI Make More Money &amp; Freedom</span> 🚀</h1>
-    ${tierSpecific[tier]}
+    ${tierIntro[tier]}
     ${divider()}
-    <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:10px;">📅 Lịch 3 buổi học</div>
-    ${sessionRow(1)}
-    ${sessionRow(2)}
-    ${sessionRow(3)}
+    <div style="color:#fff;font-weight:800;font-size:16px;margin:0 0 8px;">🎯 Tổng quan chương trình</div>
+    <p style="color:#9ca3af;font-size:13.5px;line-height:1.7;margin:0 0 16px;">3 buổi tối Zoom, mỗi buổi <strong style="color:#fff;">${SESSION_TIME}</strong>. Bạn sẽ đi qua trọn vẹn lộ trình: <strong style="color:#D4A843;">Tư duy đúng → Sản xuất nội dung → Chuyển đổi &amp; tự động hoá</strong> — kiếm tiền bằng AI mà không cần giỏi công nghệ, không cần làm nhiều hơn.</p>
+    ${programOverviewBlock()}
     ${zaloCallout()}
+    ${upgradeBlock(tier)}
     <div style="text-align:center;margin-top:20px;">
       ${ctaButton(courseUrl, "Vào trang khoá học của tôi")}
     </div>
     <p style="color:#6b7280;font-size:12px;line-height:1.6;margin-top:20px;text-align:center;">Có vấn đề gì? Trả lời thẳng email này — em sẽ hỗ trợ trong 24h.</p>
   `;
-  return { subject, html: wrap(content, `Đăng ký thành công ${TIER_LABEL[tier]} — 3 buổi 12-14/06`) };
+  return {
+    subject,
+    html: wrap(content, `Đăng ký thành công ${TIER_LABEL[tier]} — 3 buổi Zoom`),
+  };
 }
 
 /* ─── 2. D-1 Reminder (12:00 the day before each session) ────── */
@@ -184,13 +268,18 @@ export function reminderD1Email(
   sessionNum: SessionNum
 ): { subject: string; html: string } {
   const s = SESSIONS[sessionNum];
-  const subject = `⏰ Ngày mai 20:00 — Buổi ${sessionNum}: ${s.title}`;
+  const subject = `⏰ Tối mai 20:00 — Buổi ${sessionNum}: ${s.title}`;
 
   const content = `
     <div style="margin-bottom:16px;">${tierBadge(tier)}</div>
-    <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">${escapeHtml(name)}, ngày mai 20:00 mình gặp nhau ở Zoom 🎯</h1>
-    <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Buổi <strong style="color:#D4A843;">${sessionNum} / 3</strong> sẽ diễn ra tối <strong style="color:#fff;">${escapeHtml(s.dayLabel)}, ${escapeHtml(s.date)}</strong> lúc <strong style="color:#fff;">${escapeHtml(s.time)}</strong>.</p>
-    ${sessionRow(sessionNum, { highlight: true })}
+    <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">${escapeHtml(name)}, <span style="color:#D4A843;">tối mai 20:00</span> mình gặp nhau ở Zoom 🎯</h1>
+    <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Buổi <strong style="color:#D4A843;">${sessionNum} / 3</strong> của chương trình AI Make More Money &amp; Freedom diễn ra <strong style="color:#fff;">tối mai, ${SESSION_TIME}</strong>.</p>
+    ${sessionRowExpanded(sessionNum, { highlight: true })}
+    ${
+      sessionNum < 3
+        ? `<p style="color:#6b7280;font-size:12.5px;line-height:1.6;margin:0 0 16px;">Để bạn nắm trọn lộ trình, đây là toàn bộ 3 buổi:</p>${programOverviewBlock(sessionNum)}`
+        : ""
+    }
     <div style="color:#fff;font-weight:700;font-size:14px;margin:18px 0 10px;">📝 Chuẩn bị trước buổi học</div>
     <ul style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0 0 16px;padding-left:20px;">
       <li>Notebook + bút để ghi chú</li>
@@ -198,9 +287,13 @@ export function reminderD1Email(
       <li>Tinh thần học hỏi mở &amp; sẵn sàng áp dụng ngay</li>
     </ul>
     ${zaloCallout()}
+    ${upgradeBlock(tier)}
     <p style="color:#6b7280;font-size:13px;line-height:1.6;margin-top:18px;"><strong style="color:#facc15;">Link Zoom</strong> sẽ được gửi qua nhóm Zalo + email <strong style="color:#fff;">trước buổi 30 phút</strong>. Đảm bảo bạn đã vào nhóm Zalo!</p>
   `;
-  return { subject, html: wrap(content, `Buổi ${sessionNum} diễn ra tối mai 20:00`) };
+  return {
+    subject,
+    html: wrap(content, `Buổi ${sessionNum} diễn ra tối mai 20:00`),
+  };
 }
 
 /* ─── 3. T-1h Reminder (19:00 the day of each session) ─────── */
@@ -216,8 +309,8 @@ export function reminderT1hEmail(
   const content = `
     <div style="margin-bottom:16px;">${tierBadge(tier)}</div>
     <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">${escapeHtml(name)}, <span style="color:#D4A843;">còn 1 tiếng nữa</span> — Buổi ${sessionNum} bắt đầu! ⚡</h1>
-    <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Đúng <strong style="color:#fff;">20:00 tối nay</strong>, mình sẽ cùng nhau khai mạc Buổi ${sessionNum} trên Zoom.</p>
-    ${sessionRow(sessionNum, { highlight: true })}
+    <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Đúng <strong style="color:#fff;">20:00 tối nay</strong>, mình sẽ cùng nhau khai mạc Buổi ${sessionNum}.</p>
+    ${sessionRowExpanded(sessionNum, { highlight: true })}
     <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px 16px;margin:18px 0;">
       <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">✅ Checklist 5 phút trước buổi</div>
       <ul style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0;padding-left:20px;">
@@ -231,7 +324,10 @@ export function reminderT1hEmail(
       ${ctaButton(ZALO_GROUP, "Vào nhóm Zalo lấy link Zoom", "#0068ff")}
     </div>
   `;
-  return { subject, html: wrap(content, `Buổi ${sessionNum} bắt đầu lúc 20:00 — còn 1h`) };
+  return {
+    subject,
+    html: wrap(content, `Buổi ${sessionNum} bắt đầu lúc 20:00 — còn 1h`),
+  };
 }
 
 /* ─── 4. Recap (after each session, ~22:30) ───────────────────── */
@@ -254,7 +350,7 @@ export function recapEmail(
       ? `<div style="background:rgba(212,168,67,0.06);border:1px solid rgba(212,168,67,0.25);border-radius:10px;padding:14px 16px;margin:18px 0;">
           <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">📺 Bỏ lỡ buổi? Muốn xem lại?</div>
           <p style="color:#9ca3af;font-size:13px;line-height:1.6;margin:0 0 10px;">Vé Free không có replay. <strong style="color:#fff;">Nâng cấp lên VIP (99k)</strong> để có video xem lại vĩnh viễn cả 3 buổi + slide PDF.</p>
-          ${ctaButton(`${LANDING}#tickets`, "Nâng cấp VIP — chỉ 99k")}
+          ${ctaButton(TICKETS_URL, "Nâng cấp VIP — chỉ 99k")}
         </div>`
       : `<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px 16px;margin:18px 0;">
           <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">🎬 Video xem lại Buổi ${sessionNum}</div>
@@ -263,7 +359,10 @@ export function recapEmail(
         </div>`;
 
   const nextSessionBlock = !isLast
-    ? `<div style="color:#fff;font-weight:700;font-size:14px;margin:18px 0 10px;">👉 Buổi tiếp theo</div>${sessionRow((sessionNum + 1) as SessionNum, { highlight: true })}`
+    ? `<div style="color:#fff;font-weight:700;font-size:14px;margin:18px 0 10px;">👉 Buổi tiếp theo</div>${sessionRowExpanded(
+        (sessionNum + 1) as SessionNum,
+        { highlight: true }
+      )}`
     : "";
 
   const closingBlock = isLast
@@ -280,9 +379,13 @@ export function recapEmail(
     <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Hi vọng bạn đã có những insight giá trị từ buổi <strong style="color:#fff;">"${escapeHtml(s.title)}"</strong>.</p>
     ${replayBlock}
     ${nextSessionBlock}
+    ${tier !== "vvip" && !isLast ? upgradeBlock(tier) : ""}
     ${closingBlock}
   `;
-  return { subject, html: wrap(content, `Cảm ơn đã tham gia Buổi ${sessionNum}`) };
+  return {
+    subject,
+    html: wrap(content, `Cảm ơn đã tham gia Buổi ${sessionNum}`),
+  };
 }
 
 /* ─── 5. Event Complete (D+1 morning) ────────────────────────── */
@@ -294,21 +397,17 @@ export function eventCompleteEmail(
   const subject = `🎁 ${name}, đây là bước tiếp theo của bạn sau AI Make More Money`;
   const courseUrl = `${BASE_URL}/courses/${COURSE_SLUGS[tier]}`;
 
-  const upgradeBlock: Record<AimmTier, string> = {
+  const upgradeOrCompletion: Record<AimmTier, string> = {
     free: `
       <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">🚀 Muốn xem lại 3 buổi vừa qua?</h2>
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 14px;">Vé Free đã hết quyền truy cập video. Nếu bạn muốn <strong style="color:#fff;">xem lại + có slide PDF</strong> để học sâu hơn, hãy nâng cấp lên VIP.</p>
-      <div style="text-align:center;margin:18px 0;">${ctaButton(`${LANDING}#tickets`, "Nâng cấp VIP — 99k")}</div>
-      <p style="color:#6b7280;font-size:12px;text-align:center;line-height:1.6;">Hoặc <a href="${LANDING}#tickets" style="color:#D4A843;text-decoration:underline;">VVIP 499k</a> nếu muốn có thêm coaching 1-1 với Khương.</p>
+      ${upgradeBlock("free")}
     `,
     vip: `
       <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">🎬 Toàn bộ replay đã sẵn sàng</h2>
       <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 14px;">Cả 3 buổi đã được upload đầy đủ vào trang khoá học VIP của bạn. Xem lại bất cứ lúc nào, slide PDF cũng có sẵn để tải.</p>
       <div style="text-align:center;margin:18px 0;">${ctaButton(courseUrl, "Mở khoá VIP của tôi")}</div>
-      <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px 16px;margin:18px 0;">
-        <div style="color:#fff;font-weight:700;font-size:14px;margin-bottom:6px;">💡 Muốn được Khương kèm 1-1?</div>
-        <p style="color:#9ca3af;font-size:13px;line-height:1.6;margin:0 0 10px;">Học viên VIP có ưu đãi đặc biệt nâng cấp lên VVIP — bao gồm 30 phút coaching 1-1 + AI Agent Starter Kit. Reply email này để biết chi tiết.</p>
-      </div>
+      ${upgradeBlock("vip")}
     `,
     vvip: `
       <h2 style="color:#fff;font-size:18px;font-weight:800;margin:18px 0 10px;">📅 Đặt lịch coaching 1-1 với Lê Đăng Khương</h2>
@@ -323,9 +422,12 @@ export function eventCompleteEmail(
     <div style="margin-bottom:16px;">${tierBadge(tier)}</div>
     <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">Chào ${escapeHtml(name)} — chương trình đã khép lại, nhưng hành trình của bạn <span style="color:#D4A843;">vừa bắt đầu</span> ✨</h1>
     <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 12px;">3 buổi vừa qua đã trao cho bạn bản đồ kiếm tiền bằng AI. Bước quan trọng nhất giờ là <strong style="color:#fff;">áp dụng ngay tuần này</strong> — đừng để kiến thức nằm im trên giấy.</p>
-    ${upgradeBlock[tier]}
+    ${upgradeOrCompletion[tier]}
     ${divider()}
     <p style="color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">Cảm ơn bạn đã tin tưởng và đồng hành cùng KOHADA 💛<br/>— Lê Đăng Khương</p>
   `;
-  return { subject, html: wrap(content, `Bước tiếp theo sau AI Make More Money`) };
+  return {
+    subject,
+    html: wrap(content, `Bước tiếp theo sau AI Make More Money`),
+  };
 }
