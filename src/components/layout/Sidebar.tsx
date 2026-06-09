@@ -132,6 +132,7 @@ const adminNavGroups: AdminNavGroup[] = [
       { href: "/marketing/funnel", icon: Filter, label: "Phễu chuyển đổi", roles: ["admin", "manager", "marketing"] },
       { href: "/marketing/landing-pages", icon: Layout, label: "Landing pages", roles: ["admin", "manager", "marketing"] },
       { href: "/marketing/attribution", icon: Target, label: "Nguồn khách", roles: ["admin", "manager", "marketing"] },
+      { href: "/marketing/aimakemoremoney", icon: Rocket, label: "Sự kiện AI Make Money", roles: ["admin", "manager", "marketing"] },
       { href: "/marketing/utm-builder", icon: Link2, label: "Tạo link UTM", roles: ["admin", "manager", "marketing", "sale"] },
       {
         href: "/admin/pixel-settings", icon: Activity, label: "Pixel & CAPI", roles: ["admin", "manager", "marketing"],
