@@ -362,6 +362,27 @@ export default function AIMakeMoneyLanding() {
     setFormError("");
   }
 
+  // Fire-and-forget enrollment into the AI Make More Money email
+  // automation. Adds the lead to `aimm_attendees` and triggers the
+  // welcome email immediately. Failure here must NOT block the funnel
+  // — we just log and continue.
+  async function enrollAimm(tier: TicketTier, fullName: string) {
+    try {
+      await fetch("/api/aimakemoremoney/enroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          full_name: fullName || formData.name,
+          phone: formData.phone || undefined,
+          tier,
+        }),
+      });
+    } catch (err) {
+      console.warn("[aimm] enroll error (non-blocking):", err);
+    }
+  }
+
   const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedTier) return;
@@ -386,6 +407,8 @@ export default function AIMakeMoneyLanding() {
           return;
         }
         setFormStatus("idle");
+        // Returning lead — enroll them under the chosen tier (idempotent)
+        await enrollAimm(selectedTier, formData.name);
         if (selectedTier === "free") setStage("success");
         else setStage("checkout");
         return;
@@ -427,6 +450,9 @@ export default function AIMakeMoneyLanding() {
         setFormStatus("idle");
         return;
       }
+
+      // Enroll into the event email automation
+      await enrollAimm(selectedTier, formData.name);
 
       setFormStatus("idle");
       if (selectedTier === "free") setStage("success");

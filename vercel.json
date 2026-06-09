@@ -16,6 +16,10 @@
     {
       "path": "/api/cron/low-stock-alert",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/aimakemoremoney",
+      "schedule": "*/10 * * * *"
     }
   ],
   "headers": [
