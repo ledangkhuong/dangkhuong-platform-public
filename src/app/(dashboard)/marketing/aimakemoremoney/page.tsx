@@ -150,6 +150,37 @@ export default async function AimmDashboardPage() {
     }
   }
 
+  // Pull CRM UTM as a fallback — every page-tracked lead has UTM there
+  // even if they never reached the AIMM enrollment form.
+  const paidEmails = Array.from(
+    new Set(
+      paid
+        .map((p) => (p.user_id ? userIdToEmail.get(p.user_id) : undefined))
+        .filter((x): x is string => !!x)
+    )
+  );
+  const attendeeEmails = new Set(attendees.map((a) => a.email.toLowerCase()));
+  const fallbackEmails = paidEmails.filter((e) => !attendeeEmails.has(e));
+
+  type CrmUtm = {
+    email: string;
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+  };
+  let crmFallback: CrmUtm[] = [];
+  if (fallbackEmails.length > 0) {
+    const { data: crmRows } = await admin
+      .from("crm_contacts")
+      .select("email, utm_source, utm_medium, utm_campaign")
+      .in("email", fallbackEmails);
+    crmFallback = (crmRows ?? []) as CrmUtm[];
+  }
+  const crmFallbackByEmail = new Map<string, CrmUtm>();
+  for (const r of crmFallback) {
+    if (r.email) crmFallbackByEmail.set(r.email.toLowerCase(), r);
+  }
+
   const paidEmailByProduct = new Map<string, Set<string>>();
   paidEmailByProduct.set(VIP_PRODUCT_ID, new Set());
   paidEmailByProduct.set(VVIP_PRODUCT_ID, new Set());
@@ -175,10 +206,27 @@ export default async function AimmDashboardPage() {
   const totalRevenue = vipPaidTotal + vvipPaidTotal;
   const totalPaidCount = vipPaidEmails.size + vvipPaidEmails.size;
 
-  /* ── Group by UTM source ── */
+  // Helper: resolve a buyer's UTM tuple. Prefers aimm_attendees, falls
+  // back to crm_contacts. Used when bucketing fallback paid orders that
+  // don't have an attendee record (e.g. customer paid before we wired
+  // up the enrollment hook on the form).
+  type UtmTuple = {
+    source: string;
+    medium: string | null;
+    campaign: string | null;
+  };
+  function fallbackUtmForBuyer(email: string): UtmTuple {
+    const c = crmFallbackByEmail.get(email);
+    return {
+      source: (c?.utm_source || "direct").toLowerCase(),
+      medium: c?.utm_medium ?? null,
+      campaign: c?.utm_campaign ?? null,
+    };
+  }
+
+  /* ── Group by UTM source (channel) ── */
   const sourceMap = new Map<string, ChannelRow>();
-  for (const a of attendees) {
-    const src = (a.utm_source || "direct").toLowerCase();
+  function getOrInitChannel(src: string): ChannelRow {
     let row = sourceMap.get(src);
     if (!row) {
       row = {
@@ -195,12 +243,31 @@ export default async function AimmDashboardPage() {
       };
       sourceMap.set(src, row);
     }
+    return row;
+  }
+  for (const a of attendees) {
+    const src = (a.utm_source || "direct").toLowerCase();
+    const row = getOrInitChannel(src);
     row.total++;
     if (a.tier === "free") row.free++;
     else if (a.tier === "vip") row.vip++;
     else row.vvip++;
 
     const email = a.email.toLowerCase();
+    if (vipPaidEmails.has(email)) {
+      row.paidCount++;
+      row.revenue += VIP_PRICE;
+    }
+    if (vvipPaidEmails.has(email)) {
+      row.paidCount++;
+      row.revenue += VVIP_PRICE;
+    }
+  }
+  // Add revenue from paid buyers that aren't in aimm_attendees but DO
+  // have a crm_contacts row — using their CRM UTM as attribution.
+  for (const email of fallbackEmails) {
+    const utm = fallbackUtmForBuyer(email);
+    const row = getOrInitChannel(utm.source);
     if (vipPaidEmails.has(email)) {
       row.paidCount++;
       row.revenue += VIP_PRICE;
@@ -217,17 +284,20 @@ export default async function AimmDashboardPage() {
     (a, b) => b.revenue - a.revenue || b.total - a.total
   );
 
-  /* ── Group by campaign ── */
+  /* ── Group by FULL UTM tuple (source × medium × campaign × content) ── */
   const campaignMap = new Map<string, ChannelRow>();
-  for (const a of attendees) {
-    const camp = a.utm_campaign?.trim() || "(không có campaign)";
-    const key = `${a.utm_source || "direct"}//${camp}`;
+  function getOrInitCampaign(
+    src: string,
+    medium: string | null,
+    campaign: string | null
+  ): ChannelRow {
+    const key = `${src}//${medium || "(none)"}//${campaign || "(none)"}`;
     let row = campaignMap.get(key);
     if (!row) {
       row = {
-        source: a.utm_source || "direct",
-        medium: a.utm_medium,
-        campaign: camp,
+        source: src,
+        medium,
+        campaign,
         total: 0,
         free: 0,
         vip: 0,
@@ -238,12 +308,33 @@ export default async function AimmDashboardPage() {
       };
       campaignMap.set(key, row);
     }
+    return row;
+  }
+  for (const a of attendees) {
+    const row = getOrInitCampaign(
+      (a.utm_source || "direct").toLowerCase(),
+      a.utm_medium,
+      a.utm_campaign
+    );
     row.total++;
     if (a.tier === "free") row.free++;
     else if (a.tier === "vip") row.vip++;
     else row.vvip++;
 
     const email = a.email.toLowerCase();
+    if (vipPaidEmails.has(email)) {
+      row.paidCount++;
+      row.revenue += VIP_PRICE;
+    }
+    if (vvipPaidEmails.has(email)) {
+      row.paidCount++;
+      row.revenue += VVIP_PRICE;
+    }
+  }
+  // Apply same fallback for buyers w/o an attendee
+  for (const email of fallbackEmails) {
+    const utm = fallbackUtmForBuyer(email);
+    const row = getOrInitCampaign(utm.source, utm.medium, utm.campaign);
     if (vipPaidEmails.has(email)) {
       row.paidCount++;
       row.revenue += VIP_PRICE;

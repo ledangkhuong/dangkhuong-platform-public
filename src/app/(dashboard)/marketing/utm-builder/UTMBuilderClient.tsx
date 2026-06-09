@@ -73,6 +73,10 @@ interface RecentLink {
   term: string;
   content: string;
   createdAt: string;
+  // Server-saved links carry the creator name (admin/manager sees
+  // everyone's links, regular staff only sees their own — enforced by
+  // the API + RLS policy on public.utm_links).
+  creatorName?: string;
 }
 
 /* ─── Helpers ───────────────────────────────────────────────────────────────── */
@@ -154,9 +158,54 @@ export default function UTMBuilderClient() {
 
   const outputRef = useRef<HTMLInputElement>(null);
 
-  // Load recent links from localStorage
+  // Load recent links — server first (so admin sees everyone's links),
+  // fall back to localStorage if the API is down so the form still
+  // works offline.
   useEffect(() => {
-    setRecentLinks(loadRecent());
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/utm-links", { cache: "no-store" });
+        if (res.ok) {
+          const data = (await res.json()) as {
+            links: Array<{
+              id: string;
+              url: string;
+              base_url: string;
+              utm_source: string;
+              utm_medium: string | null;
+              utm_campaign: string | null;
+              utm_term: string | null;
+              utm_content: string | null;
+              created_at: string;
+              creator?: { full_name: string | null } | null;
+            }>;
+          };
+          if (cancelled) return;
+          setRecentLinks(
+            data.links.map((l) => ({
+              id: l.id,
+              url: l.url,
+              baseUrl: l.base_url,
+              source: l.utm_source,
+              medium: l.utm_medium ?? "",
+              campaign: l.utm_campaign ?? "",
+              term: l.utm_term ?? "",
+              content: l.utm_content ?? "",
+              createdAt: l.created_at,
+              creatorName: l.creator?.full_name ?? undefined,
+            }))
+          );
+          return;
+        }
+      } catch {
+        // network/server down — fall through to localStorage
+      }
+      if (!cancelled) setRecentLinks(loadRecent());
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Effective values (handle "custom" selections)
@@ -189,11 +238,42 @@ export default function UTMBuilderClient() {
     }
   }, []);
 
-  // Save link to recent
-  const handleSaveLink = useCallback(() => {
+  // Save link to recent (persist to server + cache to localStorage)
+  const handleSaveLink = useCallback(async () => {
     if (!generatedUrl || !isValid) return;
+    let serverId: string | null = null;
+    let serverCreatedAt: string | null = null;
+
+    try {
+      const res = await fetch("/api/utm-links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          base_url: baseUrl,
+          url: generatedUrl,
+          utm_source: effectiveSource,
+          utm_medium: effectiveMedium,
+          utm_campaign: campaign,
+          utm_term: term,
+          utm_content: content,
+        }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          id: string;
+          created_at: string;
+        };
+        serverId = data.id;
+        serverCreatedAt = data.created_at;
+      }
+    } catch {
+      // best-effort — fall through to local cache
+    }
+
     const link: RecentLink = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      id:
+        serverId ??
+        Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       url: generatedUrl,
       baseUrl,
       source: effectiveSource,
@@ -201,11 +281,15 @@ export default function UTMBuilderClient() {
       campaign,
       term,
       content,
-      createdAt: new Date().toISOString(),
+      createdAt: serverCreatedAt ?? new Date().toISOString(),
     };
-    const updated = [link, ...recentLinks.filter((r) => r.url !== generatedUrl)].slice(0, 10);
+    const updated = [link, ...recentLinks.filter((r) => r.url !== generatedUrl)].slice(
+      0,
+      50
+    );
     setRecentLinks(updated);
-    saveRecent(updated);
+    // Keep top 10 in localStorage as a fallback if the API is unreachable
+    saveRecent(updated.slice(0, 10));
     handleCopy(generatedUrl, "url");
   }, [generatedUrl, isValid, baseUrl, effectiveSource, effectiveMedium, campaign, term, content, recentLinks, handleCopy]);
 
@@ -253,11 +337,20 @@ export default function UTMBuilderClient() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Delete a recent link
-  const deleteRecent = (id: string) => {
+  // Delete a recent link — best-effort against the server, then drop
+  // from local state regardless so the UI stays responsive even when
+  // the user is offline.
+  const deleteRecent = async (id: string) => {
+    try {
+      await fetch(`/api/utm-links?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+    } catch {
+      // ignore — the localStorage path below still cleans up
+    }
     const updated = recentLinks.filter((r) => r.id !== id);
     setRecentLinks(updated);
-    saveRecent(updated);
+    saveRecent(updated.slice(0, 10));
   };
 
   // Reset form
@@ -678,7 +771,7 @@ export default function UTMBuilderClient() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ borderBottom: "1px solid #2a2a2a" }}>
-                    {["URL", "Source", "Campaign", "Ngày tạo", ""].map(
+                    {["URL", "Source", "Campaign", "Người tạo", "Ngày tạo", ""].map(
                       (col) => (
                         <th
                           key={col}
@@ -725,6 +818,15 @@ export default function UTMBuilderClient() {
                         <span className="text-gray-300 text-xs">
                           {link.campaign}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {link.creatorName ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#D4A843]/15 text-[#D4A843] whitespace-nowrap">
+                            {link.creatorName}
+                          </span>
+                        ) : (
+                          <span className="text-gray-600 text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-gray-500 text-xs whitespace-nowrap">
