@@ -331,54 +331,11 @@ export function reminderT1hEmail(
   };
 }
 
-/* ─── 4. Recap (after each session, ~22:30) ───────────────────── */
+/* ─── 4. Event Complete (D+1 morning) ────────────────────────── */
 //
-// Note: the "Video xem lại sẽ có trong 24h" promise block was removed
-// per anh Khương's feedback — recap emails no longer make replay
-// commitments. Recap is now: appreciation → next session preview →
-// upgrade CTA (FREE/VIP only) → closing (session 3 only).
-
-export function recapEmail(
-  tier: AimmTier,
-  name: string,
-  sessionNum: SessionNum
-): { subject: string; html: string } {
-  const s = SESSIONS[sessionNum];
-  const isLast = sessionNum === 3;
-  const subject = isLast
-    ? `🎉 Đã xong 3 buổi — cảm ơn ${name} đã đồng hành!`
-    : `💎 Cảm ơn ${name} — Buổi ${sessionNum} đã kết thúc, hẹn buổi tiếp theo`;
-
-  const nextSessionBlock = !isLast
-    ? `<div style="color:#fff;font-weight:700;font-size:14px;margin:18px 0 10px;">👉 Buổi tiếp theo</div>${sessionRowExpanded(
-        (sessionNum + 1) as SessionNum,
-        { highlight: true }
-      )}`
-    : "";
-
-  const closingBlock = isLast
-    ? `<div style="margin:24px 0 0;text-align:center;">
-        <h2 style="color:#D4A843;font-size:18px;font-weight:800;margin:0 0 8px;">🚀 Bắt đầu hành trình của bạn ngay tuần này!</h2>
-        <p style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0 0 14px;">3 buổi đã cho bạn bản đồ. Bước tiếp theo là <strong style="color:#fff;">áp dụng</strong>. Em hẹn gặp bạn trong cộng đồng — chia sẻ kết quả nhé!</p>
-        ${ctaButton(DASHBOARD, "Vào dashboard của tôi")}
-      </div>`
-    : "";
-
-  const content = `
-    <div style="margin-bottom:16px;">${tierBadge(tier)}</div>
-    <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0 0 14px;line-height:1.3;">Cảm ơn ${escapeHtml(name)} đã tham gia <span style="color:#D4A843;">Buổi ${sessionNum}</span> 🙏</h1>
-    <p style="color:#9ca3af;font-size:14px;line-height:1.7;margin:0 0 16px;">Hi vọng bạn đã có những insight giá trị từ buổi <strong style="color:#fff;">"${escapeHtml(s.title)}"</strong>.</p>
-    ${nextSessionBlock}
-    ${tier !== "vvip" && !isLast ? upgradeBlock(tier) : ""}
-    ${closingBlock}
-  `;
-  return {
-    subject,
-    html: wrap(content, `Cảm ơn đã tham gia Buổi ${sessionNum}`),
-  };
-}
-
-/* ─── 5. Event Complete (D+1 morning) ────────────────────────── */
+// Note: Recap-per-session emails (formerly Email 8/9/10) were removed
+// per anh Khương's feedback. The funnel is now:
+//   Welcome → 3× D-1 → 3× T-1h → Event Complete  (8 emails total)
 
 export function eventCompleteEmail(
   tier: AimmTier,

@@ -17,7 +17,6 @@ import { sendEmail } from "@/lib/email/ses";
 import {
   reminderD1Email,
   reminderT1hEmail,
-  recapEmail,
   eventCompleteEmail,
   type AimmTier,
   type SessionNum,
@@ -55,14 +54,8 @@ function t1h(num: SessionNum): StageDef {
   };
 }
 
-function recap(num: SessionNum): StageDef {
-  return {
-    stage: `recap_session${num}`,
-    // Recap fires 30 min after session end (22:30).
-    fireAtIso: `2026-06-${11 + num}T22:30:00+07:00`,
-    build: (tier, name) => recapEmail(tier, name, num),
-  };
-}
+// Recap-per-session emails were removed per anh Khương's feedback.
+// The funnel is now Welcome → 3× D-1 → 3× T-1h → Event Complete.
 
 const SCHEDULE: StageDef[] = [
   d1(1),
@@ -71,9 +64,6 @@ const SCHEDULE: StageDef[] = [
   t1h(1),
   t1h(2),
   t1h(3),
-  recap(1),
-  recap(2),
-  recap(3),
   {
     stage: "event_complete",
     // Morning after the last session (15/06 08:00).
