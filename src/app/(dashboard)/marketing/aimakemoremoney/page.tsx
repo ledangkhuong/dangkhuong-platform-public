@@ -68,7 +68,7 @@ interface Attendee {
 
 interface PaidRow {
   product_id: string;
-  email: string | null;
+  user_id: string | null;
   amount: number;
 }
 
@@ -114,13 +114,41 @@ export default async function AimmDashboardPage() {
     .order("created_at", { ascending: false });
   const attendees: Attendee[] = (rawAttendees ?? []) as Attendee[];
 
-  /* ── Pull paid orders for the 3 AIMM products ── */
+  /* ── Pull paid orders for the 3 AIMM products ──
+   *
+   * The orders table has no email column — payments are linked to
+   * users by user_id. Attendees, on the other hand, may or may not
+   * have user_id populated (enroll() doesn't always have it on the
+   * client). So we resolve every paid order's user_id → email via
+   * auth.users, then match attendees by email.
+   */
   const { data: paidOrders } = await admin
     .from("orders")
-    .select("product_id, email, amount")
+    .select("product_id, user_id, amount")
     .in("product_id", [VIP_PRODUCT_ID, VVIP_PRODUCT_ID])
     .eq("status", "paid");
   const paid: PaidRow[] = (paidOrders ?? []) as PaidRow[];
+
+  // Resolve user_id → email so we can match against aimm_attendees.email
+  const uniqueUserIds = Array.from(
+    new Set(paid.map((p) => p.user_id).filter((x): x is string => !!x))
+  );
+  const userIdToEmail = new Map<string, string>();
+  if (uniqueUserIds.length > 0) {
+    // No batch fetch on auth.admin — fan out a bit
+    const lookups = await Promise.allSettled(
+      uniqueUserIds.map((uid) => admin.auth.admin.getUserById(uid))
+    );
+    for (let i = 0; i < uniqueUserIds.length; i++) {
+      const r = lookups[i];
+      if (r.status === "fulfilled" && r.value.data?.user?.email) {
+        userIdToEmail.set(
+          uniqueUserIds[i],
+          r.value.data.user.email.toLowerCase()
+        );
+      }
+    }
+  }
 
   const paidEmailByProduct = new Map<string, Set<string>>();
   paidEmailByProduct.set(VIP_PRODUCT_ID, new Set());
@@ -128,9 +156,10 @@ export default async function AimmDashboardPage() {
   let vipPaidTotal = 0;
   let vvipPaidTotal = 0;
   for (const o of paid) {
-    if (!o.email) continue;
-    const e = o.email.toLowerCase();
-    paidEmailByProduct.get(o.product_id)?.add(e);
+    if (!o.user_id) continue;
+    const email = userIdToEmail.get(o.user_id);
+    if (!email) continue;
+    paidEmailByProduct.get(o.product_id)?.add(email);
     if (o.product_id === VIP_PRODUCT_ID) vipPaidTotal += o.amount ?? VIP_PRICE;
     else if (o.product_id === VVIP_PRODUCT_ID) vvipPaidTotal += o.amount ?? VVIP_PRICE;
   }
