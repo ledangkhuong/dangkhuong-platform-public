@@ -12,6 +12,8 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+import CopyablePhone from "@/components/crm/CopyablePhone";
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface SaleRep {
@@ -45,6 +47,7 @@ interface UnassignedContact {
   id: string;
   full_name: string;
   email: string | null;
+  phone: string | null;
   source: string | null;
   created_at: string;
 }
@@ -370,7 +373,7 @@ export default async function AssignmentsPage() {
     // Unassigned contacts for manual assign (up to 20)
     admin
       .from("crm_contacts")
-      .select("id, full_name, email, source, created_at")
+      .select("id, full_name, email, phone, source, created_at")
       .is("assigned_to", null)
       .order("created_at", { ascending: false })
       .limit(20),
@@ -741,6 +744,11 @@ export default async function AssignmentsPage() {
                       <p className="text-xs text-gray-500 truncate">
                         {contact.email || "Không có email"} {contact.source && `• ${contact.source}`}
                       </p>
+                      {contact.phone && (
+                        <div className="mt-1">
+                          <CopyablePhone phone={contact.phone} compact />
+                        </div>
+                      )}
                     </div>
                     <span className="text-xs text-gray-500">
                       {formatDate(contact.created_at)}

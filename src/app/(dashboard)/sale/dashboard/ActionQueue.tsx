@@ -29,6 +29,7 @@ import {
   Hourglass,
 } from "lucide-react";
 import type { ActionQueueItem } from "@/lib/sale-kpi";
+import CopyablePhone from "@/components/crm/CopyablePhone";
 
 interface ActionQueueProps {
   overdue: ActionQueueItem[];
@@ -165,7 +166,7 @@ function ActionRow({ item }: { item: ActionQueueItem }) {
           {item.description}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
-          {item.phone ? <span>{item.phone}</span> : null}
+          {item.phone ? <CopyablePhone phone={item.phone} compact /> : null}
           {item.amount && item.amount > 0 ? (
             <span className="font-semibold text-[#D4A843]">
               {item.amount.toLocaleString("vi-VN")}đ

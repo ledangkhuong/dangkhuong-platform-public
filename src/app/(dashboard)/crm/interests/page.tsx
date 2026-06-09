@@ -7,6 +7,7 @@ import Link from "next/link";
 import UserAvatar from "@/components/admin/UserAvatar";
 import InterestActions from "./InterestActions";
 import InterestAssignSelect from "./InterestAssignSelect";
+import CopyablePhone from "@/components/crm/CopyablePhone";
 import {
   Eye,
   Clock,
@@ -450,18 +451,12 @@ export default async function CRMInterestsPage({
                             Lv.{customer.level}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
                           <span className="truncate">{customer.email}</span>
                           {customer.phone && (
                             <>
                               <span className="text-gray-700">·</span>
-                              <a
-                                href={`tel:${customer.phone}`}
-                                className="flex items-center gap-0.5 text-green-500 hover:text-green-400 transition-colors flex-shrink-0"
-                              >
-                                <Phone size={10} />
-                                {customer.phone}
-                              </a>
+                              <CopyablePhone phone={customer.phone} compact />
                             </>
                           )}
                         </div>

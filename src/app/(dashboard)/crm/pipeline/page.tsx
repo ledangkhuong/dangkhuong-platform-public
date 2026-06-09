@@ -5,6 +5,7 @@ import { getSalesUsers, type SalesUser } from "@/lib/sales";
 import { getViewerScope } from "@/lib/viewer-scope";
 import { redirect } from "next/navigation";
 import DealAssignSelect from "./DealAssignSelect";
+import CopyablePhone from "@/components/crm/CopyablePhone";
 import {
   Plus,
   CircleDollarSign,
@@ -28,7 +29,7 @@ interface Deal {
   expected_close_date: string | null;
   notes: string | null;
   assigned_to: string | null;
-  contacts: { full_name: string; email: string | null } | null;
+  contacts: { full_name: string; email: string | null; phone: string | null } | null;
   products: { title: string } | null;
   assigned_profile: { full_name: string } | null;
 }
@@ -101,9 +102,17 @@ function DealCard({
       <p className="text-sm font-semibold text-white truncate">{deal.title}</p>
 
       {deal.contacts && (
-        <p className="text-xs text-gray-400 mt-1 truncate">
-          {deal.contacts.full_name}
-        </p>
+        <div className="mt-1">
+          <p className="text-xs text-gray-400 truncate">
+            {deal.contacts.full_name}
+          </p>
+          {/* Phone right under the customer name — quick copy for sales */}
+          {deal.contacts.phone && (
+            <div className="mt-0.5">
+              <CopyablePhone phone={deal.contacts.phone} compact />
+            </div>
+          )}
+        </div>
       )}
 
       <div className="flex items-center justify-between mt-2">
@@ -171,7 +180,7 @@ export default async function PipelinePage({
   let dealsQuery = admin
     .from("crm_deals")
     .select(
-      "*, contacts:contact_id(full_name, email), products:product_id(title), assigned_profile:assigned_to(full_name)"
+      "*, contacts:contact_id(full_name, email, phone), products:product_id(title), assigned_profile:assigned_to(full_name)"
     )
     .order("created_at", { ascending: false });
   if (scope.isSale) {

@@ -13,7 +13,7 @@ import { DataTable, type ColumnDef } from "@/components/ui/DataTable";
 import ContactAssignSelect from "./ContactAssignSelect";
 import StatusInlineSelect from "./StatusInlineSelect";
 import SourceInlineSelect from "./SourceInlineSelect";
-import CopyablePhone from "./CopyablePhone";
+import CopyablePhone from "@/components/crm/CopyablePhone";
 import type { SalesUser } from "@/lib/sales";
 
 /* ---------- Types ---------- */
